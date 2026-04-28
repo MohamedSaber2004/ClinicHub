@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	<TargetFramework>net10.0</TargetFramework>
+	<ImplicitUsings>enable</ImplicitUsings>
+	<Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+	<PackageReference Include="Asp.Versioning.Http" Version="8.1.1" />
+	<PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.1" />
+	<PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="9.0.0" />
+	<PackageReference Include="AspNetCore.HealthChecks.System" Version="9.0.0" />
+	<PackageReference Include="AutoMapper" Version="16.1.1" />
+	<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+	<PackageReference Include="Google.Apis.Auth" Version="1.73.0" />
+	<PackageReference Include="MediatR" Version="14.1.0" />
+	<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.9" />
+	<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.6" />
+	<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.6" />
+	<PackageReference Include="Microsoft.Extensions.Identity.Core" Version="10.0.6" />
+	<PackageReference Include="Microsoft.Extensions.Localization.Abstractions" Version="10.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<ProjectReference Include="..\ClinicHub.Domain\ClinicHub.Domain.csproj" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="Realtime-Hubs\" />
+	</ItemGroup>
+
+	<!-- Include JSON localization files for multi-language support (Arabic & English) -->
+	<ItemGroup>
+	  <None Update="Localization\Resources\messages.en.json">
+		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Localization\Resources\messages.ar.json">
+		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
+	<!-- Disable satellite assembly generation for .NET 10 -->
+	<PropertyGroup>
+		<GenerateSatelliteAssembliesOnBuild>false</GenerateSatelliteAssembliesOnBuild>
+		<SkipSatelliteCheck>true</SkipSatelliteCheck>
+	</PropertyGroup>
+
+</Project>

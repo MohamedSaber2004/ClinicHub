@@ -1,0 +1,105 @@
+using ClinicHub.Application.Common.Exceptions;
+using ClinicHub.Application.Common.Interfaces;
+using ClinicHub.Application.Common.Models;
+using ClinicHub.Application.Features.Auth.DTOs;
+using ClinicHub.Application.Localization;
+using ClinicHub.Domain.Entities;
+using ClinicHub.Domain.Enums;
+using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
+using MediatR;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Options;
+
+namespace ClinicHub.Application.Features.Auth.Commands.CompleteFacebookRegistration
+{
+    public sealed class CompleteFacebookRegistrationCommandHandler : IRequestHandler<CompleteFacebookRegistrationCommand, AuthResponseDto>
+    {
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IFacebookAuth _facebookAuth;
+        private readonly IJwtTokenService _jwtTokenService;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly JwtSettings _jwtSettings;
+        private readonly IStringLocalizer<Messages> _localizer;
+
+        public CompleteFacebookRegistrationCommandHandler(
+            UserManager<ApplicationUser> userManager,
+            IFacebookAuth facebookAuth,
+            IJwtTokenService jwtTokenService,
+            IUnitOfWork unitOfWork,
+            IOptions<JwtSettings> jwtSettings,
+            IStringLocalizer<Messages> localizer)
+        {
+            _userManager = userManager;
+            _facebookAuth = facebookAuth;
+            _jwtTokenService = jwtTokenService;
+            _unitOfWork = unitOfWork;
+            _jwtSettings = jwtSettings.Value;
+            _localizer = localizer;
+        }
+
+        public async Task<AuthResponseDto> Handle(CompleteFacebookRegistrationCommand request, CancellationToken cancellationToken)
+        {
+            var isValid = await _facebookAuth.IsValidFacebookTokenAsync(request.AccessToken, cancellationToken);
+            if (!isValid)
+                throw new UnAuthorizedException(_localizer[LocalizationKeys.AuthMessages.InvalidFacebookToken.Value]);
+
+            var fbUserInfo = await _facebookAuth.GetFacebookUserInfoAsync(request.AccessToken, cancellationToken);
+            if (fbUserInfo == null)
+                throw new UnAuthorizedException(_localizer[LocalizationKeys.AuthMessages.FacebookUserInfoError.Value]);
+
+            var user = await _userManager.FindByEmailAsync(request.Email);
+
+            if (user == null)
+            {
+                user = ApplicationUser.Create(
+                    $"{fbUserInfo.FirstName} {fbUserInfo.LastName}".Trim(),
+                    request.Email,
+                    string.Empty,
+                    DateTime.Now.AddYears(-15),
+                    Gender.other
+                );
+                user.SetFacebookUserId(fbUserInfo.Id);
+
+                var createResult = await _userManager.CreateAsync(user);
+                if (!createResult.Succeeded)
+                    throw new BadRequestException(_localizer[LocalizationKeys.AuthMessages.FacebookUserCreationFailed.Value]);
+
+                await _userManager.AddToRoleAsync(user, UserType.User.ToString());
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(user.FacebookUserId))
+                {
+                    user.SetFacebookUserId(fbUserInfo.Id);
+                    await _userManager.UpdateAsync(user);
+                }
+                else if (user.FacebookUserId != fbUserInfo.Id)
+                {
+                    throw new BadRequestException("This email is already linked to another Facebook account.");
+                }
+            }
+
+            var roles = await _userManager.GetRolesAsync(user);
+            var accessToken = _jwtTokenService.GenerateAccessToken(user, roles);
+
+            var existingToken = await _unitOfWork.UserRefreshTokenRepository
+                .GetFirstAsync(x => x.UserId == user.Id && !x.IsRevoked && x.ExpiryDate > DateTime.UtcNow, cancellationToken);
+
+            string refreshToken;
+            if (existingToken != null)
+            {
+                refreshToken = existingToken.Token;
+            }
+            else
+            {
+                refreshToken = _jwtTokenService.GenerateRefreshToken(user);
+                var userRefreshToken = UserRefreshToken.Create(user.Id, refreshToken, DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays));
+                await _unitOfWork.UserRefreshTokenRepository.AddAsync(userRefreshToken);
+                await _unitOfWork.SaveChangesAsync();
+            }
+
+            return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, user.Id, null);
+        }
+    }
+}

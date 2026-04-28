@@ -1,0 +1,297 @@
+Folder PATH listing for volume Mohamed
+Volume serial number is 4FFB-C250
+E:.
+|   .gitignore
+|   ClinicHub.slnx
+|   global.json
+|   GlobalRules_File.md
+|   project_structure.txt
+|   README.md
+|   
++---.github
+|   \---workflows
++---ClinicHub.API
+|   |   appsettings.Development.json
+|   |   appsettings.json
+|   |   appsettings.Production.json
+|   |   appsettings.Test.json
+|   |   ClinicHub.API.csproj
+|   |   ClinicHub.API.csproj.user
+|   |   ClinicHub.API.http
+|   |   Program.cs
+|   |   
+|   +---Controllers
+|   |       AuthController.cs
+|   |       BaseApiController.cs
+|   |       CommentsController.cs
+|   |       PostsController.cs
+|   |       
+|   +---Filters
+|   |       ApiExceptionFilterAttribute.cs
+|   |       
+|   +---Logs
+|   |       log-20260414.txt
+|   |       log-20260415.txt
+|   |       log-20260418.txt
+|   |       log-20260419.txt
+|   |       
+|   +---Properties
+|   |   |   launchSettings.json
+|   |   |   
+|   |   \---PublishProfiles
+|   |           site63402-WebDeploy.pubxml
+|   |           site63402-WebDeploy.pubxml.user
+|   |           
+|   +---Routes
+|   |       ApiRoutes.cs
+|   |       
+|   +---Services
+|   |       CurrentUserService.cs
+|   |       
+|   \---wwwroot
+|       +---css
+|       \---js
++---ClinicHub.Application
+|   |   ClinicHub.Application.csproj
+|   |   DependencyInjection.cs
+|   |   
+|   +---Common
+|   |   +---Behaviours
+|   |   |       PerformanceBehaviour.cs
+|   |   |       UnhandledExceptionBehaviour.cs
+|   |   |       ValidationBehaviour.cs
+|   |   |       
+|   |   +---Exceptions
+|   |   |       BadRequestException.cs
+|   |   |       NotFoundException.cs
+|   |   |       UnAuthorizedException.cs
+|   |   |       ValidationException.cs
+|   |   |       
+|   |   +---Extensions
+|   |   |       PaginatorExtensions.cs
+|   |   |       ToGuidExtension.cs
+|   |   |       WhereIfExtension.cs
+|   |   |       
+|   |   +---Interfaces
+|   |   |       IClinicHubContext.cs
+|   |   |       ICurrentUserService.cs
+|   |   |       IEmailService.cs
+|   |   |       IJwtTokenService.cs
+|   |   |       
+|   |   +---Models
+|   |   |       ApiResponse.cs
+|   |   |       EmailSettings.cs
+|   |   |       IdentityModel.cs
+|   |   |       JwtSettings.cs
+|   |   |       PagginatedResult.cs
+|   |   |       Result.cs
+|   |   |       SeedingSettings.cs
+|   |   |       
+|   |   \---Services
+|   +---Features
+|   |   +---Auth
+|   |   |   +---Commands
+|   |   |   |   +---ForgetPassword
+|   |   |   |   |       ForgetPasswordCommand.cs
+|   |   |   |   |       ForgetPasswordCommandHandler.cs
+|   |   |   |   |       ForgetPasswordCommandValidator.cs
+|   |   |   |   |       
+|   |   |   |   +---Login
+|   |   |   |   |       LoginCommand.cs
+|   |   |   |   |       LoginCommandHandler.cs
+|   |   |   |   |       LoginCommandValidator.cs
+|   |   |   |   |       
+|   |   |   |   +---RefreshToken
+|   |   |   |   |       RefreshTokenCommand.cs
+|   |   |   |   |       RefreshTokenCommandHandler.cs
+|   |   |   |   |       RefreshTokenCommandValidator.cs
+|   |   |   |   |       
+|   |   |   |   +---ResetPassword
+|   |   |   |   |       ResetPasswordCommand.cs
+|   |   |   |   |       ResetPasswordCommandHandler.cs
+|   |   |   |   |       ResetPasswordCommandValidator.cs
+|   |   |   |   |       
+|   |   |   |   +---Signup
+|   |   |   |   |       SignupCommand.cs
+|   |   |   |   |       SignupCommandHandler.cs
+|   |   |   |   |       SignupCommandValidator.cs
+|   |   |   |   |       
+|   |   |   |   \---VerifyResetToken
+|   |   |   |           VerifyResetTokenCommand.cs
+|   |   |   |           VerifyResetTokenCommandHandler.cs
+|   |   |   |           VerifyResetTokenCommandValidator.cs
+|   |   |   |           
+|   |   |   +---DTOs
+|   |   |   |       AuthDto.cs
+|   |   |   |       
+|   |   |   \---Queries
+|   |   |       \---GetUserProfile
+|   |   |               GetUserProfileQuery.cs
+|   |   |               GetUserProfileQueryHandler.cs
+|   |   |               GetUserProfileQueryValidator.cs
+|   |   |               
+|   |   +---Comments
+|   |   |   +---Commands
+|   |   |   |   +---AddComment
+|   |   |   |   |       AddCommentCommand.cs
+|   |   |   |   |       AddCommentCommandHandler.cs
+|   |   |   |   |       
+|   |   |   |   +---DeleteComment
+|   |   |   |   |       DeleteCommentCommand.cs
+|   |   |   |   |       DeleteCommentCommandHandler.cs
+|   |   |   |   |       
+|   |   |   |   +---ToggleCommentReaction
+|   |   |   |   |       ToggleCommentReactionCommand.cs
+|   |   |   |   |       ToggleCommentReactionCommandHandler.cs
+|   |   |   |   |       
+|   |   |   |   \---UpdateComment
+|   |   |   |           UpdateCommentCommand.cs
+|   |   |   |           UpdateCommentCommandHandler.cs
+|   |   |   |           
+|   |   |   +---DTOs
+|   |   |   |       CommentDto.cs
+|   |   |   |       
+|   |   |   \---Queries
+|   |   |       +---GetAllCommentsPagginated
+|   |   |       |       GetAllCommentsPagginatedQuery.cs
+|   |   |       |       GetAllCommentsPagginatedQueryHandler.cs
+|   |   |       |       
+|   |   |       +---GetCommentReactions
+|   |   |       |       GetCommentReactionsQuery.cs
+|   |   |       |       GetCommentReactionsQueryHandler.cs
+|   |   |       |       
+|   |   |       +---GetCommentReplies
+|   |   |       |       GetCommentRepliesQuery.cs
+|   |   |       |       GetCommentRepliesQueryHandler.cs
+|   |   |       |       
+|   |   |       \---GetCommentsByPost
+|   |   |               GetCommentsByPostQuery.cs
+|   |   |               GetCommentsByPostQueryHandler.cs
+|   |   |               
+|   |   \---Posts
+|   |       +---Commands
+|   |       |   +---CreatePost
+|   |       |   |       CreatePostCommand.cs
+|   |       |   |       CreatePostCommandHandler.cs
+|   |       |   |       
+|   |       |   +---DeletePost
+|   |       |   |       DeletePostCommand.cs
+|   |       |   |       DeletePostCommandHandler.cs
+|   |       |   |       
+|   |       |   +---TogglePostReaction
+|   |       |   |       TogglePostReactionCommand.cs
+|   |       |   |       TogglePostReactionCommandHandler.cs
+|   |       |   |       
+|   |       |   \---UpdatePost
+|   |       |           UpdatePostCommand.cs
+|   |       |           UpdatePostCommandHandler.cs
+|   |       |           
+|   |       +---DTOs
+|   |       |       MediaDto.cs
+|   |       |       PostDto.cs
+|   |       |       ReactionDto.cs
+|   |       |       
+|   |       \---Queries
+|   |           +---GetPostById
+|   |           |       GetPostByIdQuery.cs
+|   |           |       GetPostByIdQueryHandler.cs
+|   |           |       
+|   |           +---GetPostReactions
+|   |           |       GetPostReactionsQuery.cs
+|   |           |       GetPostReactionsQueryHandler.cs
+|   |           |       
+|   |           \---GetPostsPagginated
+|   |                   GetPostsQueryPagginated.cs
+|   |                   GetPostsQueryPagginatedHandler.cs
+|   |                   
+|   +---HealthCheck
+|   |       CustomHealthCheck.cs
+|   |       DatabaseHealthCheck.cs
+|   |       DiskSpaceHealthCheck.cs
+|   |       HealthCheckResponseWriter.cs
+|   |       
+|   +---Localization
+|   |   |   JsonLocalizationProvider.cs
+|   |   |   KeyString.cs
+|   |   |   KeyStringJsonConverter.cs
+|   |   |   LocalizationKeys.cs
+|   |   |   LocalizationManager.cs
+|   |   |   Messages.cs
+|   |   |   
+|   |   \---Resources
+|   |           messages.ar.json
+|   |           messages.en.json
+|   |           
+|   +---Mappers
+|   \---Realtime-Hubs
++---ClinicHub.Domain
+|   |   ClinicHub.Domain.csproj
+|   |   
+|   +---Common
+|   |   |   BaseEntity.cs
+|   |   |   
+|   |   \---Interfaces
+|   |           IBaseEntity.cs
+|   |           
+|   +---Entities
+|   |       ApplicationUser.cs
+|   |       Comment.cs
+|   |       Media.cs
+|   |       Post.cs
+|   |       Reaction.cs
+|   |       
+|   +---Enums
+|   |       MediaType.cs
+|   |       ReactionType.cs
+|   |       UserType.cs
+|   |       
+|   \---Repositories
+|       \---Interfaces
+|           |   ICommentRepository.cs
+|           |   IPostRepository.cs
+|           |   
+|           \---Base
+|                   IGenericRepository.cs
+|                   IUnitOfWork.cs
+|                   
++---ClinicHub.Infrastructure
+|   |   ClinicHub.Infrastructure.csproj
+|   |   DependencyInjection.cs
+|   |   
+|   +---Models
+|   +---Repositories
+|   |   \---Implementations
+|   |       |   CommentRepository.cs
+|   |       |   PostRepository.cs
+|   |       |   
+|   |       \---Base
+|   |               GenericRepository.cs
+|   |               UnitOfWork.cs
+|   |               
+|   \---Services
+|           EmailService.cs
+|           JwtTokenService.cs
+|           
+\---ClinicHub.Persistence
+    |   ClinicHub.Persistence.csproj
+    |   ClinicHubContext.cs
+    |   DependencyInjection.cs
+    |   
+    +---Configuration
+    |       ApplicationUserConfiguration.cs
+    |       CommentConfiguration.cs
+    |       MediaConfiguration.cs
+    |       PostConfiguration.cs
+    |       ReactionConfiguration.cs
+    |       
+    +---Migrations
+    |       20260418135841_AddSocialMediaSoftDeleteFilters.cs
+    |       20260418135841_AddSocialMediaSoftDeleteFilters.Designer.cs
+    |       20260418232041_AddUserContactAndBirthday.cs
+    |       20260418232041_AddUserContactAndBirthday.Designer.cs
+    |       ClinicHubContextModelSnapshot.cs
+    |       
+    \---Seeders
+            DataSeeder.cs
+            RoleSeeder.cs
+            

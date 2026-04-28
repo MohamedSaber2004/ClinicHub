@@ -1,0 +1,84 @@
+{
+  "ActionResults": {
+    "Ok": "تمت العملية بنجاح",
+    "Created": "تم الإنشاء بنجاح",
+    "Accepted": "تم القبول بنجاح",
+    "Deleted": "تم الحذف بنجاح"
+  },
+  "Exceptions": {
+    "Validation": "فشل التحقق",
+    "InvalidModelState": "حالة نموذج غير صحيحة",
+    "NotFound": "المورد غير موجود",
+    "BadRequest": "طلب غير صحيح",
+    "Unauthorized": "الوصول غير مصرح",
+    "UnknownError": "حدث خطأ غير معروف"
+  },
+  "Validation": {
+    "Required": "{PropertyName} مطلوب",
+    "MinLength": "{PropertyName} يجب أن يكون على الأقل {MinLength} أحرف",
+    "MaxLength": "{PropertyName} يجب ألا يتجاوز {MaxLength} أحرف",
+    "InvalidFormat": "صيغة {PropertyName} غير صحيحة",
+    "InvalidEmail": "عنوان البريد الإلكتروني غير صحيح",
+    "InvalidEnumValue": "{PropertyName} يحتوي على قيمة غير صالحة",
+    "MediaUrlsAndTypesMismatch": "عدد عناوين الوسائط لا يتطابق مع عدد أنواع الوسائط",
+    "MinAge": "يجب أن يكون العمر علي الأقل 15 سنة."
+  },
+  "Messages": {
+    "Success": "تم إكمال العملية بنجاح",
+    "Error": "حدث خطأ",
+    "Warning": "تحذير",
+    "Info": "معلومات"
+  },
+  "Posts": {
+    "NotFound": "المنشور غير موجود",
+    "Created": "تم إنشاء المنشور بنجاح",
+    "Updated": "تم تحديث المنشور بنجاح",
+    "Deleted": "تم حذف المنشور بنجاح"
+  },
+  "Comments": {
+    "NotFound": "التعليق غير موجود",
+    "Created": "تمت إضافة التعليق بنجاح",
+    "Updated": "تم تحديث التعليق بنجاح",
+    "Deleted": "تم حذف التعليق بنجاح"
+  },
+  "Reactions": {
+    "Toggled": "تم تبديل التفاعل بنجاح"
+  },
+  "Auth": {
+    "SignupSuccess": "تم إنشاء الحساب بنجاح",
+    "LoginSuccess": "تم تسجيل الدخول بنجاح",
+    "InvalidCredentials": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+    "EmailAlreadyExists": "هذا البريد الإلكتروني مسجل بالفعل",
+    "UserNotFound": "المستخدم غير موجود",
+    "WeakPassword": "كلمة المرور ضعيفة. يرجى استخدام مزيج أقوى من الحروف والأرقام والرموز.",
+    "ResetTokenSent": "تم إرسال تعليمات إعادة تعيين كلمة المرور إلى بريدك الإلكتروني",
+    "ResetTokenInvalid": "رمز إعادة التعيين غير صالح أو منتهي الصلاحية",
+    "PasswordResetSuccess": "تم إعادة تعيين كلمة المرور بنجاح",
+    "TokenValid": "الرمز صالح",
+    "PasswordMismatch": "كلمتا المرور غير متطابقتين",
+    "RefreshTokenInvalid": "رمز التحديث غير صالح أو منتهي الصلاحية",
+    "TokenRefreshed": "تم تحديث الرمز بنجاح",
+    "AccountNotVerified": "حسابك غير مفعل. يرجى تفعيل البريد الإلكتروني.",
+    "InvalidVerificationCode": "رمز التحقق غير صحيح أو منتهي الصلاحية.",
+    "VerificationSuccess": "تم تفعيل الحساب بنجاح.",
+    "ProfileUpdated": "تم تحديث الملف الشخصي بنجاح.",
+    "LanguageUpdated": "تم تحديث اللغة بنجاح.",
+    "InvalidFacebookToken": "رمز فيسبوك غير صالح.",
+    "FacebookUserInfoError": "تعذر الحصول على معلومات المستخدم من فيسبوك.",
+    "FacebookUserCreationFailed": "فشل إنشاء مستخدم من معلومات فيسبوك.",
+    "FacebookTokenRequired": "رمز الوصول لفيسبوك مطلوب.",
+    "FacebookEmailRequired": "البريد الإلكتروني مطلوب لإكمال التسجيل عبر فيسبوك.",
+    "InvalidGoogleToken": "رمز جوجل غير صالح.",
+    "GoogleUserInfoError": "تعذر الحصول على معلومات المستخدم من جوجل.",
+    "GoogleUserCreationFailed": "فشل إنشاء مستخدم من معلومات جوجل.",
+    "GoogleTokenRequired": "رمز معرف جوجل مطلوب.",
+    "GoogleEmailRequired": "البريد الإلكتروني مطلوب لإكمال التسجيل عبر جوجل.",
+    "InvalidEmail": "البريد الإلكتروني غير صالح.",
+    "MustBeGmail": "يجب أن يكون الدومين الخاص بالبريد الإلكتروني @gmail.com"
+  },
+  "Clinics": {
+    "InvalidLatitude": "يجب أن يكون خط العرض بين -90 و 90",
+    "InvalidLongitude": "يجب أن يكون خط الطول بين -180 و 180",
+    "InvalidRadius": "يجب أن يكون نصف قطر البحث بين 0.1 و 5 كم"
+  }
+}

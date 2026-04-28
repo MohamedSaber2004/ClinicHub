@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="ClinicHub.API/ClinicHub.API.csproj" />
+  <Project Path="ClinicHub.Application/ClinicHub.Application.csproj" />
+  <Project Path="ClinicHub.Domain/ClinicHub.Domain.csproj" />
+  <Project Path="ClinicHub.Infrastructure/ClinicHub.Infrastructure.csproj" />
+  <Project Path="ClinicHub.Persistence/ClinicHub.Persistence.csproj" />
+</Solution>

@@ -1,0 +1,84 @@
+{
+  "ActionResults": {
+    "Ok": "The operation was successful",
+    "Created": "Created successfully",
+    "Accepted": "Accepted successfully",
+    "Deleted": "Deleted successfully"
+  },
+  "Exceptions": {
+    "Validation": "Validation failed",
+    "InvalidModelState": "Invalid model state",
+    "NotFound": "Resource not found",
+    "BadRequest": "Bad request",
+    "Unauthorized": "Unauthorized access",
+    "UnknownError": "An unknown error occurred"
+  },
+  "Validation": {
+    "Required": "{PropertyName} is required",
+    "MinLength": "{PropertyName} must be at least {MinLength} characters",
+    "MaxLength": "{PropertyName} must not exceed {MaxLength} characters",
+    "InvalidFormat": "{PropertyName} format is invalid",
+    "InvalidEmail": "Email address is invalid",
+    "InvalidEnumValue": "{PropertyName} has an invalid value",
+    "MediaUrlsAndTypesMismatch": "MediaUrls and MediaTypes must be of the same length if provided.",
+    "MinAge": "Age must be at least 15 years old"
+  },
+  "Messages": {
+    "Success": "Operation completed successfully",
+    "Error": "An error occurred",
+    "Warning": "Warning",
+    "Info": "Information"
+  },
+  "Posts": {
+    "NotFound": "Post not found",
+    "Created": "Post created successfully",
+    "Updated": "Post updated successfully",
+    "Deleted": "Post deleted successfully"
+  },
+  "Comments": {
+    "NotFound": "Comment not found",
+    "Created": "Comment added successfully",
+    "Updated": "Comment updated successfully",
+    "Deleted": "Comment deleted successfully"
+  },
+  "Reactions": {
+    "Toggled": "Reaction toggled successfully"
+  },
+  "Auth": {
+    "SignupSuccess": "Account created successfully",
+    "LoginSuccess": "Logged in successfully",
+    "InvalidCredentials": "Invalid email or password",
+    "WeakPassword": "For your security, please choose a stronger password. We recommend combining letters, numbers, and symbols.",
+    "EmailAlreadyExists": "This email address is already registered",
+    "UserNotFound": "User not found",
+    "ResetTokenSent": "Password reset instructions have been sent to your email",
+    "ResetTokenInvalid": "The reset token is invalid or has expired",
+    "PasswordResetSuccess": "Password reset successfully",
+    "TokenValid": "Token is valid",
+    "PasswordMismatch": "Passwords do not match",
+    "RefreshTokenInvalid": "Refresh token is invalid or has expired",
+    "TokenRefreshed": "Token refreshed successfully",
+    "AccountNotVerified": "Your account is not verified. Please verify your email.",
+    "InvalidVerificationCode": "Invalid or expired verification code.",
+    "VerificationSuccess": "Account verified successfully.",
+    "ProfileUpdated": "Profile updated successfully.",
+    "LanguageUpdated": "Language updated successfully.",
+    "InvalidFacebookToken": "Invalid Facebook token.",
+    "FacebookUserInfoError": "Unable to retrieve user information from Facebook.",
+    "FacebookUserCreationFailed": "Failed to create user from Facebook information.",
+    "FacebookTokenRequired": "Facebook Access Token is required.",
+    "FacebookEmailRequired": "Email is required to complete Facebook registration.",
+    "InvalidGoogleToken": "Invalid Google token.",
+    "GoogleUserInfoError": "Unable to retrieve user information from Google.",
+    "GoogleUserCreationFailed": "Failed to create user from Google information.",
+    "GoogleTokenRequired": "Google ID Token is required.",
+    "GoogleEmailRequired": "Email is required to complete Google registration.",
+    "InvalidEmail": "Invalid email address",
+    "MustBeGmail": "Email must be a @gmail.com address"
+  },
+  "Clinics": {
+    "InvalidLatitude": "Latitude must be between -90 and 90",
+    "InvalidLongitude": "Longitude must be between -180 and 180",
+    "InvalidRadius": "Search radius must be between 0.1 and 5 km"
+  }
+}
