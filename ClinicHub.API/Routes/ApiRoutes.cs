@@ -20,6 +20,7 @@ namespace ClinicHub.API.Routes
             public const string Profile = Base + "/auth/profile";
             public const string UpdateProfile = Base + "/auth/profile/update";
             public const string UpdateLanguage = Base + "/auth/language/update";
+            public const string Logout = Base + "/auth/logout";
         }
 
         public static class Posts

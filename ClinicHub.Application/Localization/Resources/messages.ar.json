@@ -74,7 +74,9 @@
     "GoogleTokenRequired": "رمز معرف جوجل مطلوب.",
     "GoogleEmailRequired": "البريد الإلكتروني مطلوب لإكمال التسجيل عبر جوجل.",
     "InvalidEmail": "البريد الإلكتروني غير صالح.",
-    "MustBeGmail": "يجب أن يكون الدومين الخاص بالبريد الإلكتروني @gmail.com"
+    "MustBeGmail": "يجب أن يكون الدومين الخاص بالبريد الإلكتروني @gmail.com",
+    "LogoutSuccess": "تم تسجيل الخروج بنجاح",
+    "RefreshTokenRequired": "رمز التحديث مطلوب"
   },
   "Clinics": {
     "InvalidLatitude": "يجب أن يكون خط العرض بين -90 و 90",

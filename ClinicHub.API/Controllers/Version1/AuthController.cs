@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Auth.Commands.ValidateGoogleAccessToken;
+using ClinicHub.Application.Features.Auth.Commands.Logout;
 
 namespace ClinicHub.API.Controllers.Version1
 {
@@ -250,6 +251,22 @@ namespace ClinicHub.API.Controllers.Version1
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> UpdateLanguage(UpdateLanguageCommand command, CancellationToken ct)
+        {
+            var result = await _mediator.Send(command, ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Logs out the user by revoking the refresh token.
+        /// </summary>
+        /// <param name="command">The logout details including refresh token.</param>
+        /// <param name="ct">Cancellation token.</param>
+        /// <returns>A success message.</returns>
+        [HttpPost]
+        [Route(ApiRoutes.Auth.Logout)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Logout(LogoutCommand command, CancellationToken ct)
         {
             var result = await _mediator.Send(command, ct);
             return Ok(result);

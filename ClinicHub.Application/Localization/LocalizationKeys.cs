@@ -93,6 +93,8 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString GoogleEmailRequired = new("Auth.GoogleEmailRequired");
             public static readonly KeyString InvalidEmail = new("Auth.InvalidEmail");
             public static readonly KeyString MustBeGmail = new("Auth.MustBeGmail");
+            public static readonly KeyString LogoutSuccess = new("Auth.LogoutSuccess");
+            public static readonly KeyString RefreshTokenRequired = new("Auth.RefreshTokenRequired");
         }
 
         public static class ClinicMessages

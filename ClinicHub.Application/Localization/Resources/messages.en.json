@@ -74,7 +74,9 @@
     "GoogleTokenRequired": "Google ID Token is required.",
     "GoogleEmailRequired": "Email is required to complete Google registration.",
     "InvalidEmail": "Invalid email address",
-    "MustBeGmail": "Email must be a @gmail.com address"
+    "MustBeGmail": "Email domain must be @gmail.com",
+    "LogoutSuccess": "Logout successful",
+    "RefreshTokenRequired": "Refresh token is required"
   },
   "Clinics": {
     "InvalidLatitude": "Latitude must be between -90 and 90",
