@@ -26,174 +26,147 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
 
         public async Task<PagginatedResult<ClinicDto>> Handle(GetHybridSearchQuery request, CancellationToken cancellationToken)
         {
-            var finalResults = new List<ClinicDto>();
-            var seenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            Point? userPoint = null;
+            var finalResultsMap = new Dictionary<string, ClinicDto>(StringComparer.OrdinalIgnoreCase);
             var normalizedSearchText = request.SearchText?.NormalizeArabic();
-            List<ClinicExternalDto> initialGeocodedResults = null!;
+            
+            using var externalCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            externalCts.CancelAfter(TimeSpan.FromSeconds(5));
 
-            // 1. Handle missing coordinates and initial geocoding
-            if (!string.IsNullOrEmpty(request.SearchText) && (!request.UserLat.HasValue || !request.UserLng.HasValue))
-            {
-                initialGeocodedResults = await _mapService.GeocodeAsync(request.SearchText, cancellationToken, 10);
-                
-                foreach (var geocoded in initialGeocodedResults)
-                {
-                    if (seenNames.Add(geocoded.Name))
-                    {
-                        finalResults.Add(new ClinicDto
-                        {
-                            Name = geocoded.Name,
-                            NameAr = geocoded.NameAr,
-                            Address = geocoded.Address,
-                            Lat = geocoded.Lat,
-                            Lng = geocoded.Lng,
-                            IsRegistered = false,
-                            Distance = 0
-                        });
-                    }
-                }
+            Task<IEnumerable<Clinic>> internalSearchTask = null!;
+            Task<List<ClinicExternalDto>> externalSearchTask = null!;
+            Task<List<ClinicExternalDto>> geocodeTask = null!;
+            Point? userPoint = null;
 
-                var firstMatch = initialGeocodedResults.FirstOrDefault();
-                if (firstMatch != null)
-                {
-                    request.UserLat = firstMatch.Lat;
-                    request.UserLng = firstMatch.Lng;
-                }
-            }
-
+            // 1. Initiate Tasks in Parallel
             if (request.UserLat.HasValue && request.UserLng.HasValue)
             {
                 userPoint = new Point(request.UserLng.Value, request.UserLat.Value) { SRID = 4326 };
-            }
-
-            // 2. Parallel Search
-            if (request.IsNearest && userPoint != null)
-            {
-                var radiusInMeters = request.RadiusInKm * 1000;
                 
-                Task<IEnumerable<Clinic>> internalSearchTask = _unitOfWork.ClinicRepository.GetWithinDistanceAsync(userPoint, radiusInMeters, request.SpecializationId, cancellationToken);
-                
-                string category = "hospital,clinic,doctors,dentist,health_post,medical_centre";
-                Task<List<ClinicExternalDto>> externalSearchTask = _mapService.GetNearbyFromMapAsync(request.UserLat!.Value, request.UserLng!.Value, category, cancellationToken, radiusInMeters);
-                
-                await Task.WhenAll(internalSearchTask, externalSearchTask);
-
-                var internalClinics = await internalSearchTask;
-                var externalResults = await externalSearchTask;
-
-                foreach (var clinic in internalClinics)
+                if (request.IsNearest)
                 {
-                    if (!string.IsNullOrEmpty(normalizedSearchText) && 
-                        !clinic.Name.NormalizeArabic().Contains(normalizedSearchText, StringComparison.OrdinalIgnoreCase) && 
-                        !(clinic.NameAr?.NormalizeArabic().Contains(normalizedSearchText, StringComparison.OrdinalIgnoreCase) ?? false))
-                        continue;
-
-                    if (seenNames.Add(clinic.Name))
-                    {
-                        var distance = CalculateDistance(userPoint.Y, userPoint.X, clinic.Location.Y, clinic.Location.X);
-                        var dto = _mapper.Map<ClinicDto>(clinic);
-                        dto.Distance = distance;
-                        finalResults.Add(dto);
-                    }
-                }
-
-                foreach (var external in externalResults)
-                {
-                    if (!string.IsNullOrEmpty(normalizedSearchText) && 
-                        !external.Name.NormalizeArabic().Contains(normalizedSearchText, StringComparison.OrdinalIgnoreCase) && 
-                        !(external.NameAr?.NormalizeArabic().Contains(normalizedSearchText, StringComparison.OrdinalIgnoreCase) ?? false))
-                        continue;
-
-                    var distance = CalculateDistance(userPoint.Y, userPoint.X, external.Lat, external.Lng);
-                    if (distance > radiusInMeters) continue;
-
-                    if (seenNames.Add(external.Name))
-                    {
-                        finalResults.Add(new ClinicDto
-                        {
-                            Name = external.Name,
-                            NameAr = external.NameAr,
-                            Address = external.Address,
-                            AddressAr = external.AddressAr,
-                            Lat = external.Lat,
-                            Lng = external.Lng,
-                            IsRegistered = false,
-                            Distance = distance
-                        });
-                    }
-                }
-            }
-            else
-            {
-                var internalQuery = _unitOfWork.ClinicRepository.GetAllWithIncluding(
-                    c => (string.IsNullOrEmpty(request.SearchText) || c.Name.Contains(request.SearchText) || (c.NameAr != null && c.NameAr.Contains(request.SearchText))) &&
-                         (!request.SpecializationId.HasValue || c.SpecializationId == request.SpecializationId),
-                    c => c.Specialization);
-
-                Task<List<Clinic>> internalClinicsTask = internalQuery.ToListAsync(cancellationToken);
-                
-                Task<List<ClinicExternalDto>> externalSearchTask;
-                if (initialGeocodedResults != null)
-                {
-                    externalSearchTask = Task.FromResult(initialGeocodedResults);
-                }
-                else if (!string.IsNullOrEmpty(request.SearchText))
-                {
-                    externalSearchTask = _mapService.GeocodeAsync(request.SearchText, cancellationToken, 10);
+                    var radiusInMeters = request.RadiusInKm * 1000;
+                    internalSearchTask = _unitOfWork.ClinicRepository.GetWithinDistanceAsync(userPoint, radiusInMeters, request.SpecializationId, cancellationToken);
+                    
+                    string category = "hospital,clinic,doctors,dentist,health_post,medical_centre";
+                    externalSearchTask = _mapService.GetNearbyFromMapAsync(request.UserLat!.Value, request.UserLng!.Value, category, externalCts.Token, radiusInMeters);
                 }
                 else
                 {
-                    externalSearchTask = Task.FromResult(new List<ClinicExternalDto>());
-                }
-
-                await Task.WhenAll(internalClinicsTask, externalSearchTask);
-
-                var internalClinics = await internalClinicsTask;
-                var externalResults = await externalSearchTask;
-
-                foreach (var clinic in internalClinics)
-                {
-                    if (seenNames.Add(clinic.Name))
+                    internalSearchTask = GetInternalClinicsAsync(request, normalizedSearchText, cancellationToken);
+                    if (!string.IsNullOrEmpty(request.SearchText))
                     {
-                        var dto = _mapper.Map<ClinicDto>(clinic);
-                        if (userPoint != null)
-                        {
-                            dto.Distance = CalculateDistance(userPoint.Y, userPoint.X, clinic.Location.Y, clinic.Location.X);
-                        }
-                        finalResults.Add(dto);
-                    }
-                }
-
-                foreach (var ext in externalResults)
-                {
-                    if (seenNames.Add(ext.Name))
-                    {
-                        finalResults.Add(new ClinicDto
-                        {
-                            Name = ext.Name,
-                            NameAr = ext.NameAr,
-                            Address = ext.Address,
-                            Lat = ext.Lat,
-                            Lng = ext.Lng,
-                            IsRegistered = false,
-                            Distance = userPoint != null ? CalculateDistance(userPoint.Y, userPoint.X, ext.Lat, ext.Lng) : 0
-                        });
+                        externalSearchTask = _mapService.GeocodeAsync(request.SearchText, externalCts.Token, 10);
                     }
                 }
             }
+            else if (!string.IsNullOrEmpty(request.SearchText))
+            {
+                // Coords missing but search text exists: Geocode and DB search in parallel
+                geocodeTask = _mapService.GeocodeAsync(request.SearchText, externalCts.Token, 1);
+                internalSearchTask = GetInternalClinicsAsync(request, normalizedSearchText, cancellationToken);
+            }
+            else
+            {
+                // No criteria: Just get all internal clinics
+                internalSearchTask = GetInternalClinicsAsync(request, normalizedSearchText, cancellationToken);
+            }
 
-            var orderedResults = finalResults
+            // 2. Wait for Core Tasks
+            var tasksToWait = new List<Task>();
+            if (internalSearchTask != null) tasksToWait.Add(internalSearchTask);
+            if (geocodeTask != null) tasksToWait.Add(geocodeTask);
+            if (externalSearchTask != null) tasksToWait.Add(externalSearchTask);
+
+            await Task.WhenAll(tasksToWait);
+
+            // 3. Resolve userPoint after geocoding if needed
+            if (userPoint == null && geocodeTask != null && geocodeTask.Status == TaskStatus.RanToCompletion)
+            {
+                var firstMatch = geocodeTask.Result.FirstOrDefault();
+                if (firstMatch != null)
+                {
+                    userPoint = new Point(firstMatch.Lng, firstMatch.Lat) { SRID = 4326 };
+                }
+            }
+
+            // 4. Collect Internal Results
+            var internalClinics = internalSearchTask != null ? await internalSearchTask : Enumerable.Empty<Clinic>();
+            foreach (var clinic in internalClinics)
+            {
+                if (!string.IsNullOrEmpty(normalizedSearchText) && request.IsNearest)
+                {
+                    if (!clinic.Name.NormalizeArabic().Contains(normalizedSearchText, StringComparison.OrdinalIgnoreCase) && 
+                        !(clinic.NameAr?.NormalizeArabic().Contains(normalizedSearchText, StringComparison.OrdinalIgnoreCase) ?? false))
+                        continue;
+                }
+
+                var dto = _mapper.Map<ClinicDto>(clinic);
+                if (userPoint != null)
+                {
+                    dto.Distance = CalculateDistance(userPoint.Y, userPoint.X, clinic.Location.Y, clinic.Location.X);
+                }
+                finalResultsMap[dto.Name] = dto;
+            }
+
+            // 5. Collect External Results
+            var externalClinics = new List<ClinicExternalDto>();
+            if (externalSearchTask != null && externalSearchTask.Status == TaskStatus.RanToCompletion)
+                externalClinics.AddRange(externalSearchTask.Result);
+            if (geocodeTask != null && geocodeTask.Status == TaskStatus.RanToCompletion)
+                externalClinics.AddRange(geocodeTask.Result);
+
+            foreach (var external in externalClinics)
+            {
+                if (!string.IsNullOrEmpty(normalizedSearchText))
+                {
+                    if (!external.Name.NormalizeArabic().Contains(normalizedSearchText, StringComparison.OrdinalIgnoreCase) && 
+                        !(external.NameAr?.NormalizeArabic().Contains(normalizedSearchText, StringComparison.OrdinalIgnoreCase) ?? false))
+                        continue;
+                }
+
+                if (finalResultsMap.ContainsKey(external.Name)) continue;
+
+                var distance = userPoint != null ? CalculateDistance(userPoint.Y, userPoint.X, external.Lat, external.Lng) : 0;
+                if (request.IsNearest && userPoint != null && distance > (request.RadiusInKm * 1000)) continue;
+
+                finalResultsMap[external.Name] = new ClinicDto
+                {
+                    Name = external.Name,
+                    NameAr = external.NameAr,
+                    Address = external.Address,
+                    AddressAr = external.AddressAr,
+                    Lat = external.Lat,
+                    Lng = external.Lng,
+                    IsRegistered = false,
+                    Distance = distance
+                };
+            }
+
+            var finalResults = finalResultsMap.Values
                 .OrderByDescending(c => c.IsRegistered)
                 .ThenBy(c => c.Distance)
                 .ToList();
 
-            var pagedData = orderedResults
+            var pagedData = finalResults
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .ToList();
 
             return new PagginatedResult<ClinicDto>(pagedData, finalResults.Count, request.PageNumber, request.PageSize);
+        }
+
+        private async Task<IEnumerable<Clinic>> GetInternalClinicsAsync(GetHybridSearchQuery request, string? normalizedSearchText, CancellationToken cancellationToken)
+        {
+            var internalQuery = _unitOfWork.ClinicRepository.GetAllWithIncluding(
+                c => (string.IsNullOrEmpty(normalizedSearchText) || 
+                      c.Name.Contains(request.SearchText!) || 
+                      (c.NameAr != null && c.NameAr.Contains(request.SearchText!)) ||
+                      EF.Functions.Like(c.Name, $"%{normalizedSearchText}%") || 
+                      (c.NameAr != null && EF.Functions.Like(c.NameAr, $"%{normalizedSearchText}%"))) &&
+                     (!request.SpecializationId.HasValue || c.SpecializationId == request.SpecializationId),
+                c => c.Specialization);
+
+            return await internalQuery.ToListAsync(cancellationToken);
         }
 
         private double CalculateDistance(double lat1, double lon1, double lat2, double lon2)

@@ -37,7 +37,10 @@ namespace ClinicHub.Infrastructure
             services.AddScoped<IGoogleAuth, GoogleAuth>();
 
             //services.AddHttpClient<IMapService, GoogleMapService>();
-            services.AddHttpClient<IMapService, NominatimService>();
+            services.AddHttpClient<IMapService, NominatimService>(client =>
+            {
+                client.DefaultRequestHeaders.Add("User-Agent", "ClinicHub-API");
+            });
 
             var identityOptionsConfig = new IdentityModel();
             configuration.Bind("IdentityOptions", identityOptionsConfig);

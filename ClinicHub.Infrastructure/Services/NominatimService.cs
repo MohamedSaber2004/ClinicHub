@@ -1,20 +1,29 @@
 using ClinicHub.Infrastructure.Services.Interfaces;
 using System.Net.Http.Json;
 using System.Globalization;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ClinicHub.Infrastructure.Services
 {
     public class NominatimService : IMapService
     {
         private readonly HttpClient _httpClient;
+        private readonly IMemoryCache _cache;
 
-        public NominatimService(HttpClient httpClient)
+        public NominatimService(HttpClient httpClient, IMemoryCache cache)
         {
             _httpClient = httpClient;
+            _cache = cache;
         }
 
         public async Task<List<ClinicExternalDto>> GetNearbyFromMapAsync(double lat, double lng, string category, CancellationToken cancellationToken, double radius = 5000)
         {
+            var cacheKey = $"Nearby_{lat}_{lng}_{category}_{radius}";
+            if (_cache.TryGetValue(cacheKey, out List<ClinicExternalDto>? cachedResults))
+            {
+                return cachedResults ?? new List<ClinicExternalDto>();
+            }
+
             var tags = category.Replace(",", "|");
             var query = $@"
                 [out:json][timeout:5];
@@ -30,7 +39,7 @@ namespace ClinicHub.Infrastructure.Services
                 var response = await _httpClient.GetFromJsonAsync<OverpassResponse>(url, cancellationToken);
                 if (response?.Elements == null) return new List<ClinicExternalDto>();
 
-                return response.Elements.Select(e => new ClinicExternalDto
+                var results = response.Elements.Select(e => new ClinicExternalDto
                 {
                     Name = e.Tags?.GetValueOrDefault("name") ?? e.Tags?.GetValueOrDefault("name:en") ?? "Unknown Clinic",
                     NameAr = e.Tags?.GetValueOrDefault("name:ar"),
@@ -38,6 +47,9 @@ namespace ClinicHub.Infrastructure.Services
                     Lng = e.Lon != 0 ? e.Lon : (e.Center?.Lon ?? 0),
                     Address = e.Tags?.GetValueOrDefault("addr:full") ?? e.Tags?.GetValueOrDefault("addr:street")
                 }).ToList();
+
+                _cache.Set(cacheKey, results, TimeSpan.FromMinutes(30));
+                return results;
             }
             catch (Exception)
             {
@@ -47,19 +59,28 @@ namespace ClinicHub.Infrastructure.Services
 
         public async Task<List<ClinicExternalDto>> GeocodeAsync(string address, CancellationToken cancellationToken, int limit = 10)
         {
+            var cacheKey = $"Geocode_{address}_{limit}";
+            if (_cache.TryGetValue(cacheKey, out List<ClinicExternalDto>? cachedResults))
+            {
+                return cachedResults ?? new List<ClinicExternalDto>();
+            }
+
             var url = $"https://nominatim.openstreetmap.org/search?q={Uri.EscapeDataString(address)}&format=json&limit={limit}&countrycodes=eg";
             try
             {
                 var results = await _httpClient.GetFromJsonAsync<NominatimResult[]>(url, cancellationToken);
                 if (results != null && results.Length > 0)
                 {
-                    return results.Select(res => new ClinicExternalDto
+                    var mappedResults = results.Select(res => new ClinicExternalDto
                     {
                         Name = res.Display_Name?.Split(',')[0] ?? "Unknown",
                         Lat = double.Parse(res.Lat, CultureInfo.InvariantCulture),
                         Lng = double.Parse(res.Lon, CultureInfo.InvariantCulture),
                         Address = res.Display_Name
                     }).ToList();
+
+                    _cache.Set(cacheKey, mappedResults, TimeSpan.FromHours(24));
+                    return mappedResults;
                 }
             }
             catch { }
