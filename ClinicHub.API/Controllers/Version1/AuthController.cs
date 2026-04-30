@@ -16,6 +16,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ClinicHub.API.Routes;
+using ClinicHub.Application.Features.Auth.Commands.ValidateGoogleAccessToken;
 
 namespace ClinicHub.API.Controllers.Version1
 {
@@ -103,6 +104,22 @@ namespace ClinicHub.API.Controllers.Version1
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> LoginWithGoogle(LoginWithGoogleCommand command, CancellationToken ct)
+        {
+            var result = await _mediator.Send(command, ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Validate on googel token
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route(ApiRoutes.Auth.ValidateGoogleToken)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ValidateGoogleToken(ValidateGoogleAccessTokenCommand command, CancellationToken ct)
         {
             var result = await _mediator.Send(command, ct);
             return Ok(result);

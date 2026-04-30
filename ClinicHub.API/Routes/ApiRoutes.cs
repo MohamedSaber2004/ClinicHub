@@ -11,6 +11,7 @@ namespace ClinicHub.API.Routes
             public const string Login = Base + "/auth/login";
             public const string LoginWithFacebook = Base + "/auth/login-facebook";
             public const string LoginWithGoogle = Base + "/auth/login-google";
+            public const string ValidateGoogleToken = Base + "/auth/google/validate-token";
             public const string CompleteFacebookRegistration = Base + "/auth/complete-facebook-registration";
             public const string RefreshToken = Base + "/auth/refresh-token";
             public const string ForgetPassword = Base + "/auth/forget-password";
