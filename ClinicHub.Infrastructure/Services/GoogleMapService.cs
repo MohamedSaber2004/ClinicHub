@@ -4,6 +4,8 @@ using System.Globalization;
 using System.Text.Json.Serialization;
 using ClinicHub.Application.Common.Options;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 namespace ClinicHub.Infrastructure.Services
 {
@@ -11,29 +13,56 @@ namespace ClinicHub.Infrastructure.Services
     {
         private readonly HttpClient _httpClient;
         private readonly GoogleMapsSettings _options;
+        private readonly IMemoryCache _cache;
+        private readonly ILogger<GoogleMapService> _logger;
 
-        public GoogleMapService(HttpClient httpClient,IOptions<GoogleMapsSettings> options)
+        public GoogleMapService(HttpClient httpClient, IOptions<GoogleMapsSettings> options, IMemoryCache cache, ILogger<GoogleMapService> logger)
         {
             _httpClient = httpClient;
             _options = options.Value;
+            _cache = cache;
+            _logger = logger;
         }
 
         public async Task<List<ClinicExternalDto>> GetNearbyFromMapAsync(double lat, double lng, string category, CancellationToken cancellationToken, double radius = 5000)
         {
-            var url = $"{_options.NearByFromMapBaseUrl}/json?location={lat.ToString(CultureInfo.InvariantCulture)},{lng.ToString(CultureInfo.InvariantCulture)}&radius={radius}&keyword={Uri.EscapeDataString(category)}&key={_options.ApiKey}";
-            
-            var response = await _httpClient.GetFromJsonAsync<GooglePlacesResponse>(url, cancellationToken);
-                
-            if (response?.Results is not null && response.Results.Any())
+            var cacheKey = $"Google_Nearby_{lat}_{lng}_{category}_{radius}";
+            if (_cache.TryGetValue(cacheKey, out List<ClinicExternalDto>? cachedResults))
             {
-                return response.Results.Select(r => new ClinicExternalDto
-                {
-                    Name = r.Name ?? "Unknown Clinic",
-                    Lat = r.Geometry?.Location?.Lat ?? 0,
-                    Lng = r.Geometry?.Location?.Lng ?? 0,
-                    Address = r.Vicinity
-                }).ToList();
+                return cachedResults ?? new List<ClinicExternalDto>();
+            }
 
+            var googleKeyword = category.Contains(",") ? category.Replace(",", " ") : category;
+            var url = $"{_options.NearByFromMapBaseUrl}/json?location={lat.ToString(CultureInfo.InvariantCulture)},{lng.ToString(CultureInfo.InvariantCulture)}&radius={radius}&keyword={Uri.EscapeDataString(googleKeyword)}&key={_options.ApiKey}";
+            
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<GooglePlacesResponse>(url, cancellationToken);
+                
+                if (response?.Status != "OK" && response?.Status != "ZERO_RESULTS")
+                {
+                    _logger.LogError("Google Maps API Error: Status={Status}, Message={Message}", response?.Status, response?.ErrorMessage);
+                }
+
+                if (response?.Results is not null && response.Results.Any())
+                {
+                    var results = response.Results.Select(r => new ClinicExternalDto
+                    {
+                        Name = r.Name ?? "Unknown Clinic",
+                        Lat = r.Geometry?.Location?.Lat ?? 0,
+                        Lng = r.Geometry?.Location?.Lng ?? 0,
+                        Address = r.Vicinity,
+                        Phone = null, // Needs individual Place Details call for real phone
+                        Website = null
+                    }).ToList();
+
+                    _cache.Set(cacheKey, results, TimeSpan.FromMinutes(30));
+                    return results;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception in GoogleMapService.GetNearbyFromMapAsync");
             }
 
             return new List<ClinicExternalDto>();
@@ -41,18 +70,40 @@ namespace ClinicHub.Infrastructure.Services
 
         public async Task<List<ClinicExternalDto>> GeocodeAsync(string address, CancellationToken cancellationToken, int limit = 10)
         {
-            var url = $"{_options.GeoCodeBaseUrl}/json?address={Uri.EscapeDataString(address)}&components=country:EG&key={_options.ApiKey}";
-                var response = await _httpClient.GetFromJsonAsync<GoogleGeocodeResponse>(url, cancellationToken);
-
-            if (response?.Results != null && response.Results.Any())
+            var cacheKey = $"Google_Geocode_{address}_{limit}";
+            if (_cache.TryGetValue(cacheKey, out List<ClinicExternalDto>? cachedResults))
             {
-                return response.Results.Take(limit).Select(res => new ClinicExternalDto
+                return cachedResults ?? new List<ClinicExternalDto>();
+            }
+
+            var url = $"{_options.GeoCodeBaseUrl}/json?address={Uri.EscapeDataString(address)}&components=country:EG&key={_options.ApiKey}";
+            
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<GoogleGeocodeResponse>(url, cancellationToken);
+                
+                if (response?.Status != "OK" && response?.Status != "ZERO_RESULTS")
                 {
-                    Name = res.FormattedAddress?.Split(',')[0] ?? "Unknown",
-                    Lat = res.Geometry?.Location?.Lat ?? 0,
-                    Lng = res.Geometry?.Location?.Lng ?? 0,
-                    Address = res.FormattedAddress
-                }).ToList();
+                    _logger.LogError("Google Geocoding API Error: Status={Status}, Message={Message}", response?.Status, response?.ErrorMessage);
+                }
+
+                if (response?.Results != null && response.Results.Any())
+                {
+                    var results = response.Results.Take(limit).Select(res => new ClinicExternalDto
+                    {
+                        Name = res.FormattedAddress?.Split(',')[0] ?? "Unknown",
+                        Lat = res.Geometry?.Location?.Lat ?? 0,
+                        Lng = res.Geometry?.Location?.Lng ?? 0,
+                        Address = res.FormattedAddress
+                    }).ToList();
+
+                    _cache.Set(cacheKey, results, TimeSpan.FromHours(24));
+                    return results;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception in GoogleMapService.GeocodeAsync");
             }
 
             return new List<ClinicExternalDto>();
@@ -107,6 +158,14 @@ namespace ClinicHub.Infrastructure.Services
             public string? Name { get; set; }
             public string? Vicinity { get; set; }
             public GoogleGeometry? Geometry { get; set; }
+            public double? Rating { get; set; }
+            public List<GooglePhoto>? Photos { get; set; }
+        }
+
+        private class GooglePhoto
+        {
+            [JsonPropertyName("photo_reference")]
+            public string? PhotoReference { get; set; }
         }
 
         private class GoogleGeocodeResponse

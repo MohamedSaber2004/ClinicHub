@@ -1,9 +1,10 @@
 using ClinicHub.Application.Common.Behaviours;
-using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Common.Options;
+using ClinicHub.Application.Common.Services;
 using ClinicHub.Application.HealthCheck;
 using FluentValidation;
 using MediatR;
+using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -20,6 +21,9 @@ namespace ClinicHub.Application
 
             services.AddSingleton(new DiskSpaceHealthCheck(drivePath, 512));
             services.AddSingleton(new DatabaseHealthCheck(connectionString));
+
+            services.AddSingleton<FileExtensionContentTypeProvider>(p => new FileExtensionContentTypeProvider());
+            services.AddSingleton<IContentTypeProvider, FileExtensionContentTypeProvider>();
 
             services.AddHealthChecks()
                 .AddCheck<CustomHealthCheck>("API Custom Checks")
@@ -44,6 +48,8 @@ namespace ClinicHub.Application
             services.Configure<FacebookAuthSettings>(configuration.GetSection("FacebookAuthSettings"));
 
             services.Configure<GoogleAuthSettings>(configuration.GetSection("GoogleAuthSettings"));
+
+            UploadPaths.Configure(configuration);
 
             return services;
         }

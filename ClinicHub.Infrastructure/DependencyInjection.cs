@@ -37,9 +37,17 @@ namespace ClinicHub.Infrastructure
             services.AddScoped<IGoogleAuth, GoogleAuth>();
 
             //services.AddHttpClient<IMapService, GoogleMapService>();
+            //services.AddHttpClient<IMapService, GoogleMapService>(client =>
+            //{
+            //      client.DefaultRequestHeaders.Add("User-Agent", "ClinicHub-API");
+            //});
+
             services.AddHttpClient<IMapService, NominatimService>(client =>
             {
                 client.DefaultRequestHeaders.Add("User-Agent", "ClinicHub-API");
+            }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+            {
+                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
             });
 
             var identityOptionsConfig = new IdentityModel();

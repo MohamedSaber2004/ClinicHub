@@ -208,7 +208,14 @@ namespace ClinicHub.API
                 app.UseCors("CorsPolicy");
                 app.UseAuthentication();
                 app.UseAuthorization();
+
                 app.UseStaticFiles();
+
+                app.UseStaticFiles(new StaticFileOptions()
+                {
+                    FileProvider = new CustomFileProvider(app.Environment.WebRootPath),
+                    RequestPath = "/files"
+                });
 
 
                 app.MapHealthChecks("/health", new HealthCheckOptions

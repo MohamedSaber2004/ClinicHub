@@ -18,5 +18,7 @@ namespace ClinicHub.Domain.Entities
         
         public Guid SpecializationId { get; set; }
         public Specialization Specialization { get; set; } = null!;
+        public double? Rating { get; set; }
+        public string? ImageUrl { get; set; }
     }
 }

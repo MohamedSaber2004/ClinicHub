@@ -29,9 +29,6 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
             var finalResultsMap = new Dictionary<string, ClinicDto>(StringComparer.OrdinalIgnoreCase);
             var normalizedSearchText = request.SearchText?.NormalizeArabic();
             
-            using var externalCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            externalCts.CancelAfter(TimeSpan.FromSeconds(5));
-
             Task<IEnumerable<Clinic>> internalSearchTask = null!;
             Task<List<ClinicExternalDto>> externalSearchTask = null!;
             Task<List<ClinicExternalDto>> geocodeTask = null!;
@@ -48,21 +45,21 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
                     internalSearchTask = _unitOfWork.ClinicRepository.GetWithinDistanceAsync(userPoint, radiusInMeters, request.SpecializationId, cancellationToken);
                     
                     string category = "hospital,clinic,doctors,dentist,health_post,medical_centre";
-                    externalSearchTask = _mapService.GetNearbyFromMapAsync(request.UserLat!.Value, request.UserLng!.Value, category, externalCts.Token, radiusInMeters);
+                    externalSearchTask = _mapService.GetNearbyFromMapAsync(request.UserLat!.Value, request.UserLng!.Value, category, cancellationToken, radiusInMeters);
                 }
                 else
                 {
                     internalSearchTask = GetInternalClinicsAsync(request, normalizedSearchText, cancellationToken);
                     if (!string.IsNullOrEmpty(request.SearchText))
                     {
-                        externalSearchTask = _mapService.GeocodeAsync(request.SearchText, externalCts.Token, 10);
+                        externalSearchTask = _mapService.GeocodeAsync(request.SearchText, cancellationToken, 10);
                     }
                 }
             }
             else if (!string.IsNullOrEmpty(request.SearchText))
             {
                 // Coords missing but search text exists: Geocode and DB search in parallel
-                geocodeTask = _mapService.GeocodeAsync(request.SearchText, externalCts.Token, 1);
+                geocodeTask = _mapService.GeocodeAsync(request.SearchText, cancellationToken, 1);
                 internalSearchTask = GetInternalClinicsAsync(request, normalizedSearchText, cancellationToken);
             }
             else
@@ -131,6 +128,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
 
                 finalResultsMap[external.Name] = new ClinicDto
                 {
+                    Id = Guid.NewGuid(),
                     Name = external.Name,
                     NameAr = external.NameAr,
                     Address = external.Address,
@@ -138,7 +136,9 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
                     Lat = external.Lat,
                     Lng = external.Lng,
                     IsRegistered = false,
-                    Distance = distance
+                    Distance = distance,
+                    Phone = external.Phone,
+                    Website = external.Website
                 };
             }
 

@@ -2,6 +2,7 @@ using ClinicHub.Infrastructure.Services.Interfaces;
 using System.Net.Http.Json;
 using System.Globalization;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 namespace ClinicHub.Infrastructure.Services
 {
@@ -9,11 +10,14 @@ namespace ClinicHub.Infrastructure.Services
     {
         private readonly HttpClient _httpClient;
         private readonly IMemoryCache _cache;
+        private readonly ILogger<NominatimService> _logger;
 
-        public NominatimService(HttpClient httpClient, IMemoryCache cache)
+        public NominatimService(HttpClient httpClient, IMemoryCache cache, ILogger<NominatimService> logger)
         {
             _httpClient = httpClient;
             _cache = cache;
+            _logger = logger;
+            _httpClient.Timeout = TimeSpan.FromSeconds(30); // Global timeout high enough, but we use CTS per request
         }
 
         public async Task<List<ClinicExternalDto>> GetNearbyFromMapAsync(double lat, double lng, string category, CancellationToken cancellationToken, double radius = 5000)
@@ -24,12 +28,13 @@ namespace ClinicHub.Infrastructure.Services
                 return cachedResults ?? new List<ClinicExternalDto>();
             }
 
-            var tags = category.Replace(",", "|");
+            var tagsList = category.Replace(",", "|");
             var query = $@"
-                [out:json][timeout:5];
+                [out:json][timeout:25];
                 (
-                  node(around:{radius},{lat.ToString(CultureInfo.InvariantCulture)},{lng.ToString(CultureInfo.InvariantCulture)})[""amenity""~""{tags}""];
-                  way(around:{radius},{lat.ToString(CultureInfo.InvariantCulture)},{lng.ToString(CultureInfo.InvariantCulture)})[""amenity""~""{tags}""];
+                  node(around:{radius},{lat.ToString(CultureInfo.InvariantCulture)},{lng.ToString(CultureInfo.InvariantCulture)})[""amenity""~""{tagsList}""];
+                  way(around:{radius},{lat.ToString(CultureInfo.InvariantCulture)},{lng.ToString(CultureInfo.InvariantCulture)})[""amenity""~""{tagsList}""];
+                  relation(around:{radius},{lat.ToString(CultureInfo.InvariantCulture)},{lng.ToString(CultureInfo.InvariantCulture)})[""amenity""~""{tagsList}""];
                 );
                 out center;";
             var url = $"https://overpass-api.de/api/interpreter?data={Uri.EscapeDataString(query)}";
@@ -39,13 +44,17 @@ namespace ClinicHub.Infrastructure.Services
                 var response = await _httpClient.GetFromJsonAsync<OverpassResponse>(url, cancellationToken);
                 if (response?.Elements == null) return new List<ClinicExternalDto>();
 
-                var results = response.Elements.Select(e => new ClinicExternalDto
-                {
-                    Name = e.Tags?.GetValueOrDefault("name") ?? e.Tags?.GetValueOrDefault("name:en") ?? "Unknown Clinic",
-                    NameAr = e.Tags?.GetValueOrDefault("name:ar"),
-                    Lat = e.Lat != 0 ? e.Lat : (e.Center?.Lat ?? 0),
-                    Lng = e.Lon != 0 ? e.Lon : (e.Center?.Lon ?? 0),
-                    Address = e.Tags?.GetValueOrDefault("addr:full") ?? e.Tags?.GetValueOrDefault("addr:street")
+                var results = response.Elements.Select(e => {
+                    return new ClinicExternalDto
+                    {
+                        Name = e.Tags?.GetValueOrDefault("name") ?? e.Tags?.GetValueOrDefault("name:en") ?? "Unknown Clinic",
+                        NameAr = e.Tags?.GetValueOrDefault("name:ar"),
+                        Lat = e.Lat != 0 ? e.Lat : (e.Center?.Lat ?? 0),
+                        Lng = e.Lon != 0 ? e.Lon : (e.Center?.Lon ?? 0),
+                        Address = e.Tags?.GetValueOrDefault("addr:full") ?? e.Tags?.GetValueOrDefault("addr:street") ?? "Near " + (e.Tags?.GetValueOrDefault("addr:city") ?? ""),
+                        Phone = e.Tags?.GetValueOrDefault("phone") ?? e.Tags?.GetValueOrDefault("contact:phone"),
+                        Website = e.Tags?.GetValueOrDefault("website") ?? e.Tags?.GetValueOrDefault("contact:website")
+                    };
                 }).ToList();
 
                 _cache.Set(cacheKey, results, TimeSpan.FromMinutes(30));
@@ -74,8 +83,8 @@ namespace ClinicHub.Infrastructure.Services
                     var mappedResults = results.Select(res => new ClinicExternalDto
                     {
                         Name = res.Display_Name?.Split(',')[0] ?? "Unknown",
-                        Lat = double.Parse(res.Lat, CultureInfo.InvariantCulture),
-                        Lng = double.Parse(res.Lon, CultureInfo.InvariantCulture),
+                        Lat = double.Parse(res.Lat ?? "0", CultureInfo.InvariantCulture),
+                        Lng = double.Parse(res.Lon ?? "0", CultureInfo.InvariantCulture),
                         Address = res.Display_Name
                     }).ToList();
 
@@ -101,21 +110,53 @@ namespace ClinicHub.Infrastructure.Services
 
         public async Task<RouteDto?> GetRouteAsync(double startLat, double startLng, double endLat, double endLng, CancellationToken cancellationToken)
         {
-            var url = $"http://router.project-osrm.org/route/v1/driving/{startLng.ToString(CultureInfo.InvariantCulture)},{startLat.ToString(CultureInfo.InvariantCulture)};{endLng.ToString(CultureInfo.InvariantCulture)},{endLat.ToString(CultureInfo.InvariantCulture)}?overview=full&geometries=geojson";
-            try
+            var cacheKey = $"Route_{startLat}_{startLng}_{endLat}_{endLng}";
+            if (_cache.TryGetValue(cacheKey, out RouteDto? cachedRoute))
             {
-                var response = await _httpClient.GetFromJsonAsync<OsrmResponse>(url, cancellationToken);
-                var route = response?.Routes?.FirstOrDefault();
-                if (route == null) return null;
-
-                return new RouteDto
-                {
-                    Distance = route.Distance,
-                    Duration = route.Duration / 60,
-                    Geometry = route.Geometry?.Coordinates
-                };
+                return cachedRoute;
             }
-            catch { }
+
+            var endpoints = new[]
+            {
+                "https://routing.openstreetmap.de/routed-car",
+                "http://routing.openstreetmap.de/routed-car",
+                "http://router.project-osrm.org",
+                "https://routing.openstreetmap.fr/routed-car"
+            };
+
+            foreach (var baseUrl in endpoints)
+            {
+                var url = $"{baseUrl}/route/v1/driving/{startLng.ToString(CultureInfo.InvariantCulture)},{startLat.ToString(CultureInfo.InvariantCulture)};{endLng.ToString(CultureInfo.InvariantCulture)},{endLat.ToString(CultureInfo.InvariantCulture)}?overview=full&geometries=geojson";
+                
+                try
+                {
+                    _logger.LogInformation("Attempting to fetch route from: {Url}", url);
+                    
+                    using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    cts.CancelAfter(TimeSpan.FromSeconds(3)); // 3 seconds per attempt
+
+                    var response = await _httpClient.GetFromJsonAsync<OsrmResponse>(url, cts.Token);
+                    var route = response?.Routes?.FirstOrDefault();
+                    
+                    if (route != null)
+                    {
+                        var result = new RouteDto
+                        {
+                            Distance = route.Distance,
+                            Duration = route.Duration / 60,
+                            Geometry = route.Geometry?.Coordinates
+                        };
+
+                        _cache.Set(cacheKey, result, TimeSpan.FromHours(1));
+                        return result;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning("Routing attempt failed for {BaseUrl}: {Message}", baseUrl, ex.Message);
+                }
+            }
+
             return null;
         }
 
