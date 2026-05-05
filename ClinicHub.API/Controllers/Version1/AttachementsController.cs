@@ -14,6 +14,7 @@ using ClinicHub.Application.Features.Attachements.Commands.UploadImage;
 using ClinicHub.Application.Features.Attachements.Commands.UploadVideo;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ClinicHub.API.Controllers.Version1
 {
