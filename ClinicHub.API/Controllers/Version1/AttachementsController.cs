@@ -18,7 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
-    //[Authorize]
+    [Authorize]
     public class AttachementsController : BaseApiController
     {
         public AttachementsController(IMediator mediator) : base(mediator)

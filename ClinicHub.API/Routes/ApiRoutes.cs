@@ -72,5 +72,14 @@ namespace ClinicHub.API.Routes
         {
             public const string Route = Base + "/maps/route";
         }
+
+        public static class Specializations
+        {
+            public const string GetAll = Base + "/specializations";
+            public const string GetById = Base + "/specializations/{id:guid}";
+            public const string Create = Base + "/specializations/create";
+            public const string Update = Base + "/specializations/update";
+            public const string Delete = Base + "/specializations/delete";
+        }
     }
 }

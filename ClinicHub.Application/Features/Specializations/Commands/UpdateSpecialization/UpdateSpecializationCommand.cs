@@ -1,14 +1,13 @@
-using ClinicHub.Domain.Common;
+using MediatR;
 
-namespace ClinicHub.Domain.Entities
+namespace ClinicHub.Application.Features.Specializations.Commands.UpdateSpecialization
 {
-    public class Specialization : BaseEntity<Guid>
+    public class UpdateSpecializationCommand : IRequest<string>
     {
+        public Guid Id { get; set; }
         public string Name { get; set; } = null!;
         public string ArName { get; set; } = null!;
         public string? Description { get; set; }
         public string? IconUrl { get; set; }
-
-        public ICollection<Clinic> Clinics { get; set; } = new HashSet<Clinic>();
     }
 }

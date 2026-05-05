@@ -12,6 +12,7 @@ namespace ClinicHub.Application.Features.Clinics.DTOs
         public double Lng { get; set; }
         public bool IsRegistered { get; set; }
         public string? SpecializationName { get; set; }
+        public string? SpecializationNameAr { get; set; }
         public double Distance { get; set; }
         public string? Website { get; set; }
     }

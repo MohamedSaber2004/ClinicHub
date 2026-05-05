@@ -1,0 +1,242 @@
+﻿[
+  {
+    "Name": "Cardiology",
+    "ArName": "أمراض القلب",
+    "Description": "Diagnosis and treatment of heart and vascular disorders. Treats conditions like heart failure and arrhythmias.",
+    "IconUrl": "https://img.icons8.com/color/96/heart-with-pulse.png"
+  },
+  {
+    "Name": "Dermatology",
+    "ArName": "الأمراض الجلدية",
+    "Description": "Diagnosis and treatment of skin, hair, and nail disorders, including skin cancer and eczema.",
+    "IconUrl": "https://img.icons8.com/color/96/skin.png"
+  },
+  {
+    "Name": "Dentistry",
+    "ArName": "طب الأسنان",
+    "Description": "Comprehensive care for teeth, gums, and oral health, including preventative and restorative treatments.",
+    "IconUrl": "https://img.icons8.com/color/96/tooth.png"
+  },
+  {
+    "Name": "Ophthalmology",
+    "ArName": "طب العيون",
+    "Description": "Diagnosis and treatment of eye disorders and vision care, including surgery and corrective lenses.",
+    "IconUrl": "https://img.icons8.com/color/96/visible.png"
+  },
+  {
+    "Name": "Pediatrics",
+    "ArName": "طب الأطفال",
+    "Description": "Medical care for infants, children, and adolescents, focusing on physical and emotional development.",
+    "IconUrl": "https://img.icons8.com/color/96/baby.png"
+  },
+  {
+    "Name": "Obstetrics and Gynecology",
+    "ArName": "طب النساء والتوليد",
+    "Description": "Care for women's reproductive health, pregnancy, childbirth, and postnatal care.",
+    "IconUrl": "https://img.icons8.com/color/96/pregnant.png"
+  },
+  {
+    "Name": "Orthopedics",
+    "ArName": "طب العظام",
+    "Description": "Treatment of musculoskeletal system conditions, including bones, joints, and ligaments.",
+    "IconUrl": "https://img.icons8.com/color/96/broken-bone.png"
+  },
+  {
+    "Name": "Neurology",
+    "ArName": "طب الأعصاب",
+    "Description": "Diagnosis and treatment of disorders affecting the brain, spinal cord, and nervous system.",
+    "IconUrl": "https://img.icons8.com/color/96/brain.png"
+  },
+  {
+    "Name": "Psychiatry",
+    "ArName": "الطب النفسي",
+    "Description": "Diagnosis, prevention, and treatment of mental, emotional, and behavioral disorders.",
+    "IconUrl": "https://img.icons8.com/color/96/mental-health.png"
+  },
+  {
+    "Name": "Internal Medicine",
+    "ArName": "الطب الباطني",
+    "Description": "Prevention, diagnosis, and treatment of adult diseases and chronic conditions.",
+    "IconUrl": "https://img.icons8.com/color/96/stethoscope.png"
+  },
+  {
+    "Name": "General Surgery",
+    "ArName": "الجراحة العامة",
+    "Description": "Surgical treatment for various conditions affecting the abdomen, digestive tract, and endocrine system.",
+    "IconUrl": "https://img.icons8.com/color/96/scalpel.png"
+  },
+  {
+    "Name": "ENT",
+    "ArName": "الأنف والأذن والحنجرة",
+    "Description": "Care for disorders of the ear, nose, throat, and related structures of the head and neck.",
+    "IconUrl": "https://img.icons8.com/color/96/ear.png"
+  },
+  {
+    "Name": "Urology",
+    "ArName": "طب المسالك البولية",
+    "Description": "Diagnosis and treatment of conditions affecting the urinary tract and male reproductive system.",
+    "IconUrl": "https://img.icons8.com/color/96/kidney.png"
+  },
+  {
+    "Name": "Endocrinology",
+    "ArName": "طب الغدد الصماء",
+    "Description": "Diagnosis and treatment of hormone-related conditions like diabetes and thyroid disorders.",
+    "IconUrl": "https://img.icons8.com/color/96/thyroid.png"
+  },
+  {
+    "Name": "Gastroenterology",
+    "ArName": "طب الجهاز الهضمي",
+    "Description": "Diagnosis and treatment of digestive system disorders affecting the stomach and intestines.",
+    "IconUrl": "https://img.icons8.com/color/96/stomach.png"
+  },
+  {
+    "Name": "Allergy & Immunology",
+    "ArName": "الحساسية والمناعة",
+    "Description": "Diagnosis and treatment of immune system disorders, allergies, and asthma.",
+    "IconUrl": "https://img.icons8.com/color/96/pollen.png"
+  },
+  {
+    "Name": "Anesthesiology",
+    "ArName": "التخدير",
+    "Description": "Pain relief and anesthesia administration during surgery and other procedures.",
+    "IconUrl": "https://img.icons8.com/color/96/syringe.png"
+  },
+  {
+    "Name": "Oncology",
+    "ArName": "طب الأورام",
+    "Description": "Prevention, diagnosis, and treatment of various types of cancer.",
+    "IconUrl": "https://img.icons8.com/color/96/cancer.png"
+  },
+  {
+    "Name": "Radiology",
+    "ArName": "الأشعة",
+    "Description": "Use of medical imaging (X-rays, CT, MRI) to diagnose and treat diseases.",
+    "IconUrl": "https://img.icons8.com/color/96/x-ray.png"
+  },
+  {
+    "Name": "Pathology",
+    "ArName": "علم الأمراض",
+    "Description": "Examination of tissues and body fluids to diagnose diseases.",
+    "IconUrl": "https://img.icons8.com/color/96/microscope.png"
+  },
+  {
+    "Name": "Pulmonology",
+    "ArName": "طب الرئة",
+    "Description": "Diagnosis and treatment of respiratory system and lung disorders.",
+    "IconUrl": "https://img.icons8.com/color/96/lungs.png"
+  },
+  {
+    "Name": "Hematology",
+    "ArName": "أمراض الدم",
+    "Description": "Study, diagnosis, and treatment of blood-related disorders and cancers.",
+    "IconUrl": "https://img.icons8.com/color/96/blood-drop.png"
+  },
+  {
+    "Name": "Infectious Disease",
+    "ArName": "الأمراض المعدية",
+    "Description": "Diagnosis and treatment of infections caused by bacteria, viruses, and parasites.",
+    "IconUrl": "https://img.icons8.com/color/96/virus.png"
+  },
+  {
+    "Name": "Geriatrics",
+    "ArName": "طب المسنين",
+    "Description": "Medical care focusing on the health and needs of elderly patients.",
+    "IconUrl": "https://img.icons8.com/color/96/old-man.png"
+  },
+  {
+    "Name": "Emergency Medicine",
+    "ArName": "طب الطوارئ",
+    "Description": "Immediate diagnosis and treatment of acute illnesses and urgent injuries.",
+    "IconUrl": "https://img.icons8.com/color/96/ambulance.png"
+  },
+  {
+    "Name": "Rheumatology",
+    "ArName": "الروماتيزم",
+    "Description": "Treatment of arthritis and autoimmune diseases affecting joints and tissues.",
+    "IconUrl": "https://img.icons8.com/color/96/joints.png"
+  },
+  {
+    "Name": "Physical Medicine & Rehabilitation",
+    "ArName": "الطب الطبيعي والتأهيل",
+    "Description": "Restoring physical function and quality of life for patients with disabilities.",
+    "IconUrl": "https://img.icons8.com/color/96/physiotherapy.png"
+  },
+  {
+    "Name": "Plastic Surgery",
+    "ArName": "جراحة التجميل",
+    "Description": "Surgical procedures for reconstruction or enhancement of physical appearance.",
+    "IconUrl": "https://img.icons8.com/color/96/face-id.png"
+  },
+  {
+    "Name": "Neurosurgery",
+    "ArName": "جراحة المخ والأعصاب",
+    "Description": "Surgical treatment of disorders affecting the brain and spinal cord.",
+    "IconUrl": "https://img.icons8.com/color/96/brain.png"
+  },
+  {
+    "Name": "Vascular Surgery",
+    "ArName": "جراحة الأوعية الدموية",
+    "Description": "Surgical treatment of disorders affecting blood vessels and circulation.",
+    "IconUrl": "https://img.icons8.com/color/96/blood-vessels.png"
+  },
+  {
+    "Name": "Nuclear Medicine",
+    "ArName": "الطب النووي",
+    "Description": "Use of radioactive substances for diagnosis and treatment of diseases.",
+    "IconUrl": "https://img.icons8.com/color/96/nuclear.png"
+  },
+  {
+    "Name": "Nephrology",
+    "ArName": "أمراض الكلى",
+    "Description": "Diagnosis and treatment of kidney-related diseases and conditions.",
+    "IconUrl": "https://img.icons8.com/color/96/kidney.png"
+  },
+  {
+    "Name": "Maxillofacial Surgery",
+    "ArName": "جراحة الوجه والفكين",
+    "Description": "Surgical treatment of injuries and defects in the head, neck, face, and jaws.",
+    "IconUrl": "https://img.icons8.com/color/96/skull.png"
+  },
+  {
+    "Name": "Pediatric Surgery",
+    "ArName": "جراحة الأطفال",
+    "Description": "Surgical care specifically for infants, children, and adolescents.",
+    "IconUrl": "https://img.icons8.com/color/96/children.png"
+  },
+  {
+    "Name": "Family Medicine",
+    "ArName": "طب الأسرة",
+    "Description": "Continuous primary healthcare for individuals and families of all ages.",
+    "IconUrl": "https://img.icons8.com/color/96/family.png"
+  },
+  {
+    "Name": "Sports Medicine",
+    "ArName": "الطب الرياضي",
+    "Description": "Treatment and prevention of injuries related to sports and exercise.",
+    "IconUrl": "https://img.icons8.com/color/96/basketball.png"
+  },
+  {
+    "Name": "Forensic Medicine",
+    "ArName": "الطب الشرعي",
+    "Description": "Application of medical knowledge to legal questions and death investigations.",
+    "IconUrl": "https://img.icons8.com/color/96/fingerprint.png"
+  },
+  {
+    "Name": "Occupational Medicine",
+    "ArName": "الطب المهني",
+    "Description": "Focuses on the health and safety of people at work.",
+    "IconUrl": "https://img.icons8.com/color/96/factory.png"
+  },
+  {
+    "Name": "Palliative Care",
+    "ArName": "الرعاية التلطيفية",
+    "Description": "Focuses on providing relief from the symptoms and stress of serious illness.",
+    "IconUrl": "https://img.icons8.com/color/96/hand-holding-heart.png"
+  },
+  {
+    "Name": "Sleep Medicine",
+    "ArName": "طب النوم",
+    "Description": "Diagnosis and treatment of sleep disturbances and disorders.",
+    "IconUrl": "https://img.icons8.com/color/96/sleeping-in-bed.png"
+  }
+]

@@ -15,6 +15,10 @@ namespace ClinicHub.Persistence.Configuration
             builder.Property(x => x.Name)
                 .IsRequired()
                 .HasMaxLength(100);
+            
+            builder.Property(x => x.ArName)
+                .IsRequired()
+                .HasMaxLength(100);
 
             builder.Property(x => x.Description)
                 .HasMaxLength(500);

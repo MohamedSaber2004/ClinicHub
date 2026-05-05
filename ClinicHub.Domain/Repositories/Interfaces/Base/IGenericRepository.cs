@@ -22,6 +22,9 @@ namespace ClinicHub.Domain.Repositories.Interfaces.Base
         void Update(T entity);
         Task UpdateRange(IEnumerable<T> entities);
 
+        // delete methods
+        void Delete(T entity);
+
 
         // filter methods
         Task<bool> ExistsAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default);

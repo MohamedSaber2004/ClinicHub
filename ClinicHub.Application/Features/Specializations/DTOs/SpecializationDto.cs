@@ -1,14 +1,11 @@
-using ClinicHub.Domain.Common;
-
-namespace ClinicHub.Domain.Entities
+namespace ClinicHub.Application.Features.Specializations.DTOs
 {
-    public class Specialization : BaseEntity<Guid>
+    public class SpecializationDto
     {
+        public Guid Id { get; set; }
         public string Name { get; set; } = null!;
         public string ArName { get; set; } = null!;
         public string? Description { get; set; }
         public string? IconUrl { get; set; }
-
-        public ICollection<Clinic> Clinics { get; set; } = new HashSet<Clinic>();
     }
 }

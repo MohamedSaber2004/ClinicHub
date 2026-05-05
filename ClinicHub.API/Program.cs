@@ -170,6 +170,7 @@ namespace ClinicHub.API
                         using var scope = app.Services.CreateScope();
                         var services = scope.ServiceProvider;
                         await services.SeedRolesAsync();
+                        await services.SeedSpecializationsAsync();
                         await services.SeedDataAsync();
                     }
                     catch (Exception ex)

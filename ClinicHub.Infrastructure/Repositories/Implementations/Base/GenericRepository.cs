@@ -102,5 +102,10 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations.Base
             _context.Set<T>().UpdateRange(entities);
             return Task.CompletedTask;
         }
+
+        public void Delete(T entity)
+        {
+            _context.Set<T>().Remove(entity);
+        }
     }
-}
+}

@@ -103,5 +103,13 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString InvalidLongitude = new("Clinics.InvalidLongitude");
             public static readonly KeyString InvalidRadius = new("Clinics.InvalidRadius");
         }
+
+        public static class SpecializationMessages
+        {
+            public static readonly KeyString NotFound = new("Specializations.NotFound");
+            public static readonly KeyString Created = new("Specializations.Created");
+            public static readonly KeyString Updated = new("Specializations.Updated");
+            public static readonly KeyString Deleted = new("Specializations.Deleted");
+        }
     }
 }

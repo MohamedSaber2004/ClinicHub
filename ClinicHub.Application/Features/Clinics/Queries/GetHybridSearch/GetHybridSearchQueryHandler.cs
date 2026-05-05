@@ -161,8 +161,12 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
                 c => (string.IsNullOrEmpty(normalizedSearchText) || 
                       c.Name.Contains(request.SearchText!) || 
                       (c.NameAr != null && c.NameAr.Contains(request.SearchText!)) ||
+                      c.Specialization.Name.Contains(request.SearchText!) ||
+                      c.Specialization.ArName.Contains(request.SearchText!) ||
                       EF.Functions.Like(c.Name, $"%{normalizedSearchText}%") || 
-                      (c.NameAr != null && EF.Functions.Like(c.NameAr, $"%{normalizedSearchText}%"))) &&
+                      (c.NameAr != null && EF.Functions.Like(c.NameAr, $"%{normalizedSearchText}%")) ||
+                      EF.Functions.Like(c.Specialization.Name, $"%{normalizedSearchText}%") ||
+                      EF.Functions.Like(c.Specialization.ArName, $"%{normalizedSearchText}%")) &&
                      (!request.SpecializationId.HasValue || c.SpecializationId == request.SpecializationId),
                 c => c.Specialization);
 
