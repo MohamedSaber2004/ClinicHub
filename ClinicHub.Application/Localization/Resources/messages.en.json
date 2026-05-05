@@ -5,6 +5,14 @@
     "Accepted": "Accepted successfully",
     "Deleted": "Deleted successfully"
   },
+  "Attachments": {
+    "InvalidFormat": "Invalid media format",
+    "NoMediaProvided": "No media provided",
+    "FileEmpty": "Uploaded file is empty",
+    "UploadFailed": "Failed to upload media",
+    "FileNotFound": "File not found",
+    "InvalidPlace": "Invalid upload location"
+  },
   "Exceptions": {
     "Validation": "Validation failed",
     "InvalidModelState": "Invalid model state",

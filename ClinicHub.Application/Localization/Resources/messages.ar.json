@@ -5,6 +5,14 @@
     "Accepted": "تم القبول بنجاح",
     "Deleted": "تم الحذف بنجاح"
   },
+  "Attachments": {
+    "InvalidFormat": "صيغة الوسائط غير صحيحة",
+    "NoMediaProvided": "لم يتم توفير أي وسائط",
+    "FileEmpty": "الملف المرفوع فارغ",
+    "UploadFailed": "فشل تحميل الوسائط",
+    "FileNotFound": "الملف غير موجود",
+    "InvalidPlace": "موقع رفع غير صحيح"
+  },
   "Exceptions": {
     "Validation": "فشل التحقق",
     "InvalidModelState": "حالة نموذج غير صحيحة",

@@ -1,3 +1,5 @@
+using Microsoft.Identity.Client;
+
 namespace ClinicHub.API.Routes
 {
     public static class ApiRoutes
@@ -21,6 +23,21 @@ namespace ClinicHub.API.Routes
             public const string UpdateProfile = Base + "/auth/profile/update";
             public const string UpdateLanguage = Base + "/auth/language/update";
             public const string Logout = Base + "/auth/logout";
+        }
+
+        public static class Attachments
+        {
+            public const string UploadImage = Base + "/attachments/upload-image";
+            public const string UploadAudio = Base + "/attachments/upload-audio";
+            public const string UploadVideo = Base + "/attachments/upload-video";
+            public const string UploadFile = Base + "/attachments/upload-file";
+            public const string UploadMultipleImages = Base + "/attachments/upload-multiple-images";
+            public const string UploadMultipleVideos = Base + "/attachments/upload-multiple-videos";
+            public const string UpdateImage = Base + "/attachments/update-image/{name}";
+            public const string UpdateAudio = Base + "/attachments/update-audio/{name}";
+            public const string UpdateVideo = Base + "/attachments/update-video/{name}";
+            public const string UpdateFile = Base + "/attachments/update-file/{name}";
+            public const string DownloadFile = Base + "/attachments/downaload-file";
         }
 
         public static class Posts

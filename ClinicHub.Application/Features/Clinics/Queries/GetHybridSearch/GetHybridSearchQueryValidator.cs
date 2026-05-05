@@ -11,12 +11,12 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
             RuleFor(x => x.UserLat)
                 .InclusiveBetween(-90, 90)
                 .When(x => x.IsNearest)
-                .WithMessage(localizer["Clinics.InvalidLatitude"]);
+                .WithMessage(localizer["Clinics:InvalidLatitude"]);
 
             RuleFor(x => x.UserLng)
                 .InclusiveBetween(-180, 180)
                 .When(x => x.IsNearest)
-                .WithMessage(localizer["Clinics.InvalidLongitude"]);
+                .WithMessage(localizer["Clinics:InvalidLongitude"]);
 
             //RuleFor(x => x.RadiusInKm)
             //    .InclusiveBetween(0.1, 5)

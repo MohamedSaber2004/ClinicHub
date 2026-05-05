@@ -1,6 +1,6 @@
 using ClinicHub.Application.Common.Interfaces;
-using ClinicHub.Application.Common.Options;
 using ClinicHub.Application.Common.Models;
+using ClinicHub.Application.Common.Options;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Repositories.Interfaces;
@@ -8,6 +8,7 @@ using ClinicHub.Domain.Repositories.Interfaces.Base;
 using ClinicHub.Infrastructure.Repositories.Implementations;
 using ClinicHub.Infrastructure.Repositories.Implementations.Base;
 using ClinicHub.Infrastructure.Services;
+using ClinicHub.Infrastructure.Services.Attachements;
 using ClinicHub.Infrastructure.Services.Interfaces;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using ClinicHub.Persistence;
@@ -25,6 +26,9 @@ namespace ClinicHub.Infrastructure
     {
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
+
+            services.AddHttpClient();
+
             services.AddScoped<IUnitOfWork, Repositories.Implementations.Base.UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<,>), typeof(GenericRepository<,>));
             services.AddScoped<IPostRepository, PostRepository>();
@@ -35,6 +39,13 @@ namespace ClinicHub.Infrastructure
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IFacebookAuth, FacebookAuth>();
             services.AddScoped<IGoogleAuth, GoogleAuth>();
+
+            //File Services
+            services.AddScoped<IBaseFileService, BaseFileService>();
+            services.AddScoped<IFileValidator, FileValidator>();
+            services.AddScoped<IImageValidator, ImageValidator>();
+            services.AddScoped<IAudioValidator, AudioValidator>();
+            services.AddScoped<IVideoValidator, VideoValidator>();
 
             //services.AddHttpClient<IMapService, GoogleMapService>();
             //services.AddHttpClient<IMapService, GoogleMapService>(client =>
