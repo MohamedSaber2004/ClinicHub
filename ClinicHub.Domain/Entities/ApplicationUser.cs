@@ -1,10 +1,20 @@
+using ClinicHub.Domain.Common.Interfaces;
 using ClinicHub.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 
 namespace ClinicHub.Domain.Entities
 {
-    public class ApplicationUser : IdentityUser<Guid>
+    public class ApplicationUser : IdentityUser<Guid>, IBaseEntity<Guid>
     {
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public DateTime? DeletedAt { get; set; }
+        public string CreatedBy { get; set; } = string.Empty;
+        public string? UpdatedBy { get; set; }
+        public string? DeletedBy { get; set; }
+        public bool IsDeleted { get; set; }
+        public bool IsActive { get; set; } = true;
+
         public string FullName { get; private set; } = null!;
         public DateTime BirthDate { get; private set; }
         public Gender Gender { get; private set; }

@@ -29,7 +29,13 @@
     "InvalidEmail": "Email address is invalid",
     "InvalidEnumValue": "{PropertyName} has an invalid value",
     "MediaUrlsAndTypesMismatch": "MediaUrls and MediaTypes must be of the same length if provided.",
-    "MinAge": "Age must be at least 15 years old"
+    "MinAge": "Age must be at least 15 years old",
+    "UserNotFound": "User not found",
+    "ConversationNotFound": "Conversation not found",
+    "MessageNotFound": "Message not found",
+    "CannotChatWithYourself": "You cannot chat with yourself",
+    "UnauthorizedAction": "You are not authorized to perform this action",
+    "DeletedSuccessfully": "Deleted successfully"
   },
   "Messages": {
     "Success": "Operation completed successfully",

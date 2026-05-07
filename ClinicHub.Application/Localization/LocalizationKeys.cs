@@ -30,6 +30,12 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString InvalidEnumValue = new("Validation.InvalidEnumValue");
             public static readonly KeyString MediaUrlsAndTypesMismatch = new("Validation.MediaUrlsAndTypesMismatch");
             public static readonly KeyString MinAge = new("Validation.MinAge");
+            public static readonly KeyString UserNotFound = new("Validation.UserNotFound");
+            public static readonly KeyString ConversationNotFound = new("Validation.ConversationNotFound");
+            public static readonly KeyString MessageNotFound = new("Validation.MessageNotFound");
+            public static readonly KeyString CannotChatWithYourself = new("Validation.CannotChatWithYourself");
+            public static readonly KeyString UnauthorizedAction = new("Validation.UnauthorizedAction");
+            public static readonly KeyString DeletedSuccessfully = new("Validation.DeletedSuccessfully");
         }
 
         public static class GeneralMessages

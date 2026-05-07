@@ -81,5 +81,16 @@ namespace ClinicHub.API.Routes
             public const string Update = Base + "/specializations/update";
             public const string Delete = Base + "/specializations/delete";
         }
+
+        public static class Conversations
+        {
+            public const string GetAll = Base + "/conversations";
+            public const string GetById = Base + "/conversations/{id:guid}";
+            public const string Create = Base + "/conversations/create";
+            public const string SendMessage = Base + "/conversations/{conversationId:guid}/messages";
+            public const string GetMessages = Base + "/conversations/{conversationId:guid}/messages";
+            public const string DeleteMessage = Base + "/conversations/messages/{messageId:guid}";
+            public const string Delete = Base + "/conversations/{id:guid}";
+        }
     }
 }

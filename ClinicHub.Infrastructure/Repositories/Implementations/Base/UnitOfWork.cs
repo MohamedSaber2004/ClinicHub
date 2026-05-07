@@ -20,6 +20,8 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations.Base
         private IUserFbTokenRepository? _userFbTokenRepository;
         private INotificationRepository? _notificationRepository;
         private IUserRefreshTokenRepository? _userRefreshTokenRepository;
+        private IConversationRepository? _conversationRepository;
+        private IMessageRepository? _messageRepository;
         private IDbContextTransaction? _transaction;
 
         public UnitOfWork(ClinicHubContext context)
@@ -47,6 +49,8 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations.Base
         public IUserFbTokenRepository UserFbTokenRepository => _userFbTokenRepository ??= new UserFbTokenRepository(_context);
         public INotificationRepository NotificationRepository => _notificationRepository ??= new NotificationRepository(_context);
         public IUserRefreshTokenRepository UserRefreshTokenRepository => _userRefreshTokenRepository ??= new UserRefreshTokenRepository(_context);
+        public IConversationRepository ConversationRepository => _conversationRepository ??= new ConversationRepository(_context);
+        public IMessageRepository MessageRepository => _messageRepository ??= new MessageRepository(_context);
 
         public async Task<int> SaveChangesAsync()
         {

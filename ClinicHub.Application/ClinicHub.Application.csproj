@@ -28,6 +28,7 @@
   </ItemGroup>
 
 	<ItemGroup>
+		<Folder Include="Features\Conversations\" />
 		<Folder Include="Realtime-Hubs\" />
 	</ItemGroup>
 

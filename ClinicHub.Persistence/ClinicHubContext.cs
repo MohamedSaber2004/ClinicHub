@@ -28,6 +28,8 @@ namespace ClinicHub.Persistence
         public DbSet<UserFbToken> UserFbTokens { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<UserRefreshToken> UserRefreshTokens { get; set; }
+        public DbSet<Conversation> Conversations { get; set; }
+        public DbSet<Message> Messages { get; set; }
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder builder)

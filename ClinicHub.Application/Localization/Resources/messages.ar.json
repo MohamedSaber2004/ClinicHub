@@ -29,7 +29,13 @@
     "InvalidEmail": "عنوان البريد الإلكتروني غير صحيح",
     "InvalidEnumValue": "{PropertyName} يحتوي على قيمة غير صالحة",
     "MediaUrlsAndTypesMismatch": "عدد عناوين الوسائط لا يتطابق مع عدد أنواع الوسائط",
-    "MinAge": "يجب أن يكون العمر علي الأقل 15 سنة."
+    "MinAge": "يجب أن يكون العمر علي الأقل 15 سنة.",
+    "UserNotFound": "المستخدم غير موجود",
+    "ConversationNotFound": "المحادثة غير موجودة",
+    "MessageNotFound": "الرسالة غير موجودة",
+    "CannotChatWithYourself": "لا يمكنك الدردشة مع نفسك",
+    "UnauthorizedAction": "أنت غير مصرح بتنفيذ هذه العملية",
+    "DeletedSuccessfully": "تم الحذف بنجاح"
   },
   "Messages": {
     "Success": "تم إكمال العملية بنجاح",

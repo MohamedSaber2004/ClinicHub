@@ -15,6 +15,8 @@ namespace ClinicHub.Infrastructure.UnitOfWork.Interfaces
         IUserFbTokenRepository UserFbTokenRepository { get; }
         INotificationRepository NotificationRepository { get; }
         IUserRefreshTokenRepository UserRefreshTokenRepository { get; }
+        IConversationRepository ConversationRepository { get; }
+        IMessageRepository MessageRepository { get; }
         Task<int> SaveChangesAsync();
         Task BeginTransactionAsync();
         Task CommitAsync();
