@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
@@ -29,16 +30,18 @@ namespace ClinicHub.Application.Features.Comments.Commands.AddComment
             }
             else
             {
-                var post = (await _unitOfWork.PostRepository.GetByIdAsync(request.PostId))!;
-                    
-                newComment = post.AddComment(request.Content, _currentUserService.UserId);
-                _unitOfWork.PostRepository.Update(post);
+                var postExists = await _unitOfWork.PostRepository.ExistsAsync(p => p.Id == request.PostId && !p.IsDeleted, cancellationToken);
+                if (!postExists)
+                    throw new NotFoundException($"Post with id {request.PostId} not found");
+
+                newComment = new Comment(request.Content, _currentUserService.UserId, request.PostId);
+                await _unitOfWork.CommentRepository.AddAsync(newComment);
             }
 
-            var result =await _unitOfWork.SaveChangesAsync();
+            var result = await _unitOfWork.SaveChangesAsync();
 
-            return result > 0 ? 
-                JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.GeneralMessages.Success.Value):
+            return result > 0 ?
+                JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.GeneralMessages.Success.Value) :
                 JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.GeneralMessages.Error.Value);
         }
     }

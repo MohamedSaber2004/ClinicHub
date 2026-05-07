@@ -3,16 +3,17 @@ using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.API.Filters
 {
-    public class ApiExceptionFilterAttribute: ExceptionFilterAttribute
+    public class ApiExceptionFilterAttribute : ExceptionFilterAttribute
     {
         private readonly IDictionary<Type, Action<ExceptionContext>> _exceptionHandlers;
         private readonly ILogger<ApiExceptionFilterAttribute> _logger;
 
-        public ApiExceptionFilterAttribute( ILogger<ApiExceptionFilterAttribute> logger)
+        public ApiExceptionFilterAttribute(ILogger<ApiExceptionFilterAttribute> logger)
         {
             _exceptionHandlers = new Dictionary<Type, Action<ExceptionContext>>
             {
@@ -20,6 +21,7 @@ namespace ClinicHub.API.Filters
                 { typeof(NotFoundException), HandleNotFoundException },
                 { typeof(BadRequestException), HandleBadRequestException },
                 { typeof(UnAuthorizedException), HandleUnauthorizedException },
+                { typeof(DbUpdateConcurrencyException), HandleDbUpdateConcurrencyException },
             };
             _logger = logger;
         }
@@ -127,6 +129,21 @@ namespace ClinicHub.API.Filters
             context.Result = new ObjectResult(details)
             {
                 StatusCode = StatusCodes.Status500InternalServerError
+            };
+
+            context.ExceptionHandled = true;
+        }
+
+        private void HandleDbUpdateConcurrencyException(ExceptionContext context)
+        {
+            _logger.LogWarning(context.Exception, "A concurrency conflict occurred while updating the database.");
+
+            var message = "The record has been modified by another user. Please refresh and try again.";
+            var details = ApiResponse<object>.Error(message, StatusCodes.Status409Conflict);
+
+            context.Result = new ObjectResult(details)
+            {
+                StatusCode = StatusCodes.Status409Conflict
             };
 
             context.ExceptionHandled = true;

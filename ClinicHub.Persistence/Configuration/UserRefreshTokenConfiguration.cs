@@ -14,6 +14,9 @@ namespace ClinicHub.Persistence.Configuration
             builder.Property(x => x.Token)
                 .IsRequired();
 
+            builder.Property(x => x.Version)
+                .IsRowVersion();
+
             builder.HasOne(x => x.User)
                 .WithMany(x => x.UserRefreshTokens)
                 .HasForeignKey(x => x.UserId)

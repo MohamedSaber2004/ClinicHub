@@ -10,6 +10,9 @@ namespace ClinicHub.Persistence.Configuration
         {
             builder.HasKey(x => x.Id);
 
+            builder.Property(x => x.Version)
+                .IsRowVersion();
+
             builder.HasQueryFilter(x => !x.IsDeleted);
 
             builder.ToTable("Reactions");

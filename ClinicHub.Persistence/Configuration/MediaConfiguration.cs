@@ -14,6 +14,9 @@ namespace ClinicHub.Persistence.Configuration
                 .HasMaxLength(500)
                 .IsRequired();
 
+            builder.Property(x => x.Version)
+                .IsRowVersion();
+
             builder.HasQueryFilter(x => !x.IsDeleted);
 
             builder.ToTable("Media");

@@ -10,10 +10,10 @@ namespace ClinicHub.Domain.Entities
 
         public Guid? PostId { get; private set; }
         public Post? Post { get; private set; }
-    
+
         public Guid? CommentId { get; private set; }
         public Comment? Comment { get; private set; }
-    
+
         private Reaction() { }
 
         [System.Diagnostics.CodeAnalysis.SetsRequiredMembers]
@@ -23,6 +23,12 @@ namespace ClinicHub.Domain.Entities
             AuthorId = authorId;
             PostId = postId;
             CommentId = commentId;
+        }
+
+        public void UpdateReactionType(ReactionType newType)
+        {
+            Type = newType;
+            MarkAsUpdated(AuthorId.ToString());
         }
     }
 }

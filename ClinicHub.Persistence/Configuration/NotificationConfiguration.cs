@@ -25,6 +25,9 @@ namespace ClinicHub.Persistence.Configuration
             builder.Property(x => x.BodyAr)
                 .IsRequired();
 
+            builder.Property(x => x.Version)
+                .IsRowVersion();
+
             builder.HasOne(x => x.User)
                 .WithMany(x => x.Notifications)
                 .HasForeignKey(x => x.UserId)

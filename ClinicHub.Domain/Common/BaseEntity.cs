@@ -13,6 +13,8 @@ namespace ClinicHub.Domain.Common
         public string? DeletedBy { get; internal set; }
         public bool IsDeleted { get; private set; }
         public bool IsActive { get; private set; } = true;
+        [Timestamp]
+        public byte[]? Version { get; internal set; }
 
         public void Deactive() => IsActive = false;
         public void Active() => IsActive = true;

@@ -32,6 +32,9 @@ namespace ClinicHub.Persistence.Configuration
                 .HasMaxLength(2000)
                 .IsRequired();
 
+            builder.Property(x => x.Version)
+                .IsRowVersion();
+
             builder.HasQueryFilter(x => !x.IsDeleted);
 
             builder.ToTable("Comments");

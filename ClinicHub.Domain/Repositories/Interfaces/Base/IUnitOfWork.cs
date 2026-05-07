@@ -9,6 +9,7 @@ namespace ClinicHub.Infrastructure.UnitOfWork.Interfaces
         IGenericRepository<T, TKey> GetRepository<T, TKey>() where T : class, IBaseEntity<TKey> where TKey : IEquatable<TKey>;
         IPostRepository PostRepository { get; }
         ICommentRepository CommentRepository { get; }
+        IReactionRepository ReactionRepository { get; }
         IClinicRepository ClinicRepository { get; }
         ISpecializationRepository SpecializationRepository { get; }
         IUserFbTokenRepository UserFbTokenRepository { get; }

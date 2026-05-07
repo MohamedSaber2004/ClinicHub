@@ -1,5 +1,7 @@
+using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Localization;
+using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 
@@ -18,15 +20,39 @@ namespace ClinicHub.Application.Features.Posts.Commands.TogglePostReaction
 
         public async Task<string> Handle(TogglePostReactionCommand request, CancellationToken cancellationToken)
         {
-            var post = (await _unitOfWork.PostRepository.GetByIdWithDetailsAsync(request.PostId, cancellationToken))!;
+            var postExists = await _unitOfWork.PostRepository.ExistsAsync(
+                p => p.Id == request.PostId && !p.IsDeleted, cancellationToken);
+            if (!postExists)
+                throw new NotFoundException($"Post with id {request.PostId} not found");
 
-            post.AddReaction(request.Type, _currentUserService.UserId);
+            var existingReaction = await _unitOfWork.ReactionRepository.GetFirstAsync(
+                r => r.PostId == request.PostId &&
+                     r.AuthorId == _currentUserService.UserId &&
+                     !r.IsDeleted,
+                cancellationToken);
 
-            _unitOfWork.PostRepository.Update(post);
+            if (existingReaction != null)
+            {
+                if (existingReaction.Type == request.Type)
+                {
+                    _unitOfWork.ReactionRepository.Delete(existingReaction);
+                }
+                else
+                {
+                    existingReaction.UpdateReactionType(request.Type);
+                    _unitOfWork.ReactionRepository.Update(existingReaction);
+                }
+            }
+            else
+            {
+                var newReaction = new Reaction(request.Type, _currentUserService.UserId, postId: request.PostId);
+                await _unitOfWork.ReactionRepository.AddAsync(newReaction);
+            }
+
             var result = await _unitOfWork.SaveChangesAsync();
 
-            return result > 0 ? 
-                JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.GeneralMessages.Success.Value):
+            return result > 0 ?
+                JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.GeneralMessages.Success.Value) :
                 JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.GeneralMessages.Error.Value);
         }
     }

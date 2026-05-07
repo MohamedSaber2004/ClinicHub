@@ -14,6 +14,7 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations.Base
         private readonly Dictionary<Type, object> _repositories;
         private IPostRepository? _postRepository;
         private ICommentRepository? _commentRepository;
+        private IReactionRepository? _reactionRepository;
         private IClinicRepository? _clinicRepository;
         private ISpecializationRepository? _specializationRepository;
         private IUserFbTokenRepository? _userFbTokenRepository;
@@ -40,6 +41,7 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations.Base
 
         public IPostRepository PostRepository => _postRepository ??= new PostRepository(_context);
         public ICommentRepository CommentRepository => _commentRepository ??= new CommentRepository(_context);
+        public IReactionRepository ReactionRepository => _reactionRepository ??= new ReactionRepository(_context);
         public IClinicRepository ClinicRepository => _clinicRepository ??= new ClinicRepository(_context);
         public ISpecializationRepository SpecializationRepository => _specializationRepository ??= new SpecializationRepository(_context);
         public IUserFbTokenRepository UserFbTokenRepository => _userFbTokenRepository ??= new UserFbTokenRepository(_context);
