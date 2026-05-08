@@ -42,6 +42,14 @@ namespace ClinicHub.Domain.Entities
 
         public void UpdateFullName(string fullName) => FullName = fullName;
 
+        public void UpdatePhoneNumber(string phoneNumber) => PhoneNumber = phoneNumber;
+
+        public void UpdateBirthDate(DateTime birthDate) => BirthDate = birthDate;
+
+        public void UpdateGender(Gender gender) => Gender = gender;
+
+        public void UpdateProfilePicture(string? url) => ProfilePictureUrl = url;
+
         public void UpdateProfile(string fullName, string phoneNumber, DateTime birthDate, Gender gender)
         {
             FullName = fullName;

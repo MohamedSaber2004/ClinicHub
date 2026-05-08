@@ -226,7 +226,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="command">Profile details.</param>
         /// <param name="ct">Cancellation token.</param>
         /// <returns>A success message.</returns>
-        [HttpPut]
+        [HttpPatch]
         [Authorize]
         [Route(ApiRoutes.Auth.UpdateProfile)]
         [ProducesResponseType(StatusCodes.Status200OK)]

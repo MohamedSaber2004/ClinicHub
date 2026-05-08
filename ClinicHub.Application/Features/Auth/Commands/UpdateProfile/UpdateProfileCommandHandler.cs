@@ -25,7 +25,20 @@ namespace ClinicHub.Application.Features.Auth.Commands.UpdateProfile
             if (user == null)
                 return false;
 
-            user.UpdateProfile(request.FullName, request.PhoneNumber, request.BirthDate, request.Gender);
+            if (request.FullName != null)
+                user.UpdateFullName(request.FullName);
+
+            if (request.PhoneNumber != null)
+                user.UpdatePhoneNumber(request.PhoneNumber);
+
+            if (request.BirthDate.HasValue)
+                user.UpdateBirthDate(request.BirthDate.Value);
+
+            if (request.Gender.HasValue)
+                user.UpdateGender(request.Gender.Value);
+
+            if (request.ProfileImageUrl != null)
+                user.UpdateProfilePicture(request.ProfileImageUrl);
 
             var result = await _userManager.UpdateAsync(user);
 

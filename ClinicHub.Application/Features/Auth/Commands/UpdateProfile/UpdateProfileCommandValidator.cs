@@ -8,19 +8,22 @@ namespace ClinicHub.Application.Features.Auth.Commands.UpdateProfile
         public UpdateProfileCommandValidator()
         {
             RuleFor(x => x.FullName)
-                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value))
-                .MaximumLength(200).WithMessage(string.Format(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.MaxLength.Value), 200));
+                .NotEmpty().When(x => x.FullName != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value))
+                .MaximumLength(200).When(x => x.FullName != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.MaxLength.Value));
 
             RuleFor(x => x.PhoneNumber)
-                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value))
-                .MaximumLength(50).WithMessage(string.Format(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.MaxLength.Value), 50));
+                .NotEmpty().When(x => x.PhoneNumber != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value))
+                .MaximumLength(50).When(x => x.PhoneNumber != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.MaxLength.Value));
 
             RuleFor(x => x.BirthDate)
-                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value))
-                .LessThan(DateTime.UtcNow).WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.InvalidFormat.Value));
+                .NotEmpty().When(x => x.BirthDate != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value))
+                .LessThan(DateTime.UtcNow).When(x => x.BirthDate != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.InvalidFormat.Value));
 
             RuleFor(x => x.Gender)
-                .IsInEnum().WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.InvalidFormat.Value));
+                .IsInEnum().When(x => x.Gender != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.InvalidFormat.Value));
+            
+            RuleFor(x => x.ProfileImageUrl)
+                .MaximumLength(1000).When(x => x.ProfileImageUrl != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.MaxLength.Value));
         }
     }
 }
