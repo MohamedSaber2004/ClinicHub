@@ -44,10 +44,12 @@ namespace ClinicHub.Application.Features.Conversations.Queries.GetConversationMe
 
             var messageDtos = new List<MessageDto>();
             var userRepo = _unitOfWork.GetRepository<ApplicationUser, Guid>();
+            var initiator = await userRepo.FindByKeyAsync(conversation.InitiatorId);
+            var recipient = await userRepo.FindByKeyAsync(conversation.RecipientId);
 
             foreach (var message in paginatedMessages)
             {
-                var sender = await userRepo.GetByIdAsync(message.SenderId);
+                var sender = message.SenderId == initiator?.Id ? initiator : recipient;
                 messageDtos.Add(new MessageDto
                 {
                     Id = message.Id,
@@ -56,7 +58,8 @@ namespace ClinicHub.Application.Features.Conversations.Queries.GetConversationMe
                     SenderProfilePictureUrl = sender?.ProfilePictureUrl ?? string.Empty,
                     Content = message.Content,
                     IsRead = message.IsRead,
-                    CreatedAt = message.CreatedAt
+                    CreatedAt = message.CreatedAt,
+                    ConversationId = message.ConversationId
                 });
             }
 

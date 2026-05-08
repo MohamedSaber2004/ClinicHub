@@ -10,20 +10,27 @@ namespace ClinicHub.Persistence.Configuration
         {
             builder.HasKey(x => x.Id);
 
+            builder.Property(x => x.Name)
+                .HasMaxLength(255);
+
+            builder.Property(x => x.IsGroup)
+                .HasDefaultValue(false);
+
+            builder.Property(x => x.Version)
+                .IsRowVersion();
+
+            // Relationships
             builder.HasMany(x => x.Messages)
                 .WithOne()
                 .HasForeignKey(x => x.ConversationId)
                 .OnDelete(DeleteBehavior.Cascade)
                 .Metadata.PrincipalToDependent!.SetPropertyAccessMode(PropertyAccessMode.Field);
 
-            builder.Property(x => x.InitiatorId)
-                .IsRequired();
-
-            builder.Property(x => x.RecipientId)
-                .IsRequired();
-
-            builder.Property(x => x.Version)
-                .IsRowVersion();
+            builder.HasMany(x => x.Participants)
+                .WithOne(p => p.Conversation)
+                .HasForeignKey(p => p.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .Metadata.PrincipalToDependent!.SetPropertyAccessMode(PropertyAccessMode.Field);
 
             builder.HasQueryFilter(x => !x.IsDeleted);
 

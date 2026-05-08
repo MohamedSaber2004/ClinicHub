@@ -1,10 +1,11 @@
+using ClinicHub.Application.Features.Conversations.DTOs;
 using ClinicHub.Application.Localization;
 using FluentValidation;
 using MediatR;
 
 namespace ClinicHub.Application.Features.Conversations.Commands.SendMessage
 {
-    public record SendMessageCommand(Guid ConversationId, string Content) : IRequest<Guid>;
+    public record SendMessageCommand(Guid ConversationId, string Content) : IRequest<MessageDto>;
 
     public class SendMessageCommandValidator : AbstractValidator<SendMessageCommand>
     {

@@ -30,6 +30,10 @@ namespace ClinicHub.Persistence
         public DbSet<UserRefreshToken> UserRefreshTokens { get; set; }
         public DbSet<Conversation> Conversations { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<MessageReaction> MessageReactions { get; set; }
+        public DbSet<MessageMedia> MessageMedia { get; set; }
+        public DbSet<ReadReceipt> ReadReceipts { get; set; }
+        public DbSet<ConversationParticipant> ConversationParticipants { get; set; }
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder builder)

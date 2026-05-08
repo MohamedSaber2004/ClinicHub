@@ -1,6 +1,7 @@
 using ClinicHub.Domain.Common.Interfaces;
 using ClinicHub.Domain.Repositories.Interfaces.Base;
 using ClinicHub.Domain.Repositories.Interfaces;
+using ClinicHub.Domain.Repositories;
 
 namespace ClinicHub.Infrastructure.UnitOfWork.Interfaces
 {
@@ -17,6 +18,10 @@ namespace ClinicHub.Infrastructure.UnitOfWork.Interfaces
         IUserRefreshTokenRepository UserRefreshTokenRepository { get; }
         IConversationRepository ConversationRepository { get; }
         IMessageRepository MessageRepository { get; }
+        IMessageReactionRepository MessageReactionRepository { get; }
+        IMessageMediaRepository MessageMediaRepository { get; }
+        IReadReceiptRepository ReadReceiptRepository { get; }
+        IConversationParticipantRepository ConversationParticipantRepository { get; }
         Task<int> SaveChangesAsync();
         Task BeginTransactionAsync();
         Task CommitAsync();

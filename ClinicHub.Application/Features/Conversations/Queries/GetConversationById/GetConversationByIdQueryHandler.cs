@@ -14,12 +14,18 @@ namespace ClinicHub.Application.Features.Conversations.Queries.GetConversationBy
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
         private readonly IStringLocalizer<Messages> _localizer;
+        private readonly IPusherService _pusherService;
 
-        public GetConversationByIdQueryHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IStringLocalizer<Messages> localizer)
+        public GetConversationByIdQueryHandler(
+            IUnitOfWork unitOfWork, 
+            ICurrentUserService currentUserService, 
+            IStringLocalizer<Messages> localizer,
+            IPusherService pusherService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
             _localizer = localizer;
+            _pusherService = pusherService;
         }
 
         public async Task<ConversationDetailDto> Handle(GetConversationByIdQuery request, CancellationToken cancellationToken)
@@ -34,12 +40,35 @@ namespace ClinicHub.Application.Features.Conversations.Queries.GetConversationBy
                 throw new BadRequestException(_localizer[LocalizationKeys.ValidationMessages.UnauthorizedAction.Key]);
 
             // Fetch participants data
-            var initiator = await _unitOfWork.GetRepository<ApplicationUser, Guid>().GetByIdAsync(conversation.InitiatorId);
-            var recipient = await _unitOfWork.GetRepository<ApplicationUser, Guid>().GetByIdAsync(conversation.RecipientId);
+            var initiator = await _unitOfWork.GetRepository<ApplicationUser, Guid>().FindByKeyAsync(conversation.InitiatorId);
+            var recipient = await _unitOfWork.GetRepository<ApplicationUser, Guid>().FindByKeyAsync(conversation.RecipientId);
+
+            // Mark unread messages from the other user as read
+            var unreadMessages = conversation.Messages
+                .Where(m => m.SenderId != currentUserId && m.Status != ClinicHub.Domain.Enums.MessageStatus.Read)
+                .ToList();
+
+            if (unreadMessages.Any())
+            {
+                foreach (var msg in unreadMessages)
+                {
+                    msg.MarkAsRead(currentUserId);
+                }
+                await _unitOfWork.SaveChangesAsync();
+
+                // Notify the sender that their messages have been read
+                var senderId = unreadMessages.First().SenderId;
+                await _pusherService.TriggerEventAsync(
+                    $"private-user-{senderId}", 
+                    "messages-read", 
+                    new { conversationId = request.ConversationId }
+                );
+            }
 
             // Map messages with sender information
             var messageDtos = conversation.Messages
                 .Where(m => !m.IsDeleted)
+                .OrderBy(m => m.CreatedAt)
                 .Select(m => new MessageDto
                 {
                     Id = m.Id,
@@ -52,7 +81,8 @@ namespace ClinicHub.Application.Features.Conversations.Queries.GetConversationBy
                         : recipient?.ProfilePictureUrl ?? string.Empty,
                     Content = m.Content,
                     IsRead = m.IsRead,
-                    CreatedAt = m.CreatedAt
+                    CreatedAt = m.CreatedAt,
+                    ConversationId = m.ConversationId
                 })
                 .ToList();
 
@@ -66,6 +96,7 @@ namespace ClinicHub.Application.Features.Conversations.Queries.GetConversationBy
                 RecipientName = recipient?.FullName ?? "Unknown",
                 RecipientProfilePictureUrl = recipient?.ProfilePictureUrl ?? string.Empty,
                 LastMessageDate = conversation.LastMessageDate,
+                LastMessageContent = conversation.LastMessageContent,
                 CreatedAt = conversation.CreatedAt,
                 Messages = messageDtos
             };

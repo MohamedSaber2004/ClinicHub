@@ -10,6 +10,7 @@ namespace ClinicHub.Application.Features.Conversations.DTOs
         public string RecipientName { get; set; } = string.Empty;
         public string RecipientProfilePictureUrl { get; set; } = string.Empty;
         public DateTime? LastMessageDate { get; set; }
+        public string? LastMessageContent { get; set; }
         public DateTime CreatedAt { get; set; }
         public IList<MessageDto> Messages { get; set; } = [];
     }

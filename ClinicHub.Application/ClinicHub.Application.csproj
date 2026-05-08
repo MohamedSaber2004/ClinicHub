@@ -29,7 +29,6 @@
 
 	<ItemGroup>
 		<Folder Include="Features\Conversations\" />
-		<Folder Include="Realtime-Hubs\" />
 	</ItemGroup>
 
 	<!-- Include JSON localization files for multi-language support (Arabic & English) -->

@@ -35,8 +35,8 @@ namespace ClinicHub.Application.Features.Conversations.Queries.GetConversations
 
             foreach (var conversation in paginatedConversations)
             {
-                var initiator = await userRepo.GetByIdAsync(conversation.InitiatorId);
-                var recipient = await userRepo.GetByIdAsync(conversation.RecipientId);
+                var initiator = await userRepo.FindByKeyAsync(conversation.InitiatorId);
+                var recipient = await userRepo.FindByKeyAsync(conversation.RecipientId);
 
                 conversationDtos.Add(new ConversationDto
                 {
@@ -48,7 +48,9 @@ namespace ClinicHub.Application.Features.Conversations.Queries.GetConversations
                     RecipientName = recipient?.FullName ?? "Unknown",
                     RecipientProfilePictureUrl = recipient?.ProfilePictureUrl ?? string.Empty,
                     LastMessageDate = conversation.LastMessageDate,
-                    CreatedAt = conversation.CreatedAt
+                    LastMessageContent = conversation.LastMessageContent,
+                    CreatedAt = conversation.CreatedAt,
+                    UnreadMessageCount = conversation.Messages.Count(m => m.SenderId != currentUserId && m.Status != ClinicHub.Domain.Enums.MessageStatus.Read)
                 });
             }
 

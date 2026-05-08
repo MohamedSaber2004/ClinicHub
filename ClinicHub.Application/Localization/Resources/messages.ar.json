@@ -102,5 +102,10 @@
     "Created": "تم إنشاء التخصص بنجاح",
     "Updated": "تم تحديث التخصص بنجاح",
     "Deleted": "تم حذف التخصص بنجاح"
+  },
+  "RealTime": {
+    "MissingSocketInfo": "معرف المقبس أو اسم القناة مفقود",
+    "NotConversationParticipant": "أنت لست مشاركاً في هذه المحادثة",
+    "ConversationNotFound": "المحادثة غير موجودة"
   }
 }

@@ -23,6 +23,7 @@ namespace ClinicHub.API.Routes
             public const string UpdateProfile = Base + "/auth/profile/update";
             public const string UpdateLanguage = Base + "/auth/language/update";
             public const string Logout = Base + "/auth/logout";
+            public const string SearchUsers = Base + "/auth/users/search";
         }
 
         public static class Attachments
@@ -93,6 +94,23 @@ namespace ClinicHub.API.Routes
             public const string GetMessages = Base + "/conversations/{conversationId:guid}/messages";
             public const string DeleteMessage = Base + "/conversations/messages/{messageId:guid}";
             public const string Delete = Base + "/conversations/{id:guid}";
+        }
+
+        public static class RealTime
+        {
+            public const string Auth = Base + "/realtime/auth";
+            public const string Webhook = Base + "/realtime/webhook";
+            public const string Typing = Base + "/realtime/typing";
+            public const string GetTypingUsers = Base + "/realtime/typing/{conversationId:guid}";
+            public const string SetActiveConversation = Base + "/realtime/active-conversation";
+            public const string OnlineUsers = Base + "/realtime/online-users";
+            public const string Connect = Base + "/realtime/connect";
+            public const string Disconnect = Base + "/realtime/disconnect";
+        }
+
+        public static class ChatActions
+        {
+            public const string Typing = Base + "/chat/typing";
         }
     }
 }

@@ -2,6 +2,7 @@ using ClinicHub.Domain.Common.Interfaces;
 using ClinicHub.Domain.Repositories.Interfaces.Base;
 using ClinicHub.Infrastructure.Repositories.Implementations;
 using ClinicHub.Domain.Repositories.Interfaces;
+using ClinicHub.Domain.Repositories;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using ClinicHub.Persistence;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -22,6 +23,10 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations.Base
         private IUserRefreshTokenRepository? _userRefreshTokenRepository;
         private IConversationRepository? _conversationRepository;
         private IMessageRepository? _messageRepository;
+        private IMessageReactionRepository? _messageReactionRepository;
+        private IMessageMediaRepository? _messageMediaRepository;
+        private IReadReceiptRepository? _readReceiptRepository;
+        private IConversationParticipantRepository? _conversationParticipantRepository;
         private IDbContextTransaction? _transaction;
 
         public UnitOfWork(ClinicHubContext context)
@@ -51,6 +56,10 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations.Base
         public IUserRefreshTokenRepository UserRefreshTokenRepository => _userRefreshTokenRepository ??= new UserRefreshTokenRepository(_context);
         public IConversationRepository ConversationRepository => _conversationRepository ??= new ConversationRepository(_context);
         public IMessageRepository MessageRepository => _messageRepository ??= new MessageRepository(_context);
+        public IMessageReactionRepository MessageReactionRepository => _messageReactionRepository ??= new MessageReactionRepository(_context);
+        public IMessageMediaRepository MessageMediaRepository => _messageMediaRepository ??= new MessageMediaRepository(_context);
+        public IReadReceiptRepository ReadReceiptRepository => _readReceiptRepository ??= new ReadReceiptRepository(_context);
+        public IConversationParticipantRepository ConversationParticipantRepository => _conversationParticipantRepository ??= new ConversationParticipantRepository(_context);
 
         public async Task<int> SaveChangesAsync()
         {

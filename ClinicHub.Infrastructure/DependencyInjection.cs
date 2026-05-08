@@ -5,6 +5,7 @@ using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Repositories.Interfaces;
 using ClinicHub.Domain.Repositories.Interfaces.Base;
+using ClinicHub.Domain.Repositories;
 using ClinicHub.Infrastructure.Repositories.Implementations;
 using ClinicHub.Infrastructure.Repositories.Implementations.Base;
 using ClinicHub.Infrastructure.Services;
@@ -37,10 +38,17 @@ namespace ClinicHub.Infrastructure
             services.AddScoped<ISpecializationRepository, SpecializationRepository>();
             services.AddScoped<IConversationRepository, ConversationRepository>();
             services.AddScoped<IMessageRepository, MessageRepository>();
+            services.AddScoped<IMessageReactionRepository, MessageReactionRepository>();
+            services.AddScoped<IMessageMediaRepository, MessageMediaRepository>();
+            services.AddScoped<IReadReceiptRepository, ReadReceiptRepository>();
+            services.AddScoped<IConversationParticipantRepository, ConversationParticipantRepository>();
             services.AddScoped<IJwtTokenService, JwtTokenService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IFacebookAuth, FacebookAuth>();
             services.AddScoped<IGoogleAuth, GoogleAuth>();
+            services.AddScoped<IPusherService, PusherService>();
+            services.AddSingleton<IChatConnectionManager, ChatConnectionManager>();
+            services.Configure<PusherSettings>(configuration.GetSection(nameof(PusherSettings)));
 
             //File Services
             services.AddScoped<IBaseFileService, BaseFileService>();

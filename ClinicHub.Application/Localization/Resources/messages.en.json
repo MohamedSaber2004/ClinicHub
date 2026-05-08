@@ -102,5 +102,10 @@
     "Created": "Specialization created successfully",
     "Updated": "Specialization updated successfully",
     "Deleted": "Specialization deleted successfully"
+  },
+  "RealTime": {
+    "MissingSocketInfo": "Missing socket_id or channel_name",
+    "NotConversationParticipant": "You are not a participant of this conversation",
+    "ConversationNotFound": "Conversation not found"
   }
 }

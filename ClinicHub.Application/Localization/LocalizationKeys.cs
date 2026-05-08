@@ -117,5 +117,12 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString Updated = new("Specializations.Updated");
             public static readonly KeyString Deleted = new("Specializations.Deleted");
         }
+
+        public static class RealTimeMessages
+        {
+            public static readonly KeyString MissingSocketInfo = new("RealTime.MissingSocketInfo");
+            public static readonly KeyString NotConversationParticipant = new("RealTime.NotConversationParticipant");
+            public static readonly KeyString ConversationNotFound = new("RealTime.ConversationNotFound");
+        }
     }
 }

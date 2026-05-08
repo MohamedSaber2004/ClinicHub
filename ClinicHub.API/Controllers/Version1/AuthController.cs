@@ -12,6 +12,7 @@ using ClinicHub.Application.Features.Auth.Commands.UpdateLanguage;
 using ClinicHub.Application.Features.Auth.Commands.LoginWithFacebook;
 using ClinicHub.Application.Features.Auth.Commands.LoginWithGoogle;
 using ClinicHub.Application.Features.Auth.Commands.CompleteFacebookRegistration;
+using ClinicHub.Application.Features.Auth.Queries.SearchUsers;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -269,6 +270,23 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> Logout(LogoutCommand command, CancellationToken ct)
         {
             var result = await _mediator.Send(command, ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Searches for users by name or email.
+        /// </summary>
+        /// <param name="searchTerm">Search term.</param>
+        /// <param name="ct">Cancellation token.</param>
+        /// <returns>List of matching users.</returns>
+        [HttpGet]
+        [Authorize]
+        [Route(ApiRoutes.Auth.SearchUsers)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> Search([FromQuery] string searchTerm, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new SearchUsersQuery { SearchTerm = searchTerm }, ct);
             return Ok(result);
         }
     }
