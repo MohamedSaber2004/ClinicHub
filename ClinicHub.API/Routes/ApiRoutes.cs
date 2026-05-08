@@ -33,6 +33,8 @@ namespace ClinicHub.API.Routes
             public const string UploadFile = Base + "/attachments/upload-file";
             public const string UploadMultipleImages = Base + "/attachments/upload-multiple-images";
             public const string UploadMultipleVideos = Base + "/attachments/upload-multiple-videos";
+            public const string UploadMultipleFiles = Base + "/attachments/upload-multiple-files";
+            public const string UploadMultipleAttachments = Base + "/attachments/upload-multiple-attachments";
             public const string UpdateImage = Base + "/attachments/update-image/{name}";
             public const string UpdateAudio = Base + "/attachments/update-audio/{name}";
             public const string UpdateVideo = Base + "/attachments/update-video/{name}";

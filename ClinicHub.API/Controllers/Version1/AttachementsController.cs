@@ -6,6 +6,8 @@ using ClinicHub.Application.Features.Attachements.Commands.UpdateAudio;
 using ClinicHub.Application.Features.Attachements.Commands.UpdateFile;
 using ClinicHub.Application.Features.Attachements.Commands.UpdateImage;
 using ClinicHub.Application.Features.Attachements.Commands.UpdateVideo;
+using ClinicHub.Application.Features.Attachements.Commands.Upload_Multi_Attachments;
+using ClinicHub.Application.Features.Attachements.Commands.Upload_Multi_Files;
 using ClinicHub.Application.Features.Attachements.Commands.Upload_Multi_Images;
 using ClinicHub.Application.Features.Attachements.Commands.Upload_Multi_Videos;
 using ClinicHub.Application.Features.Attachements.Commands.UploadAudio;
@@ -190,9 +192,9 @@ namespace ClinicHub.API.Controllers.Version1
         [Consumes("multipart/form-data")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UploadMultipleImages([FromForm]UploadMultipleImagesCommand command)
+        public async Task<IActionResult> UploadMultipleImages([FromForm] List<IFormFile> Files, [FromQuery] int Place)
         {
-            var result = await _mediator.Send(command);
+            var result = await _mediator.Send(new UploadMultipleImagesCommand { Files = Files, Place = Place });
             return Ok(result);
         }
 
@@ -206,7 +208,39 @@ namespace ClinicHub.API.Controllers.Version1
         [Consumes("multipart/form-data")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UploadMultipleVideos([FromForm] UploadMultiVideosCommand command)
+        public async Task<IActionResult> UploadMultipleVideos([FromForm] List<IFormFile> Files, [FromQuery] int Place)
+        {
+            var result = await _mediator.Send(new UploadMultiVideosCommand { Files = Files, Place = Place });
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Upload list of files to the server.
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route(ApiRoutes.Attachments.UploadMultipleFiles)]
+        [Consumes("multipart/form-data")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> UploadMultipleFiles([FromForm] List<IFormFile> Files, [FromQuery] int Place)
+        {
+            var result = await _mediator.Send(new UploadMultipleFilesCommand { Files = Files, Place = Place });
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Upload list of attachments (mixed types) to the server.
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route(ApiRoutes.Attachments.UploadMultipleAttachments)]
+        [Consumes("multipart/form-data")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> UploadMultipleAttachments([FromForm] UploadMultipleAttachmentsCommand command)
         {
             var result = await _mediator.Send(command);
             return Ok(result);

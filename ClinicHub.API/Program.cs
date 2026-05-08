@@ -77,10 +77,12 @@ namespace ClinicHub.API
                 builder.Services.AddOpenApi("v1", options =>
                 {
                     options.AddOperationTransformer<LanguageHeaderOperationTransformer>();
+                    options.AddOperationTransformer<MultipartOperationTransformer>();
                 });
                 builder.Services.AddOpenApi("v2", options =>
                 {
                     options.AddOperationTransformer<LanguageHeaderOperationTransformer>();
+                    options.AddOperationTransformer<MultipartOperationTransformer>();
                 });
 
                 builder.Services.AddApplicationServices(builder.Configuration);
