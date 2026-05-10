@@ -95,8 +95,8 @@ namespace ClinicHub.Application.Features.Conversations.Queries.GetConversationBy
                 RecipientId = conversation.RecipientId,
                 RecipientName = recipient?.FullName ?? "Unknown",
                 RecipientProfilePictureUrl = recipient?.ProfilePictureUrl ?? string.Empty,
-                LastMessageDate = conversation.LastMessageDate,
-                LastMessageContent = conversation.LastMessageContent,
+                LastMessageDate = messageDtos.LastOrDefault()?.CreatedAt,
+                LastMessageContent = messageDtos.LastOrDefault()?.Content,
                 CreatedAt = conversation.CreatedAt,
                 Messages = messageDtos
             };
