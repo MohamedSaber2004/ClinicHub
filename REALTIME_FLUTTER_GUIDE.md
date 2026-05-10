@@ -1,176 +1,353 @@
 # ClinicHub Real-time Chat Integration Guide (For Flutter Developers)
 
-This document provides a step-by-step guide on how to integrate the real-time chat functionality using Pusher and the ClinicHub API in your Flutter application.
-
-## 🛠️ Prerequisites
-Ensure you are using the official Pusher Channels package for Flutter:
-```yaml
-dependencies:
-  pusher_channels_flutter: ^x.x.x
-```
+> **Base URL:** `https://<your-domain>/api/v1`  
+> **Auth:** All endpoints require `Authorization: Bearer <TOKEN>` unless stated otherwise.
 
 ---
 
-## 📖 Step 1: Initialize Pusher & Authentication
+## 🔌 Phase 1 — Setup & Connection
 
-When the user logs in and you have their `Bearer Token` and `UserId`, initialize Pusher.
+### 1.1 — Authenticate Pusher Channels
+Used internally by the Pusher SDK during `pusher.init()`. The SDK calls this automatically.
 
-### Endpoint: `POST /api/v1/realtime/auth`
-Pusher requires an authentication endpoint to subscribe to `private-` and `presence-` channels.
+```
+POST /api/v1/realtime/auth
+Content-Type: application/x-www-form-urlencoded
+```
+| Body Field     | Type   | Description               |
+|----------------|--------|---------------------------|
+| `socket_id`    | string | Provided by Pusher SDK    |
+| `channel_name` | string | Provided by Pusher SDK    |
 
-**Flutter Pusher Setup Example:**
+**Response:** Pusher auth token (string JSON)
+
+**Flutter Setup:**
 ```dart
-PusherChannelsFlutter pusher = PusherChannelsFlutter.getInstance();
 await pusher.init(
-  apiKey: "8313dec338639cb37d40", // Replace with actual key
+  apiKey: "8313dec338639cb37d40",
   cluster: "eu",
-  onAuthorizer: (String channelName, String socketId, dynamic options) async {
-    // Call our backend Auth endpoint
+  onAuthorizer: (channelName, socketId, options) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/v1/realtime/auth'),
       headers: {
         'Authorization': 'Bearer $TOKEN',
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: {
-        'socket_id': socketId,
-        'channel_name': channelName,
-      },
+      body: {'socket_id': socketId, 'channel_name': channelName},
     );
     return jsonDecode(response.body);
   },
-  onEvent: onPusherEvent, // Handle incoming events here
+  onEvent: onPusherEvent,
 );
 await pusher.connect();
 ```
 
 ---
 
-## 📖 Step 2: Subscribe to Channels
+### 1.2 — Subscribe to Channels
+After connecting, subscribe to:
+```dart
+// Online presence for all users
+await pusher.subscribe(channelName: "presence-global");
 
-Once connected, you must subscribe to two main channels:
-
-1. **Global Presence Channel (`presence-global`)**: 
-   Used to track who is currently online in the app.
-   ```dart
-   await pusher.subscribe(channelName: "presence-global");
-   ```
-2. **Private User Channel (`private-user-{YOUR_USER_ID}`)**:
-   Used to receive private messages and notifications. *(Note: Convert your User ID to lowercase if required by your backend configuration).*
-   ```dart
-   await pusher.subscribe(channelName: "private-user-${myUserId.toLowerCase()}");
-   ```
+// Private channel for receiving your own messages & notifications
+await pusher.subscribe(channelName: "private-user-${myUserId.toLowerCase()}");
+```
 
 ---
 
-## 📖 Step 3: Handle App Startup (Crucial for Unread Count)
+### 1.3 — Register Connection (Optional)
+Explicitly register your Pusher socket with the backend.
 
-When the app starts or the user navigates to the Home/Chats screen, you **must** inform the server that the user is NOT inside any specific chat room.
+```
+POST /api/v1/realtime/connect
+Content-Type: application/json
+```
+| Body Field     | Type   | Description            |
+|----------------|--------|------------------------|
+| `connectionId` | string | Your Pusher `socketId` |
 
-### Endpoint: `POST /api/v1/realtime/active-conversation`
-- **Body**: `{ "conversationId": null }`
-- **Why?** If the app was closed abruptly previously, the server might still think the user is reading a chat. Sending `null` clears this state so unread counters work correctly.
-
----
-
-## 📖 Step 4: Fetch Conversations List
-
-### Endpoint: `GET /api/v1/conversations`
-Call this endpoint to display the list of chats in your messages screen.
-- The response includes `lastMessageContent`, `lastMessageDate`, and `unreadMessageCount`.
+**Response:** `true`
 
 ---
 
-## 📖 Step 5: Opening a Conversation (Chat Screen)
+## 💬 Phase 2 — Conversation Management
 
-When the user taps on a conversation to open the Chat Screen, you need to do **two** things simultaneously:
+### 2.1 — Get All Conversations (Chat List Screen)
+Fetch the paginated list of conversations to display in the chat list.
 
-### 1. Fetch the Chat History & Mark as Read
-### Endpoint: `GET /api/v1/conversations/{conversationId}`
-- Fetches all messages.
-- **Backend Behavior**: Calling this endpoint automatically marks all unread messages from the other user as `Read` in the database.
+```
+GET /api/v1/conversations?pageNumber=1&pageSize=10
+```
+| Query Param  | Type | Default |
+|--------------|------|---------|
+| `pageNumber` | int  | 1       |
+| `pageSize`   | int  | 10      |
 
-### 2. Set the Active Conversation
-### Endpoint: `POST /api/v1/realtime/active-conversation`
-- **Body**: `{ "conversationId": "THE_CHAT_ID" }`
-- **Why?** This tells the server: *"The user is currently staring at this chat screen."* If the other person sends a message right now, the server will immediately mark it as `Read` (and the unread counter won't increase).
-
-> **⚠️ IMPORTANT:** When the user presses the "Back" button to leave the Chat Screen, you **MUST** call `POST /api/v1/realtime/active-conversation` with `null` again!
-
----
-
-## 📖 Step 6: Sending a Message
-
-### Endpoint: `POST /api/v1/conversations/{conversationId}/messages`
-- **Body**: `{ "content": "Hello there!" }`
-- **Action**: Append the message locally to your Flutter UI immediately (optimistic UI update), then call the API.
-
----
-
-## 📖 Step 7: Typing Indicators
-
-When the user starts typing, let the other person know.
-
-### Endpoint: `POST /api/v1/realtime/typing`
-- **Body**: `{ "conversationId": "THE_CHAT_ID", "isTyping": true }`
-
-> **Best Practice in Flutter:** Use a `Timer` (debounce). When the user types, send `isTyping: true`. If the user stops typing for 2 seconds, send `isTyping: false`.
+**Response fields per conversation:**
+```json
+{
+  "id": "guid",
+  "isGroup": false,
+  "initiatorId": "guid",
+  "initiatorName": "string",
+  "initiatorProfilePictureUrl": "string",
+  "recipientId": "guid",
+  "recipientName": "string",
+  "recipientProfilePictureUrl": "string",
+  "lastMessageContent": "string",
+  "lastMessageDate": "datetime",
+  "unreadMessageCount": 3,
+  "createdAt": "datetime"
+}
+```
 
 ---
 
-## 📖 Step 8: Listening to Real-time Events (Pusher Callbacks)
+### 2.2 — Create New Conversation
+Start a new 1-to-1 conversation with another user.
 
-In your `onPusherEvent` callback, listen to the following event names on your `private-user-{id}` channel:
+```
+POST /api/v1/conversations/create
+Content-Type: application/json
+```
+| Body Field    | Type | Description                   |
+|---------------|------|-------------------------------|
+| `recipientId` | Guid | The userId of the other person |
 
-### 1. `new-message`
-- **Triggered when:** You receive a message.
-- **Payload:** Message object (content, senderId, conversationId, etc.)
-- **Action:** 
-  - If the user is currently on the Chat Screen for this `conversationId`, append the message to the ListView.
-  - If the user is elsewhere, show a local push notification or update the unread counter.
-
-### 2. `conversation-updated`
-- **Triggered when:** A conversation's last message is updated.
-- **Payload:** `{ "conversationId": "...", "lastMessage": "...", "lastMessageDate": "..." }`
-- **Action:** Update the Conversation List UI to move this chat to the top and update its snippet/date.
-
-### 3. `typing`
-- **Triggered when:** The other user is typing.
-- **Payload:** `{ "conversationId": "...", "userId": "...", "isTyping": true/false }`
-- **Action:** Show or hide a "User is typing..." indicator in the UI.
-
-### 4. `messages-read`
-- **Triggered when:** The other user opens the chat and reads your sent messages.
-- **Payload:** `{ "conversationId": "..." }`
-- **Action:** Update the UI of your sent messages in this conversation. Change the single checkmark (✓) to double checkmarks (✓✓) to indicate they were read.
-
-### 5. `presence-global` channel events
-- `pusher:subscription_succeeded`: Provides a list of all currently online members.
-- `pusher:member_added`: Triggered when someone opens the app.
-- `pusher:member_removed`: Triggered when someone closes the app.
-- **Action:** Use this to show the green "Online" dot next to users' avatars.
+**Response:** `Guid` — the new `conversationId`
 
 ---
 
-## 📖 Step 9: Fetching Online Users Manually (Optional)
+### 2.3 — Delete Conversation
 
-If you don't want to rely solely on the Pusher `presence-global` channel to get the online users (or if you need to fetch the list of online users on demand via API):
+```
+DELETE /api/v1/conversations/{id}
+```
 
-### Endpoint: `GET /api/v1/realtime/online-users`
-- **Returns:** A list of `userId`s (GUIDs) who are currently connected to the chat server.
-- **Action:** Use this list to display a "currently active" list or mark users as online in the UI without relying entirely on Pusher callbacks.
+**Response:** success message string
 
 ---
 
-## 📖 Step 10: Explicit Connection Management (Optional)
+## 📨 Phase 3 — Chat Screen
 
-While Pusher webhooks automatically handle most connection tracking behind the scenes, you may sometimes want to explicitly tell the backend that the user is online or offline, particularly if you're managing background sockets or implementing manual Connect/Disconnect buttons.
+### 3.1 — Open a Conversation (do BOTH simultaneously)
 
-### Endpoint: `POST /api/v1/realtime/connect`
-- **Body:** `{ "connectionId": "YOUR_PUSHER_SOCKET_ID" }`
-- **Action:** Explicitly registers the user's connection in the server's memory. This is implicitly done during Auth, but you can call this manually if needed.
+#### A) Get Conversation Detail + Message History
+Fetches conversation info and **all messages**. Also auto-marks received messages as **Read**.
 
-### Endpoint: `POST /api/v1/realtime/disconnect`
-- **Body:** `{ "connectionId": "YOUR_PUSHER_SOCKET_ID" }`
-- **Action:** Explicitly removes the user's connection. 
-- **Important:** If a user completely disconnects (all connections closed), the backend automatically wipes their `Active Conversation` and `Typing` states, ensuring they don't remain "stuck" reading a chat or typing while offline. Call this endpoint when the user explicitly clicks "Log Out".
+```
+GET /api/v1/conversations/{id}
+```
+
+**Response:**
+```json
+{
+  "id": "guid",
+  "initiatorId": "guid",
+  "initiatorName": "string",
+  "initiatorProfilePictureUrl": "string",
+  "recipientId": "guid",
+  "recipientName": "string",
+  "recipientProfilePictureUrl": "string",
+  "lastMessageContent": "string",
+  "lastMessageDate": "datetime",
+  "createdAt": "datetime",
+  "messages": [ /* MessageDto[] — see below */ ]
+}
+```
+
+#### B) Set Active Conversation (REQUIRED for unread counter)
+Tell the server the user is now inside this chat screen.
+
+```
+POST /api/v1/realtime/active-conversation
+Content-Type: application/json
+```
+| Body Field       | Type    | Description              |
+|------------------|---------|--------------------------|
+| `conversationId` | Guid?   | The opened conversation  |
+
+> ⚠️ **When the user presses Back**, call this again with `"conversationId": null`!
+
+---
+
+### 3.2 — Get Messages Paginated (Lazy Load / Scroll Up)
+Use this for loading older messages on scroll.
+
+```
+GET /api/v1/conversations/{conversationId}/messages?pageNumber=1&pageSize=50
+```
+| Query Param  | Type | Default |
+|--------------|------|---------|
+| `pageNumber` | int  | 1       |
+| `pageSize`   | int  | 50      |
+
+**MessageDto Response Shape:**
+```json
+{
+  "id": "guid",
+  "senderId": "guid",
+  "senderName": "string",
+  "senderProfilePictureUrl": "string",
+  "content": "string",
+  "isRead": true,
+  "readAt": "datetime",
+  "status": "Sent | Delivered | Read",
+  "createdAt": "datetime",
+  "editedAt": "datetime",
+  "isEdited": false,
+  "conversationId": "guid",
+  "replyToMessageId": "guid",
+  "replyToMessage": { "id": "...", "senderName": "...", "content": "..." },
+  "media": [ { "id": "...", "mediaType": "Image|Video|Audio|File", "fileName": "..." } ],
+  "reactions": [ { "id": "...", "userId": "...", "userName": "...", "reactionType": "..." } ]
+}
+```
+
+---
+
+### 3.3 — Send a Message
+```
+POST /api/v1/conversations/{conversationId}/messages
+Content-Type: application/json
+```
+| Body Field  | Type   | Description          |
+|-------------|--------|----------------------|
+| `content`   | string | The message text     |
+
+**Response:** `MessageDto` (the saved message)
+
+> 💡 **Best Practice:** Add the message to the UI immediately (Optimistic Update), then confirm with the API response.
+
+---
+
+### 3.4 — Delete a Message
+
+```
+DELETE /api/v1/conversations/messages/{messageId}
+```
+
+**Response:** success message string
+
+---
+
+### 3.5 — Typing Indicator
+Notify the other user that you are typing.
+
+```
+POST /api/v1/realtime/typing
+Content-Type: application/json
+```
+| Body Field       | Type   | Description                         |
+|------------------|--------|-------------------------------------|
+| `conversationId` | Guid   | The current conversation            |
+| `isTyping`       | bool   | `true` when typing, `false` to stop |
+
+> 💡 **Best Practice:** Use a debounce Timer. Send `isTyping: true` on keystroke. Send `isTyping: false` after 2s of silence.
+
+---
+
+## 🔔 Phase 4 — Real-time Pusher Events
+
+Listen in your `onPusherEvent` callback on `private-user-{myUserId}` channel:
+
+| Event Name             | When Triggered                                    | What To Do in Flutter                                           |
+|------------------------|---------------------------------------------------|-----------------------------------------------------------------|
+| `new-message`          | You receive a new message                         | Append to ListView if chat open, else show notification + increment unread count |
+| `conversation-updated` | A conversation's last message changed             | Move conversation to top of list, update snippet & date         |
+| `typing`               | Other user started/stopped typing                 | Show/hide "typing..." indicator (`conversationId`, `userId`, `isTyping`) |
+| `messages-read`        | Other user opened your chat and read your messages | Change ✓ to ✓✓ for all sent messages in that conversation       |
+
+**`presence-global` channel events:**
+
+| Event Name                    | What To Do                                   |
+|-------------------------------|----------------------------------------------|
+| `pusher:subscription_succeeded` | Get full list of online users, show green dots |
+| `pusher:member_added`         | Mark that user as Online                     |
+| `pusher:member_removed`       | Mark that user as Offline                    |
+
+---
+
+## 🔍 Phase 5 — Optional / On-Demand
+
+### 5.1 — Get Online Users (API fallback)
+If Pusher presence data isn't enough, fetch online users manually.
+
+```
+GET /api/v1/realtime/online-users
+```
+**Response:** `Guid[]` — list of online userIds
+
+---
+
+### 5.2 — Get Typing Users in a Conversation
+Check who is currently typing (useful on screen open).
+
+```
+GET /api/v1/realtime/typing/{conversationId}
+```
+**Response:** `Guid[]` — list of userIds currently typing
+
+---
+
+### 5.3 — Search Users (to start a new chat)
+Find a user before creating a conversation.
+
+```
+GET /api/v1/auth/users/search?query=...
+```
+
+---
+
+### 5.4 — Disconnect (on Logout)
+Tell the backend the user is fully offline.
+
+```
+POST /api/v1/realtime/disconnect
+Content-Type: application/json
+```
+| Body Field     | Type   | Description            |
+|----------------|--------|------------------------|
+| `connectionId` | string | Your Pusher `socketId` |
+
+> ⚠️ On disconnect, the backend automatically clears the user's active conversation and typing state.
+
+---
+
+## 📋 Quick Endpoint Reference
+
+| # | Method   | Endpoint                                               | When To Call                              |
+|---|----------|--------------------------------------------------------|-------------------------------------------|
+| 1 | `POST`   | `/realtime/auth`                                       | Automatically by Pusher SDK               |
+| 2 | `POST`   | `/realtime/connect`                                    | After Pusher connects (optional)          |
+| 3 | `GET`    | `/conversations`                                       | Load chat list screen                     |
+| 4 | `POST`   | `/conversations/create`                                | Start a new conversation                  |
+| 5 | `GET`    | `/conversations/{id}`                                  | Open chat screen (marks messages as read) |
+| 6 | `POST`   | `/realtime/active-conversation` `{conversationId}`     | Enter chat screen                         |
+| 7 | `POST`   | `/realtime/active-conversation` `{null}`               | Leave chat screen (back button)           |
+| 8 | `GET`    | `/conversations/{conversationId}/messages`             | Lazy load older messages                  |
+| 9 | `POST`   | `/conversations/{conversationId}/messages`             | Send a message                            |
+|10 | `DELETE` | `/conversations/messages/{messageId}`                  | Delete a message                          |
+|11 | `DELETE` | `/conversations/{id}`                                  | Delete a conversation                     |
+|12 | `POST`   | `/realtime/typing`                                     | User is typing / stopped typing           |
+|13 | `GET`    | `/realtime/typing/{conversationId}`                    | Get who is typing (on screen open)        |
+|14 | `GET`    | `/realtime/online-users`                               | Get online users (API fallback)           |
+|15 | `GET`    | `/auth/users/search`                                   | Search users to start a new chat          |
+|16 | `POST`   | `/realtime/disconnect`                                 | User logs out                             |
+
+---
+
+## ⚡ TL;DR Summary
+
+**الخطوات الأساسية لتشغيل الـ Chat:**
+
+1. **تسجيل الدخول** → هيئ Pusher واشترك في `presence-global` و `private-user-{userId}`
+2. **شاشة المحادثات** → `GET /conversations` لجلب القائمة
+3. **محادثة جديدة** → `POST /conversations/create` بـ `recipientId`
+4. **فتح المحادثة** → `GET /conversations/{id}` + `POST /active-conversation {id}` معاً
+5. **إرسال رسالة** → `POST /conversations/{id}/messages` + أضفها للـ UI فوراً
+6. **الكتابة** → `POST /realtime/typing` مع debounce timer
+7. **الخروج من المحادثة** → `POST /active-conversation {null}`
+8. **تسجيل الخروج** → `POST /realtime/disconnect`
+9. **استقبال أي شيء** → Pusher events: `new-message`, `typing`, `messages-read`, `conversation-updated`

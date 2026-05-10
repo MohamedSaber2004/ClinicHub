@@ -37,7 +37,7 @@
         "ASPNETCORE_ENVIRONMENT": "Test"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "https://hucliniccare-huicareapp.runasp.net/;http://hucliniccare-huicareapp.runasp.net/"
+      "applicationUrl": "https://localhost:44312/;http://localhost:5027"
     }
   },
   "$schema": "https://json.schemastore.org/launchsettings.json",
