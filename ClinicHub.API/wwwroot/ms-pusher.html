@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ClinicHub | Real-time Dashboard</title>
+    <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #6366f1; --bg: #0b0f1a; --sidebar: #161b2a; --chat: #0b0f1a; --text: #f1f5f9; --accent: #10b981; --border: rgba(255,255,255,0.1); }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg); color: var(--text); height: 100vh; margin: 0; display: flex; overflow: hidden; }
+        .sidebar { width: 350px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        .sidebar-section { padding: 20px; border-bottom: 1px solid var(--border); }
+        .list-container { flex: 1; overflow-y: auto; }
+        .item { padding: 12px 20px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.2s; }
+        .item:hover { background: rgba(255,255,255,0.05); }
+        .item.active { background: rgba(99, 102, 241, 0.15); border-left: 3px solid var(--primary); }
+        .avatar { width: 40px; height: 40px; border-radius: 50%; background: #334155; position: relative; }
+        .online-status { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); position: absolute; bottom: 0; right: 0; border: 2px solid var(--sidebar); }
+        .info { flex: 1; min-width: 0; }
+        .name { font-weight: 600; font-size: 0.9rem; }
+        .snippet { font-size: 0.75rem; color: #94a3b8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .main-chat { flex: 1; display: flex; flex-direction: column; }
+        .chat-header { padding: 15px 30px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.2); }
+        .messages { flex: 1; padding: 30px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+        .msg { max-width: 70%; padding: 12px 18px; border-radius: 18px; font-size: 0.9rem; position: relative; }
+        .msg.sent { align-self: flex-end; background: var(--primary); border-bottom-right-radius: 4px; }
+        .msg.received { align-self: flex-start; background: #1e293b; border-bottom-left-radius: 4px; }
+        .typing-box { padding: 5px 30px; height: 25px; color: var(--accent); font-size: 0.8rem; font-style: italic; opacity: 0; transition: 0.3s; }
+        .input-area { padding: 25px; border-top: 1px solid var(--border); }
+        .input-wrap { display: flex; background: #1e293b; border-radius: 15px; padding: 5px; }
+        input { flex: 1; background: transparent; border: none; padding: 12px; color: white; outline: none; }
+        button { background: var(--primary); border: none; color: white; padding: 0 25px; border-radius: 12px; cursor: pointer; font-weight: 600; }
+        .online-panel { width: 250px; background: var(--sidebar); border-left: 1px solid var(--border); padding: 20px; }
+        .online-user { display: flex; align-items: center; gap: 10px; margin-bottom: 15px; font-size: 0.85rem; }
+        .badge { font-size: 0.6rem; background: #334155; padding: 2px 6px; border-radius: 5px; }
+        .test-chat-box { padding: 15px; background: rgba(255,255,255,0.05); margin: 10px; border-radius: 10px; border: 1px dashed #444; }
+        .test-input { width: 100%; padding: 8px; background: #000; border: 1px solid #333; color: #fff; border-radius: 5px; margin-bottom: 8px; font-size: 0.8rem; }
+        .search-results { max-height: 150px; overflow-y: auto; font-size: 0.75rem; border: 1px solid #333; margin-top: 5px; border-radius: 5px; display: none; }
+        .search-item { padding: 8px; border-bottom: 1px solid #222; cursor: pointer; }
+        .search-item:hover { background: #334155; }
+        .unread-badge { background: var(--accent); color: #fff; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; }
+        .tick { font-size: 0.7rem; margin-left: 8px; opacity: 0.7; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-section">
+            <h2 style="font-size: 1.2rem;">ClinicHub Chat</h2>
+            <div id="connection-status" class="badge">Checking connection...</div>
+        </div>
+        <div class="test-chat-box">
+            <div style="font-size: 0.75rem; color: #94a3b8; margin-bottom: 5px;">Find & Start Chat</div>
+            <input type="text" id="user-search-input" class="test-input" placeholder="Search by name or email..." onkeyup="handleUserSearch(this.value)">
+            <div id="user-search-results" class="search-results"></div>
+            
+            <div style="border-top: 1px solid #333; margin: 10px 0;"></div>
+            
+            <input type="text" id="target-user-id" class="test-input" placeholder="Or paste ID manually...">
+            <button onclick="createNewChat()" style="width: 100%; padding: 8px; font-size: 0.8rem;">Start Chat</button>
+        </div>
+        <div class="list-container" id="conversations-list">
+            <div style="padding: 20px; color: #64748b;">Loading conversations...</div>
+        </div>
+    </div>
+    <div class="main-chat">
+        <div class="chat-header">
+            <div id="active-chat-info">
+                <div class="name" id="chat-title">Select a chat</div>
+                <div style="font-size: 0.7rem; color: #94a3b8;">Real-time Secure Channel</div>
+            </div>
+        </div>
+        <div class="messages" id="messages-container">
+            <div style="text-align: center; color: #475569; margin-top: 100px;">
+                <p>Welcome to the ClinicHub Real-time Experience</p>
+            </div>
+        </div>
+        <div class="typing-box" id="typing-indicator">Someone is typing...</div>
+        <div class="input-area">
+            <div class="input-wrap">
+                <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off">
+                <button onclick="handleSend()">Send</button>
+            </div>
+        </div>
+    </div>
+    <div class="online-panel">
+        <h4 style="margin-bottom: 10px; font-size: 0.9rem;">ONLINE USERS (<span id="online-count">0</span>)</h4>
+        <div style="display: flex; gap: 5px; margin-bottom: 20px; flex-wrap: wrap;">
+            <button onclick="apiConnect()" style="padding: 5px 10px; font-size: 0.7rem; background: #10b981; border-radius: 5px;">API Connect</button>
+            <button onclick="apiDisconnect()" style="padding: 5px 10px; font-size: 0.7rem; background: #ef4444; border-radius: 5px;">API Disconnect</button>
+            <button onclick="fetchOnlineUsersAPI()" style="padding: 5px 10px; font-size: 0.7rem; background: #3b82f6; border-radius: 5px;">Fetch API</button>
+        </div>
+        <div id="online-users-list"></div>
+    </div>
+    <script>
+        const TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3YzRlMjUwZC03NGI1LTRiNDgtNjU3Mi0wOGRlYTIwZmU2MTYiLCJlbWFpbCI6Im1tbXM3Nzk5MEBnbWFpbC5jb20iLCJqdGkiOiJiY2YwMDRhZC04OWY5LTRjODQtYTM3OC04MTYyOGY1Y2IyNzgiLCJGdWxsTmFtZSI6Ik1vaGFtZWQgU2FiZXIiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJVc2VyIiwiZXhwIjoxNzgwODUyMzY3LCJpc3MiOiJodHRwczovL2xvY2FsaG9zdDo0NDMxMi8iLCJhdWQiOiJodHRwczovL2xvY2FsaG9zdDo0NDMxMi8ifQ.TPyCdWzvg-nUnjcrTRnkvGhAIPL7N-kwIes-ROvb1UQ";
+        const MY_ID = "7c4e250d-74b5-4b48-6572-08dea20fe616";
+        const BASE_URL = window.location.origin;
+
+        let currentConversationId = null;
+
+        const pusher = new Pusher('8313dec338639cb37d40', {
+            cluster: 'eu',
+            forceTLS: true,
+            authEndpoint: `${BASE_URL}/api/v1/realtime/auth`,
+            auth: { headers: { 'Authorization': `Bearer ${TOKEN}` } }
+        });
+
+        pusher.connection.bind('state_change', states => {
+            const status = document.getElementById('connection-status');
+            status.innerText = states.current.toUpperCase();
+            status.style.background = states.current === 'connected' ? '#10b981' : '#334155';
+        });
+
+        const userChannel = pusher.subscribe(`private-user-${MY_ID.toLowerCase()}`);
+        userChannel.bind('new-message', data => {
+            console.log('Received new message event:', data);
+            const convId = data.conversationId || data.ConversationId;
+            const content = data.content || data.Content;
+            const senderId = data.senderId || data.SenderId;
+            
+            if (convId && currentConversationId && convId.toLowerCase() === currentConversationId.toLowerCase()) {
+                if (senderId && senderId.toLowerCase() !== MY_ID.toLowerCase()) {
+                    addMessageUI(content, 'received');
+                }
+            }
+            fetchConversations();
+        });
+        userChannel.bind('typing', data => {
+            if (data.conversationId) {
+                const convIdLower = data.conversationId.toLowerCase();
+                if (currentConversationId && convIdLower === currentConversationId.toLowerCase()) {
+                    showTyping(data.isTyping);
+                }
+                
+                // Show in sidebar
+                const snippet = document.getElementById(`snippet-${convIdLower}`);
+                if (snippet) {
+                    if (data.isTyping) {
+                        snippet.innerHTML = `<span style="color: var(--accent); font-style: italic;">Typing...</span>`;
+                    } else {
+                        snippet.innerText = snippet.getAttribute('data-original') || 'No messages yet';
+                    }
+                }
+            }
+        });
+        userChannel.bind('messages-read', data => {
+            if (data.conversationId && currentConversationId && data.conversationId.toLowerCase() === currentConversationId.toLowerCase()) {
+                document.querySelectorAll('.msg.sent .tick').forEach(el => {
+                    if (el.innerText === '✓') el.innerText = '✓✓';
+                });
+            }
+        });
+        userChannel.bind('conversation-updated', data => fetchConversations());
+
+        // Clear active conversation on startup just in case
+        fetch(`${BASE_URL}/api/v1/realtime/active-conversation`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+            body: JSON.stringify({ conversationId: null })
+        }).catch(e => console.log(e));
+
+        const presenceChannel = pusher.subscribe('presence-global');
+        presenceChannel.bind('pusher:subscription_succeeded', updateOnlineList);
+        presenceChannel.bind('pusher:member_added', () => updateOnlineList());
+        presenceChannel.bind('pusher:member_removed', () => updateOnlineList());
+
+        function updateOnlineList() {
+            const members = presenceChannel.members;
+            document.getElementById('online-count').innerText = Math.max(0, members.count - 1);
+            const list = document.getElementById('online-users-list');
+            list.innerHTML = '';
+            members.each(member => {
+                if (member.id.toLowerCase() === MY_ID.toLowerCase()) return;
+                list.innerHTML += `<div class="online-user"><div class="avatar"><div class="online-status"></div></div><span>${member.info.name}</span></div>`;
+            });
+        }
+
+        async function fetchOnlineUsersAPI() {
+            try {
+                const res = await fetch(`${BASE_URL}/api/v1/realtime/online-users`, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+                const data = await res.json();
+                console.log("Online Users from API (IDs):", data);
+                alert(`API returned ${data.length} online user(s). Check browser console for IDs.`);
+            } catch (e) { console.error(e); }
+        }
+
+        async function apiConnect() {
+            if (!pusher.connection.socket_id) return alert("Pusher socket not ready!");
+            try {
+                await fetch(`${BASE_URL}/api/v1/realtime/connect`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+                    body: JSON.stringify({ connectionId: pusher.connection.socket_id })
+                });
+                alert("API Connect Success");
+            } catch (e) { console.error(e); }
+        }
+
+        async function apiDisconnect() {
+            if (!pusher.connection.socket_id) return alert("Pusher socket not ready!");
+            try {
+                await fetch(`${BASE_URL}/api/v1/realtime/disconnect`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+                    body: JSON.stringify({ connectionId: pusher.connection.socket_id })
+                });
+                alert("API Disconnect Success");
+            } catch (e) { console.error(e); }
+        }
+
+        async function fetchConversations() {
+            try {
+                const res = await fetch(`${BASE_URL}/api/v1/conversations`, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+                const data = await res.json();
+                // Match the ApiResponse { success, data: { items: [] } } structure
+                renderConversations(data.data.items || []);
+            } catch (e) { console.error("Fetch failed", e); }
+        }
+
+        function renderConversations(items) {
+            const list = document.getElementById('conversations-list');
+            if (items.length === 0) { list.innerHTML = '<div style="padding:20px; color:#64748b;">No conversations found</div>'; return; }
+            list.innerHTML = items.map(c => {
+                const isMyMessage = c.initiatorId === MY_ID;
+                const otherName = isMyMessage ? c.recipientName : c.initiatorName;
+                const idLower = c.id.toLowerCase();
+                return `
+                <div class="item ${c.id === currentConversationId ? 'active' : ''}" onclick="selectChat('${c.id}', '${otherName}')">
+                    <div class="avatar"></div>
+                    <div class="info">
+                        <div class="name">${otherName}</div>
+                        <div class="snippet" id="snippet-${idLower}" data-original="${c.lastMessageContent || 'No messages yet'}">${c.lastMessageContent || 'No messages yet'}</div>
+                    </div>
+                    ${c.unreadMessageCount > 0 ? `<div class="unread-badge" id="unread-${idLower}">${c.unreadMessageCount}</div>` : ''}
+                </div>
+            `}).join('');
+        }
+
+        async function createNewChat() {
+            const recipientId = document.getElementById('target-user-id').value;
+            if (!recipientId) return alert("Please enter a User ID");
+            try {
+                const res = await fetch(`${BASE_URL}/api/v1/conversations/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+                    body: JSON.stringify({ recipientId })
+                });
+                if (res.ok) { fetchConversations(); document.getElementById('target-user-id').value = ''; }
+                else alert("Failed to create chat. Make sure ID is valid.");
+            } catch (e) { alert("Error connecting to server"); }
+        }
+
+        async function handleUserSearch(term) {
+            if (!term || term.length < 2) {
+                document.getElementById('user-search-results').style.display = 'none';
+                return;
+            }
+            try {
+                const res = await fetch(`${BASE_URL}/api/v1/auth/users/search?searchTerm=${term}`, {
+                    headers: { 'Authorization': `Bearer ${TOKEN}` }
+                });
+                const data = await res.json();
+                const results = data.data || data; 
+                const container = document.getElementById('user-search-results');
+                container.innerHTML = results.map(u => `
+                    <div class="search-item" onclick="selectSearchUser('${u.id}', '${u.fullName}')">
+                        ${u.fullName} <br> <span style="font-size:0.6rem; color:#64748b;">${u.email}</span>
+                    </div>
+                `).join('');
+                container.style.display = 'block';
+            } catch (e) { }
+        }
+
+        function selectSearchUser(id, name) {
+            document.getElementById('target-user-id').value = id;
+            document.getElementById('user-search-results').style.display = 'none';
+        }
+
+        async function selectChat(id, name) {
+            currentConversationId = id;
+            document.getElementById('chat-title').innerText = name;
+            document.getElementById('messages-container').innerHTML = '<div style="text-align:center; padding:20px; color:#475569;">Loading messages...</div>';
+            try {
+                const res = await fetch(`${BASE_URL}/api/v1/conversations/${id}`, { headers: { 'Authorization': `Bearer ${TOKEN}` } });
+                const data = await res.json();
+                renderMessages(data.data.messages || []);
+
+                // Notify backend that we are actively in this conversation
+                await fetch(`${BASE_URL}/api/v1/realtime/active-conversation`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+                    body: JSON.stringify({ conversationId: id })
+                });
+            } catch (e) { }
+            fetchConversations();
+        }
+
+        function renderMessages(msgs) {
+            const container = document.getElementById('messages-container');
+            container.innerHTML = msgs.map(m => {
+                const isSent = m.senderId.toLowerCase() === MY_ID.toLowerCase();
+                const tick = isSent ? (m.isRead ? '<span class="tick">✓✓</span>' : '<span class="tick">✓</span>') : '';
+                return `<div class="msg ${isSent ? 'sent' : 'received'}">${m.content} ${tick}</div>`;
+            }).join('');
+            container.scrollTop = container.scrollHeight;
+        }
+
+        async function handleSend() {
+            const input = document.getElementById('chat-input');
+            const val = input.value;
+            if (!val || !currentConversationId) return;
+            addMessageUI(val, 'sent');
+            input.value = '';
+            
+            if (isTyping) {
+                isTyping = false;
+                clearTimeout(typingTimeout);
+                sendTypingStatus(false);
+            }
+
+            await fetch(`${BASE_URL}/api/v1/conversations/${currentConversationId}/messages`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+                body: JSON.stringify({ content: val })
+            });
+        }
+
+        function addMessageUI(text, type, isRead = false) {
+            const div = document.createElement('div');
+            div.className = `msg ${type}`;
+            const tick = type === 'sent' ? (isRead ? '<span class="tick">✓✓</span>' : '<span class="tick">✓</span>') : '';
+            div.innerHTML = `${text} ${tick}`;
+            const container = document.getElementById('messages-container');
+            container.appendChild(div); container.scrollTop = container.scrollHeight;
+        }
+
+        function showTyping(show) { document.getElementById('typing-indicator').style.opacity = show ? '1' : '0'; }
+        
+        let typingTimeout;
+        let isTyping = false;
+
+        document.getElementById('chat-input').addEventListener('input', () => {
+            if (!currentConversationId) return;
+
+            if (!isTyping) {
+                isTyping = true;
+                sendTypingStatus(true);
+            }
+
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(() => {
+                isTyping = false;
+                sendTypingStatus(false);
+            }, 2000);
+        });
+
+        async function sendTypingStatus(status) {
+            if (!currentConversationId) return;
+            try {
+                await fetch(`${BASE_URL}/api/v1/chat/typing`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
+                    body: JSON.stringify({ conversationId: currentConversationId, isTyping: status })
+                });
+            } catch (e) { console.error("Typing status error", e); }
+        }
+
+        fetchConversations();
+    </script>
+</body>
+</html>
