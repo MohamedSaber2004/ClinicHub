@@ -257,7 +257,8 @@ Listen in your `onPusherEvent` callback on `private-user-{myUserId}` channel:
 | `new-message`          | You receive a new message                         | Append to ListView if chat open, else show notification + increment unread count |
 | `conversation-updated` | A conversation's last message changed             | Move conversation to top of list, update snippet & date         |
 | `typing`               | Other user started/stopped typing                 | Show/hide "typing..." indicator (`conversationId`, `userId`, `isTyping`) |
-| `messages-read`        | Other user opened your chat and read your messages | Change ✓ to ✓✓ for all sent messages in that conversation       |
+| `messages-read`        | Other user opened your chat and read your messages | Change ✓/✓✓ to blue ✓✓ for all sent messages in that conversation |
+| `messages-delivered`   | Other user goes online and receives your messages  | Change ✓ to ✓✓ for all sent messages in that conversation       |
 
 **`presence-global` channel events:**
 
@@ -350,4 +351,4 @@ Content-Type: application/json
 6. **الكتابة** → `POST /realtime/typing` مع debounce timer
 7. **الخروج من المحادثة** → `POST /active-conversation {null}`
 8. **تسجيل الخروج** → `POST /realtime/disconnect`
-9. **استقبال أي شيء** → Pusher events: `new-message`, `typing`, `messages-read`, `conversation-updated`
+9. **استقبال أي شيء** → Pusher events: `new-message`, `typing`, `messages-read`, `messages-delivered`, `conversation-updated`
