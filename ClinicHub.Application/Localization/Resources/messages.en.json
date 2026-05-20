@@ -106,6 +106,10 @@
   "RealTime": {
     "MissingSocketInfo": "Missing socket_id or channel_name",
     "NotConversationParticipant": "You are not a participant of this conversation",
-    "ConversationNotFound": "Conversation not found"
+    "ConversationNotFound": "Conversation not found",
+    "ConversationIdRequired": "Conversation ID is required",
+    "SocketIdRequired": "Socket ID is required",
+    "ChannelNameRequired": "Channel name is required",
+    "ConnectionIdRequired": "Connection ID is required"
   }
 }

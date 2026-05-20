@@ -106,6 +106,10 @@
   "RealTime": {
     "MissingSocketInfo": "معرف المقبس أو اسم القناة مفقود",
     "NotConversationParticipant": "أنت لست مشاركاً في هذه المحادثة",
-    "ConversationNotFound": "المحادثة غير موجودة"
+    "ConversationNotFound": "المحادثة غير موجودة",
+    "ConversationIdRequired": "معرف المحادثة مطلوب",
+    "SocketIdRequired": "معرف المقبس مطلوب",
+    "ChannelNameRequired": "اسم القناة مطلوب",
+    "ConnectionIdRequired": "معرف الاتصال مطلوب"
   }
 }
