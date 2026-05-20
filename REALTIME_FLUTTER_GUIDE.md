@@ -207,18 +207,63 @@ GET /api/v1/conversations/{conversationId}/messages?pageNumber=1&pageSize=50
 
 ---
 
-### 3.3 — Send a Message
+---
+
+### 3.3 — Send a Message (with Reply and Media Attachments support)
+> **توضيح التعديلات الجديدة لمطوري الفلاتر (Replies & Media):**
+> 1. **ميزة الرد (Reply):** لإرسال رد على رسالة معينة، قم بتمرير المعرف `replyToMessageId` الخاص بالرسالة الأصلية.
+> 2. **إرسال الوسائط (Media Attachments):**
+>    - **الخطوة الأولى:** يجب رفع الملف أولاً عبرEndpoints الرفع (Upload Endpoints) المناسبة بناءً على نوع الملف مع تحديد قيمة الـ `place` لحفظ الملف في المجلد الصحيح:
+>      - لرفع صورة (**Images**): استخدم `place = 9` (مجلد `MessageImages`)
+>      - لرفع فيديو (**Videos**): استخدم `place = 10` (مجلد `MessageVideos`)
+>      - لرفع ملف/مستند (**Documents/Files**): استخدم `place = 11` (مجلد `MessageDocuments`)
+>      - لرفع صوت (**Audio**): استخدم `place = 12` (مجلد `MessageAudio`)
+>    - **الخطوة الثانية:** بعد نجاح الرفع، سيعود لك اسم ملف فريد (Unique File Name). قم بتمريره في مصفوفة الـ `media` داخل الـ payload الخاص بإرسال الرسالة مع تحديد نوع الوسيط (`mediaType`) كالتالي:
+>      - `0` = Image (صورة)
+>      - `1` = Video (فيديو)
+>      - `2` = Audio (صوت)
+>      - `3` = Document (ملف/مستند)
+
 ```
 POST /api/v1/conversations/{conversationId}/messages
 Content-Type: application/json
 ```
-| Body Field  | Type   | Description          |
-|-------------|--------|----------------------|
-| `content`   | string | The message text     |
 
-**Response:** `MessageDto` (the saved message)
+| Body Field          | Type   | Required | Description                                                                                    |
+|---------------------|--------|----------|------------------------------------------------------------------------------------------------|
+| `content`           | string | Yes      | نص الرسالة.                                                                                    |
+| `replyToMessageId`  | Guid?  | No       | معرف الرسالة التي يتم الرد عليها (تترك `null` إذا كانت رسالة عادية).                             |
+| `media`             | List   | No       | مصفوفة من كائنات الوسائط المرفوعة مسبقاً (تترك `null` أو مصفوفة فارغة في حال عدم وجود مرفقات). |
 
-> 💡 **Best Practice:** Add the message to the UI immediately (Optimistic Update), then confirm with the API response.
+#### كائن الميديا الممرر في مصفوفة `media`:
+| Field       | Type   | Description                                                                    |
+|-------------|--------|--------------------------------------------------------------------------------|
+| `mediaType` | int    | نوع الميديا الرقمي: `0` للصورة، `1` للفيديو، `2` للصوت، `3` للملف/المستند.     |
+| `fileName`  | string | اسم الملف الفريد الراجع من الـ Upload Endpoint (مثال: `uuid_filename.png`).  |
+
+#### 📥 مثال على الـ Request Payload (إرسال رسالة رد تحتوي على صورة ومستند):
+```json
+{
+  "content": "هذا هو التقرير الطبي وصورة الأشعة المطلوبة.",
+  "replyToMessageId": "8f8b80b5-7788-4444-bbbb-cc7f45b5ea10",
+  "media": [
+    {
+      "mediaType": 0,
+      "fileName": "xray_chest_scan_329.png"
+    },
+    {
+      "mediaType": 3,
+      "fileName": "medical_report_patient_12.pdf"
+    }
+  ]
+}
+```
+
+**Response:** `MessageDto` (الرسالة المحفوظة بنجاح شاملة بيانات الـ Reply والـ Media كاملة للتحديث المباشر للـ UI).
+
+> 💡 **Best Practice (Flutter):**
+> * أضف الرسالة إلى قائمة المحادثة فوراً بشكل مؤقت (Optimistic Update) مع مؤشر جاري الإرسال، وعند استقبال الـ Response قم بتحديث حالة الرسالة (Status) وربط معرف الـ Media والردود الحقيقي.
+> * في شاشة عرض المحادثات، إذا احتوت الرسالة على ميديا فقط بدون نص، قم بعرض نص بديل في القائمة الجانبية مثل: `"📷 صورة"` أو `"📄 مستند"` بناءً على كائن الميديا المرفق بالرسالة.
 
 ---
 

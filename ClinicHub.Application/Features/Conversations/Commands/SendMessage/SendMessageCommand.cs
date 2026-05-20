@@ -1,11 +1,22 @@
 using ClinicHub.Application.Features.Conversations.DTOs;
 using ClinicHub.Application.Localization;
+using ClinicHub.Domain.Enums;
 using FluentValidation;
 using MediatR;
 
 namespace ClinicHub.Application.Features.Conversations.Commands.SendMessage
 {
-    public record SendMessageCommand(Guid ConversationId, string Content) : IRequest<MessageDto>;
+    public record SendMessageCommand(
+        Guid ConversationId, 
+        string Content, 
+        Guid? ReplyToMessageId = null,
+        List<MessageMediaInputDto>? Media = null) : IRequest<MessageDto>;
+
+    public class MessageMediaInputDto
+    {
+        public MediaType MediaType { get; set; }
+        public string FileName { get; set; } = string.Empty;
+    }
 
     public class SendMessageCommandValidator : AbstractValidator<SendMessageCommand>
     {

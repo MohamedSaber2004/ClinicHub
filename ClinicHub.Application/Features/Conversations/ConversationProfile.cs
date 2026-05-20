@@ -9,6 +9,7 @@ namespace ClinicHub.Application.Features.Conversations
         public ConversationProfile()
         {
             CreateMap<Message, MessageDto>();
+            CreateMap<MessageMedia, MessageMediaDto>();
             CreateMap<Conversation, ConversationDto>();
             CreateMap<Conversation, ConversationDetailDto>();
         }

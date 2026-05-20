@@ -2,7 +2,6 @@ using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
-using ClinicHub.Domain.Repositories.Interfaces;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Localization;
@@ -48,9 +47,30 @@ namespace ClinicHub.Application.Features.Conversations.Commands.SendMessage
             if (conversation.InitiatorId != currentUserId && conversation.RecipientId != currentUserId)
                 throw new BadRequestException(_localizer[LocalizationKeys.ValidationMessages.UnauthorizedAction.Key]);
 
+            // Validate ReplyToMessageId if provided
+            Message? repliedMessage = null;
+            if (request.ReplyToMessageId.HasValue)
+            {
+                repliedMessage = await _unitOfWork.MessageRepository.GetByIdAsync(request.ReplyToMessageId.Value);
+                if (repliedMessage == null || repliedMessage.ConversationId != request.ConversationId || repliedMessage.IsDeleted)
+                {
+                    throw new NotFoundException(_localizer[LocalizationKeys.ValidationMessages.MessageNotFound.Key]);
+                }
+            }
+
             var recipientId = conversation.InitiatorId == currentUserId ? conversation.RecipientId : conversation.InitiatorId;
 
-            var message = new Message(request.ConversationId, currentUserId, request.Content);
+            var message = new Message(request.ConversationId, currentUserId, request.Content, request.ReplyToMessageId);
+
+            // Process Media Attachments if any
+            if (request.Media != null && request.Media.Any())
+            {
+                foreach (var mediaInput in request.Media)
+                {
+                    var media = new MessageMedia(message.Id, mediaInput.MediaType, mediaInput.FileName);
+                    message.AddMedia(media);
+                }
+            }
 
             if (_chatConnectionManager.IsUserInConversation(recipientId, request.ConversationId))
             {
@@ -75,6 +95,20 @@ namespace ClinicHub.Application.Features.Conversations.Commands.SendMessage
 
             // Real-time notifications
             var messageDto = _mapper.Map<MessageDto>(message);
+            
+            // Populate nested ReplyToMessageDto if this was a reply
+            if (repliedMessage != null)
+            {
+                var repliedSender = await _unitOfWork.GetRepository<ApplicationUser, Guid>().FindByKeyAsync(repliedMessage.SenderId);
+                messageDto.ReplyToMessage = new ReplyToMessageDto
+                {
+                    Id = repliedMessage.Id,
+                    SenderId = repliedMessage.SenderId,
+                    SenderName = repliedSender?.FullName ?? "Unknown",
+                    Content = repliedMessage.Content,
+                    CreatedAt = repliedMessage.CreatedAt
+                };
+            }
             
             // Fetch sender info for the DTO
             var sender = await _unitOfWork.GetRepository<ApplicationUser, Guid>().FindByKeyAsync(currentUserId);

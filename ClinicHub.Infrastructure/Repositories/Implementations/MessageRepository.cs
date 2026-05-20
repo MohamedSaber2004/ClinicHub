@@ -18,6 +18,8 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations
         public async Task<IEnumerable<Message>> GetMessagesByConversationIdAsync(Guid conversationId, CancellationToken ct = default)
         {
             return await _context.Set<Message>()
+                .Include(m => m.ReplyToMessage)
+                .Include(m => m.Media)
                 .Where(m => m.ConversationId == conversationId && !m.IsDeleted)
                 .OrderBy(m => m.CreatedAt)
                 .ToListAsync(ct);

@@ -61,7 +61,24 @@ namespace ClinicHub.Application.Features.Conversations.Queries.GetConversationMe
                     ReadAt = message.ReadAt,
                     Status = message.Status,
                     CreatedAt = message.CreatedAt,
-                    ConversationId = message.ConversationId
+                    ConversationId = message.ConversationId,
+                    ReplyToMessageId = message.ReplyToMessageId,
+                    ReplyToMessage = message.ReplyToMessage != null ? new ReplyToMessageDto
+                    {
+                        Id = message.ReplyToMessage.Id,
+                        SenderId = message.ReplyToMessage.SenderId,
+                        SenderName = message.ReplyToMessage.SenderId == initiator?.Id 
+                            ? initiator?.FullName ?? "Unknown" 
+                            : recipient?.FullName ?? "Unknown",
+                        Content = message.ReplyToMessage.Content,
+                        CreatedAt = message.ReplyToMessage.CreatedAt
+                    } : null,
+                    Media = message.Media.Select(m => new MessageMediaDto
+                    {
+                        Id = m.Id,
+                        MediaType = m.MediaType,
+                        FileName = m.FileName
+                    }).ToList()
                 });
             }
 
