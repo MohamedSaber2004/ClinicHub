@@ -18,6 +18,9 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations.Base
         private IReactionRepository? _reactionRepository;
         private IClinicRepository? _clinicRepository;
         private ISpecializationRepository? _specializationRepository;
+        private IDoctorRepository? _doctorRepository;
+        private IDoctorAvailabilityRepository? _doctorAvailabilityRepository;
+        private IAppointmentRepository? _appointmentRepository;
         private IUserFbTokenRepository? _userFbTokenRepository;
         private INotificationRepository? _notificationRepository;
         private IUserRefreshTokenRepository? _userRefreshTokenRepository;
@@ -51,6 +54,9 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations.Base
         public IReactionRepository ReactionRepository => _reactionRepository ??= new ReactionRepository(_context);
         public IClinicRepository ClinicRepository => _clinicRepository ??= new ClinicRepository(_context);
         public ISpecializationRepository SpecializationRepository => _specializationRepository ??= new SpecializationRepository(_context);
+        public IDoctorRepository DoctorRepository => _doctorRepository ??= new DoctorRepository(_context);
+        public IDoctorAvailabilityRepository DoctorAvailabilityRepository => _doctorAvailabilityRepository ??= new DoctorAvailabilityRepository(_context);
+        public IAppointmentRepository AppointmentRepository => _appointmentRepository ??= new AppointmentRepository(_context);
         public IUserFbTokenRepository UserFbTokenRepository => _userFbTokenRepository ??= new UserFbTokenRepository(_context);
         public INotificationRepository NotificationRepository => _notificationRepository ??= new NotificationRepository(_context);
         public IUserRefreshTokenRepository UserRefreshTokenRepository => _userRefreshTokenRepository ??= new UserRefreshTokenRepository(_context);

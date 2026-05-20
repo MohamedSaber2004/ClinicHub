@@ -27,11 +27,11 @@ namespace ClinicHub.Domain.Entities
         {
         }
 
-        public Message(Guid conversationId, Guid senderId, string content, Guid? replyToMessageId = null)
+        public Message(Guid conversationId, Guid senderId, string? content, Guid? replyToMessageId = null)
         {
             ConversationId = conversationId;
             SenderId = senderId;
-            Content = content;
+            Content = content ?? string.Empty;
             ReplyToMessageId = replyToMessageId;
             IsRead = false;
             Status = MessageStatus.Pending;

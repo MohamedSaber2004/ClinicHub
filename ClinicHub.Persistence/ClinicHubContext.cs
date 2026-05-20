@@ -25,6 +25,9 @@ namespace ClinicHub.Persistence
         public DbSet<Media> Media { get; set; }
         public DbSet<Clinic> Clinics { get; set; }
         public DbSet<Specialization> Specializations { get; set; }
+        public DbSet<Doctor> Doctors { get; set; }
+        public DbSet<DoctorAvailability> DoctorAvailabilities { get; set; }
+        public DbSet<Appointment> Appointments { get; set; }
         public DbSet<UserFbToken> UserFbTokens { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<UserRefreshToken> UserRefreshTokens { get; set; }

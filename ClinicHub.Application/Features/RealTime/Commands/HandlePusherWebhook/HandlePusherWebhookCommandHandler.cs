@@ -1,4 +1,4 @@
-﻿using ClinicHub.Application.Common.Interfaces;
+using ClinicHub.Application.Common.Interfaces;
 using MediatR;
 
 namespace ClinicHub.Application.Features.RealTime.Commands.HandlePusherWebhook
@@ -25,11 +25,34 @@ namespace ClinicHub.Application.Features.RealTime.Commands.HandlePusherWebhook
                         _chatConnectionManager.DisconnectUser(evt.SocketId);
                     }
 
-                    // Or if we get the UserId
-                    if (!string.IsNullOrEmpty(evt.UserId) && Guid.TryParse(evt.UserId, out var userId))
+                    Guid? targetUserId = null;
+
+                    // Parse UserId if provided directly
+                    if (!string.IsNullOrEmpty(evt.UserId) && Guid.TryParse(evt.UserId, out var parsedUserId))
+                    {
+                        targetUserId = parsedUserId;
+                    }
+                    // Extract UserId from channel name if not provided (e.g., "private-user-{userId}")
+                    else if (!string.IsNullOrEmpty(evt.Channel) && evt.Channel.StartsWith("private-user-"))
+                    {
+                        var userIdStr = evt.Channel.Substring("private-user-".Length);
+                        if (Guid.TryParse(userIdStr, out var extractedUserId))
+                        {
+                            targetUserId = extractedUserId;
+                        }
+                    }
+
+                    if (targetUserId.HasValue)
                     {
                         // Clean up active conversation
-                        _chatConnectionManager.SetActiveConversation(userId, null);
+                        _chatConnectionManager.SetActiveConversation(targetUserId.Value, null);
+
+                        // Also disconnect any lingering connections for this user
+                        var connections = _chatConnectionManager.GetUserConnections(targetUserId.Value).ToList();
+                        foreach (var connection in connections)
+                        {
+                            _chatConnectionManager.DisconnectUser(targetUserId.Value, connection);
+                        }
                     }
                 }
             }

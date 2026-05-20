@@ -88,17 +88,20 @@ GET /api/v1/conversations?pageNumber=1&pageSize=10
 ```json
 {
   "id": "guid",
+  "name": "string or null (for 1-to-1 conversations)",
+  "groupPhotoUrl": "string or null",
   "isGroup": false,
+  "lastMessageDate": "datetime",
+  "lastMessageContent": "string",
+  "createdAt": "datetime",
   "initiatorId": "guid",
   "initiatorName": "string",
   "initiatorProfilePictureUrl": "string",
   "recipientId": "guid",
   "recipientName": "string",
   "recipientProfilePictureUrl": "string",
-  "lastMessageContent": "string",
-  "lastMessageDate": "datetime",
-  "unreadMessageCount": 3,
-  "createdAt": "datetime"
+  "participants": [],
+  "unreadMessageCount": 0
 }
 ```
 
@@ -193,15 +196,15 @@ GET /api/v1/conversations/{conversationId}/messages?pageNumber=1&pageSize=50
   "content": "string",
   "isRead": true,
   "readAt": "datetime",
-  "status": "Sent | Delivered | Read",
+  "status": "int (0=Pending, 1=Sent, 2=Delivered, 3=Read, 4=Sent)",
   "createdAt": "datetime",
-  "editedAt": "datetime",
+  "editedAt": "datetime or null",
   "isEdited": false,
   "conversationId": "guid",
-  "replyToMessageId": "guid",
-  "replyToMessage": { "id": "...", "senderName": "...", "content": "..." },
-  "media": [ { "id": "...", "mediaType": "Image|Video|Audio|File", "fileName": "..." } ],
-  "reactions": [ { "id": "...", "userId": "...", "userName": "...", "reactionType": "..." } ]
+  "replyToMessageId": "guid or null",
+  "replyToMessage": "MessageDto or null (nested reply info)",
+  "media": [ { "id": "guid", "mediaType": "int (0=Image, 1=Video, 2=Audio, 3=Document)", "fileName": "string" } ],
+  "reactions": [ { "id": "guid", "userId": "guid", "userName": "string", "reactionType": "string" } ]
 }
 ```
 
@@ -241,11 +244,25 @@ Content-Type: application/json
 | `mediaType` | int    | نوع الميديا الرقمي: `0` للصورة، `1` للفيديو، `2` للصوت، `3` للملف/المستند.     |
 | `fileName`  | string | اسم الملف الفريد الراجع من الـ Upload Endpoint (مثال: `uuid_filename.png`).  |
 
-#### 📥 مثال على الـ Request Payload (إرسال رسالة رد تحتوي على صورة ومستند):
+#### 📥 مثال على الـ Request Payload (إرسال رسالة عادية):
+```json
+{
+  "content": "نص الرسالة"
+}
+```
+
+#### 📥 مثال على الـ Request Payload (إرسال رسالة رد):
+```json
+{
+  "content": "رد على الرسالة السابقة",
+  "replyToMessageId": "8f8b80b5-7788-4444-bbbb-cc7f45b5ea10"
+}
+```
+
+#### 📥 مثال على الـ Request Payload (إرسال رسالة بها صورة ومستند):
 ```json
 {
   "content": "هذا هو التقرير الطبي وصورة الأشعة المطلوبة.",
-  "replyToMessageId": "8f8b80b5-7788-4444-bbbb-cc7f45b5ea10",
   "media": [
     {
       "mediaType": 0,
@@ -259,7 +276,29 @@ Content-Type: application/json
 }
 ```
 
-**Response:** `MessageDto` (الرسالة المحفوظة بنجاح شاملة بيانات الـ Reply والـ Media كاملة للتحديث المباشر للـ UI).
+#### 📥 مثال على الـ Response (رسالة بنجاح):
+```json
+{
+  "id": "5f8eb382-6fe6-4157-a5be-e17aa3821f8f",
+  "senderId": "79c6d40a-d14b-4602-e0f0-08dea31aa277",
+  "senderName": "ملن",
+  "senderProfilePictureUrl": "",
+  "content": "test",
+  "isRead": true,
+  "readAt": "2026-05-20T22:20:12.6329032Z",
+  "status": 4,
+  "createdAt": "2026-05-21T00:20:12.6334217+02:00",
+  "editedAt": null,
+  "isEdited": false,
+  "conversationId": "e0e89c18-284d-4633-9f19-3572fb11f8a1",
+  "media": [],
+  "reactions": [],
+  "replyToMessageId": null,
+  "replyToMessage": null
+}
+```
+
+**ملاحظة مهمة:** Response يحتوي على جميع بيانات الرسالة شاملة الـ `id` و `status` و `createdAt` - استخدم هذه البيانات لتحديث الـ UI بدلاً من استخدام البيانات المؤقتة المحلية.
 
 > 💡 **Best Practice (Flutter):**
 > * أضف الرسالة إلى قائمة المحادثة فوراً بشكل مؤقت (Optimistic Update) مع مؤشر جاري الإرسال، وعند استقبال الـ Response قم بتحديث حالة الرسالة (Status) وربط معرف الـ Media والردود الحقيقي.

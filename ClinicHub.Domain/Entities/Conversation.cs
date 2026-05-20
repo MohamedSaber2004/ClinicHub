@@ -58,7 +58,22 @@ namespace ClinicHub.Domain.Entities
         {
             _messages.Add(message);
             LastMessageDate = DateTime.UtcNow;
-            LastMessageContent = message.Content;
+            
+            if (string.IsNullOrWhiteSpace(message.Content) && message.Media.Any())
+            {
+                var firstMedia = message.Media.First();
+                LastMessageContent = firstMedia.MediaType switch
+                {
+                    Enums.MediaType.Image => "[Photo]",
+                    Enums.MediaType.Audio => "[Voice Note]",
+                    Enums.MediaType.Video => "[Video]",
+                    _ => "[File]"
+                };
+            }
+            else
+            {
+                LastMessageContent = message.Content;
+            }
         }
 
         public void RemoveMessage(Message message)

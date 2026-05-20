@@ -8,7 +8,7 @@ namespace ClinicHub.Application.Features.Conversations.Commands.SendMessage
 {
     public record SendMessageCommand(
         Guid ConversationId, 
-        string Content, 
+        string? Content, 
         Guid? ReplyToMessageId = null,
         List<MessageMediaInputDto>? Media = null) : IRequest<MessageDto>;
 
@@ -29,6 +29,9 @@ namespace ClinicHub.Application.Features.Conversations.Commands.SendMessage
             RuleFor(x => x.Content)
                 .NotEmpty()
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value))
+                .When(x => x.Media == null || !x.Media.Any());
+
+            RuleFor(x => x.Content)
                 .MaximumLength(5000)
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.MaxLength.Value));
         }

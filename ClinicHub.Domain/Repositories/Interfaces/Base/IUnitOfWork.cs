@@ -13,6 +13,9 @@ namespace ClinicHub.Infrastructure.UnitOfWork.Interfaces
         IReactionRepository ReactionRepository { get; }
         IClinicRepository ClinicRepository { get; }
         ISpecializationRepository SpecializationRepository { get; }
+        IDoctorRepository DoctorRepository { get; }
+        IDoctorAvailabilityRepository DoctorAvailabilityRepository { get; }
+        IAppointmentRepository AppointmentRepository { get; }
         IUserFbTokenRepository UserFbTokenRepository { get; }
         INotificationRepository NotificationRepository { get; }
         IUserRefreshTokenRepository UserRefreshTokenRepository { get; }

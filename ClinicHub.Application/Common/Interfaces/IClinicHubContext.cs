@@ -11,6 +11,9 @@ namespace ClinicHub.Application.Common.Interfaces
         DbSet<Media> Media { get; }
         DbSet<Clinic> Clinics { get; }
         DbSet<Specialization> Specializations { get; }
+        DbSet<Doctor> Doctors { get; }
+        DbSet<DoctorAvailability> DoctorAvailabilities { get; }
+        DbSet<Appointment> Appointments { get; }
         DbSet<UserFbToken> UserFbTokens { get; }
         DbSet<Notification> Notifications { get; }
         DbSet<UserRefreshToken> UserRefreshTokens { get; }
