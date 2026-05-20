@@ -368,3 +368,4 @@ appsettings.Development.json
 appsettings.Test.json
 appsettings.Production.json
 /ClinicHub.API/wwwroot
+.vscode/settings.json
