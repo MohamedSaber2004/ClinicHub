@@ -56,6 +56,14 @@ namespace ClinicHub.Application.Features.Conversations.Commands.SendMessage
             {
                 message.MarkAsRead(recipientId);
             }
+            else if (_chatConnectionManager.GetUserConnections(recipientId).Any())
+            {
+                message.MarkAsDelivered();
+            }
+            else
+            {
+                message.MarkAsSent();
+            }
 
             conversation.AddMessage(message);
 

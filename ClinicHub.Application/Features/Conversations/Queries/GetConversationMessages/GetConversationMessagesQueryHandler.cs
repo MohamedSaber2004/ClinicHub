@@ -58,6 +58,8 @@ namespace ClinicHub.Application.Features.Conversations.Queries.GetConversationMe
                     SenderProfilePictureUrl = sender?.ProfilePictureUrl ?? string.Empty,
                     Content = message.Content,
                     IsRead = message.IsRead,
+                    ReadAt = message.ReadAt,
+                    Status = message.Status,
                     CreatedAt = message.CreatedAt,
                     ConversationId = message.ConversationId
                 });

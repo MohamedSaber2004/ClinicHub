@@ -12,17 +12,27 @@ namespace ClinicHub.Application.Features.RealTime.Commands.ConnectUser
     {
         private readonly IChatConnectionManager _chatConnectionManager;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IMediator _mediator;
 
-        public ConnectUserCommandHandler(IChatConnectionManager chatConnectionManager, ICurrentUserService currentUserService)
+        public ConnectUserCommandHandler(
+            IChatConnectionManager chatConnectionManager, 
+            ICurrentUserService currentUserService,
+            IMediator mediator)
         {
             _chatConnectionManager = chatConnectionManager;
             _currentUserService = currentUserService;
+            _mediator = mediator;
         }
 
-        public Task<bool> Handle(ConnectUserCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(ConnectUserCommand request, CancellationToken cancellationToken)
         {
-            _chatConnectionManager.ConnectUser(_currentUserService.UserId, request.ConnectionId);
-            return Task.FromResult(true);
+            var userId = _currentUserService.UserId;
+            _chatConnectionManager.ConnectUser(userId, request.ConnectionId);
+
+            // Bulk deliver messages received while offline
+            await _mediator.Send(new DeliverPendingMessages.DeliverPendingMessagesCommand(), cancellationToken);
+
+            return true;
         }
     }
 }

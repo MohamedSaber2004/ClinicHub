@@ -19,17 +19,20 @@ namespace ClinicHub.Application.Features.RealTime.Commands.AuthenticatePusher
         private readonly ICurrentUserService _currentUserService;
         private readonly IChatConnectionManager _chatConnectionManager;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMediator _mediator;
 
         public AuthenticatePusherCommandHandler(
             IPusherService pusherService,
             ICurrentUserService currentUserService,
             IChatConnectionManager chatConnectionManager,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IMediator mediator)
         {
             _pusherService = pusherService;
             _currentUserService = currentUserService;
             _chatConnectionManager = chatConnectionManager;
             _unitOfWork = unitOfWork;
+            _mediator = mediator;
         }
 
         public async Task<string> Handle(AuthenticatePusherCommand request, CancellationToken cancellationToken)
@@ -50,6 +53,9 @@ namespace ClinicHub.Application.Features.RealTime.Commands.AuthenticatePusher
             var authJson = _pusherService.Authenticate(request.ChannelName, request.SocketId, userId.ToString(), userInfo);
 
             _chatConnectionManager.ConnectUser(userId, request.SocketId);
+
+            // Bulk deliver messages received while offline
+            await _mediator.Send(new DeliverPendingMessages.DeliverPendingMessagesCommand(), cancellationToken);
 
             return authJson;
         }
