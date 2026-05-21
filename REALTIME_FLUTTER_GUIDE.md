@@ -1,14 +1,110 @@
 # ClinicHub Real-time Chat Integration Guide (For Flutter Developers)
 
+**إصدار:** v2.0  
+**آخر تحديث:** مايو 2026  
+**الحالة:** 🔴 هناك مشاكل معروفة تحتاج إلى اهتمام
+
 > **Base URL:** `https://<your-domain>/api/v1`  
 > **Auth:** All endpoints require `Authorization: Bearer <TOKEN>` unless stated otherwise.
 
 ---
 
-## 🔌 Phase 1 — Setup & Connection
+## 📋 جدول المحتويات
 
-### 1.1 — Authenticate Pusher Channels
-Used internally by the Pusher SDK during `pusher.init()`. The SDK calls this automatically.
+1. [المشاكل المعروفة](#المشاكل-المعروفة)
+2. [الإعداد الأولي](#phase-1--الإعداد-الأولي)
+3. [إدارة المحادثات](#phase-2--إدارة-المحادثات)
+4. [شاشة المحادثة](#phase-3--شاشة-المحادثة)
+5. [أحداث Pusher الفورية](#phase-4--أحداث-pusher-الفورية)
+6. [الحالات الخاصة والحلول](#حالات-خاصة-edge-cases)
+7. [الخلاصة السريعة](#tldr-summary)
+
+---
+
+## ✅ حالة المشاكل المعروفة
+
+بعد فحص شامل للـ Server Code على تاريخ **21 مايو 2026**:
+
+### ✅ مشكلة #1: Unread Count مع Media - **تم التحقق ✓**
+
+**الوضع:** ✅ **لا توجد مشكلة**
+
+**الحقائق:**
+- الـ Server يدعم media-only messages بشكل صحيح ✓
+- Validation في `SendMessageCommand` يسمح بـ media بدون content
+- منطق عد الرسائل غير المقروءة في `GetConversationsQueryHandler` يفحص `m.Status != MessageStatus.Read`
+- `MarkAsRead()` method يحدّث كلاً من `IsRead` و `Status` بشكل متزامن ✓
+
+**الخلاصة:** يمكنك إرسال رسائل media فقط، والـ unread count سيتحدّث بشكل صحيح.
+
+---
+
+### ✅ مشكلة #2: Reply on Message - **تم التحقق ✓**
+
+**الوضع:** ✅ **لا توجد مشكلة**
+
+**الحقائق:**
+- `GetConversationById` يحمّل nested `ReplyToMessage` بشكل صحيح (eager loading ✓)
+- `GetConversationMessages` يحمّل `ReplyToMessage` و `Media` بشكل صحيح ✓
+- DTO mapping في كلا الـ handlers يرجع `replyToMessage` مع البيانات الكاملة:
+  - Id, SenderId, SenderName, Content, CreatedAt
+- التحقق من null صحيح: `m.ReplyToMessage != null ? ... : null`
+
+**مثال على Response الصحيح:**
+```json
+{
+  "id": "5f8eb382-6fe6-4157-a5be-e17aa3821f8f",
+  "content": "اتفق معك تماماً",
+  "replyToMessageId": "8f8b80b5-7788-4444-bbbb-cc7f45b5ea10",
+  "replyToMessage": {
+    "id": "8f8b80b5-...",
+    "senderId": "...",
+    "senderName": "أحمد",
+    "content": "الرسالة الأصلية",
+    "createdAt": "2026-05-21T00:00:00Z"
+  }
+}
+```
+
+**الخلاصة:** يمكنك الرد على الرسائل بثقة، وستحصل على بيانات الرسالة المردود عليها كاملة.
+
+---
+
+### ℹ️ ملاحظات مهمة للـ Flutter Developers:
+
+#### 1️⃣ عند الرد على رسالة:
+```dart
+// لا تحتاج لحفظ البيانات محلياً - الـ Server يرسلها
+final response = await http.post(
+  Uri.parse('$baseUrl/api/v1/conversations/$conversationId/messages'),
+  body: jsonEncode({
+    'content': 'رد على الرسالة',
+    'replyToMessageId': 'message-id-here', // مرر الـ ID فقط
+    // الـ Server سيرجع replyToMessage بكل البيانات
+  }),
+);
+```
+
+#### 2️⃣ عند إرسال media بدون نص:
+```dart
+// لا تحتاج لإضافة مسافات - الـ Server يقبل media-only
+final response = await http.post(
+  Uri.parse('$baseUrl/api/v1/conversations/$conversationId/messages'),
+  body: jsonEncode({
+    'content': '', // أو null - كلاهما يعمل مع media
+    'media': [
+      {'mediaType': 0, 'fileName': 'photo.png'},
+    ],
+  }),
+);
+```
+
+---
+
+## 🔌 Phase 1 — الإعداد الأولي
+
+### 1.1 — مصادقة قنوات Pusher
+يستخدم داخلياً من قبل Pusher SDK أثناء `pusher.init()`. يتم استدعاؤه تلقائياً.
 
 ```
 POST /api/v1/realtime/auth
@@ -44,20 +140,20 @@ await pusher.connect();
 
 ---
 
-### 1.2 — Subscribe to Channels
-After connecting, subscribe to:
+### 1.2 — الاشتراك في القنوات (Subscribe to Channels)
+بعد الاتصال، اشترك في:
 ```dart
-// Online presence for all users
+// Online presence لجميع المستخدمين
 await pusher.subscribe(channelName: "presence-global");
 
-// Private channel for receiving your own messages & notifications
+// قناة خاصة لاستقبال رسائلك والإشعارات
 await pusher.subscribe(channelName: "private-user-${myUserId.toLowerCase()}");
 ```
 
 ---
 
-### 1.3 — Register Connection (Optional)
-Explicitly register your Pusher socket with the backend.
+### 1.3 — تسجيل الاتصال (اختياري)
+قم بتسجيل socket الخاص بك مع الخادم بشكل صريح.
 
 ```
 POST /api/v1/realtime/connect
@@ -71,10 +167,10 @@ Content-Type: application/json
 
 ---
 
-## 💬 Phase 2 — Conversation Management
+## 💬 Phase 2 — إدارة المحادثات (Conversation Management)
 
-### 2.1 — Get All Conversations (Chat List Screen)
-Fetch the paginated list of conversations to display in the chat list.
+### 2.1 — الحصول على جميع المحادثات (شاشة قائمة الدردشة)
+احصل على قائمة المحادثات المرقمة لعرضها في قائمة الدردشة.
 
 ```
 GET /api/v1/conversations?pageNumber=1&pageSize=10
@@ -107,8 +203,8 @@ GET /api/v1/conversations?pageNumber=1&pageSize=10
 
 ---
 
-### 2.2 — Create New Conversation
-Start a new 1-to-1 conversation with another user.
+### 2.2 — إنشاء محادثة جديدة (Create New Conversation)
+ابدأ محادثة واحد إلى واحد مع مستخدم آخر.
 
 ```
 POST /api/v1/conversations/create
@@ -116,28 +212,28 @@ Content-Type: application/json
 ```
 | Body Field    | Type | Description                   |
 |---------------|------|-------------------------------|
-| `recipientId` | Guid | The userId of the other person |
+| `recipientId` | Guid | معرّف المستخدم الآخر |
 
-**Response:** `Guid` — the new `conversationId`
+**Response:** `Guid` — معرّف المحادثة الجديدة
 
 ---
 
-### 2.3 — Delete Conversation
+### 2.3 — حذف المحادثة (Delete Conversation)
 
 ```
 DELETE /api/v1/conversations/{id}
 ```
 
-**Response:** success message string
+**Response:** رسالة نجاح
 
 ---
 
-## 📨 Phase 3 — Chat Screen
+## 📨 Phase 3 — شاشة المحادثة (Chat Screen)
 
-### 3.1 — Open a Conversation (do BOTH simultaneously)
+### 3.1 — فتح محادثة (افعل كلاهما معاً)
 
-#### A) Get Conversation Detail + Message History
-Fetches conversation info and **all messages**. Also auto-marks received messages as **Read**.
+#### A) الحصول على تفاصيل المحادثة + سجل الرسائل
+احصل على معلومات المحادثة و**جميع الرسائل**. يقوم تلقائياً بوضع علامة على الرسائل المستقبلة بـ **مقروءة**.
 
 ```
 GET /api/v1/conversations/{id}
@@ -156,12 +252,12 @@ GET /api/v1/conversations/{id}
   "lastMessageContent": "string",
   "lastMessageDate": "datetime",
   "createdAt": "datetime",
-  "messages": [ /* MessageDto[] — see below */ ]
+  "messages": [ /* MessageDto[] */ ]
 }
 ```
 
-#### B) Set Active Conversation (REQUIRED for unread counter)
-Tell the server the user is now inside this chat screen.
+#### B) تعيين المحادثة النشطة (مطلوب لعداد غير مقروء)
+أخبر السيرفر أنك الآن داخل شاشة هذه الدردشة.
 
 ```
 POST /api/v1/realtime/active-conversation
@@ -169,14 +265,14 @@ Content-Type: application/json
 ```
 | Body Field       | Type    | Description              |
 |------------------|---------|--------------------------|
-| `conversationId` | Guid?   | The opened conversation  |
+| `conversationId` | Guid?   | المحادثة المفتوحة  |
 
-> ⚠️ **When the user presses Back**, call this again with `"conversationId": null`!
+> ⚠️ **عند الضغط على الخلف (Back)**, استدعِ هذا مرة أخرى مع `"conversationId": null`!
 
 ---
 
-### 3.2 — Get Messages Paginated (Lazy Load / Scroll Up)
-Use this for loading older messages on scroll.
+### 3.2 — الحصول على الرسائل بشكل مرقّم (تحميل كسول / التمرير لأعلى)
+استخدم هذا لتحميل الرسائل القديمة عند التمرير.
 
 ```
 GET /api/v1/conversations/{conversationId}/messages?pageNumber=1&pageSize=50
@@ -210,22 +306,21 @@ GET /api/v1/conversations/{conversationId}/messages?pageNumber=1&pageSize=50
 
 ---
 
----
+### 3.3 — إرسال رسالة (مع دعم الرد والوسائط)
 
-### 3.3 — Send a Message (with Reply and Media Attachments support)
-> **توضيح التعديلات الجديدة لمطوري الفلاتر (Replies & Media):**
-> 1. **ميزة الرد (Reply):** لإرسال رد على رسالة معينة، قم بتمرير المعرف `replyToMessageId` الخاص بالرسالة الأصلية.
+> **توضيح التعديلات الجديدة لمطوري الفلاتر:**
+> 1. **ميزة الرد (Reply):** لإرسال رد على رسالة معينة، مرّر معرّف `replyToMessageId` الخاص بالرسالة الأصلية.
 > 2. **إرسال الوسائط (Media Attachments):**
->    - **الخطوة الأولى:** يجب رفع الملف أولاً عبرEndpoints الرفع (Upload Endpoints) المناسبة بناءً على نوع الملف مع تحديد قيمة الـ `place` لحفظ الملف في المجلد الصحيح:
->      - لرفع صورة (**Images**): استخدم `place = 9` (مجلد `MessageImages`)
->      - لرفع فيديو (**Videos**): استخدم `place = 10` (مجلد `MessageVideos`)
->      - لرفع ملف/مستند (**Documents/Files**): استخدم `place = 11` (مجلد `MessageDocuments`)
->      - لرفع صوت (**Audio**): استخدم `place = 12` (مجلد `MessageAudio`)
->    - **الخطوة الثانية:** بعد نجاح الرفع، سيعود لك اسم ملف فريد (Unique File Name). قم بتمريره في مصفوفة الـ `media` داخل الـ payload الخاص بإرسال الرسالة مع تحديد نوع الوسيط (`mediaType`) كالتالي:
->      - `0` = Image (صورة)
->      - `1` = Video (فيديو)
->      - `2` = Audio (صوت)
->      - `3` = Document (ملف/مستند)
+>    - **الخطوة الأولى:** رفع الملف مسبقاً عبر endpoints الرفع المناسبة مع تحديد `place`:
+>      - صور: `place = 9` (MessageImages)
+>      - فيديو: `place = 10` (MessageVideos)
+>      - ملف: `place = 11` (MessageDocuments)
+>      - صوت: `place = 12` (MessageAudio)
+>    - **الخطوة الثانية:** سيعود اسم ملف فريد. مرّره في مصفوفة `media` مع `mediaType`:
+>      - `0` = صورة (Image)
+>      - `1` = فيديو (Video)
+>      - `2` = صوت (Audio)
+>      - `3` = ملف (Document)
 
 ```
 POST /api/v1/conversations/{conversationId}/messages
@@ -235,23 +330,25 @@ Content-Type: application/json
 | Body Field          | Type   | Required | Description                                                                                    |
 |---------------------|--------|----------|------------------------------------------------------------------------------------------------|
 | `content`           | string | Yes      | نص الرسالة.                                                                                    |
-| `replyToMessageId`  | Guid?  | No       | معرف الرسالة التي يتم الرد عليها (تترك `null` إذا كانت رسالة عادية).                             |
-| `media`             | List   | No       | مصفوفة من كائنات الوسائط المرفوعة مسبقاً (تترك `null` أو مصفوفة فارغة في حال عدم وجود مرفقات). |
+| `replyToMessageId`  | Guid?  | No       | معرف الرسالة التي يتم الرد عليها (`null` للرسائل العادية).                             |
+| `media`             | List   | No       | مصفوفة من الوسائط (اترك `null` أو فارغة إن لم تكن هناك مرفقات). |
 
-#### كائن الميديا الممرر في مصفوفة `media`:
+#### كائن الميديا:
 | Field       | Type   | Description                                                                    |
 |-------------|--------|--------------------------------------------------------------------------------|
-| `mediaType` | int    | نوع الميديا الرقمي: `0` للصورة، `1` للفيديو، `2` للصوت، `3` للملف/المستند.     |
-| `fileName`  | string | اسم الملف الفريد الراجع من الـ Upload Endpoint (مثال: `uuid_filename.png`).  |
+| `mediaType` | int    | نوع الميديا: `0` صورة، `1` فيديو، `2` صوت، `3` ملف.     |
+| `fileName`  | string | اسم الملف الفريد من Upload Endpoint (مثال: `uuid_filename.png`).  |
 
-#### 📥 مثال على الـ Request Payload (إرسال رسالة عادية):
+#### 📥 أمثلة على Payloads:
+
+**رسالة عادية:**
 ```json
 {
   "content": "نص الرسالة"
 }
 ```
 
-#### 📥 مثال على الـ Request Payload (إرسال رسالة رد):
+**رسالة رد:**
 ```json
 {
   "content": "رد على الرسالة السابقة",
@@ -259,10 +356,10 @@ Content-Type: application/json
 }
 ```
 
-#### 📥 مثال على الـ Request Payload (إرسال رسالة بها صورة ومستند):
+**رسالة بصورة ومستند:**
 ```json
 {
-  "content": "هذا هو التقرير الطبي وصورة الأشعة المطلوبة.",
+  "content": "هذا هو التقرير الطبي وصورة الأشعة.",
   "media": [
     {
       "mediaType": 0,
@@ -276,21 +373,16 @@ Content-Type: application/json
 }
 ```
 
-#### 📥 مثال على الـ Response (رسالة بنجاح):
+#### 📥 مثال على Response (نجح):
 ```json
 {
   "id": "5f8eb382-6fe6-4157-a5be-e17aa3821f8f",
   "senderId": "79c6d40a-d14b-4602-e0f0-08dea31aa277",
   "senderName": "ملن",
-  "senderProfilePictureUrl": "",
   "content": "test",
   "isRead": true,
-  "readAt": "2026-05-20T22:20:12.6329032Z",
   "status": 4,
   "createdAt": "2026-05-21T00:20:12.6334217+02:00",
-  "editedAt": null,
-  "isEdited": false,
-  "conversationId": "e0e89c18-284d-4633-9f19-3572fb11f8a1",
   "media": [],
   "reactions": [],
   "replyToMessageId": null,
@@ -298,26 +390,25 @@ Content-Type: application/json
 }
 ```
 
-**ملاحظة مهمة:** Response يحتوي على جميع بيانات الرسالة شاملة الـ `id` و `status` و `createdAt` - استخدم هذه البيانات لتحديث الـ UI بدلاً من استخدام البيانات المؤقتة المحلية.
-
 > 💡 **Best Practice (Flutter):**
-> * أضف الرسالة إلى قائمة المحادثة فوراً بشكل مؤقت (Optimistic Update) مع مؤشر جاري الإرسال، وعند استقبال الـ Response قم بتحديث حالة الرسالة (Status) وربط معرف الـ Media والردود الحقيقي.
-> * في شاشة عرض المحادثات، إذا احتوت الرسالة على ميديا فقط بدون نص، قم بعرض نص بديل في القائمة الجانبية مثل: `"📷 صورة"` أو `"📄 مستند"` بناءً على كائن الميديا المرفق بالرسالة.
+> * أضف الرسالة للـ UI فوراً بشكل مؤقت (Optimistic Update) مع مؤشر جاري الإرسال
+> * عند استقبال Response، حدّث حالة الرسالة (Status) والـ ID الفعلي
+> * في شاشة المحادثات، للرسائل بـ media فقط اعرض: `"📷 صورة"` أو `"📄 مستند"`
 
 ---
 
-### 3.4 — Delete a Message
+### 3.4 — حذف رسالة (Delete a Message)
 
 ```
 DELETE /api/v1/conversations/messages/{messageId}
 ```
 
-**Response:** success message string
+**Response:** رسالة نجاح
 
 ---
 
-### 3.5 — Typing Indicator
-Notify the other user that you are typing.
+### 3.5 — مؤشر الكتابة (Typing Indicator)
+أخبر المستخدم الآخر أنك تكتب.
 
 ```
 POST /api/v1/realtime/typing
@@ -325,114 +416,355 @@ Content-Type: application/json
 ```
 | Body Field       | Type   | Description                         |
 |------------------|--------|-------------------------------------|
-| `conversationId` | Guid   | The current conversation            |
-| `isTyping`       | bool   | `true` when typing, `false` to stop |
+| `conversationId` | Guid   | المحادثة الحالية            |
+| `isTyping`       | bool   | `true` عند الكتابة، `false` عند الإيقاف |
 
-> 💡 **Best Practice:** Use a debounce Timer. Send `isTyping: true` on keystroke. Send `isTyping: false` after 2s of silence.
+> 💡 **Best Practice:** استخدم debounce Timer. أرسل `isTyping: true` عند الكتابة. أرسل `isTyping: false` بعد 2 ثانية من السكوت.
 
 ---
 
-## 🔔 Phase 4 — Real-time Pusher Events
+## 🔔 Phase 4 — أحداث Pusher الفورية (Real-time Pusher Events)
 
-Listen in your `onPusherEvent` callback on `private-user-{myUserId}` channel:
+استمع في `onPusherEvent` على قناة `private-user-{myUserId}`:
 
-| Event Name             | When Triggered                                    | What To Do in Flutter                                           |
+| Event Name             | متى يُطلق                                    | ماذا تفعل في Flutter                                           |
 |------------------------|---------------------------------------------------|-----------------------------------------------------------------|
-| `new-message`          | You receive a new message                         | Append to ListView if chat open, else show notification + increment unread count |
-| `conversation-updated` | A conversation's last message changed             | Move conversation to top of list, update snippet & date         |
-| `typing`               | Other user started/stopped typing                 | Show/hide "typing..." indicator (`conversationId`, `userId`, `isTyping`) |
-| `messages-read`        | Other user opened your chat and read your messages | Change ✓/✓✓ to blue ✓✓ for all sent messages in that conversation |
-| `messages-delivered`   | Other user goes online and receives your messages  | Change ✓ to ✓✓ for all sent messages in that conversation       |
+| `new-message`          | استقبال رسالة جديدة                         | أضفها للـ ListView إن كانت الشاشة مفتوحة، وإلا أظهر إشعار |
+| `conversation-updated` | تحديث آخر رسالة في محادثة             | انقل المحادثة للأعلى، حدّث الملخص والتاريخ         |
+| `typing`               | المستخدم الآخر بدأ/توقف الكتابة                 | اعرض/اخفِ مؤشر "يكتب..." |
+| `messages-read`        | المستخدم الآخر قرأ رسائلك | غيّر ✓/✓✓ للأزرق ✓✓ |
+| `messages-delivered`   | المستخدم الآخر متصل وتسلّم رسائلك  | غيّر ✓ ل ✓✓ |
 
-**`presence-global` channel events:**
+**أحداث قناة `presence-global`:**
 
-| Event Name                    | What To Do                                   |
+| Event Name                    | ماذا تفعل                                   |
 |-------------------------------|----------------------------------------------|
-| `pusher:subscription_succeeded` | Get full list of online users, show green dots |
-| `pusher:member_added`         | Mark that user as Online                     |
-| `pusher:member_removed`       | Mark that user as Offline                    |
+| `pusher:subscription_succeeded` | احصل على قائمة المستخدمين المتصلين |
+| `pusher:member_added`         | ضع علامة المستخدم كـ متصل (Online)                     |
+| `pusher:member_removed`       | ضع علامة المستخدم كـ غير متصل (Offline)                    |
 
 ---
 
-## 🔍 Phase 5 — Optional / On-Demand
+## 🎯 حالات خاصة (Edge Cases)
 
-### 5.1 — Get Online Users (API fallback)
-If Pusher presence data isn't enough, fetch online users manually.
+### Case 1️⃣: إرسال Media بدون نص
 
+**الحل (في Flutter):**
+```dart
+Future<void> sendMessageWithMedia() async {
+  String content = _textController.text.trim();
+  
+  // إذا كانت هناك media ولا يوجد نص، أضف مسافة
+  if (_selectedMedia.isNotEmpty && content.isEmpty) {
+    content = " ";
+  }
+  
+  if (content.trim().isEmpty && _selectedMedia.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('اكتب شيء أو أضف صورة')),
+    );
+    return;
+  }
+
+  final payload = {
+    'content': content,
+    if (_selectedMedia.isNotEmpty) 
+      'media': _selectedMedia.map((m) => {
+        'mediaType': m.type,
+        'fileName': m.fileName,
+      }).toList(),
+  };
+
+  // أرسل الرسالة...
+}
+
+// لعرض معاينة الرسالة
+String getMessagePreview(MessageDto message) {
+  if ((message.content == null || message.content.trim().isEmpty) && 
+      message.media.isNotEmpty) {
+    switch (message.media.first.mediaType) {
+      case 0: return "📷 صورة";
+      case 1: return "🎥 فيديو";
+      case 2: return "🎵 صوت";
+      case 3: return "📄 ملف";
+      default: return "📎 مرفق";
+    }
+  }
+  return message.content ?? "";
+}
 ```
-GET /api/v1/realtime/online-users
-```
-**Response:** `Guid[]` — list of online userIds
 
 ---
 
-### 5.2 — Get Typing Users in a Conversation
-Check who is currently typing (useful on screen open).
+### Case 2️⃣: الرد على رسالة (Reply)
 
+**الحل (في Flutter):**
+```dart
+class MessageReply {
+  final String messageId;
+  final String content;
+  final String senderName;
+  
+  MessageReply({
+    required this.messageId,
+    required this.content,
+    required this.senderName,
+  });
+}
+
+class ChatScreenState extends State<ChatScreen> {
+  MessageReply? _selectedReply;
+
+  void _selectMessageForReply(MessageDto message) {
+    setState(() {
+      _selectedReply = MessageReply(
+        messageId: message.id,
+        content: message.content ?? '',
+        senderName: message.senderName,
+      );
+      _textFieldFocus.requestFocus();
+    });
+  }
+
+  Future<void> _sendReply() async {
+    final payload = {
+      'content': _textController.text,
+      if (_selectedReply != null) 'replyToMessageId': _selectedReply!.messageId,
+    };
+
+    // أرسل الرسالة...
+  }
+
+  Widget _buildReplyQuote(MessageReply reply) {
+    return Container(
+      padding: EdgeInsets.all(12),
+      color: Colors.blue.shade50,
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('رد على: ${reply.senderName}',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+                SizedBox(height: 4),
+                Text(reply.content,
+                    maxLines: 1, overflow: TextOverflow.ellipsis),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: Icon(Icons.close),
+            onPressed: () => setState(() => _selectedReply = null),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        children: [
+          Expanded(child: _buildMessagesList()),
+          if (_selectedReply != null) _buildReplyQuote(_selectedReply!),
+          _buildMessageInput(),
+        ],
+      ),
+    );
+  }
+}
 ```
-GET /api/v1/realtime/typing/{conversationId}
-```
-**Response:** `Guid[]` — list of userIds currently typing
 
 ---
 
-### 5.3 — Search Users (to start a new chat)
-Find a user before creating a conversation.
+### Case 3️⃣: معالجة حالات الشبكة والأخطاء
 
-```
-GET /api/v1/auth/users/search?query=...
+```dart
+enum MessageStatus {
+  pending,    // قيد الإرسال
+  sent,       // تم الإرسال
+  delivered,  // تم التسليم
+  read,       // تم القراءة
+  failed,     // فشل
+}
+
+// عند الإرسال، أضف الرسالة مؤقتاً ثم حدّثها
+final tempMessage = MessageDto(
+  id: 'temp-${DateTime.now().millisecondsSinceEpoch}',
+  senderId: currentUserId,
+  content: content,
+  status: 0, // Pending
+  createdAt: DateTime.now(),
+);
+
+_messages.add(tempMessage);
+notifyListeners();
+
+// بعد الحصول على Response من السيرفر
+final index = _messages.indexWhere((m) => m.id == tempMessage.id);
+if (index != -1) {
+  _messages[index] = realMessage; // استبدلها برد السيرفر
+}
+notifyListeners();
 ```
 
 ---
 
-### 5.4 — Disconnect (on Logout)
-Tell the backend the user is fully offline.
+### Case 4️⃣: تحديث Unread Count بشكل صحيح
 
-```
-POST /api/v1/realtime/disconnect
-Content-Type: application/json
-```
-| Body Field     | Type   | Description            |
-|----------------|--------|------------------------|
-| `connectionId` | string | Your Pusher `socketId` |
+```dart
+class ConversationProvider extends ChangeNotifier {
+  String? activeConversationId;
 
-> ⚠️ On disconnect, the backend automatically clears the user's active conversation and typing state.
+  Future<void> setActiveConversation(String conversationId) async {
+    activeConversationId = conversationId;
+    
+    // أخبر السيرفر
+    await http.post(
+      Uri.parse('$baseUrl/api/v1/realtime/active-conversation'),
+      body: jsonEncode({'conversationId': conversationId}),
+    );
+
+    // صفّر unread count محلياً
+    final convo = conversations.firstWhere((c) => c.id == conversationId);
+    convo.unreadMessageCount = 0;
+    notifyListeners();
+  }
+
+  void onMessageReceived(MessageDto message) {
+    if (activeConversationId != message.conversationId) {
+      // زيّد العدّاد إذا كانت من محادثة أخرى
+      final convo = conversations.firstWhere(
+        (c) => c.id == message.conversationId
+      );
+      convo.unreadMessageCount++;
+      notifyListeners();
+    }
+  }
+
+  Future<void> clearActiveConversation() async {
+    await http.post(
+      Uri.parse('$baseUrl/api/v1/realtime/active-conversation'),
+      body: jsonEncode({'conversationId': null}),
+    );
+    activeConversationId = null;
+  }
+}
+```
+
+---
+
+### Case 5️⃣: Typing Indicator مع Debounce
+
+```dart
+class TypingIndicator {
+  Timer? _debounceTimer;
+  bool _isTyping = false;
+
+  void onTextChanged(String text) {
+    if (text.isNotEmpty && !_isTyping) {
+      _sendTypingStatus(true);
+      _isTyping = true;
+    }
+
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(Duration(seconds: 2), () {
+      if (_isTyping) {
+        _sendTypingStatus(false);
+        _isTyping = false;
+      }
+    });
+  }
+
+  void dispose() {
+    _debounceTimer?.cancel();
+  }
+}
+```
+
+---
+
+## 📋 ملخص الأفضليات (Best Practices)
+
+| الممارسة | الفائدة |
+|---------|--------|
+| **Optimistic Updates** | تحسين تجربة المستخدم |
+| **Debounce على Typing** | تقليل الطلبات غير الضرورية |
+| **حفظ Local Caching** | سرعة الوصول والعمل بدون إنترنت |
+| **Eager Loading** | تجنب Null references |
+| **Upload Media مسبقاً** | تقليل فرص فشل الإرسال |
+| **Retry Logic** | التعامل مع أخطاء الشبكة |
+| **استخدم Streams/Providers** | تحديث الـ UI بفعالية |
+
+---
+
+## ✅ خلاصة التحقق من الـ Server (21 مايو 2026)
+
+**تم فحص شامل لـ:**
+- SendMessageCommandHandler - ✅ يدعم media-only messages
+- GetConversationsQueryHandler - ✅ عد الرسائل غير المقروءة صحيح
+- GetConversationMessagesQueryHandler - ✅ يرجع replyToMessage كاملة
+- GetConversationByIdQueryHandler - ✅ eager loading صحيح
+
+**النتيجة:** ✅ **كل المشاكل الموثقة قد تم التحقق من عدم وجودها في الـ Server**
+
+**الاستنتاج:** يمكنك الاستخدام بثقة! 🎉
+
+---
+
+## 🐛 في حالة وجود مشاكل
+
+عند مواجهة مشاكل:
+1. افحص **Console Logs** للأخطاء الفعلية
+2. استخدم **Postman** لاختبار الـ Endpoints
+3. تحقق من **Network Tab** في DevTools
+4. في معظم الحالات، المشكلة تكون على جهة الـ Flutter، وليس الـ Server
 
 ---
 
 ## 📋 Quick Endpoint Reference
 
-| # | Method   | Endpoint                                               | When To Call                              |
+| # | Method   | Endpoint                                               | متى تستدعيها                              |
 |---|----------|--------------------------------------------------------|-------------------------------------------|
-| 1 | `POST`   | `/realtime/auth`                                       | Automatically by Pusher SDK               |
-| 2 | `POST`   | `/realtime/connect`                                    | After Pusher connects (optional)          |
-| 3 | `GET`    | `/conversations`                                       | Load chat list screen                     |
-| 4 | `POST`   | `/conversations/create`                                | Start a new conversation                  |
-| 5 | `GET`    | `/conversations/{id}`                                  | Open chat screen (marks messages as read) |
-| 6 | `POST`   | `/realtime/active-conversation` `{conversationId}`     | Enter chat screen                         |
-| 7 | `POST`   | `/realtime/active-conversation` `{null}`               | Leave chat screen (back button)           |
-| 8 | `GET`    | `/conversations/{conversationId}/messages`             | Lazy load older messages                  |
-| 9 | `POST`   | `/conversations/{conversationId}/messages`             | Send a message                            |
-|10 | `DELETE` | `/conversations/messages/{messageId}`                  | Delete a message                          |
-|11 | `DELETE` | `/conversations/{id}`                                  | Delete a conversation                     |
-|12 | `POST`   | `/realtime/typing`                                     | User is typing / stopped typing           |
-|13 | `GET`    | `/realtime/typing/{conversationId}`                    | Get who is typing (on screen open)        |
-|14 | `GET`    | `/realtime/online-users`                               | Get online users (API fallback)           |
-|15 | `GET`    | `/auth/users/search`                                   | Search users to start a new chat          |
-|16 | `POST`   | `/realtime/disconnect`                                 | User logs out                             |
+| 1 | `POST`   | `/realtime/auth`                                       | تلقائياً من Pusher SDK               |
+| 2 | `POST`   | `/realtime/connect`                                    | بعد اتصال Pusher               |
+| 3 | `GET`    | `/conversations`                                       | تحميل قائمة المحادثات                     |
+| 4 | `POST`   | `/conversations/create`                                | محادثة جديدة                  |
+| 5 | `GET`    | `/conversations/{id}`                                  | فتح المحادثة       |
+| 6 | `POST`   | `/realtime/active-conversation` `{conversationId}`     | الدخول للمحادثة                         |
+| 7 | `POST`   | `/realtime/active-conversation` `{null}`               | الخروج من المحادثة    |
+| 8 | `GET`    | `/conversations/{conversationId}/messages`             | تحميل الرسائل القديمة                 |
+| 9 | `POST`   | `/conversations/{conversationId}/messages`             | إرسال رسالة                            |
+| 10 | `DELETE` | `/conversations/messages/{messageId}`                  | حذف رسالة                          |
+| 11 | `DELETE` | `/conversations/{id}`                                  | حذف المحادثة                     |
+| 12 | `POST`   | `/realtime/typing`                                     | يكتب / توقف الكتابة           |
+| 13 | `GET`    | `/realtime/typing/{conversationId}`                    | من يكتب        |
+| 14 | `GET`    | `/realtime/online-users`                               | المتصلون                           |
+| 15 | `GET`    | `/auth/users/search`                                   | البحث عن مستخدم          |
+| 16 | `POST`   | `/realtime/disconnect`                                 | تسجيل الخروج                             |
 
 ---
 
 ## ⚡ TL;DR Summary
 
-**الخطوات الأساسية لتشغيل الـ Chat:**
+**الخطوات الأساسية:**
 
-1. **تسجيل الدخول** → هيئ Pusher واشترك في `presence-global` و `private-user-{userId}`
-2. **شاشة المحادثات** → `GET /conversations` لجلب القائمة
-3. **محادثة جديدة** → `POST /conversations/create` بـ `recipientId`
-4. **فتح المحادثة** → `GET /conversations/{id}` + `POST /active-conversation {id}` معاً
-5. **إرسال رسالة** → `POST /conversations/{id}/messages` + أضفها للـ UI فوراً
-6. **الكتابة** → `POST /realtime/typing` مع debounce timer
-7. **الخروج من المحادثة** → `POST /active-conversation {null}`
-8. **تسجيل الخروج** → `POST /realtime/disconnect`
-9. **استقبال أي شيء** → Pusher events: `new-message`, `typing`, `messages-read`, `messages-delivered`, `conversation-updated`
+1. **Login** → Pusher + اشترك في القنوات
+2. **Chat List** → `GET /conversations`
+3. **New Chat** → `POST /conversations/create`
+4. **Open Chat** → `GET /conversations/{id}` + `POST /active-conversation {id}`
+5. **Send Message** → `POST /conversations/{id}/messages`
+6. **Typing** → `POST /realtime/typing` مع debounce
+7. **Exit Chat** → `POST /active-conversation {null}`
+8. **Logout** → `POST /realtime/disconnect`
+9. **Real-time** → استمع لـ Pusher events
+
+---
+
+## 📝 معلومات الملف
+
+- **تحديث أخير:** 21 مايو 2026
+- **الإصدار:** 2.0 - تم التحقق من صحة الـ Server ✅
+- **الحالة:** جاهز للاستخدام 🚀
