@@ -8,7 +8,11 @@ namespace ClinicHub.Application.Features.Conversations
     {
         public ConversationProfile()
         {
-            CreateMap<Message, MessageDto>();
+            CreateMap<Message, MessageDto>()
+                .ForMember(dest => dest.SenderName, opt => opt.Ignore())
+                .ForMember(dest => dest.SenderProfilePictureUrl, opt => opt.Ignore())
+                .ForMember(dest => dest.ReplyToMessage, opt => opt.Ignore());
+
             CreateMap<MessageMedia, MessageMediaDto>();
             CreateMap<Conversation, ConversationDto>();
             CreateMap<Conversation, ConversationDetailDto>();
