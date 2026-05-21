@@ -90,6 +90,8 @@ namespace ClinicHub.API.Routes
             public const string GetAll = Base + "/conversations";
             public const string GetById = Base + "/conversations/{id:guid}";
             public const string Create = Base + "/conversations/create";
+            public const string Update = Base + "/conversations/{id:guid}/update";
+            public const string UpdateSettings = Base + "/conversations/{id:guid}/settings";
             public const string SendMessage = Base + "/conversations/{conversationId:guid}/messages";
             public const string GetMessages = Base + "/conversations/{conversationId:guid}/messages";
             public const string DeleteMessage = Base + "/conversations/messages/{messageId:guid}";
@@ -111,6 +113,12 @@ namespace ClinicHub.API.Routes
         public static class ChatActions
         {
             public const string Typing = Base + "/chat/typing";
+        }
+
+        public static class Appointments
+        {
+            public const string Create = Base + "/appointments";
+            public const string GetAvailableSlots = Base + "/appointments/available-slots";
         }
     }
 }

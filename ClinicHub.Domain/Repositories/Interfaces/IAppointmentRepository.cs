@@ -5,5 +5,7 @@ namespace ClinicHub.Domain.Repositories.Interfaces
 {
     public interface IAppointmentRepository : IGenericRepository<Appointment, Guid>
     {
+        Task<bool> HasOverlappingAppointmentAsync(Guid doctorId, DateTime date, TimeSpan startTime, TimeSpan EndTime);
+        Task<List<Appointment>> GetAppointmentsByDoctorAndDateAsync(Guid doctorId, DateTime date);
     }
 }

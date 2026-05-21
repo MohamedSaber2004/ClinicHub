@@ -36,6 +36,18 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString CannotChatWithYourself = new("Validation.CannotChatWithYourself");
             public static readonly KeyString UnauthorizedAction = new("Validation.UnauthorizedAction");
             public static readonly KeyString DeletedSuccessfully = new("Validation.DeletedSuccessfully");
+            public static readonly KeyString AtLeastOneFieldRequired = new("Validation.AtLeastOneFieldRequired");
+            public static readonly KeyString InvalidOperation = new("Validation.InvalidOperation");
+            public static readonly KeyString InvalidDate = new("Validation.InvalidDate");
+            public static readonly KeyString InvalidTimeRange = new("Validation.InvalidTimeRange");
+            public static readonly KeyString InvalidAge = new("Validation.InvalidAge");
+        }
+
+        public static class AppointmentMessages
+        {
+            public static readonly KeyString DoctorNotAvailableAtThisTime = new("Appointments.DoctorNotAvailableAtThisTime");
+            public static readonly KeyString TimeSlotAlreadyBooked = new("Appointments.TimeSlotAlreadyBooked");
+            public static readonly KeyString DoctorNotFound = new("Appointments.DoctorNotFound");
         }
 
         public static class GeneralMessages
@@ -108,6 +120,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString InvalidLatitude = new("Clinics.InvalidLatitude");
             public static readonly KeyString InvalidLongitude = new("Clinics.InvalidLongitude");
             public static readonly KeyString InvalidRadius = new("Clinics.InvalidRadius");
+            public static readonly KeyString ClinicNotFound = new("Clinics.NotFound");
         }
 
         public static class SpecializationMessages

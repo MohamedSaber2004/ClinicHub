@@ -27,10 +27,6 @@
 	<ProjectReference Include="..\ClinicHub.Domain\ClinicHub.Domain.csproj" />
   </ItemGroup>
 
-	<ItemGroup>
-		<Folder Include="Features\Conversations\" />
-	</ItemGroup>
-
 	<!-- Include JSON localization files for multi-language support (Arabic & English) -->
 	<ItemGroup>
 	  <None Update="Localization\Resources\messages.en.json">

@@ -35,7 +35,12 @@
     "MessageNotFound": "الرسالة غير موجودة",
     "CannotChatWithYourself": "لا يمكنك الدردشة مع نفسك",
     "UnauthorizedAction": "أنت غير مصرح بتنفيذ هذه العملية",
-    "DeletedSuccessfully": "تم الحذف بنجاح"
+    "DeletedSuccessfully": "تم الحذف بنجاح",
+    "AtLeastOneFieldRequired": "يجب توفير حقل واحد على الأقل للتحديث",
+    "InvalidOperation": "هذه العملية غير مسموحة لهذا نوع المحادثة",
+    "InvalidDate": "التاريخ المقدم غير صالح",
+    "InvalidTimeRange": "نطاق الوقت المقدم غير صالح",
+    "InvalidAge": "العمر المقدم غير صالح"
   },
   "Messages": {
     "Success": "تم إكمال العملية بنجاح",
@@ -95,7 +100,9 @@
   "Clinics": {
     "InvalidLatitude": "يجب أن يكون خط العرض بين -90 و 90",
     "InvalidLongitude": "يجب أن يكون خط الطول بين -180 و 180",
-    "InvalidRadius": "يجب أن يكون نصف قطر البحث بين 0.1 و 5 كم"
+    "InvalidRadius": "يجب أن يكون نصف قطر البحث بين 0.1 و 5 كم",
+    "NotFound": "العيادة غير موجودة",
+    "DoctorNotFound": "الطبيب غير موجود"
   },
   "Specializations": {
     "NotFound": "التخصص غير موجود",
@@ -111,5 +118,9 @@
     "SocketIdRequired": "معرف المقبس مطلوب",
     "ChannelNameRequired": "اسم القناة مطلوب",
     "ConnectionIdRequired": "معرف الاتصال مطلوب"
+  },
+  "Appointments": {
+    "DoctorNotAvailableAtThisTime": "الطبيب غير متاح في هذا الوقت.",
+    "TimeSlotAlreadyBooked": "هذا الموعد محجوز مسبقاً."
   }
 }

@@ -46,6 +46,9 @@ namespace ClinicHub.Application.Features.Conversations.Queries.GetConversations
                 conversationDtos.Add(new ConversationDto
                 {
                     Id = conversation.Id,
+                    Name = conversation.Name,
+                    GroupPhotoUrl = conversation.GroupPhotoUrl,
+                    IsGroup = conversation.IsGroup,
                     InitiatorId = conversation.InitiatorId,
                     InitiatorName = initiator?.FullName ?? "Unknown",
                     InitiatorProfilePictureUrl = initiator?.ProfilePictureUrl ?? string.Empty,

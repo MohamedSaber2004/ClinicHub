@@ -35,7 +35,12 @@
     "MessageNotFound": "Message not found",
     "CannotChatWithYourself": "You cannot chat with yourself",
     "UnauthorizedAction": "You are not authorized to perform this action",
-    "DeletedSuccessfully": "Deleted successfully"
+    "DeletedSuccessfully": "Deleted successfully",
+    "AtLeastOneFieldRequired": "At least one field is required for update",
+    "InvalidOperation": "This operation is not allowed for this conversation type",
+    "InvalidDate": "The date provided is invalid",
+    "InvalidTimeRange": "The time range provided is invalid",
+    "InvalidAge": "The age provided is invalid"
   },
   "Messages": {
     "Success": "Operation completed successfully",
@@ -95,7 +100,9 @@
   "Clinics": {
     "InvalidLatitude": "Latitude must be between -90 and 90",
     "InvalidLongitude": "Longitude must be between -180 and 180",
-    "InvalidRadius": "Search radius must be between 0.1 and 5 km"
+    "InvalidRadius": "Search radius must be between 0.1 and 5 km",
+    "NotFound": "Clinic not found",
+    "DoctorNotFound": "Doctor not found"
   },
   "Specializations": {
     "NotFound": "Specialization not found",
@@ -111,5 +118,9 @@
     "SocketIdRequired": "Socket ID is required",
     "ChannelNameRequired": "Channel name is required",
     "ConnectionIdRequired": "Connection ID is required"
+  },
+  "Appointments": {
+    "DoctorNotAvailableAtThisTime": "The doctor is not available at this time.",
+    "TimeSlotAlreadyBooked": "This time slot is already booked."
   }
 }

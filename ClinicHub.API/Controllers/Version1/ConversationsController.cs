@@ -3,6 +3,8 @@ using ClinicHub.Application.Features.Conversations.Commands.CreateConversation;
 using ClinicHub.Application.Features.Conversations.Commands.DeleteConversation;
 using ClinicHub.Application.Features.Conversations.Commands.DeleteMessage;
 using ClinicHub.Application.Features.Conversations.Commands.SendMessage;
+using ClinicHub.Application.Features.Conversations.Commands.UpdateConversation;
+using ClinicHub.Application.Features.Conversations.Commands.UpdateConversationParticipantSettings;
 using ClinicHub.Application.Features.Conversations.Queries.GetConversationById;
 using ClinicHub.Application.Features.Conversations.Queries.GetConversationMessages;
 using ClinicHub.Application.Features.Conversations.Queries.GetConversations;
@@ -70,6 +72,44 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> CreateConversation([FromBody] CreateConversationCommand command, CancellationToken ct)
         {
             var result = await _mediator.Send(command, ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Update Conversation Name and Group Photo (For Group Conversations Only).
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="command"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        [HttpPut]
+        [Route(ApiRoutes.Conversations.Update)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> UpdateConversation(Guid id, [FromBody] UpdateConversationCommand command, CancellationToken ct)
+        {
+            var result = await _mediator.Send(command with { ConversationId = id }, ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Update Conversation Participant Settings (Mute, Archive, Block).
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="command"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        [HttpPut]
+        [Route(ApiRoutes.Conversations.UpdateSettings)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> UpdateConversationSettings(Guid id, [FromBody] UpdateConversationParticipantSettingsCommand command, CancellationToken ct)
+        {
+            var result = await _mediator.Send(command with { ConversationId = id }, ct);
             return Ok(result);
         }
 
