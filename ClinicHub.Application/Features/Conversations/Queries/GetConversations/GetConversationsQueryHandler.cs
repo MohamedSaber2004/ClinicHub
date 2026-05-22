@@ -2,6 +2,7 @@ using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Features.Conversations.DTOs;
 using ClinicHub.Domain.Entities;
+using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 
@@ -43,6 +44,8 @@ namespace ClinicHub.Application.Features.Conversations.Queries.GetConversations
                     .OrderByDescending(m => m.CreatedAt)
                     .FirstOrDefault();
 
+                var (contentType, mediaType, mediaFileName) = ExtractLastMessageContent(lastMessage);
+
                 conversationDtos.Add(new ConversationDto
                 {
                     Id = conversation.Id,
@@ -57,6 +60,9 @@ namespace ClinicHub.Application.Features.Conversations.Queries.GetConversations
                     RecipientProfilePictureUrl = recipient?.ProfilePictureUrl ?? string.Empty,
                     LastMessageDate = lastMessage?.CreatedAt,
                     LastMessageContent = lastMessage?.Content,
+                    LastMessageContentType = contentType,
+                    LastMessageMediaType = mediaType,
+                    LastMessageMediaFileName = mediaFileName,
                     CreatedAt = conversation.CreatedAt,
                     UnreadMessageCount = conversation.Messages.Count(m => m.SenderId != currentUserId && m.Status != ClinicHub.Domain.Enums.MessageStatus.Read)
                 });
@@ -68,6 +74,41 @@ namespace ClinicHub.Application.Features.Conversations.Queries.GetConversations
                 request.PageNumber,
                 request.PageSize
             );
+        }
+
+        private (LastMessageContentType contentType, MediaType? mediaType, string? mediaFileName) ExtractLastMessageContent(Message? lastMessage)
+        {
+            if (lastMessage == null)
+                return (DTOs.LastMessageContentType.Text, null, null);
+
+            var hasContent = !string.IsNullOrWhiteSpace(lastMessage.Content);
+            var hasMedia = lastMessage.Media?.Any() ?? false;
+
+            if (!hasContent && !hasMedia)
+                return (LastMessageContentType.Text, null, null);
+
+            LastMessageContentType contentType;
+            if (hasContent && hasMedia)
+                contentType = LastMessageContentType.TextAndMedia;
+            else if (hasMedia)
+                contentType = LastMessageContentType.Media;
+            else
+                contentType = LastMessageContentType.Text;
+
+            MediaType? mediaType = null;
+            string? mediaFileName = null;
+
+            if (hasMedia && lastMessage.Media != null)
+            {
+                var firstMedia = lastMessage.Media.FirstOrDefault();
+                if (firstMedia != null)
+                {
+                    mediaType = firstMedia.MediaType;
+                    mediaFileName = firstMedia.FileName;
+                }
+            }
+
+            return (contentType, mediaType, mediaFileName);
         }
     }
 }

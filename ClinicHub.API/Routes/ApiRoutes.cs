@@ -118,6 +118,10 @@ namespace ClinicHub.API.Routes
         public static class Appointments
         {
             public const string Create = Base + "/appointments";
+            public const string GetAll = Base + "/appointments";
+            public const string GetById = Base + "/appointments/{id:guid}";
+            public const string Update = Base + "/appointments/{id:guid}";
+            public const string Delete = Base + "/appointments/{id:guid}";
         }
 
         public static class Availability

@@ -9,7 +9,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWithFacebook
         public LoginWithFacebookCommandValidator(IStringLocalizer<Messages> localizer)
         {
             RuleFor(x => x.AccessToken)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.AuthMessages.FacebookTokenRequired.Value]);
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.FacebookTokenRequired.Value]));
         }
     }
 }

@@ -4,6 +4,7 @@ using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Comments.Commands.ToggleCommentReaction
 {
@@ -13,17 +14,17 @@ namespace ClinicHub.Application.Features.Comments.Commands.ToggleCommentReaction
     {
         private readonly IUnitOfWork _ctx;
 
-        public ToggleCommentReactionCommandValidator(IUnitOfWork ctx)
+        public ToggleCommentReactionCommandValidator(IStringLocalizer<Messages> localizer,IUnitOfWork ctx)
         {
             _ctx = ctx;
 
             RuleFor(x => x.CommentId).NotEmpty()
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value))
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
                 .MustAsync(CommentExists)
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.CommentMessages.NotFound.Value));
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.CommentMessages.NotFound.Value]));
             
             RuleFor(x => x.Type).IsInEnum()
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.InvalidEnumValue.Value));
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidEnumValue.Value]));
         }
 
         private async Task<bool> CommentExists(Guid commentId, CancellationToken ct)

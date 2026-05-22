@@ -2,6 +2,7 @@
 using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Availability.Commands.DeleteAvailability
 {
@@ -9,11 +10,13 @@ namespace ClinicHub.Application.Features.Availability.Commands.DeleteAvailabilit
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IStringLocalizer<Messages> _localizer;
 
-        public DeleteAvailabilityCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+        public DeleteAvailabilityCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IStringLocalizer<Messages> localizer)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
+            _localizer = localizer;
         }
 
         public async Task<string> Handle(DeleteAvailabilityCommand request, CancellationToken cancellationToken)
@@ -26,8 +29,8 @@ namespace ClinicHub.Application.Features.Availability.Commands.DeleteAvailabilit
             var result = await _unitOfWork.SaveChangesAsync();
 
             return result > 0 ?
-                JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.DeletedSuccessfully.Value) :
-                JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.DeletedFailed.Value);
+                JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ValidationMessages.DeletedSuccessfully.Value]) :
+                JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ValidationMessages.DeletedFailed.Value]);
         }
     }
 }

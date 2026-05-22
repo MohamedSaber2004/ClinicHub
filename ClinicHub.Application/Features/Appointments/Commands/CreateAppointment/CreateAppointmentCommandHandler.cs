@@ -1,3 +1,4 @@
+using AutoMapper;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Appointments.DTOs;
 using ClinicHub.Domain.Entities;
@@ -10,13 +11,16 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IMapper _mapper;
 
         public CreateAppointmentCommandHandler(
             IUnitOfWork unitOfWork,
-            ICurrentUserService currentUserService)
+            ICurrentUserService currentUserService,
+            IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
+            _mapper = mapper;
         }
 
         public async Task<AppointmentDto> Handle(CreateAppointmentCommand request, CancellationToken cancellationToken)
@@ -41,27 +45,7 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
             await _unitOfWork.AppointmentRepository.AddAsync(appointment);
             await _unitOfWork.SaveChangesAsync();
 
-            var dto = new AppointmentDto
-            {
-                Id = appointment.Id,
-                BookedByUserId = appointment.BookedByUserId,
-                DoctorId = appointment.DoctorId,
-                ClinicId = appointment.ClinicId,
-                AppointmentDate = appointment.AppointmentDate,
-                StartTime = appointment.StartTime,
-                EndTime = appointment.EndTime,
-                AppointmentType = appointment.AppointmentType,
-                Status = appointment.Status,
-                PatientFullName = appointment.PatientFullName,
-                PatientPhoneNumber = appointment.PatientPhoneNumber,
-                PatientAge = appointment.PatientAge,
-                PatientGender = appointment.PatientGender,
-                Complaint = appointment.Complaint,
-                ChronicDiseases = appointment.ChronicDiseases,
-                CancellationReason = appointment.CancellationReason
-            };
-
-            return dto;
+            return _mapper.Map<AppointmentDto>(appointment);
         }
     }
 }

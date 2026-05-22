@@ -15,37 +15,37 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
             _userManager = userManager;
 
             RuleFor(x => x.FullName)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Key])
-                .MaximumLength(200).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Key]);
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
+                .MaximumLength(200).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
 
             RuleFor(x => x.Email)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Key])
-                .EmailAddress().WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidEmail.Key])
-                .MustAsync(BeUniqueEmail).WithMessage(localizer[LocalizationKeys.AuthMessages.EmailAlreadyExists.Key]);
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
+                .EmailAddress().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidEmail.Value]))
+                .MustAsync(BeUniqueEmail).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.EmailAlreadyExists.Value]));
 
             RuleFor(x => x.Password)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Key])
-                .MinimumLength(8).WithMessage(localizer[LocalizationKeys.ValidationMessages.MinLength.Key])
-                .Matches(@"[A-Z]").WithMessage(localizer[LocalizationKeys.AuthMessages.WeakPassword.Key])
-                .Matches(@"[0-9]").WithMessage(localizer[LocalizationKeys.AuthMessages.WeakPassword.Key]);
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
+                .MinimumLength(8).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MinLength.Value]))
+                .Matches(@"[A-Z]").WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.WeakPassword.Value]))
+                .Matches(@"[0-9]").WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.WeakPassword.Value]));
 
             RuleFor(x => x.ConfirmPassword)
-                .Equal(x => x.Password).WithMessage(localizer[LocalizationKeys.AuthMessages.PasswordMismatch.Key]);
+                .Equal(x => x.Password).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.PasswordMismatch.Value]));
 
             RuleFor(x => x.PhoneNumber)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Key])
-                .MaximumLength(20).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Key])
-                .Matches(@"^1[0125]\d{8}$").WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Key]);
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
+                .MaximumLength(20).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]))
+                .Matches(@"^1[0125]\d{8}$").WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value]));
 
             RuleFor(x => x.BirthDate)
                  .NotEmpty()
-                 .WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Key])
+                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
                  .Must(BeAtLeast18)
-                 .WithMessage(localizer[LocalizationKeys.ValidationMessages.MinAge.Key]);
+                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MinAge.Value]));
 
             RuleFor(x => x.Gender)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Key])
-                .IsInEnum().WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidEnumValue.Key]);
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
+                .IsInEnum().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidEnumValue.Value]));
         }
 
         private async Task<bool> BeUniqueEmail(string email, CancellationToken cancellationToken)

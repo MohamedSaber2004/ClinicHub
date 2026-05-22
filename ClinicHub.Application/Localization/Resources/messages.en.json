@@ -129,6 +129,8 @@
   },
   "Appointments": {
     "DoctorNotAvailableAtThisTime": "The doctor is not available at this time.",
-    "TimeSlotAlreadyBooked": "This time slot is already booked."
+    "TimeSlotAlreadyBooked": "This time slot is already booked.",
+    "DoctorNotFound": "Doctor not found",
+    "AppointmentNotFound": "Appointment not found"
   }
 }

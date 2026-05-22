@@ -4,6 +4,7 @@ using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Comments.Commands.UpdateComment
 {
@@ -14,7 +15,7 @@ namespace ClinicHub.Application.Features.Comments.Commands.UpdateComment
         private readonly IUnitOfWork _ctx;
         private readonly ICurrentUserService _currentUserService;
 
-        public UpdateCommentCommandValidator(IUnitOfWork ctx, ClinicHub.Application.Common.Interfaces.ICurrentUserService currentUserService)
+        public UpdateCommentCommandValidator(IUnitOfWork ctx, ICurrentUserService currentUserService, IStringLocalizer<Messages> localizer)
         {
             _ctx = ctx;
             _currentUserService = currentUserService;
@@ -26,15 +27,14 @@ namespace ClinicHub.Application.Features.Comments.Commands.UpdateComment
                 {
                     if (!await IsAuthor(commentId, cancellationToken))
                     {
-                        context.AddFailure(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ExceptionMessages.Unauthorized.Value));
+                        context.AddFailure(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ExceptionMessages.Unauthorized.Value]));
                     }
                 })
                 .MustAsync(CommentExists)
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.CommentMessages.NotFound.Value));
-
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.CommentMessages.NotFound.Value]));
             RuleFor(x => x.Content)
-                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value))
-                .MaximumLength(2000).WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.MaxLength.Value));
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
+                .MaximumLength(2000).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
         }
 
         private async Task<bool> CommentExists(Guid commentId, CancellationToken cancellationToken)

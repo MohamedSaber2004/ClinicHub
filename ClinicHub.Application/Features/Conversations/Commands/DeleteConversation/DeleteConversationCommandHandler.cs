@@ -26,16 +26,16 @@ namespace ClinicHub.Application.Features.Conversations.Commands.DeleteConversati
 
             var conversation = await _unitOfWork.ConversationRepository.GetByIdAsync(request.ConversationId);
             if (conversation == null)
-                throw new NotFoundException(_localizer[LocalizationKeys.ValidationMessages.ConversationNotFound.Key]);
+                throw new NotFoundException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ValidationMessages.ConversationNotFound.Key]));
 
             if (conversation.InitiatorId != currentUserId && conversation.RecipientId != currentUserId)
-                throw new BadRequestException(_localizer[LocalizationKeys.ValidationMessages.UnauthorizedAction.Key]);
+                throw new BadRequestException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ValidationMessages.UnauthorizedAction.Key]));
 
             conversation.MarkAsDeleted(currentUserId.ToString());
             _unitOfWork.ConversationRepository.Update(conversation);
             await _unitOfWork.SaveChangesAsync();
 
-            return _localizer[LocalizationKeys.ValidationMessages.DeletedSuccessfully.Key];
+            return JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ValidationMessages.DeletedSuccessfully.Key]);
         }
     }
 }

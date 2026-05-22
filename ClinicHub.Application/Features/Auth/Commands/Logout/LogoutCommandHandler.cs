@@ -28,7 +28,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.Logout
                 await _unitOfWork.SaveChangesAsync();
             }
 
-            return _localizer[LocalizationKeys.AuthMessages.LogoutSuccess.Value];
+            return JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.AuthMessages.LogoutSuccess.Value]);
         }
     }
 }

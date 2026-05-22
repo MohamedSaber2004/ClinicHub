@@ -8,6 +8,7 @@ using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 
 namespace ClinicHub.Application.Features.Auth.Commands.Signup
@@ -20,6 +21,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
         private readonly JwtSettings _jwtSettings;
         private readonly EmailSettings _emailSettings;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IStringLocalizer<Messages> _localizer;
 
         public SignupCommandHandler(
             UserManager<ApplicationUser> userManager,
@@ -27,7 +29,8 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
             IJwtTokenService jwtTokenService,
             IOptions<JwtSettings> jwtSettings,
             IOptions<EmailSettings> emailSettings,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IStringLocalizer<Messages> localizer)
         {
             _userManager = userManager;
             _emailService = emailService;
@@ -35,6 +38,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
             _jwtSettings = jwtSettings.Value;
             _emailSettings = emailSettings.Value;
             _unitOfWork = unitOfWork;
+            _localizer = localizer;
         }
 
         public async Task<AuthResponseDto> Handle(SignupCommand request, CancellationToken cancellationToken)
@@ -50,7 +54,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
 
             if (!result.Succeeded)
             {
-                throw new UnAuthorizedException(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ExceptionMessages.Validation.Value));
+                throw new UnAuthorizedException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ExceptionMessages.Validation.Value]));
             }
 
             await _userManager.AddToRoleAsync(user, UserType.User.ToString());

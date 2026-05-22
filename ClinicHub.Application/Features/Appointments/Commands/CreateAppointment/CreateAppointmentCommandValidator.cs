@@ -14,45 +14,45 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
             _ctx = ctx;
 
             RuleFor(v => v.DoctorId)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value])
-                .MustAsync(DoctorExists).WithMessage(localizer[LocalizationKeys.AppointmentMessages.DoctorNotFound.Value]);
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
+                .MustAsync(DoctorExists).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AppointmentMessages.DoctorNotFound.Value]));
 
             RuleFor(v => v.ClinicId)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value])
-                .MustAsync(ClinicExists).WithMessage(localizer[LocalizationKeys.ClinicMessages.ClinicNotFound.Value]);
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
+                .MustAsync(ClinicExists).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ClinicMessages.ClinicNotFound.Value]));
 
             RuleFor(v => v.AppointmentDate)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value])
-                .GreaterThanOrEqualTo(DateTime.UtcNow.Date).WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidDate.Value]);
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
+                .GreaterThanOrEqualTo(DateTime.UtcNow.Date).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidDate.Value]));
 
             RuleFor(v => v.StartTime)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value]);
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
 
             RuleFor(v => v.EndTime)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value])
-                .GreaterThan(v => v.StartTime).WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidTimeRange.Value]);
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
+                .GreaterThan(v => v.StartTime).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidTimeRange.Value]));
 
             RuleFor(v => v.PatientFullName)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value])
-                .MaximumLength(200).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
+                .MaximumLength(200).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
 
             RuleFor(v => v.PatientPhoneNumber)
                 .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value])
-                .MaximumLength(20).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
+                .MaximumLength(20).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
 
             RuleFor(v => v.PatientAge)
-                .GreaterThan(0).WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidAge.Value]);
+                .GreaterThan(0).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidAge.Value]));
 
             RuleFor(v => v.Complaint)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value]);
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
 
             RuleFor(v => v)
                 .MustAsync(async (v, ct) => await DoctorIsAvailable(v.DoctorId, v.AppointmentDate, v.StartTime, v.EndTime, ct))
                 .WithName("Appointment")
-                .WithMessage(localizer[LocalizationKeys.AppointmentMessages.DoctorNotAvailableAtThisTime.Value])
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AppointmentMessages.DoctorNotAvailableAtThisTime.Value]))
                 .MustAsync(async (v, ct) => !await HasOverlappingAppointment(v.DoctorId, v.AppointmentDate, v.StartTime, v.EndTime, ct))
                 .WithName("Appointment")
-                .WithMessage(localizer[LocalizationKeys.AppointmentMessages.TimeSlotAlreadyBooked.Value]);
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AppointmentMessages.TimeSlotAlreadyBooked.Value]));
         }
 
         private async Task<bool> ClinicExists(Guid clinicId, CancellationToken cancellationToken)

@@ -129,6 +129,8 @@
   },
   "Appointments": {
     "DoctorNotAvailableAtThisTime": "الطبيب غير متاح في هذا الوقت.",
-    "TimeSlotAlreadyBooked": "هذا الموعد محجوز مسبقاً."
+    "TimeSlotAlreadyBooked": "هذا الموعد محجوز مسبقاً.",
+    "DoctorNotFound": "الطبيب غير موجود.",
+    "AppointmentNotFound": "الموعد غير موجود."
   }
 }

@@ -4,6 +4,7 @@ using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Comments.Commands.DeleteComment
 {
@@ -14,29 +15,29 @@ namespace ClinicHub.Application.Features.Comments.Commands.DeleteComment
         private readonly IUnitOfWork _ctx;
         private readonly ICurrentUserService _currentUserService;
 
-        public DeleteCommentCommandValidator(IUnitOfWork ctx, ICurrentUserService currentUserService)
+        public DeleteCommentCommandValidator(IStringLocalizer<Messages> localizer, IUnitOfWork ctx, ICurrentUserService currentUserService)
         {
             _ctx = ctx;
             _currentUserService = currentUserService;
 
             RuleFor(x => x.CommentId).NotEmpty()
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value));
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
 
             RuleFor(x => x.CommentId)
                 .CustomAsync(async (commentId, context, cancellationToken) =>
                 {
                     if (!await IsAuthor(commentId, cancellationToken))
                     {
-                        context.AddFailure(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ExceptionMessages.Unauthorized.Value));
+                        context.AddFailure(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ExceptionMessages.Unauthorized.Value]));
                     }
                 })
                 .MustAsync(CommentExists)
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.CommentMessages.NotFound.Value));
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.CommentMessages.NotFound.Value]));
         }
 
         private async Task<bool> CommentExists(Guid commentId, CancellationToken cancellationToken)
         {
-            return await _ctx.GetRepository<Comment,Guid>().ExistsAsync(c => c.Id == commentId, cancellationToken);
+            return await _ctx.GetRepository<Comment, Guid>().ExistsAsync(c => c.Id == commentId, cancellationToken);
         }
 
         private async Task<bool> IsAuthor(Guid commentId, CancellationToken cancellationToken)

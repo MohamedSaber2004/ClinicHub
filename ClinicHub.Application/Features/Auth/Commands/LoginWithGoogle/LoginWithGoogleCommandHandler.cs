@@ -43,7 +43,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWithGoogle
         {
             var payload = await _googleAuth.ValidateGoogleTokenAsync(request.IdToken, cancellationToken);
             if (payload == null)
-                throw new UnAuthorizedException(_localizer[LocalizationKeys.AuthMessages.InvalidGoogleToken.Value]);
+                throw new UnAuthorizedException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.AuthMessages.InvalidGoogleToken.Value]));
 
             var user = await _userManager.Users.FirstOrDefaultAsync(x => x.GoogleUserId == payload.Subject, cancellationToken);
 
@@ -52,7 +52,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWithGoogle
                 var email = payload.Email;
                 if (string.IsNullOrEmpty(email))
                 {
-                    throw new BadRequestException(_localizer[LocalizationKeys.AuthMessages.GoogleEmailRequired.Value]);
+                    throw new BadRequestException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.AuthMessages.GoogleEmailRequired.Value]));
                 }
 
                 user = await _userManager.FindByEmailAsync(email);
@@ -70,7 +70,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWithGoogle
 
                     var createResult = await _userManager.CreateAsync(user);
                     if (!createResult.Succeeded)
-                        throw new BadRequestException(_localizer[LocalizationKeys.AuthMessages.GoogleUserCreationFailed.Value]);
+                        throw new BadRequestException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.AuthMessages.GoogleUserCreationFailed.Value]));
 
                     await _userManager.AddToRoleAsync(user, UserType.User.ToString());
                 }

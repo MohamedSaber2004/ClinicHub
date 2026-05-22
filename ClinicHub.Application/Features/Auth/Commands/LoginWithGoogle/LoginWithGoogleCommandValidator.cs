@@ -9,7 +9,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWithGoogle
         public LoginWithGoogleCommandValidator(IStringLocalizer<Messages> localizer)
         {
             RuleFor(x => x.IdToken)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.AuthMessages.GoogleTokenRequired.Value]);
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.GoogleTokenRequired.Value]));
         }
     }
 }

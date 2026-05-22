@@ -6,18 +6,14 @@ namespace ClinicHub.Application.Features.Attachements.Commands.DownloadFile
 {
     public class DownloadFileCommandValidator : AbstractValidator<DownloadFileCommand>
     {
-        private readonly IStringLocalizer<Messages> _localizer;
-
         public DownloadFileCommandValidator(IStringLocalizer<Messages> localizer)
         {
-            _localizer = localizer;
-
             RuleFor(x => x.FileName)
-                .NotEmpty().WithMessage(_localizer["Attachments:FileNotFound"])
-                .NotNull().WithMessage(_localizer["Attachments:FileNotFound"]);
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AttachmentMessages.FileNotFound.Value]))
+                .NotNull().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AttachmentMessages.FileNotFound.Value]));
 
             RuleFor(x => x.Place)
-                .InclusiveBetween(0, 12).WithMessage(_localizer["Attachments:InvalidPlace"]);
+                .InclusiveBetween(0, 12).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AttachmentMessages.InvalidPlace.Value]));
         }
     }
 }

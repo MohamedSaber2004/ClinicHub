@@ -15,23 +15,22 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
             _userManager = userManager;
 
             RuleFor(x => x.Email)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Key])
-                .EmailAddress().WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidEmail.Key]);
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
+                .EmailAddress().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidEmail.Value]));
 
             RuleFor(x => x.Password)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Key]);
-
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
             RuleFor(x => x)
                 .CustomAsync(async (request, context, cancellationToken) =>
                 {
                     var user = await _userManager.FindByEmailAsync(request.Email);
                     if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
                     {
-                        context.AddFailure(localizer[LocalizationKeys.AuthMessages.InvalidCredentials.Key]);
+                        context.AddFailure(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.InvalidCredentials.Value]));
                     }
                     else if (!user.EmailConfirmed)
                     {
-                        context.AddFailure(localizer[LocalizationKeys.AuthMessages.AccountNotVerified.Key]);
+                        context.AddFailure(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.AccountNotVerified.Value]));
                     }
                 });
         }

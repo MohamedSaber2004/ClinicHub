@@ -6,18 +6,14 @@ namespace ClinicHub.Application.Features.Attachements.Commands.Upload_Multi_File
 {
     public class UploadMultipleFilesCommandValidator : AbstractValidator<UploadMultipleFilesCommand>
     {
-        private readonly IStringLocalizer<Messages> _localizer;
-
         public UploadMultipleFilesCommandValidator(IStringLocalizer<Messages> localizer)
         {
-            _localizer = localizer;
-
             RuleFor(x => x.Files)
-                .NotEmpty().WithMessage(_localizer["Attachments:FileEmpty"])
-                .NotNull().WithMessage(_localizer["Attachments:FileEmpty"]);
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AttachmentMessages.FileEmpty.Value]))
+                .NotNull().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AttachmentMessages.FileEmpty.Value]));
 
             RuleFor(x => x.Place)
-                .InclusiveBetween(0, 12).WithMessage(_localizer["Attachments:InvalidPlace"]);
+                .InclusiveBetween(0, 12).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AttachmentMessages.InvalidPlace.Value]));
         }
     }
 }

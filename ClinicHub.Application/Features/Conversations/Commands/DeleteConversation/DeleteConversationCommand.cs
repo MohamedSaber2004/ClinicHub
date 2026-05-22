@@ -1,6 +1,7 @@
 using ClinicHub.Application.Localization;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Conversations.Commands.DeleteConversation
 {
@@ -8,11 +9,11 @@ namespace ClinicHub.Application.Features.Conversations.Commands.DeleteConversati
 
     public class DeleteConversationCommandValidator : AbstractValidator<DeleteConversationCommand>
     {
-        public DeleteConversationCommandValidator()
+        public DeleteConversationCommandValidator(IStringLocalizer<Messages> localizer)
         {
             RuleFor(x => x.ConversationId)
                 .NotEmpty()
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value));
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
         }
     }
 }

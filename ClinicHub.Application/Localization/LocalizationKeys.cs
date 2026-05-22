@@ -49,6 +49,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString DoctorNotAvailableAtThisTime = new("Appointments.DoctorNotAvailableAtThisTime");
             public static readonly KeyString TimeSlotAlreadyBooked = new("Appointments.TimeSlotAlreadyBooked");
             public static readonly KeyString DoctorNotFound = new("Appointments.DoctorNotFound");
+            public static readonly KeyString AppointmentNotFound = new("Appointments.AppointmentNotFound");
         }
 
         public static class GeneralMessages
@@ -146,6 +147,16 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString MissingSocketInfo = new("RealTime.MissingSocketInfo");
             public static readonly KeyString NotConversationParticipant = new("RealTime.NotConversationParticipant");
             public static readonly KeyString ConversationNotFound = new("RealTime.ConversationNotFound");
+        }
+
+        public static class AttachmentMessages
+        {
+            public static readonly KeyString InvalidFormat = new("Attachments.InvalidFormat");
+            public static readonly KeyString NoMediaProvided = new("Attachments.NoMediaProvided");
+            public static readonly KeyString FileEmpty = new("Attachments.FileEmpty");
+            public static readonly KeyString UploadFailed = new("Attachments.UploadFailed");
+            public static readonly KeyString FileNotFound = new("Attachments.FileNotFound");
+            public static readonly KeyString InvalidPlace = new("Attachments.InvalidPlace");
         }
     }
 }

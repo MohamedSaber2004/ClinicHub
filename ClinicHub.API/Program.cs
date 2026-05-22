@@ -117,6 +117,7 @@ namespace ClinicHub.API
 
                     options.RequestCultureProviders = new List<IRequestCultureProvider>
                     {
+                        new AcceptLanguageHeaderRequestCultureProvider(),
                         new QueryStringRequestCultureProvider(),
                         new CookieRequestCultureProvider()
                     };
@@ -196,7 +197,7 @@ namespace ClinicHub.API
                     {
                         diagnosticContext.Set("ClientIP", httpContext.Connection.RemoteIpAddress);
                         diagnosticContext.Set("UserAgent", httpContext.Request.Headers["User-Agent"]);
-                        
+
                         var user = httpContext.User.Identity?.Name;
                         if (!string.IsNullOrEmpty(user)) diagnosticContext.Set("User", user);
                     };

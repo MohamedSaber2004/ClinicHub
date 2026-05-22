@@ -1,9 +1,7 @@
 using ClinicHub.Application.Localization;
-using ClinicHub.Domain.Entities;
-using FluentValidation;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
+using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Auth.Commands.RefreshToken
 {
@@ -11,13 +9,13 @@ namespace ClinicHub.Application.Features.Auth.Commands.RefreshToken
     {
         private readonly IUnitOfWork _unitOfWork;
 
-        public RefreshTokenCommandValidator(IUnitOfWork unitOfWork)
+        public RefreshTokenCommandValidator(IStringLocalizer<Messages> localizer,IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
 
             RuleFor(x => x.RefreshToken)
-                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value))
-                .MustAsync(BeValidRefreshToken).WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.AuthMessages.RefreshTokenInvalid.Value));
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
+                .MustAsync(BeValidRefreshToken).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.RefreshTokenInvalid.Value]));
         }
 
         private async Task<bool> BeValidRefreshToken(string refreshToken, CancellationToken cancellationToken)

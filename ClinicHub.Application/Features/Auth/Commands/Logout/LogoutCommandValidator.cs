@@ -9,7 +9,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.Logout
         public LogoutCommandValidator(IStringLocalizer<Messages> localizer)
         {
             RuleFor(x => x.RefreshToken)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.AuthMessages.RefreshTokenRequired.Value]);
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.RefreshTokenRequired.Value]));
         }
     }
 }

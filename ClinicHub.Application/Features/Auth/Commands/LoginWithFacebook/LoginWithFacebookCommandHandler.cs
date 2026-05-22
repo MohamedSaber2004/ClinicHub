@@ -43,12 +43,11 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWithFacebook
         {
             var isValid = await _facebookAuth.IsValidFacebookTokenAsync(request.AccessToken, cancellationToken);
             if (!isValid)
-                throw new UnAuthorizedException(_localizer[LocalizationKeys.AuthMessages.InvalidFacebookToken.Value]);
+                throw new UnAuthorizedException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.AuthMessages.InvalidFacebookToken.Value]));
 
             var fbUserInfo = await _facebookAuth.GetFacebookUserInfoAsync(request.AccessToken, cancellationToken);
             if (fbUserInfo == null)
-                throw new UnAuthorizedException(_localizer[LocalizationKeys.AuthMessages.FacebookUserInfoError.Value]);
-
+                throw new UnAuthorizedException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.AuthMessages.FacebookUserInfoError.Value]));
             var user = await _userManager.Users.FirstOrDefaultAsync(x => x.FacebookUserId == fbUserInfo.Id, cancellationToken);
             
             if (user == null)
@@ -56,7 +55,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWithFacebook
                 var email = fbUserInfo.Email;
                 if (string.IsNullOrEmpty(email))
                 {
-                    throw new BadRequestException(_localizer[LocalizationKeys.AuthMessages.FacebookEmailRequired.Value]);
+                    throw new BadRequestException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.AuthMessages.FacebookEmailRequired.Value]));
                 }
 
                 user = await _userManager.FindByEmailAsync(email);
@@ -74,7 +73,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWithFacebook
 
                     var createResult = await _userManager.CreateAsync(user);
                     if (!createResult.Succeeded)
-                        throw new BadRequestException(_localizer[LocalizationKeys.AuthMessages.FacebookUserCreationFailed.Value]);
+                        throw new BadRequestException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.AuthMessages.FacebookUserCreationFailed.Value]));
 
                     await _userManager.AddToRoleAsync(user, UserType.User.ToString());
                 }

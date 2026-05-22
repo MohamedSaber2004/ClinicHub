@@ -4,6 +4,7 @@ using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Comments.Commands.AddComment
 {
@@ -11,11 +12,13 @@ namespace ClinicHub.Application.Features.Comments.Commands.AddComment
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IStringLocalizer<Messages> _localizer;
 
-        public AddCommentCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+        public AddCommentCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService,IStringLocalizer<Messages> localizer)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
+            _localizer = localizer;
         }
 
         public async Task<string> Handle(AddCommentCommand request, CancellationToken cancellationToken)
@@ -41,8 +44,8 @@ namespace ClinicHub.Application.Features.Comments.Commands.AddComment
             var result = await _unitOfWork.SaveChangesAsync();
 
             return result > 0 ?
-                JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.GeneralMessages.Success.Value) :
-                JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.GeneralMessages.Error.Value);
+                JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.GeneralMessages.Success.Value]) :
+                JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.GeneralMessages.Error.Value]);
         }
     }
 }

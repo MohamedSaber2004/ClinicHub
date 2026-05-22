@@ -3,6 +3,7 @@ using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Comments.Commands.AddComment
 {
@@ -12,25 +13,25 @@ namespace ClinicHub.Application.Features.Comments.Commands.AddComment
     {
         private readonly IUnitOfWork _ctx;
 
-        public AddCommentCommandValidator(IUnitOfWork ctx)
+        public AddCommentCommandValidator(IStringLocalizer<Messages> localizer, IUnitOfWork ctx)
         {
             _ctx = ctx;
 
             RuleFor(x => x.PostId).NotEmpty()
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value));
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
 
             RuleFor(x => x.Content)
-                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value))
-                .MaximumLength(2000).WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.MaxLength.Value));
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
+                .MaximumLength(2000).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
         
             RuleFor(x => x.PostId)
                 .MustAsync(PostExists)
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.PostMessages.NotFound.Value));
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.PostMessages.NotFound.Value]));
                 
             RuleFor(x => x.ParentCommentId)
                 .MustAsync(CommentExists)
                 .When(x => x.ParentCommentId.HasValue)
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.CommentMessages.NotFound.Value));
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.CommentMessages.NotFound.Value]));
         }
 
         private async Task<bool> PostExists(Guid postId, CancellationToken ct)

@@ -42,10 +42,10 @@ namespace ClinicHub.Application.Features.Conversations.Commands.SendMessage
 
             var conversation = await _unitOfWork.ConversationRepository.GetByIdWithMessagesAsync(request.ConversationId, cancellationToken);
             if (conversation == null)
-                throw new NotFoundException(_localizer[LocalizationKeys.ValidationMessages.ConversationNotFound.Key]);
+                throw new NotFoundException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ValidationMessages.ConversationNotFound.Key]));
 
             if (conversation.InitiatorId != currentUserId && conversation.RecipientId != currentUserId)
-                throw new BadRequestException(_localizer[LocalizationKeys.ValidationMessages.UnauthorizedAction.Key]);
+                throw new BadRequestException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ValidationMessages.UnauthorizedAction.Key]));
 
             // Validate ReplyToMessageId if provided
             Message? repliedMessage = null;
@@ -54,7 +54,7 @@ namespace ClinicHub.Application.Features.Conversations.Commands.SendMessage
                 repliedMessage = await _unitOfWork.MessageRepository.GetByIdAsync(request.ReplyToMessageId.Value);
                 if (repliedMessage == null || repliedMessage.ConversationId != request.ConversationId || repliedMessage.IsDeleted)
                 {
-                    throw new NotFoundException(_localizer[LocalizationKeys.ValidationMessages.MessageNotFound.Key]);
+                    throw new NotFoundException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ValidationMessages.MessageNotFound.Key]));
                 }
             }
 

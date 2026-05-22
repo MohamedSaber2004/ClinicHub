@@ -17,7 +17,7 @@ namespace ClinicHub.Domain.Entities
 
         public DateTime AppointmentDate { get; private set; }
         public TimeSpan StartTime { get; private set; }
-        public TimeSpan EndTime { get; private set; }     
+        public TimeSpan EndTime { get; private set; }
 
         public AppointmentType AppointmentType { get; private set; }
         public AppointmentStatus Status { get; private set; } = AppointmentStatus.Pending;
@@ -65,13 +65,27 @@ namespace ClinicHub.Domain.Entities
         }
 
         public void Confirm() => Status = AppointmentStatus.Confirmed;
-        
+
         public void Cancel(string reason)
         {
             Status = AppointmentStatus.Cancelled;
             CancellationReason = reason;
         }
-        
+
         public void Complete() => Status = AppointmentStatus.Completed;
+
+        public void Update(
+            DateTime appointmentDate,
+            TimeSpan startTime,
+            TimeSpan endTime,
+            string complaint,
+            string? chronicDiseases)
+        {
+            AppointmentDate = appointmentDate.Date;
+            StartTime = startTime;
+            EndTime = endTime;
+            Complaint = complaint;
+            ChronicDiseases = chronicDiseases;
+        }
     }
 }

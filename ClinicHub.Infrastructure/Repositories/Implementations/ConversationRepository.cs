@@ -36,9 +36,10 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations
 
         public async Task<IEnumerable<Conversation>> GetConversationsByUserIdAsync(Guid userId, CancellationToken ct = default)
         {
-            return await GetAllWithIncluding(c => 
-                (c.InitiatorId == userId || c.RecipientId == userId) && !c.IsDeleted,
-                c => c.Messages)
+            return await _context.Set<Conversation>()
+                .Where(c => (c.InitiatorId == userId || c.RecipientId == userId) && !c.IsDeleted)
+                .Include(c => c.Messages.Where(m => !m.IsDeleted))
+                    .ThenInclude(m => m.Media)
                 .OrderByDescending(c => c.LastMessageDate)
                 .ToListAsync(ct);
         }

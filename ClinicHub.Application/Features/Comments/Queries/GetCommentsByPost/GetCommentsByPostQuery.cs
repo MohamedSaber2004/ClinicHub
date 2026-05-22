@@ -5,6 +5,7 @@ using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Comments.Queries.GetCommentsByPost
 {
@@ -16,16 +17,16 @@ namespace ClinicHub.Application.Features.Comments.Queries.GetCommentsByPost
     {
         private readonly IUnitOfWork _ctx;
 
-        public GetCommentsByPostQueryValidator(IUnitOfWork ctx)
+        public GetCommentsByPostQueryValidator(IStringLocalizer<Messages> localizer,IUnitOfWork ctx)
         {
             _ctx = ctx;
 
             RuleFor(x => x.PostId).NotEmpty()
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value));
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
 
             RuleFor(x => x.PostId)
                 .MustAsync(PostExists)
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.PostMessages.NotFound.Value));
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.PostMessages.NotFound.Value]));
         }
 
         private async Task<bool> PostExists(Guid postId, CancellationToken cancellationToken)

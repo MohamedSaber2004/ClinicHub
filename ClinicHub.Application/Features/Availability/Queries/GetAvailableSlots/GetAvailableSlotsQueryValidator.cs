@@ -1,6 +1,7 @@
 ﻿using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
 {
@@ -8,13 +9,13 @@ namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
     {
         private readonly IUnitOfWork _ctx;
 
-        public GetAvailableSlotsQueryValidator(IUnitOfWork ctx)
+        public GetAvailableSlotsQueryValidator(IStringLocalizer<Messages> localizer,IUnitOfWork ctx)
         {
             _ctx = ctx;
 
             RuleFor(x => x.DoctorId)
-                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value))
-                .MustAsync(DoctorExists).WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.RealTimeMessages.ConversationNotFound.Value));
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
+                .MustAsync(DoctorExists).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.RealTimeMessages.ConversationNotFound.Value]));
         }
 
         private Task<bool> DoctorExists(Guid doctorId, CancellationToken cancellationToken)

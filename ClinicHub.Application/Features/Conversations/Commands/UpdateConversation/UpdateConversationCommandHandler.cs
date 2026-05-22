@@ -32,14 +32,14 @@ namespace ClinicHub.Application.Features.Conversations.Commands.UpdateConversati
 
             // Only group conversations can be updated
             if (!conversation.IsGroup)
-                throw new BadRequestException(_localizer[LocalizationKeys.ValidationMessages.InvalidOperation.Key]);
+                throw new BadRequestException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ValidationMessages.InvalidOperation.Key]));
 
             // Authorization: Check if current user is the creator or a participant
             var isCreator = conversation.CreatedByUserId == currentUserId;
             var isParticipant = conversation.Participants.Any(p => p.UserId == currentUserId && !p.IsDeleted);
 
             if (!isCreator && !isParticipant)
-                throw new BadRequestException(_localizer[LocalizationKeys.ValidationMessages.UnauthorizedAction.Key]);
+                throw new BadRequestException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ValidationMessages.UnauthorizedAction.Key]));
 
             // Update conversation info with provided values, keeping existing values if not provided
             var updatedName = string.IsNullOrWhiteSpace(request.Name) ? conversation.Name : request.Name;

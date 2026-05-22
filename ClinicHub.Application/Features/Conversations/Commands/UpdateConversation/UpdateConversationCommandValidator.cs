@@ -1,6 +1,7 @@
 ﻿using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Conversations.Commands.UpdateConversation
 {
@@ -8,28 +9,28 @@ namespace ClinicHub.Application.Features.Conversations.Commands.UpdateConversati
     {
         private readonly IUnitOfWork _ctx;
 
-        public UpdateConversationCommandValidator(IUnitOfWork ctx)
+        public UpdateConversationCommandValidator(IStringLocalizer<Messages> localizer,IUnitOfWork ctx)
         {
             _ctx = ctx;
             RuleFor(x => x.ConversationId)
                 .NotEmpty()
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value))
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Key]))
                 .MustAsync(ConversationExists)
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.RealTimeMessages.ConversationNotFound.Value));
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.RealTimeMessages.ConversationNotFound.Key]));
 
             RuleFor(x => x.Name)
                 .MaximumLength(255)
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.MaxLength.Value))
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Key]))
                 .When(x => !string.IsNullOrWhiteSpace(x.Name));
 
             RuleFor(x => x.GroupPhotoUrl)
                 .MaximumLength(500)
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.MaxLength.Value))
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Key]))
                 .When(x => !string.IsNullOrWhiteSpace(x.GroupPhotoUrl));
 
             RuleFor(x => x)
                 .Must(x => !string.IsNullOrWhiteSpace(x.Name) || !string.IsNullOrWhiteSpace(x.GroupPhotoUrl))
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.AtLeastOneFieldRequired.Value));
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.AtLeastOneFieldRequired.Key]));
         }
 
         private async Task<bool> ConversationExists(Guid conversationId, CancellationToken cancellationToken)

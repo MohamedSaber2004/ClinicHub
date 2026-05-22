@@ -12,11 +12,11 @@ namespace ClinicHub.Domain.Entities
         public string? GroupPhotoUrl { get; private set; }
         public Guid? CreatedByUserId { get; private set; }
         public bool IsGroup { get; private set; }
-        
+
         // Legacy 1-to-1 fields (kept for backward compatibility)
         public Guid InitiatorId { get; private set; }
         public Guid RecipientId { get; private set; }
-        
+
         public DateTime? LastMessageDate { get; private set; }
         public string? LastMessageContent { get; private set; }
 
@@ -58,7 +58,7 @@ namespace ClinicHub.Domain.Entities
         {
             _messages.Add(message);
             LastMessageDate = DateTime.UtcNow;
-            
+
             if (string.IsNullOrWhiteSpace(message.Content) && message.Media.Any())
             {
                 var firstMedia = message.Media.First();

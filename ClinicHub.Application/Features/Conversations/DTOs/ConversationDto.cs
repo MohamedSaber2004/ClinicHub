@@ -1,3 +1,5 @@
+using ClinicHub.Domain.Enums;
+
 namespace ClinicHub.Application.Features.Conversations.DTOs
 {
     public class ConversationDto
@@ -8,6 +10,9 @@ namespace ClinicHub.Application.Features.Conversations.DTOs
         public bool IsGroup { get; set; }
         public DateTime? LastMessageDate { get; set; }
         public string? LastMessageContent { get; set; }
+        public LastMessageContentType LastMessageContentType { get; set; }
+        public MediaType? LastMessageMediaType { get; set; }
+        public string? LastMessageMediaFileName { get; set; }
         public DateTime CreatedAt { get; set; }
 
         // For 1-to-1 chats
@@ -21,5 +26,12 @@ namespace ClinicHub.Application.Features.Conversations.DTOs
         // For group chats
         public List<ConversationParticipantDto> Participants { get; set; } = [];
         public int UnreadMessageCount { get; set; }
+    }
+
+    public enum LastMessageContentType
+    {
+        Text = 0,
+        Media = 1,
+        TextAndMedia = 2
     }
 }
