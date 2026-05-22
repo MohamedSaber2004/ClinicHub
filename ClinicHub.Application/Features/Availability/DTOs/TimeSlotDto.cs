@@ -1,6 +1,6 @@
 using System;
 
-namespace ClinicHub.Application.Common.Models
+namespace ClinicHub.Application.Features.Availability.DTOs
 {
     public class TimeSlotDto
     {

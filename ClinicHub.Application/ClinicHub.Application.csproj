@@ -36,6 +36,9 @@
 		<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Features\Appointments\Queries\" />
+	</ItemGroup>
 
 	<!-- Disable satellite assembly generation for .NET 10 -->
 	<PropertyGroup>

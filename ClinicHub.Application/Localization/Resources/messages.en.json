@@ -36,6 +36,7 @@
     "CannotChatWithYourself": "You cannot chat with yourself",
     "UnauthorizedAction": "You are not authorized to perform this action",
     "DeletedSuccessfully": "Deleted successfully",
+    "DeletedFailed": "Failed to delete",
     "AtLeastOneFieldRequired": "At least one field is required for update",
     "InvalidOperation": "This operation is not allowed for this conversation type",
     "InvalidDate": "The date provided is invalid",
@@ -109,6 +110,13 @@
     "Created": "Specialization created successfully",
     "Updated": "Specialization updated successfully",
     "Deleted": "Specialization deleted successfully"
+  },
+  "Availability": {
+    "NotFound": "Availability not found",
+    "Created": "Availability created successfully",
+    "Updated": "Availability updated successfully",
+    "Deleted": "Availability deleted successfully",
+    "Restored": "Availability restored successfully"
   },
   "RealTime": {
     "MissingSocketInfo": "Missing socket_id or channel_name",

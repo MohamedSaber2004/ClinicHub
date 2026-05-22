@@ -1,7 +1,7 @@
-using ClinicHub.Application.Common.Models;
+using ClinicHub.Application.Features.Availability.DTOs;
 using MediatR;
 
-namespace ClinicHub.Application.Features.Appointments.Queries.GetAvailableSlots
+namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
 {
     public class GetAvailableSlotsQuery : IRequest<List<TimeSlotDto>>
     {

@@ -1,4 +1,4 @@
-namespace ClinicHub.Application.Common.Models
+namespace ClinicHub.Application.Common.Options
 {
     /// <summary>
     /// Configuration settings for data seeding.

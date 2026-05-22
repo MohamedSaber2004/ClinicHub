@@ -1,10 +1,8 @@
 using ClinicHub.Application.Common.Interfaces;
-using ClinicHub.Application.Common.Models;
-using ClinicHub.Application.Localization;
+using ClinicHub.Application.Features.Appointments.DTOs;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
-using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
 {
@@ -12,16 +10,13 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
-        private readonly IStringLocalizer<Messages> _localizer;
 
         public CreateAppointmentCommandHandler(
             IUnitOfWork unitOfWork,
-            ICurrentUserService currentUserService,
-            IStringLocalizer<Messages> localizer)
+            ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
-            _localizer = localizer;
         }
 
         public async Task<AppointmentDto> Handle(CreateAppointmentCommand request, CancellationToken cancellationToken)

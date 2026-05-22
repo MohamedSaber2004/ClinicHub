@@ -2,7 +2,7 @@
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
 
-namespace ClinicHub.Application.Features.Appointments.Queries.GetAvailableSlots
+namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
 {
     public class GetAvailableSlotsQueryValidator: AbstractValidator<GetAvailableSlotsQuery>
     {

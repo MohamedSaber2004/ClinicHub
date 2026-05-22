@@ -1,4 +1,4 @@
-namespace ClinicHub.Application.Common.Models
+namespace ClinicHub.Application.Common.Options
 {
     public class EmailSettings
     {

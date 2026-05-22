@@ -1,5 +1,5 @@
 using MediatR;
-using ClinicHub.Application.Common.Models;
+using ClinicHub.Application.Features.Attachements.Commands.DownloadFile.DTOs;
 
 namespace ClinicHub.Application.Features.Attachements.Commands.DownloadFile
 {

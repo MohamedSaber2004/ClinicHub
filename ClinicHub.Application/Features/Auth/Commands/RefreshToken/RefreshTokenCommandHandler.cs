@@ -1,5 +1,4 @@
 using ClinicHub.Application.Common.Interfaces;
-using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Features.Auth.DTOs;
 using ClinicHub.Domain.Entities;
 using MediatR;
@@ -7,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
+using ClinicHub.Application.Common.Options;
 
 namespace ClinicHub.Application.Features.Auth.Commands.RefreshToken
 {

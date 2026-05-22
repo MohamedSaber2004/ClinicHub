@@ -36,6 +36,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString CannotChatWithYourself = new("Validation.CannotChatWithYourself");
             public static readonly KeyString UnauthorizedAction = new("Validation.UnauthorizedAction");
             public static readonly KeyString DeletedSuccessfully = new("Validation.DeletedSuccessfully");
+            public static readonly KeyString DeletedFailed = new("Validation.DeletedFailed");
             public static readonly KeyString AtLeastOneFieldRequired = new("Validation.AtLeastOneFieldRequired");
             public static readonly KeyString InvalidOperation = new("Validation.InvalidOperation");
             public static readonly KeyString InvalidDate = new("Validation.InvalidDate");
@@ -129,6 +130,15 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString Created = new("Specializations.Created");
             public static readonly KeyString Updated = new("Specializations.Updated");
             public static readonly KeyString Deleted = new("Specializations.Deleted");
+        }
+
+        public static class AvailabilityMessages
+        {
+            public static readonly KeyString NotFound = new("Availability.NotFound");
+            public static readonly KeyString Created = new("Availability.Created");
+            public static readonly KeyString Updated = new("Availability.Updated");
+            public static readonly KeyString Deleted = new("Availability.Deleted");
+            public static readonly KeyString Restored = new("Availability.Restored");
         }
 
         public static class RealTimeMessages

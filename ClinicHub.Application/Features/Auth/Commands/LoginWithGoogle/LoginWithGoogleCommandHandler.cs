@@ -1,6 +1,6 @@
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
-using ClinicHub.Application.Common.Models;
+using ClinicHub.Application.Common.Options;
 using ClinicHub.Application.Features.Auth.DTOs;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;

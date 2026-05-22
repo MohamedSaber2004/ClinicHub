@@ -1,5 +1,5 @@
 using ClinicHub.Application.Common.Interfaces;
-using ClinicHub.Application.Common.Models;
+using ClinicHub.Application.Common.Options;
 using ClinicHub.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;

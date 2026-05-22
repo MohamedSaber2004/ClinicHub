@@ -1,7 +1,7 @@
 using ClinicHub.Domain.Enums;
 using System;
 
-namespace ClinicHub.Application.Common.Models
+namespace ClinicHub.Application.Features.Appointments.DTOs
 {
     public class AppointmentDto
     {

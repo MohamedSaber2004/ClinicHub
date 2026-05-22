@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using ClinicHub.Application.Common.Interfaces;
-using ClinicHub.Application.Common.Models;
+using ClinicHub.Application.Common.Options;
 using ClinicHub.Domain.Entities;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;

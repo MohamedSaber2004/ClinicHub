@@ -1,5 +1,5 @@
 using ClinicHub.Application.Common.Interfaces;
-using ClinicHub.Application.Common.Models;
+using ClinicHub.Application.Common.Options;
 using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Options;

@@ -1,4 +1,4 @@
-using ClinicHub.Application.Common.Models;
+using ClinicHub.Application.Features.Appointments.DTOs;
 using ClinicHub.Domain.Enums;
 using MediatR;
 

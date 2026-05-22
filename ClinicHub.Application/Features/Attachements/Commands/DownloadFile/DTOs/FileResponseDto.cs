@@ -1,4 +1,4 @@
-namespace ClinicHub.Application.Common.Models
+namespace ClinicHub.Application.Features.Attachements.Commands.DownloadFile.DTOs
 {
     public class FileResponseDto
     {

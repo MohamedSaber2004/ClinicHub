@@ -15,11 +15,11 @@ using Scalar.AspNetCore;
 using Serilog;
 using System.Globalization;
 using System.Reflection;
-using ClinicHub.Application.Common.Models;
 using ClinicHub.Persistence.Seeders;
 using AspNetCoreRateLimit;
 using ClinicHub.API.Transformers;
 using ClinicHub.API.Middleware;
+using ClinicHub.Application.Common.Options;
 
 namespace ClinicHub.API
 {

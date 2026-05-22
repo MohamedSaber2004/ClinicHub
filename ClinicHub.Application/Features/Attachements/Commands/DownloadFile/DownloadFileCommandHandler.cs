@@ -1,7 +1,7 @@
 using MediatR;
 using ClinicHub.Application.Common.Interfaces;
-using ClinicHub.Application.Common.Models;
 using Microsoft.AspNetCore.StaticFiles;
+using ClinicHub.Application.Features.Attachements.Commands.DownloadFile.DTOs;
 
 namespace ClinicHub.Application.Features.Attachements.Commands.DownloadFile
 {

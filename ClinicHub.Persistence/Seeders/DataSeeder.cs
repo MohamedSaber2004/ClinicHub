@@ -1,5 +1,5 @@
 using Bogus;
-using ClinicHub.Application.Common.Models;
+using ClinicHub.Application.Common.Options;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using Microsoft.AspNetCore.Identity;

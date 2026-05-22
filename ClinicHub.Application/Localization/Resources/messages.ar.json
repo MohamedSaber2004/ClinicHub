@@ -36,6 +36,7 @@
     "CannotChatWithYourself": "لا يمكنك الدردشة مع نفسك",
     "UnauthorizedAction": "أنت غير مصرح بتنفيذ هذه العملية",
     "DeletedSuccessfully": "تم الحذف بنجاح",
+    "DeletedFailed": "فشل الحذف",
     "AtLeastOneFieldRequired": "يجب توفير حقل واحد على الأقل للتحديث",
     "InvalidOperation": "هذه العملية غير مسموحة لهذا نوع المحادثة",
     "InvalidDate": "التاريخ المقدم غير صالح",
@@ -109,6 +110,13 @@
     "Created": "تم إنشاء التخصص بنجاح",
     "Updated": "تم تحديث التخصص بنجاح",
     "Deleted": "تم حذف التخصص بنجاح"
+  },
+  "Availability": {
+    "NotFound": "الوقت المتاح غير موجود",
+    "Created": "تم إنشاء الوقت المتاح بنجاح",
+    "Updated": "تم تحديث الوقت المتاح بنجاح",
+    "Deleted": "تم حذف الوقت المتاح بنجاح",
+    "Restored": "تم استعادة الوقت المتاح بنجاح"
   },
   "RealTime": {
     "MissingSocketInfo": "معرف المقبس أو اسم القناة مفقود",
