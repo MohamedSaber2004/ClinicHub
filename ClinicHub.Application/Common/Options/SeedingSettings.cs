@@ -10,5 +10,8 @@ namespace ClinicHub.Application.Common.Options
         public int PostCount { get; set; } = 20;
         public int CommentsPerPost { get; set; } = 3;
         public int ReactionsPerPost { get; set; } = 5;
+        public int? DoctorCount { get; set; } = 5;
+        public int? DoctorAvailabilityCount { get; set; } = 5;
+        public int? AppointmentCount { get; set; } = 20;
     }
 }
