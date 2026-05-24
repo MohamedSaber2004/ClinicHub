@@ -1,27 +1,28 @@
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
+using AspNetCoreRateLimit;
+using Bogus;
 using ClinicHub.API.Filters;
+using ClinicHub.API.Middleware;
 using ClinicHub.API.Services;
+using ClinicHub.API.Transformers;
 using ClinicHub.Application;
 using ClinicHub.Application.Common.Interfaces;
+using ClinicHub.Application.Common.Options;
 using ClinicHub.Application.HealthCheck;
 using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure;
 using ClinicHub.Persistence;
+using ClinicHub.Persistence.Seeders;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Localization;
+using NET_Tracker.Extensions;
 using Scalar.AspNetCore;
 using Serilog;
 using System.Globalization;
 using System.Reflection;
-using ClinicHub.Persistence.Seeders;
-using AspNetCoreRateLimit;
-using ClinicHub.API.Transformers;
-using ClinicHub.API.Middleware;
-using ClinicHub.Application.Common.Options;
-using NET_Tracker.Extensions;
 
 namespace ClinicHub.API
 {
@@ -105,7 +106,7 @@ namespace ClinicHub.API
                 // Add NET-Tracker Services
                 builder.Services.AddNetTracker(builder.Configuration);
 
-                builder.Services.Configure<Microsoft.Extensions.Caching.Memory.MemoryCacheOptions>(options => 
+                builder.Services.Configure<Microsoft.Extensions.Caching.Memory.MemoryCacheOptions>(options =>
                 {
                     options.SizeLimit = null;
                 });
@@ -265,6 +266,14 @@ namespace ClinicHub.API
                 });
 
                 app.MapControllers();
+                app.MapControllerRoute(
+                    name: "netTrackerDashboard",
+                    pattern: "net-tracker/dashboard",
+                    defaults: new { controller = "Tracker", action = "Index" });
+                app.MapControllerRoute(
+                    name: "netTrackerHome",
+                    pattern: "net-tracker",
+                    defaults: new { controller = "Home", action = "Index" });
                 app.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Tracker}/{action=Index}/{id?}");
