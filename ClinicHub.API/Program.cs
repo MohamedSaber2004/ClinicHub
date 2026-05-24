@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using ClinicHub.API.Filters;
@@ -20,6 +21,7 @@ using AspNetCoreRateLimit;
 using ClinicHub.API.Transformers;
 using ClinicHub.API.Middleware;
 using ClinicHub.Application.Common.Options;
+using NET_Tracker.Extensions;
 
 namespace ClinicHub.API
 {
@@ -57,6 +59,9 @@ namespace ClinicHub.API
                 {
                     options.Filters.Add<ApiExceptionFilterAttribute>();
                     options.MaxModelValidationErrors = 50;
+
+                    // Hide NET-Tracker controllers from Swagger/Scalar without removing them from routing
+                    options.Conventions.Add(new HideNetTrackerControllersConvention());
                 });
 
                 builder.Services.AddApiVersioning(options =>
@@ -65,6 +70,14 @@ namespace ClinicHub.API
                     options.AssumeDefaultVersionWhenUnspecified = false;
                     options.ReportApiVersions = true;
                     options.ApiVersionReader = new UrlSegmentApiVersionReader();
+                })
+                .AddMvc(options =>
+                {
+                    options.Conventions.Controller(typeof(NET_Tracker.Controllers.TrackerController)).IsApiVersionNeutral();
+                    options.Conventions.Controller(typeof(NET_Tracker.Controllers.HealthController)).IsApiVersionNeutral();
+                    options.Conventions.Controller(typeof(NET_Tracker.Controllers.HomeController)).IsApiVersionNeutral();
+                    options.Conventions.Controller(typeof(NET_Tracker.Controllers.HttpTransactionsController)).IsApiVersionNeutral();
+                    options.Conventions.Controller(typeof(NET_Tracker.Controllers.StatisticsController)).IsApiVersionNeutral();
                 })
                 .AddApiExplorer(options =>
                 {
@@ -88,6 +101,14 @@ namespace ClinicHub.API
                 builder.Services.AddApplicationServices(builder.Configuration);
                 builder.Services.AddPersistenceServices(builder.Configuration);
                 builder.Services.AddInfrastructureServices(builder.Configuration);
+
+                // Add NET-Tracker Services
+                builder.Services.AddNetTracker(builder.Configuration);
+
+                builder.Services.Configure<Microsoft.Extensions.Caching.Memory.MemoryCacheOptions>(options => 
+                {
+                    options.SizeLimit = null;
+                });
 
                 // Rate limiting configuration
                 builder.Services.AddMemoryCache();
@@ -122,7 +143,7 @@ namespace ClinicHub.API
                         new CookieRequestCultureProvider()
                     };
                 });
-                builder.Services.AddMvcCore().AddViewLocalization();
+                builder.Services.AddControllersWithViews().AddViewLocalization();
                 builder.Services.AddHttpContextAccessor();
                 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
                 builder.Services.AddHsts(options =>
@@ -137,6 +158,22 @@ namespace ClinicHub.API
                 });
 
                 var app = builder.Build();
+
+                // --- NetTracker Table Creation Workaround ---
+                using (var scope = app.Services.CreateScope())
+                {
+                    var trackerDb = scope.ServiceProvider.GetRequiredService<NET_Tracker.Data.ApplicationDbContext>();
+                    var dbCreator = trackerDb.Database.GetService<Microsoft.EntityFrameworkCore.Storage.IRelationalDatabaseCreator>();
+                    try
+                    {
+                        await dbCreator.CreateTablesAsync();
+                        Log.Information("NetTracker HttpTransactions table created successfully.");
+                    }
+                    catch (Exception)
+                    {
+                        // Ignore exception if the table already exists
+                    }
+                }
 
                 app.UseRequestLocalization();
 
@@ -203,10 +240,9 @@ namespace ClinicHub.API
                     };
                 });
 
-                if (app.Environment.IsDevelopment() && app.Environment.IsEnvironment("Test"))
-                {
-                    app.UseRequestResponseLogging();
-                }
+                // NET-Tracker middleware — placed early so it intercepts all requests
+                app.UseNetTracker(app.Configuration);
+
 
                 app.UseRouting();
                 app.UseCors("CorsPolicy");
@@ -229,6 +265,9 @@ namespace ClinicHub.API
                 });
 
                 app.MapControllers();
+                app.MapControllerRoute(
+                    name: "default",
+                    pattern: "{controller=Tracker}/{action=Index}/{id?}");
 
                 await app.RunAsync();
             }
@@ -239,6 +278,22 @@ namespace ClinicHub.API
             finally
             {
                 Log.CloseAndFlush();
+            }
+        }
+    }
+
+    public class HideNetTrackerControllersConvention : Microsoft.AspNetCore.Mvc.ApplicationModels.IControllerModelConvention
+    {
+        public void Apply(Microsoft.AspNetCore.Mvc.ApplicationModels.ControllerModel controller)
+        {
+            if (controller.ControllerType.Assembly.FullName != null && controller.ControllerType.Assembly.FullName.Contains("NetTracker", StringComparison.OrdinalIgnoreCase) ||
+                (controller.ControllerType.Namespace != null && controller.ControllerType.Namespace.Contains("Tracker", StringComparison.OrdinalIgnoreCase)))
+            {
+                controller.ApiExplorer.IsVisible = false;
+                foreach (var action in controller.Actions)
+                {
+                    action.ApiExplorer.IsVisible = false;
+                }
             }
         }
     }

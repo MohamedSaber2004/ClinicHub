@@ -79,7 +79,8 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
             // 3. Resolve userPoint after geocoding if needed
             if (userPoint == null && geocodeTask != null && geocodeTask.Status == TaskStatus.RanToCompletion)
             {
-                var firstMatch = geocodeTask.Result.FirstOrDefault();
+                var geocodeResult = await geocodeTask;
+                var firstMatch = geocodeResult.FirstOrDefault();
                 if (firstMatch != null)
                 {
                     userPoint = new Point(firstMatch.Lng, firstMatch.Lat) { SRID = 4326 };
@@ -108,9 +109,9 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
             // 5. Collect External Results
             var externalClinics = new List<ClinicExternalDto>();
             if (externalSearchTask != null && externalSearchTask.Status == TaskStatus.RanToCompletion)
-                externalClinics.AddRange(externalSearchTask.Result);
+                externalClinics.AddRange(await externalSearchTask);
             if (geocodeTask != null && geocodeTask.Status == TaskStatus.RanToCompletion)
-                externalClinics.AddRange(geocodeTask.Result);
+                externalClinics.AddRange(await geocodeTask);
 
             foreach (var external in externalClinics)
             {
