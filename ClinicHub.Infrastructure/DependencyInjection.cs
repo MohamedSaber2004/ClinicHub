@@ -31,7 +31,11 @@ namespace ClinicHub.Infrastructure
 
             services.AddHttpClient();
             services.Configure<PaymobSettings>(configuration.GetSection(nameof(PaymobSettings)));
-            services.AddHttpClient<IPaymobService, PaymobService>();
+            services.AddHttpClient<IPaymobService, PaymobService>(client =>
+            {
+                client.DefaultRequestHeaders.Add("User-Agent", "ClinicHub-API/1.0");
+                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+            });
 
             services.AddScoped<IUnitOfWork, Repositories.Implementations.Base.UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<,>), typeof(GenericRepository<,>));

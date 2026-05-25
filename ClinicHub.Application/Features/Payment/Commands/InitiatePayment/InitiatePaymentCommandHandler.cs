@@ -33,7 +33,6 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
     {
         var appointment = await _unitOfWork.AppointmentRepository.GetByIdAsync(request.AppointmentId);
         
-        // Defensive Guard Clauses
         if (appointment == null)
             throw new NotFoundException(LocalizationKeys.PaymentMessages.AppointmentNotFound.Value);
         
@@ -48,21 +47,17 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
         var doctor = await _unitOfWork.DoctorRepository.GetByIdAsync(appointment.DoctorId);
         var amount = doctor?.ConsultationFee ?? 0m;
 
-        // Fetch user for billing data
         var user = await _unitOfWork.GetRepository<ApplicationUser, Guid>().GetByIdAsync(currentUserId);
 
-        // Paymob Orchestration
-        var orderId = await _paymobService.CreateOrderAsync(amount, "EGP", cancellationToken);
-        
         var billing = CreateBillingData(user, request.PhoneNumber);
-        
-        var paymentKey = await _paymobService.GetPaymentKeyAsync(orderId, amount, billing, cancellationToken);
-        var redirectUrl = await _paymobService.PayWithWalletAsync(paymentKey, request.PhoneNumber, cancellationToken);
 
-        // Transactional State Persistence
+        // Single orchestrated Paymob flow: Auth → Order → PaymentKey → WalletPay
+        var walletResult = await _paymobService.InitiateWalletPaymentAsync(
+            amount, "EGP", billing, request.PhoneNumber, cancellationToken);
+
         var payment = new ClinicHub.Domain.Entities.Payment(request.AppointmentId, currentUserId, amount)
         {
-            PaymobOrderId = orderId
+            PaymobOrderId = walletResult.OrderId
         };
 
         await _unitOfWork.PaymentRepository.AddAsync(payment);
@@ -70,8 +65,8 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
 
         return new InitiatePaymentResponseDto
         {
-            PaymentKey = paymentKey,
-            RedirectUrl = redirectUrl,
+            PaymentKey = walletResult.PaymentKey,
+            RedirectUrl = walletResult.RedirectUrl,
             PaymentId = payment.Id
         };
     }

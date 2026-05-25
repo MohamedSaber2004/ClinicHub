@@ -23,7 +23,36 @@ public class PaymobService : IPaymobService
         _logger = logger;
     }
 
-    private async Task<string> GetAuthTokenAsync(CancellationToken cancellationToken)
+    /// <inheritdoc />
+    public async Task<WalletPaymentResultDto> InitiateWalletPaymentAsync(
+        decimal amount,
+        string currency,
+        PaymentBillingData billing,
+        string walletPhoneNumber,
+        CancellationToken cancellationToken)
+    {
+        // Step 1: Authenticate (single token for the entire flow)
+        var authToken = await AuthenticateAsync(cancellationToken);
+
+        // Step 2: Create Order
+        var amountCents = (int)Math.Round(amount * 100);
+        var orderId = await CreateOrderAsync(authToken, amountCents, currency, cancellationToken);
+
+        // Step 3: Generate Payment Key
+        var paymentKey = await GetPaymentKeyAsync(authToken, orderId, amountCents, billing, currency, cancellationToken);
+
+        // Step 4: Pay with Wallet
+        var redirectUrl = await PayWithWalletAsync(paymentKey, walletPhoneNumber, cancellationToken);
+
+        return new WalletPaymentResultDto
+        {
+            OrderId = orderId,
+            PaymentKey = paymentKey,
+            RedirectUrl = redirectUrl
+        };
+    }
+
+    private async Task<string> AuthenticateAsync(CancellationToken cancellationToken)
     {
         var payload = new { api_key = _settings.ApiKey };
         var response = await _httpClient.PostAsync(
@@ -31,7 +60,19 @@ public class PaymobService : IPaymobService
             new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json"),
             cancellationToken);
 
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorJson = await response.Content.ReadAsStringAsync(cancellationToken);
+            _logger.LogError("Paymob authentication failed with status {StatusCode}. Response: {Response}", response.StatusCode, errorJson);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                throw new InvalidOperationException("Paymob authentication failed (403 Forbidden). Please check if your API Key is correct and active, or if your server IP is restricted in Paymob dashboard.");
+            }
+
+            response.EnsureSuccessStatusCode();
+        }
+
         var json = await response.Content.ReadAsStringAsync(cancellationToken);
         using var doc = JsonDocument.Parse(json);
         if (doc.RootElement.TryGetProperty("token", out var tokenProp))
@@ -39,13 +80,12 @@ public class PaymobService : IPaymobService
         throw new InvalidOperationException("Paymob authentication failed: missing token.");
     }
 
-    public async Task<string> CreateOrderAsync(decimal amount, string currency, CancellationToken cancellationToken)
+    private async Task<string> CreateOrderAsync(string authToken, int amountCents, string currency, CancellationToken cancellationToken)
     {
-        var authToken = await GetAuthTokenAsync(cancellationToken);
         var payload = new
         {
             auth_token = authToken,
-            amount_cents = (int)Math.Round(amount * 100),
+            amount_cents = amountCents,
             currency = currency,
             items = Array.Empty<object>()
         };
@@ -63,13 +103,14 @@ public class PaymobService : IPaymobService
         throw new InvalidOperationException("Paymob order creation failed: missing order id.");
     }
 
-    public async Task<string> GetPaymentKeyAsync(string orderId, decimal amount, PaymentBillingData billing, CancellationToken cancellationToken)
+    private async Task<string> GetPaymentKeyAsync(
+        string authToken, string orderId, int amountCents,
+        PaymentBillingData billing, string currency, CancellationToken cancellationToken)
     {
-        var authToken = await GetAuthTokenAsync(cancellationToken);
         var payload = new
         {
             auth_token = authToken,
-            amount_cents = (int)Math.Round(amount * 100),
+            amount_cents = amountCents,
             expiration = 3600,
             order_id = orderId,
             billing_data = new
@@ -88,8 +129,11 @@ public class PaymobService : IPaymobService
                 last_name = string.IsNullOrWhiteSpace(billing.LastName) ? "User" : billing.LastName,
                 extra = "NA"
             },
-            currency = "EGP",
-            integration_id = int.Parse(_settings.IntegrationId)
+            currency = currency,
+            integration_id = int.Parse(
+                !string.IsNullOrWhiteSpace(_settings.WalletIntegrationId) 
+                    ? _settings.WalletIntegrationId 
+                    : _settings.IntegrationId)
         };
 
         var response = await _httpClient.PostAsync(
@@ -105,10 +149,8 @@ public class PaymobService : IPaymobService
         throw new InvalidOperationException("Paymob payment key retrieval failed: missing token.");
     }
 
-    public async Task<string> PayWithWalletAsync(string paymentToken, string phoneNumber, CancellationToken cancellationToken)
+    private async Task<string> PayWithWalletAsync(string paymentToken, string phoneNumber, CancellationToken cancellationToken)
     {
-        // Format phone number for Paymob: Egyptian wallets require the 11-digit local format (01XXXXXXXXX).
-        // The ToPaymobFormat extension now handles this conversion correctly.
         var formattedPhoneNumber = phoneNumber.ToPaymobFormat();
 
         _logger.LogInformation("Processing wallet payment with formatted phone: {PhoneNumber} (original: {OriginalPhone})", formattedPhoneNumber, phoneNumber);
@@ -118,8 +160,7 @@ public class PaymobService : IPaymobService
             source = new
             {
                 identifier = formattedPhoneNumber,
-                subtype = "WALLET",
-                type = "wallet"
+                subtype = "WALLET"
             },
             payment_token = paymentToken
         };
@@ -136,18 +177,19 @@ public class PaymobService : IPaymobService
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
 
-        // Check for immediate failure: if not success and not pending, it's a hard fail
         bool hasSuccess = root.TryGetProperty("success", out var successProp) && IsTruthy(successProp);
         bool isPending = root.TryGetProperty("pending", out var pendingProp) && IsTruthy(pendingProp);
         bool errorOccured = root.TryGetProperty("error_occured", out var errOccured) && IsTruthy(errOccured);
 
-        // Try to extract URL early - if we have a URL, it's usually a good sign even if flags are weird
         string? foundUrl = FindUrl(root);
 
-        if (errorOccured || (!hasSuccess && !isPending && string.IsNullOrEmpty(foundUrl)))
+        // If Paymob provides a redirect URL, that is always the priority (especially in Test Mode where flags are buggy)
+        if (!string.IsNullOrEmpty(foundUrl))
+            return foundUrl;
+
+        if (errorOccured || (!hasSuccess && !isPending))
         {
             string errorMessage = ExtractErrorMessage(root);
-
             _logger.LogError("Paymob wallet payment failed: {Message}. Full Response: {Response}", errorMessage, json);
             throw new BadRequestException($"Payment Failed: {errorMessage}");
         }
@@ -155,14 +197,12 @@ public class PaymobService : IPaymobService
         if (!response.IsSuccessStatusCode && string.IsNullOrEmpty(foundUrl))
         {
             _logger.LogError("Paymob wallet payment failed with status {StatusCode}. Response: {Response}", response.StatusCode, json);
-            // Include status code in message for easier debugging
             throw new BadRequestException($"Paymob API Error (Status {response.StatusCode}): {ExtractErrorMessage(root)}");
         }
 
         if (!string.IsNullOrEmpty(foundUrl))
             return foundUrl;
 
-        // 3. If we get here and have no URL, log ALL keys so we can see what Paymob sent
         var keys = string.Join(", ", root.EnumerateObject().Select(p => p.Name));
         _logger.LogError("Paymob response did not contain a URL. Available keys: {Keys}. Full response: {Response}", keys, json);
 
@@ -171,29 +211,25 @@ public class PaymobService : IPaymobService
 
     private static string ExtractErrorMessage(JsonElement root)
     {
-        // Priority 1: Look in 'data' object (common in Paymob)
         if (root.TryGetProperty("data", out var data))
         {
             if (data.TryGetProperty("message", out var m) && m.ValueKind == JsonValueKind.String) return m.GetString()!;
             if (data.TryGetProperty("explanation", out var e) && e.ValueKind == JsonValueKind.String) return e.GetString()!;
         }
 
-        // Priority 2: Look in 'source_data' (wallet specific)
         if (root.TryGetProperty("source_data", out var sourceData))
         {
             if (sourceData.TryGetProperty("message", out var sm) && sm.ValueKind == JsonValueKind.String) return sm.GetString()!;
         }
 
-        // Priority 3: Root level standard fields
         if (root.TryGetProperty("message", out var msg) && msg.ValueKind == JsonValueKind.String) return msg.GetString()!;
         if (root.TryGetProperty("detail", out var det) && det.ValueKind == JsonValueKind.String) return det.GetString()!;
         if (root.TryGetProperty("error", out var err) && err.ValueKind == JsonValueKind.String) return err.GetString()!;
 
-        // Priority 4: Look for any property containing 'message' or 'error'
         foreach (var prop in root.EnumerateObject())
         {
-            if ((prop.Name.Contains("message", StringComparison.OrdinalIgnoreCase) || 
-                 prop.Name.Contains("error", StringComparison.OrdinalIgnoreCase)) && 
+            if ((prop.Name.Contains("message", StringComparison.OrdinalIgnoreCase) ||
+                 prop.Name.Contains("error", StringComparison.OrdinalIgnoreCase)) &&
                 prop.Value.ValueKind == JsonValueKind.String)
             {
                 return prop.Value.GetString()!;
@@ -223,20 +259,29 @@ public class PaymobService : IPaymobService
 
     private static string? FindUrl(JsonElement root)
     {
-        // 1. Try to find ANY field that contains "url" and has a string value at root
-        foreach (var prop in root.EnumerateObject())
-        {
-            if (prop.Name.Contains("url", StringComparison.OrdinalIgnoreCase) && prop.Value.ValueKind == JsonValueKind.String)
-                return prop.Value.GetString();
-        }
+        // 1. Priority: The actual wallet gateway URL
+        if (root.TryGetProperty("iframe_redirection_url", out var iframeUrl) && iframeUrl.ValueKind == JsonValueKind.String)
+            return iframeUrl.GetString();
 
-        // 2. Check inside 'data' object if it exists
+        // 2. Check inside 'data' object (sometimes nested here)
         if (root.TryGetProperty("data", out var dataProp) && dataProp.ValueKind == JsonValueKind.Object)
         {
-            foreach (var prop in dataProp.EnumerateObject())
+            if (dataProp.TryGetProperty("iframe_redirection_url", out var dataIframeUrl) && dataIframeUrl.ValueKind == JsonValueKind.String)
+                return dataIframeUrl.GetString();
+                
+            if (dataProp.TryGetProperty("redirect_url", out var dataRedirectUrl) && dataRedirectUrl.ValueKind == JsonValueKind.String)
+                return dataRedirectUrl.GetString();
+        }
+
+        // 3. Fallback: Any field containing 'redirect' (excluding the post_pay callback if possible)
+        foreach (var prop in root.EnumerateObject())
+        {
+            if (prop.Name.Equals("redirect_url", StringComparison.OrdinalIgnoreCase) && prop.Value.ValueKind == JsonValueKind.String)
             {
-                if (prop.Name.Contains("url", StringComparison.OrdinalIgnoreCase) && prop.Value.ValueKind == JsonValueKind.String)
-                    return prop.Value.GetString();
+                var url = prop.Value.GetString();
+                // If it's the post_pay URL, we only want it as a last resort, but for wallets it's usually wrong.
+                if (url != null && !url.Contains("post_pay"))
+                    return url;
             }
         }
 
@@ -247,12 +292,6 @@ public class PaymobService : IPaymobService
     {
         try
         {
-            // Paymob HMAC (Transaction Webhook & Callback) uses 21 specific fields in this EXACT order:
-            // amount_cents, created_at, currency, error_occured, has_parent_transaction, id, integration_id, 
-            // is_3d_secure, is_auth, is_capture, is_refunded, is_standalone_payment, is_voided, 
-            // order.id (or order), owner, pending, source_data.pan, source_data.sub_type, source_data.type, success
-            
-            // We handle both dot notation (callbacks) and underscore notation (some webhooks/flattened data)
             var amount_cents = GetValue(transactionData, "amount_cents");
             var created_at = GetValue(transactionData, "created_at");
             var currency = GetValue(transactionData, "currency");
@@ -281,12 +320,12 @@ public class PaymobService : IPaymobService
 
             var computed = ComputeHmacSha256(_settings.HmacSecret, concatenated);
             var isValid = string.Equals(computed, hmac, StringComparison.OrdinalIgnoreCase);
-            
+
             if (!isValid)
             {
                 _logger.LogWarning("Paymob HMAC validation failed. Concatenated string: {Concatenated}", concatenated);
             }
-            
+
             return isValid;
         }
         catch (Exception ex)
