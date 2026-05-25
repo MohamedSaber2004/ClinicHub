@@ -37,6 +37,7 @@ namespace ClinicHub.Persistence
         public DbSet<MessageMedia> MessageMedia { get; set; }
         public DbSet<ReadReceipt> ReadReceipts { get; set; }
         public DbSet<ConversationParticipant> ConversationParticipants { get; set; }
+        public DbSet<Payment> Payments { get; set; }
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder builder)

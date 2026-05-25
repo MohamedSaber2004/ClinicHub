@@ -165,5 +165,19 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString FileNotFound = new("Attachments.FileNotFound");
             public static readonly KeyString InvalidPlace = new("Attachments.InvalidPlace");
         }
+
+        public static class PaymentMessages
+        {
+            public static readonly KeyString NotFound = new("Payments.NotFound");
+            public static readonly KeyString AlreadyPaid = new("Payments.AlreadyPaid");
+            public static readonly KeyString AppointmentNotFound = new("Payments.AppointmentNotFound");
+            public static readonly KeyString AppointmentNotPending = new("Payments.AppointmentNotPending");
+            public static readonly KeyString Unauthorized = new("Payments.Unauthorized");
+            public static readonly KeyString PaymobOrderFailed = new("Payments.PaymobOrderFailed");
+            public static readonly KeyString PaymobKeyFailed = new("Payments.PaymobKeyFailed");
+            public static readonly KeyString WebhookHmacInvalid = new("Payments.WebhookHmacInvalid");
+            public static readonly KeyString InitiateSuccess = new("Payments.InitiateSuccess");
+            public static readonly KeyString StatusFetched = new("Payments.StatusFetched");
+        }
     }
 }

@@ -135,5 +135,17 @@
     "TimeSlotAlreadyBooked": "This time slot is already booked.",
     "DoctorNotFound": "Doctor not found",
     "AppointmentNotFound": "Appointment not found"
+  },
+  "Payments": {
+    "NotFound": "Payment not found",
+    "AlreadyPaid": "This appointment is already paid",
+    "AppointmentNotFound": "Appointment not found",
+    "AppointmentNotPending": "Only pending appointments can be paid",
+    "Unauthorized": "You are not authorized to perform this action",
+    "PaymobOrderFailed": "Failed to create payment order",
+    "PaymobKeyFailed": "Failed to retrieve payment key",
+    "WebhookHmacInvalid": "Invalid payment webhook signature",
+    "InitiateSuccess": "Payment initiated successfully",
+    "StatusFetched": "Payment status retrieved successfully"
   }
 }

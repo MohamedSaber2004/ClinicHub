@@ -1,4 +1,7 @@
 <Solution>
+  <Folder Name="/Prompts/">
+    <File Path="paymentpromptplan.txt" />
+  </Folder>
   <Project Path="ClinicHub.API/ClinicHub.API.csproj" />
   <Project Path="ClinicHub.Application/ClinicHub.Application.csproj" />
   <Project Path="ClinicHub.Domain/ClinicHub.Domain.csproj" />

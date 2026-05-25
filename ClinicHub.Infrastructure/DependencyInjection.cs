@@ -20,6 +20,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using ClinicHub.Infrastructure.Services.Paymob;
 
 namespace ClinicHub.Infrastructure
 {
@@ -29,6 +30,8 @@ namespace ClinicHub.Infrastructure
         {
 
             services.AddHttpClient();
+            services.Configure<PaymobSettings>(configuration.GetSection(nameof(PaymobSettings)));
+            services.AddHttpClient<IPaymobService, PaymobService>();
 
             services.AddScoped<IUnitOfWork, Repositories.Implementations.Base.UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<,>), typeof(GenericRepository<,>));
@@ -42,6 +45,7 @@ namespace ClinicHub.Infrastructure
             services.AddScoped<IMessageMediaRepository, MessageMediaRepository>();
             services.AddScoped<IReadReceiptRepository, ReadReceiptRepository>();
             services.AddScoped<IConversationParticipantRepository, ConversationParticipantRepository>();
+            services.AddScoped<IPaymentRepository, PaymentRepository>();
             services.AddScoped<IJwtTokenService, JwtTokenService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IFacebookAuth, FacebookAuth>();
