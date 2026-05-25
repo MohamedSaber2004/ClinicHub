@@ -45,7 +45,7 @@ public class PaymobService : IPaymobService
         var payload = new
         {
             auth_token = authToken,
-            amount_cents = (int)(amount * 100),
+            amount_cents = (int)Math.Round(amount * 100),
             currency = currency,
             items = Array.Empty<object>()
         };
@@ -69,7 +69,7 @@ public class PaymobService : IPaymobService
         var payload = new
         {
             auth_token = authToken,
-            amount_cents = (int)(amount * 100),
+            amount_cents = (int)Math.Round(amount * 100),
             expiration = 3600,
             order_id = orderId,
             billing_data = new
@@ -80,7 +80,7 @@ public class PaymobService : IPaymobService
                 first_name = string.IsNullOrWhiteSpace(billing.FirstName) ? "Clinic" : billing.FirstName,
                 street = string.IsNullOrWhiteSpace(billing.Street) ? "NA" : billing.Street,
                 building = string.IsNullOrWhiteSpace(billing.Building) ? "NA" : billing.Building,
-                phone_number = string.IsNullOrWhiteSpace(billing.PhoneNumber) ? "01000000000" : billing.PhoneNumber,
+                phone_number = (string.IsNullOrWhiteSpace(billing.PhoneNumber) ? "01000000000" : billing.PhoneNumber).ToPaymobFormat(),
                 postal_code = string.IsNullOrWhiteSpace(billing.PostalCode) ? "NA" : billing.PostalCode,
                 city = string.IsNullOrWhiteSpace(billing.City) ? "Cairo" : billing.City,
                 country = string.IsNullOrWhiteSpace(billing.Country) ? "EG" : billing.Country,
@@ -118,7 +118,8 @@ public class PaymobService : IPaymobService
             source = new
             {
                 identifier = formattedPhoneNumber,
-                subtype = "WALLET"
+                subtype = "WALLET",
+                type = "wallet"
             },
             payment_token = paymentToken
         };
@@ -136,50 +137,97 @@ public class PaymobService : IPaymobService
         var root = doc.RootElement;
 
         // Check for immediate failure: if not success and not pending, it's a hard fail
-        bool hasSuccess = root.TryGetProperty("success", out var successProp) && 
-                         (successProp.ValueKind == JsonValueKind.True || (successProp.ValueKind == JsonValueKind.String && successProp.GetString()?.ToLower() == "true"));
+        bool hasSuccess = root.TryGetProperty("success", out var successProp) && IsTruthy(successProp);
+        bool isPending = root.TryGetProperty("pending", out var pendingProp) && IsTruthy(pendingProp);
+        bool errorOccured = root.TryGetProperty("error_occured", out var errOccured) && IsTruthy(errOccured);
 
-        bool isPending = root.TryGetProperty("pending", out var pendingProp) && 
-                        (pendingProp.ValueKind == JsonValueKind.True || (pendingProp.ValueKind == JsonValueKind.String && pendingProp.GetString()?.ToLower() == "true"));
+        // Try to extract URL early - if we have a URL, it's usually a good sign even if flags are weird
+        string? foundUrl = FindUrl(root);
 
-        bool errorOccured = root.TryGetProperty("error_occured", out var errOccured) && 
-            (errOccured.ValueKind == JsonValueKind.True || (errOccured.ValueKind == JsonValueKind.String && errOccured.GetString()?.ToLower() == "true"));
-
-        if (!hasSuccess && !isPending || errorOccured)
+        if (errorOccured || (!hasSuccess && !isPending && string.IsNullOrEmpty(foundUrl)))
         {
-            string errorMessage = "Payment declined or failed";
-
-            // Try different locations for error messages in Paymob's dynamic response
-            if (root.TryGetProperty("data", out var data))
-            {
-                if (data.TryGetProperty("message", out var dataMsg) && dataMsg.ValueKind == JsonValueKind.String)
-                    errorMessage = dataMsg.GetString() ?? errorMessage;
-                else if (data.TryGetProperty("explanation", out var explanation) && explanation.ValueKind == JsonValueKind.String)
-                    errorMessage = explanation.GetString() ?? errorMessage;
-            }
-
-            if (errorMessage == "Payment declined or failed" && root.TryGetProperty("message", out var rootMsg) && rootMsg.ValueKind == JsonValueKind.String)
-                errorMessage = rootMsg.GetString() ?? errorMessage;
-
-            if (errorMessage == "Payment declined or failed" && root.TryGetProperty("detail", out var detailMsg) && detailMsg.ValueKind == JsonValueKind.String)
-                errorMessage = detailMsg.GetString() ?? errorMessage;
+            string errorMessage = ExtractErrorMessage(root);
 
             _logger.LogError("Paymob wallet payment failed: {Message}. Full Response: {Response}", errorMessage, json);
             throw new BadRequestException($"Payment Failed: {errorMessage}");
         }
 
-        if (!response.IsSuccessStatusCode)
+        if (!response.IsSuccessStatusCode && string.IsNullOrEmpty(foundUrl))
         {
             _logger.LogError("Paymob wallet payment failed with status {StatusCode}. Response: {Response}", response.StatusCode, json);
-            response.EnsureSuccessStatusCode();
+            // Include status code in message for easier debugging
+            throw new BadRequestException($"Paymob API Error (Status {response.StatusCode}): {ExtractErrorMessage(root)}");
         }
 
-        // 1. Try to find ANY field that contains "url" and has a string value
-        // This handles: redirect_url, iframe_redirection_url, redirection_url, etc.
+        if (!string.IsNullOrEmpty(foundUrl))
+            return foundUrl;
+
+        // 3. If we get here and have no URL, log ALL keys so we can see what Paymob sent
+        var keys = string.Join(", ", root.EnumerateObject().Select(p => p.Name));
+        _logger.LogError("Paymob response did not contain a URL. Available keys: {Keys}. Full response: {Response}", keys, json);
+
+        throw new InvalidOperationException($"Paymob wallet payment failed. No URL found in response. Available fields: {keys}");
+    }
+
+    private static string ExtractErrorMessage(JsonElement root)
+    {
+        // Priority 1: Look in 'data' object (common in Paymob)
+        if (root.TryGetProperty("data", out var data))
+        {
+            if (data.TryGetProperty("message", out var m) && m.ValueKind == JsonValueKind.String) return m.GetString()!;
+            if (data.TryGetProperty("explanation", out var e) && e.ValueKind == JsonValueKind.String) return e.GetString()!;
+        }
+
+        // Priority 2: Look in 'source_data' (wallet specific)
+        if (root.TryGetProperty("source_data", out var sourceData))
+        {
+            if (sourceData.TryGetProperty("message", out var sm) && sm.ValueKind == JsonValueKind.String) return sm.GetString()!;
+        }
+
+        // Priority 3: Root level standard fields
+        if (root.TryGetProperty("message", out var msg) && msg.ValueKind == JsonValueKind.String) return msg.GetString()!;
+        if (root.TryGetProperty("detail", out var det) && det.ValueKind == JsonValueKind.String) return det.GetString()!;
+        if (root.TryGetProperty("error", out var err) && err.ValueKind == JsonValueKind.String) return err.GetString()!;
+
+        // Priority 4: Look for any property containing 'message' or 'error'
+        foreach (var prop in root.EnumerateObject())
+        {
+            if ((prop.Name.Contains("message", StringComparison.OrdinalIgnoreCase) || 
+                 prop.Name.Contains("error", StringComparison.OrdinalIgnoreCase)) && 
+                prop.Value.ValueKind == JsonValueKind.String)
+            {
+                return prop.Value.GetString()!;
+            }
+        }
+
+        return "Payment declined or failed";
+    }
+
+    private static bool IsTruthy(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.String => element.GetString()?.ToLower() switch
+            {
+                "true" => true,
+                "1" => true,
+                "yes" => true,
+                _ => false
+            },
+            JsonValueKind.Number => element.TryGetInt32(out var val) && val == 1,
+            _ => false
+        };
+    }
+
+    private static string? FindUrl(JsonElement root)
+    {
+        // 1. Try to find ANY field that contains "url" and has a string value at root
         foreach (var prop in root.EnumerateObject())
         {
             if (prop.Name.Contains("url", StringComparison.OrdinalIgnoreCase) && prop.Value.ValueKind == JsonValueKind.String)
-                return prop.Value.GetString()!;
+                return prop.Value.GetString();
         }
 
         // 2. Check inside 'data' object if it exists
@@ -188,15 +236,11 @@ public class PaymobService : IPaymobService
             foreach (var prop in dataProp.EnumerateObject())
             {
                 if (prop.Name.Contains("url", StringComparison.OrdinalIgnoreCase) && prop.Value.ValueKind == JsonValueKind.String)
-                    return prop.Value.GetString()!;
+                    return prop.Value.GetString();
             }
         }
 
-        // 3. If we get here, log ALL keys so we can see what Paymob sent
-        var keys = string.Join(", ", root.EnumerateObject().Select(p => p.Name));
-        _logger.LogError("Paymob response did not contain a URL. Available keys: {Keys}. Full response: {Response}", keys, json);
-
-        throw new InvalidOperationException($"Paymob wallet payment failed. No URL found in response. Available fields: {keys}");
+        return null;
     }
 
     public async Task<bool> ValidateWebhookAsync(string hmac, IDictionary<string, string> transactionData)
