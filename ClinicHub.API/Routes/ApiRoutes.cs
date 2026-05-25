@@ -131,5 +131,12 @@ namespace ClinicHub.API.Routes
             public const string Update = Base + "/availability/{id:guid}";
             public const string Delete = Base + "/availability/{id:guid}";
         }
+
+        public static class Payments
+        {
+            public const string Initiate = Base + "/payments/initiate";
+            public const string Webhook = Base + "/payments/webhook";
+            public const string GetStatus = Base + "/payments/status/{appointmentId:guid}";
+        }
     }
 }
