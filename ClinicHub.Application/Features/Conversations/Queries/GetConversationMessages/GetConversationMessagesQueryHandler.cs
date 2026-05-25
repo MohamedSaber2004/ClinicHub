@@ -29,10 +29,10 @@ namespace ClinicHub.Application.Features.Conversations.Queries.GetConversationMe
 
             var conversation = await _unitOfWork.ConversationRepository.GetByIdAsync(request.ConversationId);
             if (conversation == null)
-                throw new NotFoundException(_localizer[LocalizationKeys.ValidationMessages.ConversationNotFound.Key]);
+                throw new NotFoundException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ValidationMessages.ConversationNotFound.Key]));
 
             if (conversation.InitiatorId != currentUserId && conversation.RecipientId != currentUserId)
-                throw new BadRequestException(_localizer[LocalizationKeys.ValidationMessages.UnauthorizedAction.Key]);
+                throw new BadRequestException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ValidationMessages.UnauthorizedAction.Key]));
 
             var messages = await _unitOfWork.MessageRepository.GetMessagesByConversationIdAsync(request.ConversationId, cancellationToken);
             var totalCount = messages.Count();

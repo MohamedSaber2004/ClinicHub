@@ -42,6 +42,9 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString InvalidDate = new("Validation.InvalidDate");
             public static readonly KeyString InvalidTimeRange = new("Validation.InvalidTimeRange");
             public static readonly KeyString InvalidAge = new("Validation.InvalidAge");
+            public static readonly KeyString PageNumberMustBeGreaterThanOrEqualToOne = new("Validation.PageNumberMustBeGreaterThanOrEqualToOne");
+            public static readonly KeyString PageSizeMustBeGreaterThanOrEqualToOne = new("Validation.PageSizeMustBeGreaterThanOrEqualToOne");
+            public static readonly KeyString PageSizeMustBeLessThanOrEqualToHundred = new("Validation.PageSizeMustBeLessThanOrEqualToHundred");
         }
 
         public static class AppointmentMessages
@@ -144,9 +147,13 @@ namespace ClinicHub.Application.Localization
 
         public static class RealTimeMessages
         {
+            public static readonly KeyString SocketIdRequired = new("RealTime.SocketIdRequired");
+            public static readonly KeyString ChannelNameRequired = new("RealTime.ChannelNameRequired");
             public static readonly KeyString MissingSocketInfo = new("RealTime.MissingSocketInfo");
             public static readonly KeyString NotConversationParticipant = new("RealTime.NotConversationParticipant");
+            public static readonly KeyString ConversationIdRequired = new("RealTime.ConversationIdRequired");
             public static readonly KeyString ConversationNotFound = new("RealTime.ConversationNotFound");
+            public static readonly KeyString ConnectionIdRequired = new("RealTime.ConnectionIdRequired");
         }
 
         public static class AttachmentMessages

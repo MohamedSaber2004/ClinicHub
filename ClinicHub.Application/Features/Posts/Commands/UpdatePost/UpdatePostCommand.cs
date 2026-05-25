@@ -21,26 +21,25 @@ namespace ClinicHub.Application.Features.Posts.Commands.UpdatePost
             _currentUserService = currentUserService;
 
             RuleFor(x => x.PostId).NotEmpty();
-            
+
             RuleFor(x => x.PostId)
                 .CustomAsync(async (postId, context, cancellationToken) =>
                 {
                     if (!await IsAuthor(postId, cancellationToken))
                     {
-                        context.AddFailure(localizer[LocalizationKeys.ExceptionMessages.Unauthorized.Key]);
+                        context.AddFailure(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ExceptionMessages.Unauthorized.Value]));
                     }
                 })
                 .MustAsync(PostExists)
-                .WithMessage(localizer[LocalizationKeys.PostMessages.NotFound.Key]);
-
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.PostMessages.NotFound.Value]));
             RuleFor(x => x.Content)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Key])
-                .MaximumLength(2000).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Key]);
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
+                .MaximumLength(2000).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
         }
 
         private async Task<bool> PostExists(Guid postId, CancellationToken cancellationToken)
         {
-            return await _ctx.GetRepository<Post,Guid>().ExistsAsync(p => p.Id == postId, cancellationToken);
+            return await _ctx.GetRepository<Post, Guid>().ExistsAsync(p => p.Id == postId, cancellationToken);
         }
 
         private async Task<bool> IsAuthor(Guid postId, CancellationToken cancellationToken)

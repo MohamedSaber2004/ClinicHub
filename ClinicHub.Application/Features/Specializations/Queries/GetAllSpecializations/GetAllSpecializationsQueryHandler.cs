@@ -22,7 +22,7 @@ namespace ClinicHub.Application.Features.Specializations.Queries.GetAllSpecializ
         public async Task<PagginatedResult<SpecializationDto>> Handle(GetAllSpecializationsQuery request, CancellationToken cancellationToken)
         {
             var specializations = await _unitOfWork.SpecializationRepository
-                .GetAllAsync(null)
+                .GetAllAsync(x => x.IsFamous == request.IsFamous)
                 .ProjectTo<SpecializationDto>(_mapper.ConfigurationProvider)
                 .AsPagginatedListAsync(request.PageNumber, request.PageSize);
 

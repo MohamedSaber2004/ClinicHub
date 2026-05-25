@@ -4,6 +4,7 @@ using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Posts.Commands.TogglePostReaction
 {
@@ -13,24 +14,24 @@ namespace ClinicHub.Application.Features.Posts.Commands.TogglePostReaction
     {
         private readonly IUnitOfWork _ctx;
 
-        public TogglePostReactionCommandValidator(IUnitOfWork ctx)
+        public TogglePostReactionCommandValidator(IUnitOfWork ctx, IStringLocalizer<Messages> localizer)
         {
             _ctx = ctx;
 
             RuleFor(x => x.PostId).NotEmpty()
-               .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value)); 
-               
+               .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
+
             RuleFor(x => x.Type).IsInEnum()
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.InvalidEnumValue.Value));
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidEnumValue.Value]));
 
             RuleFor(x => x.PostId)
                 .MustAsync(PostExists)
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.PostMessages.NotFound.Value));
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.PostMessages.NotFound.Value]));
         }
 
         private async Task<bool> PostExists(Guid postId, CancellationToken cancellationToken)
         {
-            return await _ctx.GetRepository<Post,Guid>().ExistsAsync(p => p.Id == postId, cancellationToken);
+            return await _ctx.GetRepository<Post, Guid>().ExistsAsync(p => p.Id == postId, cancellationToken);
         }
     }
 }

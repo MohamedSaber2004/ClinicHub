@@ -4,5 +4,5 @@ using MediatR;
 
 namespace ClinicHub.Application.Features.Specializations.Queries.GetAllSpecializations
 {
-    public record GetAllSpecializationsQuery(int PageNumber = 1, int PageSize = 20) : IRequest<PagginatedResult<SpecializationDto>>;
+    public record GetAllSpecializationsQuery(int PageNumber = 1, int PageSize = 20, bool IsFamous = true) : IRequest<PagginatedResult<SpecializationDto>>;
 }

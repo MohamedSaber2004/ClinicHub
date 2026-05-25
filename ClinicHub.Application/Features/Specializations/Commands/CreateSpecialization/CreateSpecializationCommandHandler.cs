@@ -3,6 +3,7 @@ using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Specializations.Commands.CreateSpecialization
 {
@@ -10,11 +11,13 @@ namespace ClinicHub.Application.Features.Specializations.Commands.CreateSpeciali
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IStringLocalizer<Messages> _localizer;
 
-        public CreateSpecializationCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        public CreateSpecializationCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IStringLocalizer<Messages> localizer)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _localizer = localizer;
         }
 
         public async Task<string> Handle(CreateSpecializationCommand request, CancellationToken cancellationToken)
@@ -25,9 +28,9 @@ namespace ClinicHub.Application.Features.Specializations.Commands.CreateSpeciali
             await repo.AddAsync(specialization);
             var result = await _unitOfWork.SaveChangesAsync();
 
-            return result > 0 ? 
-                JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.GeneralMessages.Success.Value):
-                JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.GeneralMessages.Error.Value);
+            return result > 0 ?
+                JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.GeneralMessages.Success.Value]) :
+                JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.GeneralMessages.Error.Value]);
         }
     }
 }

@@ -1,16 +1,19 @@
 using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Specializations.Commands.DeleteSpecialization
 {
     public class DeleteSpecializationCommandHandler : IRequestHandler<DeleteSpecializationCommand, string>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IStringLocalizer<Messages> _localizer;
 
-        public DeleteSpecializationCommandHandler(IUnitOfWork unitOfWork)
+        public DeleteSpecializationCommandHandler(IUnitOfWork unitOfWork, IStringLocalizer<Messages> localizer)
         {
             _unitOfWork = unitOfWork;
+            _localizer = localizer;
         }
 
         public async Task<string> Handle(DeleteSpecializationCommand request, CancellationToken cancellationToken)
@@ -20,15 +23,15 @@ namespace ClinicHub.Application.Features.Specializations.Commands.DeleteSpeciali
 
             if (specialization == null)
             {
-                return JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.SpecializationMessages.NotFound.Value);
+                return JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.SpecializationMessages.NotFound.Value]);
             }
 
             repo.Delete(specialization);
             var result = await _unitOfWork.SaveChangesAsync();
 
             return result > 0 ? 
-                JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.GeneralMessages.Success.Value):
-                JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.GeneralMessages.Error.Value);
+                JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.GeneralMessages.Success.Value]):
+                JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.GeneralMessages.Error.Value]);
         }
     }
 }

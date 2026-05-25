@@ -34,10 +34,10 @@ namespace ClinicHub.Application.Features.Conversations.Queries.GetConversationBy
 
             var conversation = await _unitOfWork.ConversationRepository.GetByIdWithMessagesAsync(request.ConversationId, cancellationToken);
             if (conversation == null)
-                throw new NotFoundException(_localizer[LocalizationKeys.ValidationMessages.ConversationNotFound.Key]);
+                throw new NotFoundException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ValidationMessages.ConversationNotFound.Key]));
 
             if (conversation.InitiatorId != currentUserId && conversation.RecipientId != currentUserId)
-                throw new BadRequestException(_localizer[LocalizationKeys.ValidationMessages.UnauthorizedAction.Key]);
+                throw new BadRequestException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ValidationMessages.UnauthorizedAction.Key]));
 
             // Fetch participants data
             var initiator = await _unitOfWork.GetRepository<ApplicationUser, Guid>().FindByKeyAsync(conversation.InitiatorId);

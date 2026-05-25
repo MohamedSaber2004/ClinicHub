@@ -30,12 +30,12 @@ namespace ClinicHub.Application.Features.Conversations.Commands.UpdateConversati
             // Verify conversation exists
             var conversation = await _unitOfWork.ConversationRepository.GetByIdAsync(request.ConversationId);
             if (conversation == null)
-                throw new NotFoundException(_localizer[LocalizationKeys.ValidationMessages.ConversationNotFound.Key]);
+                throw new NotFoundException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ValidationMessages.ConversationNotFound.Key]));
 
             // Get current user's participant record
             var participant = await _unitOfWork.ConversationParticipantRepository.GetParticipantAsync(request.ConversationId, currentUserId);
             if (participant == null)
-                throw new BadRequestException(_localizer[LocalizationKeys.ValidationMessages.UnauthorizedAction.Key]);
+                throw new BadRequestException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ValidationMessages.UnauthorizedAction.Key]));
 
             // Update settings
             if (request.IsMuted.HasValue)
@@ -50,7 +50,7 @@ namespace ClinicHub.Application.Features.Conversations.Commands.UpdateConversati
             _unitOfWork.ConversationParticipantRepository.Update(participant);
             await _unitOfWork.SaveChangesAsync();
 
-            return _localizer[LocalizationKeys.ActionResults.Ok.Key];
+            return JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ActionResults.Ok.Key]);
         }
     }
 }

@@ -14,7 +14,7 @@ namespace ClinicHub.Application.Features.Conversations.Queries.GetConversationBy
         {
             RuleFor(x => x.ConversationId)
                 .NotEmpty()
-                .WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value]);
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
         }
     }
 }

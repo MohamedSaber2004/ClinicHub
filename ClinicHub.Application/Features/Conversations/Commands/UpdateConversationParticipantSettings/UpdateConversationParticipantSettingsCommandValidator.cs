@@ -1,6 +1,7 @@
 ﻿using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Conversations.Commands.UpdateConversationParticipantSettings
 {
@@ -8,20 +9,20 @@ namespace ClinicHub.Application.Features.Conversations.Commands.UpdateConversati
     {
         private readonly IUnitOfWork _ctx;
 
-        public UpdateConversationParticipantSettingsCommandValidator(IUnitOfWork ctx)
+        public UpdateConversationParticipantSettingsCommandValidator(IUnitOfWork ctx, IStringLocalizer<Messages> localizer)
         {
             _ctx = ctx;
 
             RuleFor(x => x.ConversationId)
                 .NotEmpty()
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value))
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
                 .MustAsync(ConversationExists)
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.RealTimeMessages.ConversationNotFound.Value));
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.RealTimeMessages.ConversationNotFound.Value]));
 
             // At least one setting should be provided
             RuleFor(x => x)
                 .Must(x => x.IsMuted.HasValue || x.IsArchived.HasValue || x.IsBlocked.HasValue)
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.AtLeastOneFieldRequired.Value));
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.AtLeastOneFieldRequired.Value]));
         }
 
         private async Task<bool> ConversationExists(Guid conversationId, CancellationToken cancellationToken)

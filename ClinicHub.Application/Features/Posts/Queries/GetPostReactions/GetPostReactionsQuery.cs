@@ -5,27 +5,28 @@ using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Posts.Queries.GetPostReactions
 {
-    public record GetPostReactionsQuery(Guid PostId, 
-        int PageNumber = PagginatedResult<ReactionDto>.DefaultPageNumber, 
+    public record GetPostReactionsQuery(Guid PostId,
+        int PageNumber = PagginatedResult<ReactionDto>.DefaultPageNumber,
         int PageSize = PagginatedResult<ReactionDto>.DefaultPageSize) : IRequest<PagginatedResult<ReactionDto>>;
 
     public class GetPostReactionsQueryValidator : AbstractValidator<GetPostReactionsQuery>
     {
         private readonly IUnitOfWork _ctx;
 
-        public GetPostReactionsQueryValidator(IUnitOfWork ctx)
+        public GetPostReactionsQueryValidator(IUnitOfWork ctx, IStringLocalizer<Messages> localizer)
         {
             _ctx = ctx;
 
             RuleFor(x => x.PostId).NotEmpty()
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value));
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
 
             RuleFor(x => x.PostId)
                 .MustAsync(PostExists)
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.PostMessages.NotFound.Value));
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.PostMessages.NotFound.Value]));
         }
 
         private async Task<bool> PostExists(Guid postId, CancellationToken ct)

@@ -4,6 +4,7 @@ using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Posts.Commands.DeletePost
 {
@@ -14,7 +15,7 @@ namespace ClinicHub.Application.Features.Posts.Commands.DeletePost
         private readonly IUnitOfWork _ctx;
         private readonly ICurrentUserService _currentUserService;
 
-        public DeletePostCommandValidator(IUnitOfWork ctx, ICurrentUserService currentUserService)
+        public DeletePostCommandValidator(IUnitOfWork ctx, ICurrentUserService currentUserService, IStringLocalizer<Messages> localizer)
         {
             _ctx = ctx;
             _currentUserService = currentUserService;
@@ -26,11 +27,11 @@ namespace ClinicHub.Application.Features.Posts.Commands.DeletePost
                 {
                     if (!await IsAuthor(postId, cancellationToken))
                     {
-                        context.AddFailure(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ExceptionMessages.Unauthorized.Value));
+                        context.AddFailure(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ExceptionMessages.Unauthorized.Value]));
                     }
                 })
                 .MustAsync(PostExists)
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.PostMessages.NotFound.Value));
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.PostMessages.NotFound.Value]));
         }
 
         private async Task<bool> PostExists(Guid postId, CancellationToken cancellationToken)

@@ -7,5 +7,6 @@ namespace ClinicHub.Application.Features.Specializations.DTOs
         public string ArName { get; set; } = null!;
         public string? Description { get; set; }
         public string? IconUrl { get; set; }
+        public bool IsFamous { get; set; }
     }
 }

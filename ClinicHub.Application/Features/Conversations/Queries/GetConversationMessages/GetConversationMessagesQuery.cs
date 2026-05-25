@@ -3,6 +3,7 @@ using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Localization;
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Conversations.Queries.GetConversationMessages
 {
@@ -10,21 +11,20 @@ namespace ClinicHub.Application.Features.Conversations.Queries.GetConversationMe
 
     public class GetConversationMessagesQueryValidator : AbstractValidator<GetConversationMessagesQuery>
     {
-        public GetConversationMessagesQueryValidator()
+        public GetConversationMessagesQueryValidator(IStringLocalizer<Messages> localizer)
         {
             RuleFor(x => x.ConversationId)
                 .NotEmpty()
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.ValidationMessages.Required.Value));
-
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
             RuleFor(x => x.PageNumber)
                 .GreaterThanOrEqualTo(1)
-                .WithMessage("Page number must be greater than or equal to 1");
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.PageNumberMustBeGreaterThanOrEqualToOne.Value]));
 
             RuleFor(x => x.PageSize)
                 .GreaterThanOrEqualTo(1)
-                .WithMessage("Page size must be greater than or equal to 1")
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.PageSizeMustBeGreaterThanOrEqualToOne.Value]))
                 .LessThanOrEqualTo(100)
-                .WithMessage("Page size must be less than or equal to 100");
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.PageSizeMustBeLessThanOrEqualToHundred.Value]));
         }
     }
 }

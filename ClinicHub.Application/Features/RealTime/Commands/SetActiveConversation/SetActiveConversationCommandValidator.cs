@@ -15,7 +15,7 @@ namespace ClinicHub.Application.Features.RealTime.Commands.SetActiveConversation
             _ctx = ctx;
 
             RuleFor(x => x.ConversationId)
-                .MustAsync(ConversationFound).WithMessage(localizer["RealTime:ConversationNotFound"])
+                .MustAsync(ConversationFound).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.RealTimeMessages.ConversationNotFound.Value]))
                 .When(c => c.ConversationId is not null);
         }
 

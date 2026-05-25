@@ -1,4 +1,5 @@
-﻿using ClinicHub.Domain.Entities;
+﻿using ClinicHub.Application.Localization;
+using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
 using Microsoft.Extensions.Localization;
@@ -15,8 +16,8 @@ namespace ClinicHub.Application.Features.RealTime.Commands.SetTyping
 
 
             RuleFor(x => x.ConversationId)
-                .NotEmpty().WithMessage(localizer["RealTime:ConversationIdRequired"])
-                .MustAsync(ConversationFound).WithMessage(localizer["RealTime:ConversationNotFound"]);
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.RealTimeMessages.ConversationIdRequired.Value]))
+                .MustAsync(ConversationFound).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.RealTimeMessages.ConversationNotFound.Value]));
         }
 
         private async Task<bool> ConversationFound(Guid conversationId, CancellationToken cancellationToken)

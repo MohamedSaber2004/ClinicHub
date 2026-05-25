@@ -3,6 +3,7 @@ using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Posts.Commands.CreatePost
 {
@@ -10,9 +11,11 @@ namespace ClinicHub.Application.Features.Posts.Commands.CreatePost
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IStringLocalizer<Messages> _localizer;
 
-        public CreatePostCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+        public CreatePostCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IStringLocalizer<Messages> localizer)
         {
+            _localizer = localizer;
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
         }
@@ -33,9 +36,9 @@ namespace ClinicHub.Application.Features.Posts.Commands.CreatePost
             await repo.AddAsync(post);
             var result = await _unitOfWork.SaveChangesAsync();
 
-            return result > 0 ? 
-                JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.GeneralMessages.Success.Value):
-                JsonLocalizationProvider.GetLocalizedString(LocalizationKeys.GeneralMessages.Error.Value);
+            return result > 0 ?
+                JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.GeneralMessages.Success.Value]) :
+                JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.GeneralMessages.Error.Value]);
         }
     }
 }

@@ -19,11 +19,11 @@ namespace ClinicHub.Application.Features.Posts.Queries.GetPostById
             _ctx = ctx;
 
             RuleFor(x => x.PostId).NotEmpty()
-                .WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Key]);
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Key]));
 
             RuleFor(x => x.PostId)
                 .MustAsync(PostExists)
-                .WithMessage(localizer[LocalizationKeys.PostMessages.NotFound.Key]);
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.PostMessages.NotFound.Key]));
         }
 
         private async Task<bool> PostExists(Guid postId, CancellationToken cancellationToken)
