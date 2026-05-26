@@ -34,19 +34,23 @@ public class PaymentsController : BaseApiController
 
     /// <summary>
     /// Handles incoming payment webhook notifications from Paymob and processes the payment confirmation.
+    /// Paymob sends HMAC in query string and transaction data in request body.
     /// </summary>
-    /// <param name="request">The payment webhook request containing HMAC and transaction data.</param>
+    /// <param name="request">The payment webhook request containing transaction data.</param>
+    /// <param name="hmac">The HMAC hash from Paymob webhook for validation (from query string).</param>
     /// <returns>An <see cref="IActionResult"/> indicating the result of the webhook processing.</returns>
     [HttpPost]
     [Route(ApiRoutes.Payments.Webhook)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Webhook([FromBody] ConfirmPaymentWebhookRequestDto request)
+    public async Task<IActionResult> Webhook(
+        [FromBody] ConfirmPaymentWebhookRequestDto request,
+        [FromQuery] string hmac)
     {
         var command = new ConfirmPaymentWebhookCommand
         {
-            Hmac = request.Hmac,
-            TransactionData = request.TransactionData
+            Hmac = hmac,
+            Transaction = request.Transaction
         };
         var result = await _mediator.Send(command);
         return Ok(result);
