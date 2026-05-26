@@ -23,8 +23,14 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
 
     public async Task<bool> Handle(ConfirmPaymentWebhookCommand request, CancellationToken cancellationToken)
     {
+        _logger.LogInformation("Webhook received - HMAC: {Hmac}, Transaction ID: {TransactionId}, Order ID: {OrderId}", 
+            request.Hmac, request.Transaction?.Id, request.Transaction?.Order?.Id);
+
         if (string.IsNullOrWhiteSpace(request.Hmac))
+        {
+            _logger.LogWarning("Webhook validation failed: HMAC is empty");
             return false;
+        }
 
         var transaction = request.Transaction;
         if (transaction?.Order?.Id == 0)
@@ -35,21 +41,27 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
 
         // Convert transaction object to dictionary for HMAC validation
         var transactionData = TransactionToDictionary(transaction);
+        _logger.LogInformation("Transaction data for HMAC validation: {TransactionDataKeys}", string.Join(", ", transactionData.Keys));
 
         var isValid = await _paymobService.ValidateWebhookAsync(request.Hmac, transactionData);
         if (!isValid)
         {
-            _logger.LogWarning("Paymob HMAC validation failed for Order {OrderId}", transaction.Order.Id);
+            _logger.LogWarning("Paymob HMAC validation failed for Order {OrderId}. Transaction data: {@TransactionData}", 
+                transaction.Order.Id, transactionData);
             return false;
         }
+
+        _logger.LogInformation("HMAC validation passed for Order {OrderId}", transaction.Order.Id);
 
         var orderId = transaction.Order.Id.ToString();
         var payment = await _unitOfWork.PaymentRepository.GetByPaymobOrderIdAsync(orderId);
         if (payment == null)
         {
-            _logger.LogWarning("Payment not found for Paymob Order {OrderId}", orderId);
+            _logger.LogWarning("Payment not found for Paymob Order {OrderId}. Searching in database...", orderId);
             return false;
         }
+
+        _logger.LogInformation("Payment found: {PaymentId}, Current Status: {Status}", payment.Id, payment.Status);
 
         // Idempotency: skip if already processed
         if (payment.Status != PaymentStatus.Pending)
@@ -63,9 +75,18 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
             payment.MarkAsPaid(transaction.Id.ToString(), transaction.SourceData?.SubType ?? "Unknown");
 
             var appointment = await _unitOfWork.AppointmentRepository.GetByIdAsync(payment.AppointmentId);
-            appointment?.Confirm();
+            if (appointment != null)
+            {
+                appointment.Confirm();
+                _logger.LogInformation("Appointment {AppointmentId} confirmed", payment.AppointmentId);
+            }
+            else
+            {
+                _logger.LogWarning("Appointment {AppointmentId} not found for payment {PaymentId}", payment.AppointmentId, payment.Id);
+            }
 
-            _logger.LogInformation("Payment {PaymentId} marked as paid. Transaction: {TransactionId}", payment.Id, transaction.Id);
+            _logger.LogInformation("Payment {PaymentId} marked as paid. Transaction: {TransactionId}, Source: {SourceType}", 
+                payment.Id, transaction.Id, transaction.SourceData?.SubType ?? "Unknown");
         }
         else
         {
@@ -74,7 +95,9 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
             payment.MarkAsFailed();
         }
 
+        _logger.LogInformation("Saving changes to database for Payment {PaymentId}", payment.Id);
         await _unitOfWork.SaveChangesAsync();
+        _logger.LogInformation("Successfully saved payment update for Payment {PaymentId}", payment.Id);
         return true;
     }
 
