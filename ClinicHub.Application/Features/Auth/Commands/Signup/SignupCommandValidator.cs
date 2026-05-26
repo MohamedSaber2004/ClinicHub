@@ -38,10 +38,11 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
                 .Matches(@"^1[0125]\d{8}$").WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value]));
 
             RuleFor(x => x.BirthDate)
-                 .NotEmpty()
-                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
+                 //.NotEmpty()
+                 //.WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
                  .Must(BeAtLeast18)
-                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MinAge.Value]));
+                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MinAge.Value]))
+                 .When(x => x.BirthDate.HasValue);
 
             RuleFor(x => x.Gender)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
@@ -54,7 +55,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
             return user == null;
         }
 
-        private bool BeAtLeast18(DateTime birthDate)
+        private bool BeAtLeast18(DateTime? birthDate)
         {
             var minAllowedDate = DateTime.UtcNow.AddYears(-15);
 

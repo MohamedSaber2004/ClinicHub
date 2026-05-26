@@ -47,7 +47,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
                 request.FullName, 
                 request.Email, 
                 request.PhoneNumber, 
-                request.BirthDate,
+                request.BirthDate!.Value,
                 request.Gender);
 
             var result = await _userManager.CreateAsync(user, request.Password);

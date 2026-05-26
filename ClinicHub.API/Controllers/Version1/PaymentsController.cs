@@ -68,4 +68,19 @@ public class PaymentsController : BaseApiController
         var result = await _mediator.Send(query);
         return Ok(result);
     }
+
+    [HttpGet]
+    [Route(ApiRoutes.Payments.Result)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public IActionResult PaymentResult([FromQuery] bool success)
+    {
+        // ✅ FIXED: removed duplicate nested if
+        if (success == true)
+        {
+            return Ok(new { message = "تم الدفع بنجاح!" });
+        }
+
+        return BadRequest(new { message = "فشل الدفع" });
+    }
 }

@@ -35,8 +35,8 @@ public class WebhookTestHelperController : ControllerBase
         if (transactionData == null || transactionData.Count == 0)
             return BadRequest(new { error = "Transaction data is required" });
 
-        var hmac = ComputeHmacSha256(_paymobSettings.HmacSecret, transactionData);
-        
+        var hmac = ComputeHmacSha512(_paymobSettings.HmacSecret, transactionData);
+
         return Ok(new
         {
             hmac = hmac,
@@ -49,10 +49,10 @@ public class WebhookTestHelperController : ControllerBase
         });
     }
 
-    private static string ComputeHmacSha256(string secret, IDictionary<string, string> transactionData)
+    private static string ComputeHmacSha512(string secret, IDictionary<string, string> transactionData)
     {
         var concatenated = string.Concat(transactionData.Values);
-        using var hmac = new System.Security.Cryptography.HMACSHA256(Encoding.UTF8.GetBytes(secret));
+        using var hmac = new System.Security.Cryptography.HMACSHA512(Encoding.UTF8.GetBytes(secret));
         var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(concatenated));
         return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
     }
