@@ -2,6 +2,7 @@ using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Auth.Commands.Signup
@@ -35,7 +36,8 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
             RuleFor(x => x.PhoneNumber)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
                 .MaximumLength(20).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]))
-                .Matches(@"^1[0125]\d{8}$").WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value]));
+                .Matches(@"^1[0125]\d{8}$").WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value]))
+                .MustAsync(BeUniquePhoneNumber).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.PhoneNumberExistsBefore.Value]));
 
             RuleFor(x => x.BirthDate)
                  //.NotEmpty()
@@ -53,6 +55,11 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
         {
             var user = await _userManager.FindByEmailAsync(email);
             return user == null;
+        }
+
+        private async Task<bool> BeUniquePhoneNumber(string phoneNumber, CancellationToken cancellationToken)
+        {
+            return await _userManager.Users.AllAsync(u => u.PhoneNumber != phoneNumber, cancellationToken);
         }
 
         private bool BeAtLeast18(DateTime? birthDate)

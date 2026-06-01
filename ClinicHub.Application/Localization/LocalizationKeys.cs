@@ -118,6 +118,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString MustBeGmail = new("Auth.MustBeGmail");
             public static readonly KeyString LogoutSuccess = new("Auth.LogoutSuccess");
             public static readonly KeyString RefreshTokenRequired = new("Auth.RefreshTokenRequired");
+            public static readonly KeyString PhoneNumberExistsBefore = new("Auth.PhoneNumberExistsBefore");
         }
 
         public static class ClinicMessages
