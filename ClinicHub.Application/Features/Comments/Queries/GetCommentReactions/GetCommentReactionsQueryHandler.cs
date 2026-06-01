@@ -21,14 +21,19 @@ namespace ClinicHub.Application.Features.Comments.Queries.GetCommentReactions
             var repo = _unitOfWork.GetRepository<Reaction, Guid>();
             
             var query = repo.GetAllAsync(r => r.CommentId == request.CommentId)
-                .OrderByDescending(r => r.CreatedAt);
+                .Join(_unitOfWork.GetRepository<ApplicationUser, Guid>().GetAllAsync(null),
+                    r => r.AuthorId,
+                    u => u.Id,
+                    (r, u) => new { r, u })
+                .OrderByDescending(x => x.r.CreatedAt);
 
             return await query
                 .Select(x => new ReactionDto(
-                    x.Id,
-                    x.AuthorId,
-                    x.Type.ToString(),
-                    x.CreatedAt)
+                    x.r.Id,
+                    x.u.Id,
+                    x.u.FullName,
+                    x.r.Type.ToString(),
+                    x.r.CreatedAt)
                 )
                 .AsPagginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
         }

@@ -20,21 +20,27 @@ namespace ClinicHub.Application.Features.Comments.Queries.GetCommentReplies
         public async Task<PagginatedResult<CommentDto>> Handle(GetCommentRepliesQuery request, CancellationToken cancellationToken)
         {
             var repo = _unitOfWork.GetRepository<Comment, Guid>();
+            var usersRepo = _unitOfWork.GetRepository<ApplicationUser, Guid>();
             
             var query = repo.GetBy(c => c.ParentCommentId == request.CommentId)
-                .OrderBy(c => c.CreatedAt);
+                .Join(usersRepo.GetAllAsync(null),
+                    c => c.AuthorId,
+                    u => u.Id,
+                    (c, u) => new { c, u })
+                .OrderBy(x => x.c.CreatedAt);
 
             return await query
-                .Select(c => new CommentDto(
-                    c.Id,
-                    c.Content,
-                    c.AuthorId,
-                    c.PostId,
-                    c.ParentCommentId,
-                    c.CreatedAt,
-                    c.Reactions.Count,
-                    c.Replies.Count,
-                    c.Media.Select(m => new MediaDto(m.Id, m.Url, m.Type.ToString())).ToList()
+                .Select(x => new CommentDto(
+                    x.c.Id,
+                    x.c.Content,
+                    x.c.AuthorId,
+                    x.u.FullName,
+                    x.c.PostId,
+                    x.c.ParentCommentId,
+                    x.c.CreatedAt,
+                    x.c.Reactions.Count,
+                    x.c.Replies.Count,
+                    x.c.Media.Select(m => new MediaDto(m.Id, m.Url, m.Type.ToString())).ToList()
                 ))
                 .AsPagginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
         }
