@@ -3,7 +3,7 @@ using ClinicHub.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ClinicHub.Persistence.Configurations;
+namespace ClinicHub.Persistence.Configuration;
 
 public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
 {
@@ -15,7 +15,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.Amount).IsRequired().HasColumnType("decimal(18,2)");
         builder.Property(p => p.Currency).IsRequired().HasMaxLength(3);
         builder.Property(p => p.Status).IsRequired().HasConversion<int>();
-        builder.HasIndex(p => p.AppointmentId).IsUnique();
+        builder.HasIndex(p => p.AppointmentId);
 
         builder.HasOne<Appointment>()
             .WithMany()

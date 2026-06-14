@@ -15,8 +15,8 @@ namespace ClinicHub.Domain.Repositories.Interfaces
             int pageSize,
             Guid? doctorId = null,
             Guid? clinicId = null,
-            DateTime? startDate = null,
-            DateTime? endDate = null,
+            string? startDate = null,
+            string? endDate = null,
             AppointmentStatus? status = null,
             string? patientName = null);
     }

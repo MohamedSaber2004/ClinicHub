@@ -16,27 +16,21 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
     public sealed class SignupCommandHandler : IRequestHandler<SignupCommand, AuthResponseDto>
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IEmailService _emailService;
         private readonly IJwtTokenService _jwtTokenService;
         private readonly JwtSettings _jwtSettings;
-        private readonly EmailSettings _emailSettings;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IStringLocalizer<Messages> _localizer;
 
         public SignupCommandHandler(
             UserManager<ApplicationUser> userManager,
-            IEmailService emailService,
             IJwtTokenService jwtTokenService,
             IOptions<JwtSettings> jwtSettings,
-            IOptions<EmailSettings> emailSettings,
             IUnitOfWork unitOfWork,
             IStringLocalizer<Messages> localizer)
         {
             _userManager = userManager;
-            _emailService = emailService;
             _jwtTokenService = jwtTokenService;
             _jwtSettings = jwtSettings.Value;
-            _emailSettings = emailSettings.Value;
             _unitOfWork = unitOfWork;
             _localizer = localizer;
         }
@@ -47,7 +41,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
                 request.FullName, 
                 request.Email, 
                 request.PhoneNumber, 
-                request.BirthDate!.Value,
+                request.BirthDate,
                 request.Gender);
 
             var result = await _userManager.CreateAsync(user, request.Password);
@@ -58,12 +52,6 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
             }
 
             await _userManager.AddToRoleAsync(user, UserType.User.ToString());
-
-            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            var verificationCode = (environment == "Development" || environment == "Test")
-                ? "123456"
-                : new Random().Next(100000, 999999).ToString();
-            user.SetVerificationCode(verificationCode, DateTime.UtcNow.AddMinutes(_emailSettings.VerificationCodeExpiryMinutes));
             
             var roles = await _userManager.GetRolesAsync(user);
             var accessToken = _jwtTokenService.GenerateAccessToken(user, roles);
@@ -73,9 +61,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
             await _unitOfWork.UserRefreshTokenRepository.AddAsync(userRefreshToken);
             await _unitOfWork.SaveChangesAsync();
 
-            await _emailService.SendVerificationEmailAsync(user.Email!, user.FullName, verificationCode, cancellationToken);
-
-            return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, user.Id, verificationCode);
+            return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, user.Id);
         }
     }
 }

@@ -26,7 +26,7 @@ namespace ClinicHub.Application.Features.Auth.Queries.SearchUsers
                 var term = request.SearchTerm.ToLower();
                 query = query.Where(u => 
                     u.FullName.ToLower().Contains(term) || 
-                    u.Email.ToLower().Contains(term));
+                    (u.Email != null && u.Email.ToLower().Contains(term)));
             }
 
             var users = await query
@@ -35,7 +35,7 @@ namespace ClinicHub.Application.Features.Auth.Queries.SearchUsers
                 {
                     Id = u.Id,
                     FullName = u.FullName,
-                    Email = u.Email,
+                    Email = u.Email ?? string.Empty,
                     ProfilePictureUrl = u.ProfilePictureUrl ?? string.Empty
                 })
                 .ToListAsync(cancellationToken);

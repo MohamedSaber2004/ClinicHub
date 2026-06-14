@@ -1,5 +1,4 @@
 ﻿using ClinicHub.Application.Common.Options;
-using Google.Apis.Http;
 using Microsoft.Extensions.Configuration;
 
 namespace ClinicHub.Application.Common.Services

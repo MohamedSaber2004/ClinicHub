@@ -7,8 +7,7 @@ namespace ClinicHub.Application.Features.Auth.DTOs
         string? RefreshToken,
         string FullName,
         string Email,
-        Guid id,
-        string? VerificationCode);
+        Guid id);
 
     public record RefreshTokenResponseDto(
         string AccessToken,
@@ -19,9 +18,9 @@ namespace ClinicHub.Application.Features.Auth.DTOs
         Guid Id,
         string FullName,
         string Email,
-        Gender Gender,
+        Gender? Gender,
         string PhoneNumber,
-        DateTime BirthDate,
+        DateTime? BirthDate,
         string? ProfilePictureUrl,
         LanguageCode Language);
 }

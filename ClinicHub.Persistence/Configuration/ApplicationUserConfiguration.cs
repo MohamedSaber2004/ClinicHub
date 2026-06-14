@@ -26,8 +26,7 @@ namespace ClinicHub.Persistence.Configuration
             builder.Property(u => u.PhoneNumber)
                 .HasMaxLength(50);
 
-            builder.Property(u => u.BirthDate)
-                .IsRequired();
+            builder.Property(u => u.BirthDate);
 
             builder.Property(u => u.PasswordResetToken)
                 .HasMaxLength(2000);

@@ -10,9 +10,9 @@ namespace ClinicHub.Application.Features.Appointments.DTOs
         public Guid DoctorId { get; set; }
         public Guid ClinicId { get; set; }
         
-        public DateTime AppointmentDate { get; set; }
-        public TimeSpan StartTime { get; set; }
-        public TimeSpan EndTime { get; set; }
+        public string AppointmentDate { get; set; } = null!;
+        public string StartTime { get; set; } = null!;
+        public string EndTime { get; set; } = null!;
 
         public AppointmentType AppointmentType { get; set; }
         public AppointmentStatus Status { get; set; }

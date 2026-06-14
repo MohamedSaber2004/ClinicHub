@@ -1,5 +1,5 @@
 using ClinicHub.Domain.Entities;
-using ClinicHub.Domain.Repositories;
+using ClinicHub.Domain.Repositories.Interfaces;
 using ClinicHub.Infrastructure.Repositories.Implementations.Base;
 using ClinicHub.Persistence;
 using Microsoft.EntityFrameworkCore;

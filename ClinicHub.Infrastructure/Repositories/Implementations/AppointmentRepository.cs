@@ -39,8 +39,8 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations
             int pageSize,
             Guid? doctorId = null,
             Guid? clinicId = null,
-            DateTime? startDate = null,
-            DateTime? endDate = null,
+            string? startDate = null,
+            string? endDate = null,
             AppointmentStatus? status = null,
             string? patientName = null)
         {
@@ -52,12 +52,11 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations
             if (clinicId.HasValue)
                 query = query.Where(a => a.ClinicId == clinicId.Value);
 
-            if (startDate.HasValue)
-                query = query.Where(a => a.AppointmentDate >= startDate.Value.Date);
+            if (!string.IsNullOrEmpty(startDate))
+                query = query.Where(a => a.AppointmentDate >= DateTime.Parse(startDate));
 
-            if (endDate.HasValue)
-                query = query.Where(a => a.AppointmentDate <= endDate.Value.Date);
-
+            if (!string.IsNullOrEmpty(endDate))
+                query = query.Where(a => a.AppointmentDate <= DateTime.Parse(endDate));
             if (status.HasValue)
                 query = query.Where(a => a.Status == status.Value);
 

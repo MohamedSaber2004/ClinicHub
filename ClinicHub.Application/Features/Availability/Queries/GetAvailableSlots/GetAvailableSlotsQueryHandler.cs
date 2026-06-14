@@ -46,8 +46,8 @@ namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
 
                     timeSlots.Add(new TimeSlotDto
                     {
-                        StartTime = currentTime,
-                        EndTime = slotEndTime,
+                        StartTime = currentTime.ToString(@"hh\:mm"),
+                        EndTime = slotEndTime.ToString(@"hh\:mm"),
                         IsAvailable = !isBooked
                     });
 

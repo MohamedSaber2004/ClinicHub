@@ -5,7 +5,6 @@ using ClinicHub.Application.Features.Auth.Commands.RefreshToken;
 using ClinicHub.Application.Features.Auth.Commands.ResetPassword;
 using ClinicHub.Application.Features.Auth.Commands.Signup;
 using ClinicHub.Application.Features.Auth.Commands.VerifyResetToken;
-using ClinicHub.Application.Features.Auth.Commands.VerifyUser;
 using ClinicHub.Application.Features.Auth.Queries.GetUserProfile;
 using ClinicHub.Application.Features.Auth.Commands.UpdateProfile;
 using ClinicHub.Application.Features.Auth.Commands.UpdateLanguage;
@@ -43,22 +42,6 @@ namespace ClinicHub.API.Controllers.Version1
         {
             var result  = await _mediator.Send(command, ct);
             return Created(null!,result);
-        }
-
-        /// <summary>
-        /// Verifies a user using a code sent via email.
-        /// </summary>
-        /// <param name="command">Email and verification code.</param>
-        /// <param name="ct">Cancellation token.</param>
-        /// <returns>Authentication tokens and user info.</returns>
-        [HttpPost]
-        [Route(ApiRoutes.Auth.Verify)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Verify(VerifyUserCommand command, CancellationToken ct)
-        {
-            var result  = await _mediator.Send(command, ct);
-            return Ok(result);
         }
 
         /// <summary>

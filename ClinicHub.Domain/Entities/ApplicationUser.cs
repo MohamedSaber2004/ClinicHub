@@ -16,8 +16,8 @@ namespace ClinicHub.Domain.Entities
         public bool IsActive { get; set; } = true;
 
         public string FullName { get; private set; } = null!;
-        public DateTime BirthDate { get; private set; }
-        public Gender Gender { get; private set; }
+        public DateTime? BirthDate { get; private set; }
+        public Gender? Gender { get; private set; }
         public string? ProfilePictureUrl { get; private set; }
         public string? PasswordResetToken { get; private set; }
         public DateTime? PasswordResetTokenExpiry { get; private set; }
@@ -28,14 +28,15 @@ namespace ClinicHub.Domain.Entities
         public string? FacebookUserId { get; private set; }
         public string? GoogleUserId { get; private set; }
 
-        public static ApplicationUser Create(string fullName, string email, string phoneNumber, DateTime birthDate, Gender gender) => new()
+        public static ApplicationUser Create(string fullName, string email, string phoneNumber, DateTime? birthDate, Gender? gender) => new()
         {
             FullName = fullName,
             Email = email,
             UserName = email,
             PhoneNumber = phoneNumber,
             BirthDate = birthDate,
-            Gender = gender
+            Gender = gender,
+            EmailConfirmed = true
         };
 
         public void UpdateLanguage(LanguageCode language) => Language = language;
@@ -44,13 +45,13 @@ namespace ClinicHub.Domain.Entities
 
         public void UpdatePhoneNumber(string phoneNumber) => PhoneNumber = phoneNumber;
 
-        public void UpdateBirthDate(DateTime birthDate) => BirthDate = birthDate;
+        public void UpdateBirthDate(DateTime? birthDate) => BirthDate = birthDate;
 
-        public void UpdateGender(Gender gender) => Gender = gender;
+        public void UpdateGender(Gender? gender) => Gender = gender;
 
         public void UpdateProfilePicture(string? url) => ProfilePictureUrl = url;
 
-        public void UpdateProfile(string fullName, string phoneNumber, DateTime birthDate, Gender gender)
+        public void UpdateProfile(string fullName, string phoneNumber, DateTime? birthDate, Gender? gender)
         {
             FullName = fullName;
             PhoneNumber = phoneNumber;

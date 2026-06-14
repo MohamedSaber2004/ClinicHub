@@ -40,15 +40,13 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
                 .MustAsync(BeUniquePhoneNumber).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.PhoneNumberExistsBefore.Value]));
 
             RuleFor(x => x.BirthDate)
-                 //.NotEmpty()
-                 //.WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
-                 .Must(BeAtLeast18)
-                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MinAge.Value]))
-                 .When(x => x.BirthDate.HasValue);
+                .Must(BeAtLeast18)
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MinAge.Value]))
+                .When(x => x.BirthDate.HasValue);
 
             RuleFor(x => x.Gender)
-                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
-                .IsInEnum().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidEnumValue.Value]));
+                .IsInEnum().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidEnumValue.Value]))
+                .When(x => x.Gender.HasValue);
         }
 
         private async Task<bool> BeUniqueEmail(string email, CancellationToken cancellationToken)

@@ -24,8 +24,8 @@ namespace ClinicHub.Application.Features.Appointments.Queries.GetAllAppointments
                 request.PageSize,
                 request.DoctorId,
                 request.ClinicId,
-                request.StartDate,
-                request.EndDate,
+                request.StartDate.HasValue ? request.StartDate.Value.ToString("dd/MM/yyyy hh:mm tt") : null,
+                request.EndDate.HasValue ? request.EndDate.Value.ToString("dd/MM/yyyy hh:mm tt") : null,
                 request.Status,
                 request.PatientName);
 

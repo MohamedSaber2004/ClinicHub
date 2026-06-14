@@ -28,10 +28,6 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
                     {
                         context.AddFailure(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.InvalidCredentials.Value]));
                     }
-                    else if (!user.EmailConfirmed)
-                    {
-                        context.AddFailure(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.AccountNotVerified.Value]));
-                    }
                 });
         }
     }

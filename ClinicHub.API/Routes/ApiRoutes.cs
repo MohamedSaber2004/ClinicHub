@@ -9,7 +9,6 @@ namespace ClinicHub.API.Routes
         public static class Auth
         {
             public const string Signup = Base + "/auth/signup";
-            public const string Verify = Base + "/auth/verify";
             public const string Login = Base + "/auth/login";
             public const string LoginWithFacebook = Base + "/auth/login-facebook";
             public const string LoginWithGoogle = Base + "/auth/login-google";
@@ -138,6 +137,16 @@ namespace ClinicHub.API.Routes
             public const string Webhook = Base + "/payments/webhook";
             public const string GetStatus = Base + "/payments/status/{appointmentId:guid}";
             public const string Result = Base + "/payments/result";
+        }
+
+        public static class Users
+        {
+            public const string GetAll = Base + "/users";
+            public const string Add = Base + "/users";
+            public const string Edit = Base + "/users/{id:guid}";
+            public const string Delete = Base + "/users/{id:guid}";
+            public const string AssignRole = Base + "/users/{id:guid}/roles";
+            public const string EditRole = Base + "/users/{id:guid}/roles";
         }
     }
 }
