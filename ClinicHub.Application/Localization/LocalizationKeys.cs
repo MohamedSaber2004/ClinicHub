@@ -177,8 +177,13 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString PaymobOrderFailed = new("Payments.PaymobOrderFailed");
             public static readonly KeyString PaymobKeyFailed = new("Payments.PaymobKeyFailed");
             public static readonly KeyString WebhookHmacInvalid = new("Payments.WebhookHmacInvalid");
+            public static readonly KeyString HmacRequired = new("Payments.HmacRequired");
+            public static readonly KeyString TransactionRequired = new("Payments.TransactionRequired");
+            public static readonly KeyString InvalidOrderId = new("Payments.InvalidOrderId");
             public static readonly KeyString InitiateSuccess = new("Payments.InitiateSuccess");
             public static readonly KeyString StatusFetched = new("Payments.StatusFetched");
+            public static readonly KeyString PhoneNumberRequired = new("Payments.PhoneNumberRequired");
+            public static readonly KeyString InvalidPhoneNumber = new("Payments.InvalidPhoneNumber");
         }
     }
 }

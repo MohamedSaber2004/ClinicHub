@@ -50,6 +50,9 @@ public class PaymobTransaction
     [JsonPropertyName("profile_id")]
     public int ProfileId { get; set; }
 
+    [JsonPropertyName("owner")]
+    public int Owner { get; set; }
+
     [JsonPropertyName("has_parent_transaction")]
     public bool HasParentTransaction { get; set; }
 

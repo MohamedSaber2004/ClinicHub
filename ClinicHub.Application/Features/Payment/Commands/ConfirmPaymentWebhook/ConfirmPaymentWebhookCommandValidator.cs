@@ -1,21 +1,23 @@
+using ClinicHub.Application.Localization;
 using FluentValidation;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Payment.Commands.ConfirmPaymentWebhook;
 
 public class ConfirmPaymentWebhookCommandValidator : AbstractValidator<ConfirmPaymentWebhookCommand>
 {
-    public ConfirmPaymentWebhookCommandValidator()
+    public ConfirmPaymentWebhookCommandValidator(IStringLocalizer<Messages> localizer)
     {
         RuleFor(x => x.Hmac)
             .NotEmpty()
-            .WithMessage("HMAC must not be empty");
+            .WithMessage(localizer[LocalizationKeys.PaymentMessages.HmacRequired.Value]);
 
         RuleFor(x => x.Transaction)
             .NotNull()
-            .WithMessage("Transaction must not be null");
+            .WithMessage(localizer[LocalizationKeys.PaymentMessages.TransactionRequired.Value]);
 
         RuleFor(x => x.Transaction.Order.Id)
             .GreaterThan(0)
-            .WithMessage("Order ID must be greater than 0");
+            .WithMessage(localizer[LocalizationKeys.PaymentMessages.InvalidOrderId.Value]);
     }
 }

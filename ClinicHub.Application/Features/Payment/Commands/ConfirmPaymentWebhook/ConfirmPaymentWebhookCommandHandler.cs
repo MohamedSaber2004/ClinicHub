@@ -22,13 +22,18 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
 
     public async Task<bool> Handle(ConfirmPaymentWebhookCommand request, CancellationToken cancellationToken)
     {
+        if (request.Type != "TRANSACTION")
+        {
+            return true;
+        }
+
         if (string.IsNullOrWhiteSpace(request.Hmac))
         {
             return false;
         }
 
         var transaction = request.Transaction;
-        if (transaction?.Order?.Id == 0)
+        if (transaction == null || transaction.Order?.Id == 0)
         {
             return false;
         }
@@ -60,10 +65,7 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
             payment.MarkAsPaid(transaction.Id.ToString(), transaction.SourceData?.SubType ?? "Unknown");
 
             var appointment = await _unitOfWork.AppointmentRepository.GetAllAsync(x => x.Id == payment.AppointmentId).FirstOrDefaultAsync(cancellationToken);
-            if (appointment != null)
-            {
-                appointment.Confirm();
-            }
+            appointment?.Confirm();
 
         }
         else
@@ -93,7 +95,7 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
             { "is_standalone_payment", transaction.IsStandalonePayment.ToString().ToLower() },
             { "is_voided", transaction.IsVoided.ToString().ToLower() },
             { "order.id", transaction.Order?.Id.ToString() ?? "" },
-            { "owner", transaction.Id.ToString() }, // Paymob uses transaction ID as owner in some contexts
+            { "owner", (transaction.Owner != 0 ? transaction.Owner : transaction.ProfileId).ToString() }, 
             { "pending", transaction.Pending.ToString().ToLower() },
             { "source_data.pan", transaction.SourceData?.Pan ?? "" },
             { "source_data.sub_type", transaction.SourceData?.SubType ?? "" },

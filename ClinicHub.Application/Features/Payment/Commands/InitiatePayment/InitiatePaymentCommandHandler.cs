@@ -55,12 +55,27 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
         var walletResult = await _paymobService.InitiateWalletPaymentAsync(
             amount, "EGP", billing, request.PhoneNumber, cancellationToken);
 
-        var payment = new ClinicHub.Domain.Entities.Payment(request.AppointmentId, currentUserId, amount)
+        var payment = await _unitOfWork.PaymentRepository.GetByAppointmentIdAsync(request.AppointmentId);
+        
+        if (payment != null)
         {
-            PaymobOrderId = walletResult.OrderId
-        };
+            if (payment.Status == PaymentStatus.Paid)
+            {
+                throw new BadRequestException(LocalizationKeys.PaymentMessages.AlreadyPaid.Value);
+            }
 
-        await _unitOfWork.PaymentRepository.AddAsync(payment);
+            // Update existing payment with new Paymob Order ID
+            payment.PaymobOrderId = walletResult.OrderId;
+        }
+        else
+        {
+            payment = new ClinicHub.Domain.Entities.Payment(request.AppointmentId, currentUserId, amount)
+            {
+                PaymobOrderId = walletResult.OrderId
+            };
+            await _unitOfWork.PaymentRepository.AddAsync(payment);
+        }
+
         await _unitOfWork.SaveChangesAsync();
 
         return new InitiatePaymentResponseDto

@@ -146,7 +146,12 @@
     "PaymobOrderFailed": "فشل إنشاء طلب الدفع",
     "PaymobKeyFailed": "فشل الحصول على مفتاح الدفع",
     "WebhookHmacInvalid": "توقيع ويب هوك الدفع غير صالح",
+    "HmacRequired": "يجب ألا يكون HMAC فارغاً",
+    "TransactionRequired": "يجب ألا تكون المعاملة فارغة",
+    "InvalidOrderId": "يجب أن يكون رقم الطلب أكبر من 0",
     "InitiateSuccess": "تم بدء عملية الدفع بنجاح",
-    "StatusFetched": "تم استرداد حالة الدفع بنجاح"
+    "StatusFetched": "تم استرداد حالة الدفع بنجاح",
+    "PhoneNumberRequired": "رقم الهاتف مطلوب",
+    "InvalidPhoneNumber": "صيغة رقم الهاتف المصري غير صحيحة"
   }
 }

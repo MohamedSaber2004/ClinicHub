@@ -3,7 +3,8 @@ using ClinicHub.Application.Common.Options;
 using ClinicHub.Application.Common.Extensions;
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Features.Payment.DTOs;
-using Microsoft.Extensions.Logging;
+using ClinicHub.Application.Localization;
+using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 using System.Text;
 using System.Text.Json;
@@ -14,17 +15,17 @@ public class PaymobService : IPaymobService
 {
     private readonly HttpClient _httpClient;
     private readonly PaymobSettings _settings;
-    private readonly ILogger<PaymobService> _logger;
+    private readonly IStringLocalizer<Messages> _localizer;
     private const string BaseUrl = "https://accept.paymob.com";
 
     public PaymobService(
         HttpClient httpClient,
         IOptions<PaymobSettings> options,
-        ILogger<PaymobService> logger)
+        IStringLocalizer<Messages> localizer)
     {
         _httpClient = httpClient;
         _settings = options.Value;
-        _logger = logger;
+        _localizer = localizer;
     }
 
     /// <inheritdoc />
@@ -132,12 +133,7 @@ public class PaymobService : IPaymobService
 
         if (!response.IsSuccessStatusCode)
         {
-            var errorJson = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogError(
-                "Paymob CreateIntention failed with status {StatusCode}. Response: {Response}",
-                response.StatusCode, errorJson);
-            throw new BadRequestException(
-                $"Paymob intention creation failed ({response.StatusCode}): {errorJson}");
+            throw new BadRequestException(_localizer[LocalizationKeys.PaymentMessages.PaymobOrderFailed.Value]);
         }
 
         var json = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -145,20 +141,16 @@ public class PaymobService : IPaymobService
         var root = doc.RootElement;
 
         if (!root.TryGetProperty("client_secret", out var csElement))
-            throw new InvalidOperationException("Paymob response missing client_secret field");
+            throw new InvalidOperationException(_localizer[LocalizationKeys.PaymentMessages.PaymobKeyFailed.Value]);
 
         var clientSecret = csElement.GetString()
-            ?? throw new InvalidOperationException("client_secret is null");
+            ?? throw new InvalidOperationException(_localizer[LocalizationKeys.PaymentMessages.PaymobKeyFailed.Value]);
 
-        var intentionId = root.TryGetProperty("id", out var idElement)
-            ? idElement.GetString()!
-            : root.TryGetProperty("intention_order_id", out var oidElement)
-                ? oidElement.GetInt64().ToString()
+        var intentionId = root.TryGetProperty("intention_order_id", out var oidElement)
+            ? oidElement.GetInt64().ToString()
+            : root.TryGetProperty("id", out var idElement)
+                ? idElement.GetString()!
                 : "unknown";
-
-        _logger.LogInformation(
-            "Paymob intention created. ID: {IntentionId}, ClientSecret: {ClientSecretPrefix}...",
-            intentionId, clientSecret.Substring(0, Math.Min(8, clientSecret.Length)));
 
         return (clientSecret, intentionId);
     }
@@ -201,18 +193,10 @@ public class PaymobService : IPaymobService
             var computed = ComputeHmacSha512(_settings.HmacSecret, concatenated);
             var isValid = string.Equals(computed, hmac, StringComparison.OrdinalIgnoreCase);
 
-            if (!isValid)
-            {
-                _logger.LogWarning(
-                    "Paymob HMAC validation failed. Concatenated: {Concatenated}",
-                    concatenated);
-            }
-
             return isValid;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            _logger.LogError(ex, "Error validating Paymob webhook HMAC.");
             return false;
         }
     }
@@ -221,7 +205,7 @@ public class PaymobService : IPaymobService
     {
         foreach (var key in keys)
             if (data.TryGetValue(key, out var value))
-                return value?.ToLower() ?? "";
+                return value ?? "";
         return "";
     }
 
