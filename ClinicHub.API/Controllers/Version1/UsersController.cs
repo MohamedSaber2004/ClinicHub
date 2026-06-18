@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
-    [Authorize(Roles = "Admin")]
+    //[Authorize(Roles = "Admin")]
     public class UsersController : BaseApiController
     {
         public UsersController(IMediator mediator) : base(mediator)
@@ -26,8 +26,8 @@ namespace ClinicHub.API.Controllers.Version1
         [HttpGet]
         [Route(ApiRoutes.Users.GetAll)]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> GetAll([FromQuery] GetAllUsersQuery query, CancellationToken ct)
         {
             var result = await _mediator.Send(query, ct);
@@ -42,7 +42,6 @@ namespace ClinicHub.API.Controllers.Version1
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Add([FromBody] AddUserCommand command, CancellationToken ct)
         {
             var id = await _mediator.Send(command, ct);
@@ -57,8 +56,6 @@ namespace ClinicHub.API.Controllers.Version1
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Edit([FromRoute] Guid id, [FromBody] EditUserCommand command, CancellationToken ct)
         {
             command.Id = id;
@@ -72,9 +69,8 @@ namespace ClinicHub.API.Controllers.Version1
         [HttpDelete]
         [Route(ApiRoutes.Users.Delete)]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete([FromRoute] Guid id, CancellationToken ct)
         {
             var result = await _mediator.Send(new DeleteUserCommand(id), ct);
@@ -89,8 +85,6 @@ namespace ClinicHub.API.Controllers.Version1
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> AssignRole([FromRoute] Guid id, [FromBody] AssignUserRoleCommand command, CancellationToken ct)
         {
             command.UserId = id;
@@ -106,8 +100,6 @@ namespace ClinicHub.API.Controllers.Version1
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status403Forbidden)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> EditRole([FromRoute] Guid id, [FromBody] EditUserRoleCommand command, CancellationToken ct)
         {
             command.UserId = id;
