@@ -7,7 +7,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
     public class GetHybridSearchQuery : IRequest<PagginatedResult<ClinicDto>>
     {
         public string? SearchText { get; set; }
-        public Guid? SpecializationId { get; set; }
+        public string? SpecializationId { get; set; }
         public double? UserLat { get; set; }
         public double? UserLng { get; set; }
         public bool IsNearest { get; set; }

@@ -1,0 +1,18 @@
+﻿﻿ORDER BY [c].[Location].STDistance(@userLocation)
+﻿[15:50:57 ERR] Google Places API (New) error. StatusCode=BadRequest, Message=Unsupported types: health, clinic.
+﻿[15:50:57 INF] HybridSearch: Found 0 internal clinics
+﻿[15:50:57 INF] HybridSearch: Found 0 external clinics, total after merge 0
+﻿[15:50:57 INF] Handled Request: GetHybridSearchQuery {"Items": [], "PageNumber": 1, "PageSize": 20, "TotalPages": 0, "TotalCount": 0, "HasPreviousPage": false, "HasNextPage": false, "$type": "PagginatedResult`1"}
+﻿[15:50:57 WRN] ClinicHub Long Running Request: GetHybridSearchQuery (92738 milliseconds) {"SearchText": null, "SpecializationId": null, "UserLat": 31.018651441402685, "UserLng": 31.391775211242305, "IsNearest": true, "RadiusInKm": 10, "PageNumber": 1, "PageSize": 20, "$type": "GetHybridSearchQuery"}
+﻿[15:50:57 INF] Executing OkObjectResult, writing value of type 'ClinicHub.Application.Common.Models.ApiResponse`1[[ClinicHub.Application.Common.Models.PagginatedResult`1[[ClinicHub.Application.Features.Clinics.DTOs.ClinicDto, ClinicHub.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]], ClinicHub.Application, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]'.
+﻿[15:50:57 INF] Executed action ClinicHub.API.Controllers.Version1.ClinicController.Search (ClinicHub.API) in 92812.1333ms
+﻿[15:50:57 INF] Executed endpoint 'ClinicHub.API.Controllers.Version1.ClinicController.Search (ClinicHub.API)'
+﻿[15:50:57 INF] HTTP GET /api/v1/clinics/search responded 200 in 93005.0543 ms
+﻿[15:50:57 INF] Request finished HTTP/2 GET https://localhost:44315/api/v1/clinics/search?UserLat=31.018651441402685&UserLng=31.391775211242305&IsNearest=true&RadiusInKm=10 - 200 null application/json; charset=utf-8 93014.1901ms
+﻿[15:50:57 INF] Executed DbCommand (112ms) [Parameters=[@p0='?' (DbType = Guid), @p1='?' (Size = 256), @p2='?' (DbType = Int64), @p3='?' (Size = 4000), @p4='?' (Size = 45), @p5='?' (Size = 10), @p6='?' (Size = 2000), @p7='?' (Size = 4000), @p8='?' (Size = 4000), @p9='?' (Size = 100), @p10='?' (DbType = Int32), @p11='?' (Size = 4000), @p12='?' (Size = 4000), @p13='?' (DbType = Int32), @p14='?' (Size = 4000), @p15='?' (DbType = Int32), @p16='?' (DbType = Boolean), @p17='?' (DbType = DateTime2), @p18='?' (Size = 2000), @p19='?' (Size = 500), @p20='?' (Size = 256)], CommandType='Text', CommandTimeout='30']
+﻿SET IMPLICIT_TRANSACTIONS OFF;
+﻿SET NOCOUNT ON;
+﻿INSERT INTO [HttpTransactions] ([Id], [ContentType], [DurationMs], [ErrorMessage], [IpAddress], [Method], [QueryString], [RequestBody], [RequestHeaders], [RequestId], [RequestSize], [ResponseBody], [ResponseHeaders], [ResponseSize], [StackTrace], [StatusCode], [Success], [Timestamp], [Url], [UserAgent], [UserId])
+﻿VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15, @p16, @p17, @p18, @p19, @p20);
+﻿[15:50:57 DBG] Logged HTTP transaction 120b24b8-bc76-4d87-9fcd-d0fb1f57885d - GET https://localhost:44315/api/v1/clinics/search?UserLat=31.018651441402685&UserLng=31.391775211242305&IsNearest=true&RadiusInKm=10 -> 200 (93003ms)
+﻿[15:50:57 DBG] Flushed batch of 1 transaction(s) to database.

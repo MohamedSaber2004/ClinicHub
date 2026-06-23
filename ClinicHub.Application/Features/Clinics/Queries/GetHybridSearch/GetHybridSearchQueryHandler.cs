@@ -28,28 +28,42 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
         {
             var finalResultsMap = new Dictionary<string, ClinicDto>(StringComparer.OrdinalIgnoreCase);
             var normalizedSearchText = request.SearchText?.NormalizeArabic();
-            
+
+            Guid? specializationId = null;
+            if (!string.IsNullOrEmpty(request.SpecializationId))
+            {
+                if (!Guid.TryParse(request.SpecializationId, out var guid))
+                {
+                    var spec = await _unitOfWork.SpecializationRepository
+                        .GetFirstAsync(s => s.Name == request.SpecializationId || s.ArName == request.SpecializationId, cancellationToken);
+                    specializationId = spec?.Id;
+                }
+                else
+                {
+                    specializationId = guid;
+                }
+            }
+
             Task<IEnumerable<Clinic>> internalSearchTask = null!;
             Task<List<ClinicExternalDto>> externalSearchTask = null!;
             Task<List<ClinicExternalDto>> geocodeTask = null!;
             Point? userPoint = null;
 
-            // 1. Initiate Tasks in Parallel
             if (request.UserLat.HasValue && request.UserLng.HasValue)
             {
                 userPoint = new Point(request.UserLng.Value, request.UserLat.Value) { SRID = 4326 };
-                
+
                 if (request.IsNearest)
                 {
                     var radiusInMeters = request.RadiusInKm * 1000;
-                    internalSearchTask = _unitOfWork.ClinicRepository.GetWithinDistanceAsync(userPoint, radiusInMeters, request.SpecializationId, cancellationToken);
-                    
-                    string category = "hospital,clinic,doctors,dentist,health_post,medical_centre";
+                    internalSearchTask = _unitOfWork.ClinicRepository.GetWithinDistanceAsync(userPoint, radiusInMeters, specializationId, cancellationToken);
+
+                    string category = "hospital,doctor,dentist";
                     externalSearchTask = _mapService.GetNearbyFromMapAsync(request.UserLat!.Value, request.UserLng!.Value, category, cancellationToken, radiusInMeters);
                 }
                 else
                 {
-                    internalSearchTask = GetInternalClinicsAsync(request, normalizedSearchText, cancellationToken);
+                    internalSearchTask = GetInternalClinicsAsync(request, normalizedSearchText, specializationId, cancellationToken);
                     if (!string.IsNullOrEmpty(request.SearchText))
                     {
                         externalSearchTask = _mapService.GeocodeAsync(request.SearchText, cancellationToken, 10);
@@ -58,17 +72,14 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
             }
             else if (!string.IsNullOrEmpty(request.SearchText))
             {
-                // Coords missing but search text exists: Geocode and DB search in parallel
                 geocodeTask = _mapService.GeocodeAsync(request.SearchText, cancellationToken, 1);
-                internalSearchTask = GetInternalClinicsAsync(request, normalizedSearchText, cancellationToken);
+                internalSearchTask = GetInternalClinicsAsync(request, normalizedSearchText, specializationId, cancellationToken);
             }
             else
             {
-                // No criteria: Just get all internal clinics
-                internalSearchTask = GetInternalClinicsAsync(request, normalizedSearchText, cancellationToken);
+                internalSearchTask = GetInternalClinicsAsync(request, normalizedSearchText, specializationId, cancellationToken);
             }
 
-            // 2. Wait for Core Tasks
             var tasksToWait = new List<Task>();
             if (internalSearchTask != null) tasksToWait.Add(internalSearchTask);
             if (geocodeTask != null) tasksToWait.Add(geocodeTask);
@@ -76,7 +87,6 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
 
             await Task.WhenAll(tasksToWait);
 
-            // 3. Resolve userPoint after geocoding if needed
             if (userPoint == null && geocodeTask != null && geocodeTask.Status == TaskStatus.RanToCompletion)
             {
                 var geocodeResult = await geocodeTask;
@@ -87,13 +97,12 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
                 }
             }
 
-            // 4. Collect Internal Results
             var internalClinics = internalSearchTask != null ? await internalSearchTask : Enumerable.Empty<Clinic>();
             foreach (var clinic in internalClinics)
             {
                 if (!string.IsNullOrEmpty(normalizedSearchText) && request.IsNearest)
                 {
-                    if (!clinic.Name.NormalizeArabic().Contains(normalizedSearchText, StringComparison.OrdinalIgnoreCase) && 
+                    if (!clinic.Name.NormalizeArabic().Contains(normalizedSearchText, StringComparison.OrdinalIgnoreCase) &&
                         !(clinic.NameAr?.NormalizeArabic().Contains(normalizedSearchText, StringComparison.OrdinalIgnoreCase) ?? false))
                         continue;
                 }
@@ -106,7 +115,6 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
                 finalResultsMap[dto.Name] = dto;
             }
 
-            // 5. Collect External Results
             var externalClinics = new List<ClinicExternalDto>();
             if (externalSearchTask != null && externalSearchTask.Status == TaskStatus.RanToCompletion)
                 externalClinics.AddRange(await externalSearchTask);
@@ -117,7 +125,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
             {
                 if (!string.IsNullOrEmpty(normalizedSearchText))
                 {
-                    if (!external.Name.NormalizeArabic().Contains(normalizedSearchText, StringComparison.OrdinalIgnoreCase) && 
+                    if (!external.Name.NormalizeArabic().Contains(normalizedSearchText, StringComparison.OrdinalIgnoreCase) &&
                         !(external.NameAr?.NormalizeArabic().Contains(normalizedSearchText, StringComparison.OrdinalIgnoreCase) ?? false))
                         continue;
                 }
@@ -156,19 +164,19 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
             return new PagginatedResult<ClinicDto>(pagedData, finalResults.Count, request.PageNumber, request.PageSize);
         }
 
-        private async Task<IEnumerable<Clinic>> GetInternalClinicsAsync(GetHybridSearchQuery request, string? normalizedSearchText, CancellationToken cancellationToken)
+        private async Task<IEnumerable<Clinic>> GetInternalClinicsAsync(GetHybridSearchQuery request, string? normalizedSearchText, Guid? specializationId, CancellationToken cancellationToken)
         {
             var internalQuery = _unitOfWork.ClinicRepository.GetAllWithIncluding(
-                c => (string.IsNullOrEmpty(normalizedSearchText) || 
-                      c.Name.Contains(request.SearchText!) || 
+                c => (string.IsNullOrEmpty(normalizedSearchText) ||
+                      c.Name.Contains(request.SearchText!) ||
                       (c.NameAr != null && c.NameAr.Contains(request.SearchText!)) ||
                       c.Specialization.Name.Contains(request.SearchText!) ||
                       c.Specialization.ArName.Contains(request.SearchText!) ||
-                      EF.Functions.Like(c.Name, $"%{normalizedSearchText}%") || 
+                      EF.Functions.Like(c.Name, $"%{normalizedSearchText}%") ||
                       (c.NameAr != null && EF.Functions.Like(c.NameAr, $"%{normalizedSearchText}%")) ||
                       EF.Functions.Like(c.Specialization.Name, $"%{normalizedSearchText}%") ||
                       EF.Functions.Like(c.Specialization.ArName, $"%{normalizedSearchText}%")) &&
-                     (!request.SpecializationId.HasValue || c.SpecializationId == request.SpecializationId),
+                     (!specializationId.HasValue || c.SpecializationId == specializationId),
                 c => c.Specialization);
 
             return await internalQuery.ToListAsync(cancellationToken);

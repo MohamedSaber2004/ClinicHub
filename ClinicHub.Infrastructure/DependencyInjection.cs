@@ -31,6 +31,7 @@ namespace ClinicHub.Infrastructure
 
             services.AddHttpClient();
             services.Configure<PaymobSettings>(configuration.GetSection(nameof(PaymobSettings)));
+            services.Configure<GoogleMapsSettings>(configuration.GetSection("GoogleMaps"));
             services.AddHttpClient<IPaymobService, PaymobService>(client =>
             {
                 client.DefaultRequestHeaders.Add("User-Agent", "ClinicHub-API/1.0");
@@ -65,22 +66,13 @@ namespace ClinicHub.Infrastructure
             services.AddScoped<IAudioValidator, AudioValidator>();
             services.AddScoped<IVideoValidator, VideoValidator>();
 
-            //services.AddHttpClient<IMapService, GoogleMapService>();
-            //services.AddHttpClient<IMapService, GoogleMapService>(client =>
-            //{
-            //      client.DefaultRequestHeaders.Add("User-Agent", "ClinicHub-API");
-            //});
-
-            services.AddHttpClient<IMapService, NominatimService>(client =>
+            services.AddHttpClient<IMapService, GoogleMapService>(client =>
             {
                 client.DefaultRequestHeaders.Add("User-Agent", "ClinicHub-API");
-            }).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
             });
 
             var identityOptionsConfig = new IdentityModel();
-            configuration.Bind("IdentityOptions", identityOptionsConfig);
+            configuration.Bind("IdentityOptions", identityOptionsConfig);   
 
             services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
             {
