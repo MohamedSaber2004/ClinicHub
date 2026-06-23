@@ -11,7 +11,8 @@
     "FileEmpty": "Uploaded file is empty",
     "UploadFailed": "Failed to upload media",
     "FileNotFound": "File not found",
-    "InvalidPlace": "Invalid upload location"
+    "InvalidPlace": "Invalid upload location",
+    "InvalidFileType": "Invalid file type"
   },
   "Exceptions": {
     "Validation": "Validation failed",
@@ -152,6 +153,22 @@
     "InitiateSuccess": "Payment initiated successfully",
     "StatusFetched": "Payment status retrieved successfully",
     "PhoneNumberRequired": "Phone number is required",
-    "InvalidPhoneNumber": "Invalid Egyptian phone number format"
+    "InvalidPhoneNumber": "Invalid Egyptian phone number format",
+    "PaymentFailed": "Payment processing failed",
+    "VerificationFailed": "Payment verification failed",
+    "AlreadyVerified": "Payment is already verified"
+  },
+  "Booking": {
+    "SlotNotFound": "Time slot not found",
+    "SlotUnavailable": "This time slot is already booked",
+    "ReservationExpired": "Reservation time has expired",
+    "ReservationNotFound": "Reservation not found",
+    "PastDate": "Cannot book for past dates",
+    "InvalidDate": "Date exceeds maximum booking window",
+    "ConfigNotFound": "Booking configuration not found",
+    "Created": "Booking created successfully"
+  },
+  "Slots": {
+    "DoctorIsNotFollowForThatClinic": "Doctor is not following for that clinic"
   }
 }

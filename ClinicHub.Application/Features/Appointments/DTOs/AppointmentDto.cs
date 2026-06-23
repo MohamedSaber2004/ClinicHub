@@ -1,5 +1,4 @@
 using ClinicHub.Domain.Enums;
-using System;
 
 namespace ClinicHub.Application.Features.Appointments.DTOs
 {
@@ -8,7 +7,9 @@ namespace ClinicHub.Application.Features.Appointments.DTOs
         public Guid Id { get; set; }
         public Guid BookedByUserId { get; set; }
         public Guid DoctorId { get; set; }
+        public string? DoctorName { get; set; }
         public Guid ClinicId { get; set; }
+        public string? ClinicName { get; set; }
         
         public string AppointmentDate { get; set; } = null!;
         public string StartTime { get; set; } = null!;
@@ -25,5 +26,12 @@ namespace ClinicHub.Application.Features.Appointments.DTOs
         public string? ChronicDiseases { get; set; }
         
         public string? CancellationReason { get; set; }
+        public string? BookingReference { get; set; }
+        public DateTime? ExpiresAt { get; set; }
+        public decimal Amount { get; set; }
+        public string Currency { get; set; } = "EGP";
+        public Guid? PaymentId { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public string? ReceiptUrl { get; set; }
     }
 }

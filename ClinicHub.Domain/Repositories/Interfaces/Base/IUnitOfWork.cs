@@ -26,6 +26,7 @@ namespace ClinicHub.Infrastructure.UnitOfWork.Interfaces
         IReadReceiptRepository ReadReceiptRepository { get; }
         IConversationParticipantRepository ConversationParticipantRepository { get; }
         IPaymentRepository PaymentRepository { get; }
+        IBookingConfigurationRepository BookingConfigurationRepository { get; }
         Task<int> SaveChangesAsync();
         Task BeginTransactionAsync();
         Task CommitAsync();

@@ -1,3 +1,4 @@
+using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Http;
 
@@ -7,5 +8,6 @@ namespace ClinicHub.Application.Features.Attachements.Commands.UploadFile
     {
         public IFormFile File { get; set; } = null!;
         public int Place { get; set; }
+        public MediaType FileType { get; set; }
     }
 }

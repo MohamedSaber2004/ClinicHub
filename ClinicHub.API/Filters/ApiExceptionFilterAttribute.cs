@@ -4,7 +4,6 @@ using ClinicHub.Application.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.API.Filters
 {
@@ -22,6 +21,7 @@ namespace ClinicHub.API.Filters
                 { typeof(BadRequestException), HandleBadRequestException },
                 { typeof(UnAuthorizedException), HandleUnauthorizedException },
                 { typeof(DbUpdateConcurrencyException), HandleDbUpdateConcurrencyException },
+                { typeof(ConflictException), HandleConflictException },
             };
             _logger = logger;
         }
@@ -129,6 +129,20 @@ namespace ClinicHub.API.Filters
             context.Result = new ObjectResult(details)
             {
                 StatusCode = StatusCodes.Status500InternalServerError
+            };
+
+            context.ExceptionHandled = true;
+        }
+
+        private void HandleConflictException(ExceptionContext context)
+        {
+            var exception = context.Exception as ConflictException;
+            var message = exception?.Message ?? "Conflict";
+            var details = ApiResponse<object>.Error(message, StatusCodes.Status409Conflict);
+
+            context.Result = new ObjectResult(details)
+            {
+                StatusCode = StatusCodes.Status409Conflict
             };
 
             context.ExceptionHandled = true;

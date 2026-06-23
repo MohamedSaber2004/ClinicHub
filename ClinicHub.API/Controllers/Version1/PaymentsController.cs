@@ -1,7 +1,9 @@
 using Asp.Versioning;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Payment.Commands.ConfirmPaymentWebhook;
+using ClinicHub.Application.Features.Payment.Commands.InitiateBookingPayment;
 using ClinicHub.Application.Features.Payment.Commands.InitiatePayment;
+using ClinicHub.Application.Features.Payment.Commands.VerifyBookingPayment;
 using ClinicHub.Application.Features.Payment.Queries.GetPaymentStatus;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -16,11 +18,6 @@ public class PaymentsController : BaseApiController
     {
     }
 
-    /// <summary>
-    /// Initiate payment.
-    /// </summary>
-    /// <param name="command"></param>
-    /// <returns></returns>
     [Authorize]
     [HttpPost]
     [Route(ApiRoutes.Payments.Initiate)]
@@ -32,24 +29,37 @@ public class PaymentsController : BaseApiController
         return Ok(result);
     }
 
-    /// <summary>
-    /// Handles incoming payment webhook notifications from Paymob and processes the payment confirmation.
-    /// Paymob sends HMAC in query string and transaction data in request body.
-    /// </summary>
-    /// <param name="request">The payment webhook request containing transaction data.</param>
-    /// <param name="hmac">The HMAC hash from Paymob webhook for validation (from query string).</param>
-    /// <returns>An <see cref="IActionResult"/> indicating the result of the webhook processing.</returns>
+    [Authorize]
+    [HttpPost]
+    [Route(ApiRoutes.Payments.CreateBooking)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> CreateBookingPayment([FromBody] InitiateBookingPaymentCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpPost]
+    [Route(ApiRoutes.Payments.VerifyBooking)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> VerifyBookingPayment([FromBody] VerifyBookingPaymentCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
     [HttpPost]
     [Route(ApiRoutes.Payments.Webhook)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Webhook(
-        [FromBody] ConfirmPaymentWebhookRequestDto request,
-        [FromQuery] string hmac)
+    public async Task<IActionResult> Webhook([FromBody] ConfirmPaymentWebhookRequestDto request)
     {
         var command = new ConfirmPaymentWebhookCommand
         {
-            Hmac = hmac,
+            Hmac = request.Hmac,
             Type = request.Type,
             Transaction = request.Transaction
         };
@@ -57,11 +67,6 @@ public class PaymentsController : BaseApiController
         return Ok(result);
     }
 
-    /// <summary>
-    /// Get payment status for a specific appointment.
-    /// </summary>
-    /// <param name="appointmentId">The ID of the appointment.</param>
-    /// <returns>An <see cref="IActionResult"/> containing the payment status.</returns>
     [Authorize]
     [HttpGet]
     [Route(ApiRoutes.Payments.GetStatus)]

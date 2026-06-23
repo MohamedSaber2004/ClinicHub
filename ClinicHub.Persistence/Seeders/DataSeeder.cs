@@ -144,6 +144,27 @@ namespace ClinicHub.Persistence.Seeders
 
             var allClinics = await context.Clinics.ToListAsync();
 
+            // 4.5 Seed Booking Configurations (cash-only)
+            if (!await context.Set<BookingConfiguration>().AnyAsync())
+            {
+                logger.LogInformation("Seeding booking configurations...");
+                foreach (var clinic in allClinics)
+                {
+                    var config = new BookingConfiguration(
+                        clinicId: clinic.Id,
+                        consultationFee: 350m,
+                        currency: "EGP",
+                        slotDurationMinutes: 30,
+                        maxFutureDays: 30,
+                        reservationTtlMinutes: 15,
+                        paymentMethods: "cash,wallet",
+                        allowOnlineBooking: true,
+                        requirePayment: true);
+                    context.Set<BookingConfiguration>().Add(config);
+                }
+                await context.SaveChangesAsync();
+            }
+
             // 5. Seed Doctors
             if (!await context.Set<Doctor>().AnyAsync())
             {

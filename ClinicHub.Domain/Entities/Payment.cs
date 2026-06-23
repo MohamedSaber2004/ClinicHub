@@ -15,6 +15,10 @@ public class Payment : BaseEntity<Guid>
     public string? PaymentMethod { get; private set; }
     public DateTime? PaidAt { get; private set; }
 
+    public string? RedirectUrl { get; private set; }
+    public string? FailureReason { get; private set; }
+    public string? TransactionId { get; private set; }
+
     private Payment() { }
 
     public Payment(Guid appointmentId, Guid userId, decimal amount, string currency = "EGP")
@@ -25,17 +29,27 @@ public class Payment : BaseEntity<Guid>
         Currency = currency ?? "EGP";
     }
 
+        public void MarkAsProcessing(string? redirectUrl = null, string? paymentMethod = null)
+        {
+            RedirectUrl = redirectUrl;
+            PaymentMethod = paymentMethod;
+            Status = PaymentStatus.Processing;
+        }
+
     public void MarkAsPaid(string transactionId, string method)
     {
         PaymobTransactionId = transactionId;
+        TransactionId = transactionId;
         PaymentMethod = method;
         PaidAt = DateTime.UtcNow;
         Status = PaymentStatus.Paid;
+        FailureReason = null;
     }
 
-    public void MarkAsFailed()
+    public void MarkAsFailed(string? failureReason = null)
     {
         Status = PaymentStatus.Failed;
+        FailureReason = failureReason;
     }
 
     public void MarkAsRefunded()
@@ -43,6 +57,7 @@ public class Payment : BaseEntity<Guid>
         Status = PaymentStatus.Refunded;
         PaidAt = null;
         PaymobTransactionId = null;
+        TransactionId = null;
         PaymentMethod = null;
     }
 }

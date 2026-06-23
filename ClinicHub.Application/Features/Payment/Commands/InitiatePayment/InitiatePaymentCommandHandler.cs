@@ -41,7 +41,7 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
         if (appointment.BookedByUserId != currentUserId)
             throw new UnauthorizedAccessException(LocalizationKeys.PaymentMessages.Unauthorized.Value);
         
-        if (appointment.Status != AppointmentStatus.Pending)
+        if (appointment.Status != AppointmentStatus.Pending && appointment.Status != AppointmentStatus.Reserved)
             throw new BadRequestException(LocalizationKeys.PaymentMessages.AppointmentNotPending.Value);
 
         var doctor = await _unitOfWork.DoctorRepository.GetByIdAsync(appointment.DoctorId);

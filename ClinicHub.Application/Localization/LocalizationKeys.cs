@@ -165,6 +165,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString UploadFailed = new("Attachments.UploadFailed");
             public static readonly KeyString FileNotFound = new("Attachments.FileNotFound");
             public static readonly KeyString InvalidPlace = new("Attachments.InvalidPlace");
+            public static readonly KeyString InvalidFileType = new("Attachments.InvalidFileType");
         }
 
         public static class PaymentMessages
@@ -184,6 +185,26 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString StatusFetched = new("Payments.StatusFetched");
             public static readonly KeyString PhoneNumberRequired = new("Payments.PhoneNumberRequired");
             public static readonly KeyString InvalidPhoneNumber = new("Payments.InvalidPhoneNumber");
+            public static readonly KeyString PaymentFailed = new("Payments.PaymentFailed");
+            public static readonly KeyString VerificationFailed = new("Payments.VerificationFailed");
+            public static readonly KeyString AlreadyVerified = new("Payments.AlreadyVerified");
+        }
+
+        public static class BookingMessages
+        {
+            public static readonly KeyString SlotNotFound = new("Booking.SlotNotFound");
+            public static readonly KeyString SlotUnavailable = new("Booking.SlotUnavailable");
+            public static readonly KeyString ReservationExpired = new("Booking.ReservationExpired");
+            public static readonly KeyString ReservationNotFound = new("Booking.ReservationNotFound");
+            public static readonly KeyString PastDate = new("Booking.PastDate");
+            public static readonly KeyString InvalidDate = new("Booking.InvalidDate");
+            public static readonly KeyString BookingConfigNotFound = new("Booking.ConfigNotFound");
+            public static readonly KeyString BookingCreated = new("Booking.Created");
+        }
+
+        public static class Slots
+        {
+            public static readonly KeyString DoctorIsNotFollowForThatClinic = new("Slots.DoctorIsNotFollowForThatClinic");
         }
     }
 }

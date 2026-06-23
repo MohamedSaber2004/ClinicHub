@@ -172,6 +172,10 @@ namespace ClinicHub.Persistence.Migrations
                     b.Property<Guid>("BookedByUserId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("BookingReference")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<string>("CancellationReason")
                         .HasColumnType("nvarchar(max)");
 
@@ -204,6 +208,9 @@ namespace ClinicHub.Persistence.Migrations
                     b.Property<TimeSpan>("EndTime")
                         .HasColumnType("time");
 
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -223,6 +230,9 @@ namespace ClinicHub.Persistence.Migrations
                     b.Property<string>("PatientPhoneNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid?>("PaymentId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<TimeSpan>("StartTime")
                         .HasColumnType("time");
@@ -245,11 +255,106 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.HasIndex("BookedByUserId");
 
+                    b.HasIndex("BookingReference")
+                        .IsUnique()
+                        .HasFilter("[BookingReference] IS NOT NULL");
+
                     b.HasIndex("ClinicId");
 
                     b.HasIndex("DoctorId");
 
+                    b.HasIndex("PaymentId");
+
                     b.ToTable("Appointments", "dbo");
+                });
+
+            modelBuilder.Entity("ClinicHub.Domain.Entities.BookingConfiguration", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("AllowOnlineBooking")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<Guid>("ClinicId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("ConsultationFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)")
+                        .HasDefaultValue("EGP");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MaxFutureDays")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(30);
+
+                    b.Property<string>("PaymentMethods")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)")
+                        .HasDefaultValue("credit_card,cash");
+
+                    b.Property<bool>("RequirePayment")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("ReservationTtlMinutes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(10);
+
+                    b.Property<int>("SlotDurationMinutes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(30);
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicId")
+                        .IsUnique();
+
+                    b.ToTable("BookingConfigurations", "dbo");
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Clinic", b =>
@@ -1002,6 +1107,10 @@ namespace ClinicHub.Persistence.Migrations
                     b.Property<string>("DeletedBy")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
@@ -1012,7 +1121,8 @@ namespace ClinicHub.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("PaymentMethod")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("PaymobOrderId")
                         .HasColumnType("nvarchar(max)");
@@ -1020,8 +1130,16 @@ namespace ClinicHub.Persistence.Migrations
                     b.Property<string>("PaymobTransactionId")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("RedirectUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<string>("TransactionId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -1522,11 +1640,29 @@ namespace ClinicHub.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ClinicHub.Domain.Entities.Payment", "Payment")
+                        .WithMany()
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("BookedByUser");
 
                     b.Navigation("Clinic");
 
                     b.Navigation("Doctor");
+
+                    b.Navigation("Payment");
+                });
+
+            modelBuilder.Entity("ClinicHub.Domain.Entities.BookingConfiguration", b =>
+                {
+                    b.HasOne("ClinicHub.Domain.Entities.Clinic", "Clinic")
+                        .WithMany()
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Clinic");
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Clinic", b =>

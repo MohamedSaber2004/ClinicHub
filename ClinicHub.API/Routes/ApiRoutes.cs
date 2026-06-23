@@ -27,19 +27,10 @@ namespace ClinicHub.API.Routes
 
         public static class Attachments
         {
-            public const string UploadImage = Base + "/attachments/upload-image";
-            public const string UploadAudio = Base + "/attachments/upload-audio";
-            public const string UploadVideo = Base + "/attachments/upload-video";
-            public const string UploadFile = Base + "/attachments/upload-file";
-            public const string UploadMultipleImages = Base + "/attachments/upload-multiple-images";
-            public const string UploadMultipleVideos = Base + "/attachments/upload-multiple-videos";
-            public const string UploadMultipleFiles = Base + "/attachments/upload-multiple-files";
+            public const string UploadFile = Base + "/attachments/upload";
             public const string UploadMultipleAttachments = Base + "/attachments/upload-multiple-attachments";
-            public const string UpdateImage = Base + "/attachments/update-image/{name}";
-            public const string UpdateAudio = Base + "/attachments/update-audio/{name}";
-            public const string UpdateVideo = Base + "/attachments/update-video/{name}";
-            public const string UpdateFile = Base + "/attachments/update-file/{name}";
-            public const string DownloadFile = Base + "/attachments/downaload-file";
+            public const string UpdateFile = Base + "/attachments/update/{name}";
+            public const string DownloadFile = Base + "/attachments/download";
         }
 
         public static class Posts
@@ -68,11 +59,7 @@ namespace ClinicHub.API.Routes
         public static class Clinics
         {
             public const string Search = Base + "/clinics/search";
-        }
-
-        public static class Maps
-        {
-            public const string Route = Base + "/maps/route";
+            public const string GetRoute = Base + "/clinics/route";
         }
 
         public static class Specializations
@@ -131,12 +118,28 @@ namespace ClinicHub.API.Routes
             public const string Delete = Base + "/availability/{id:guid}";
         }
 
+        public static class Slots
+        {
+            public const string GetByDoctor = Base + "/clinics/{clinicId:guid}/doctors/{doctorId:guid}/slots";
+        }
+
+        public static class Reservations
+        {
+            public const string Create = Base + "/reservations";
+        }
+
+        public static class BookingConfig
+        {
+            public const string GetByClinic = Base + "/clinics/{clinicId:guid}/booking-config";
+        }
+
         public static class Payments
         {
             public const string Initiate = Base + "/payments/initiate";
+            public const string CreateBooking = Base + "/payments";
+            public const string VerifyBooking = Base + "/payments/verify";
             public const string Webhook = Base + "/payments/webhook";
             public const string GetStatus = Base + "/payments/status/{appointmentId:guid}";
-            public const string Result = Base + "/payments/result";
         }
 
         public static class Users

@@ -40,7 +40,9 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
                 request.PatientAge,
                 request.PatientGender,
                 request.Complaint,
-                request.ChronicDiseases);
+                request.ChronicDiseases,
+                request.BookingReference,
+                request.TtlMinutes);
 
             await _unitOfWork.AppointmentRepository.AddAsync(appointment);
             await _unitOfWork.SaveChangesAsync();

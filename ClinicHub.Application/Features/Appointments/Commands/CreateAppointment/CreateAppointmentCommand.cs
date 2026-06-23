@@ -21,5 +21,8 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
         public Gender PatientGender { get; set; }
         public string Complaint { get; set; } = null!;
         public string? ChronicDiseases { get; set; }
+
+        public string? BookingReference { get; set; }
+        public int TtlMinutes { get; set; }
     }
 }

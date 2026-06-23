@@ -1,6 +1,6 @@
+using ClinicHub.Application.Localization;
 using FluentValidation;
 using Microsoft.Extensions.Localization;
-using ClinicHub.Application.Localization;
 
 namespace ClinicHub.Application.Features.Attachements.Commands.UploadFile
 {
@@ -14,6 +14,9 @@ namespace ClinicHub.Application.Features.Attachements.Commands.UploadFile
 
             RuleFor(x => x.Place)
                 .InclusiveBetween(0, 12).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AttachmentMessages.InvalidPlace.Value]));
+
+            RuleFor(x => x.FileType)
+                .IsInEnum().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AttachmentMessages.InvalidFileType.Value]));
         }
     }
 }

@@ -9,18 +9,29 @@ namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
     {
         private readonly IUnitOfWork _ctx;
 
-        public GetAvailableSlotsQueryValidator(IStringLocalizer<Messages> localizer,IUnitOfWork ctx)
+        public GetAvailableSlotsQueryValidator(IStringLocalizer<Messages> localizer, IUnitOfWork ctx)
         {
             _ctx = ctx;
 
             RuleFor(x => x.DoctorId)
-                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
-                .MustAsync(DoctorExists).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.RealTimeMessages.ConversationNotFound.Value]));
-        }
+                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value]);
 
-        private Task<bool> DoctorExists(Guid doctorId, CancellationToken cancellationToken)
-        {
-            return _ctx.DoctorRepository.ExistsAsync(d => d.Id == doctorId, cancellationToken);
-        } 
+            RuleFor(x => x.ClinicId)
+                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value]);
+
+            RuleFor(x => x).CustomAsync(async (query, context, cancellationToken) =>
+            {
+                if (query.DoctorId == default || query.ClinicId == default)
+                    return;
+
+                var exists = await _ctx.DoctorRepository
+                    .ExistsAsync(d => d.Id == query.DoctorId && d.ClinicId == query.ClinicId, cancellationToken);
+
+                if (!exists)
+                {
+                    context.AddFailure("DoctorId", localizer[LocalizationKeys.Slots.DoctorIsNotFollowForThatClinic.Value]);
+                }
+            });
+        }
     }
 }

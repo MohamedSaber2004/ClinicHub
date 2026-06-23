@@ -11,7 +11,8 @@
     "FileEmpty": "الملف المرفوع فارغ",
     "UploadFailed": "فشل تحميل الوسائط",
     "FileNotFound": "الملف غير موجود",
-    "InvalidPlace": "موقع رفع غير صحيح"
+    "InvalidPlace": "موقع رفع غير صحيح",
+    "InvalidFileType": "نوع الملف غير صحيح"
   },
   "Exceptions": {
     "Validation": "فشل التحقق",
@@ -152,6 +153,12 @@
     "InitiateSuccess": "تم بدء عملية الدفع بنجاح",
     "StatusFetched": "تم استرداد حالة الدفع بنجاح",
     "PhoneNumberRequired": "رقم الهاتف مطلوب",
-    "InvalidPhoneNumber": "صيغة رقم الهاتف المصري غير صحيحة"
+    "InvalidPhoneNumber": "صيغة رقم الهاتف المصري غير صحيحة",
+    "PaymentFailed": "فشل معالجة الدفع",
+    "VerificationFailed": "فشل التحقق من الدفع",
+    "AlreadyVerified": "تم التحقق من الدفع مسبقاً"
+  },
+  "Slots": {
+    "DoctorIsNotFollowForThatClinic": "الطبيب غير تابع لهذه العيادة"
   }
 }

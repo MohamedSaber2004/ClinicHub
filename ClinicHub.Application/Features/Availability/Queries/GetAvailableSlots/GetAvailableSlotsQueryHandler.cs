@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
 {
-    public class GetAvailableSlotsQueryHandler : IRequestHandler<GetAvailableSlotsQuery, List<TimeSlotDto>>
+    public class GetAvailableSlotsQueryHandler : IRequestHandler<GetAvailableSlotsQuery, GetAvailableSlotsResponse>
     {
         private readonly IUnitOfWork _unitOfWork;
 
@@ -14,7 +14,7 @@ namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<List<TimeSlotDto>> Handle(GetAvailableSlotsQuery request, CancellationToken cancellationToken)
+        public async Task<GetAvailableSlotsResponse> Handle(GetAvailableSlotsQuery request, CancellationToken cancellationToken)
         {
             var dayOfWeek = request.Date.DayOfWeek;
 
@@ -22,30 +22,43 @@ namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
                 .GetAllAsync(a => a.DoctorId == request.DoctorId && a.DayOfWeek == dayOfWeek)
                 .ToListAsync(cancellationToken);
 
-            if (!availabilities.Any())
+            var response = new GetAvailableSlotsResponse
             {
-                return new List<TimeSlotDto>();
-            }
+                DoctorId = request.DoctorId,
+                ClinicId = request.ClinicId,
+                Date = request.Date.ToString("yyyy-MM-dd"),
+                SlotDurationMinutes = 30
+            };
+
+            if (!availabilities.Any())
+                return response;
+
+            var firstAvail = availabilities.First();
+            response.SlotDurationMinutes = firstAvail.SlotDurationMinutes > 0 ? firstAvail.SlotDurationMinutes : 30;
+            response.WorkingHours = new WorkingHoursInfo
+            {
+                From = firstAvail.StartTime.ToString(@"hh\:mm"),
+                To = firstAvail.EndTime.ToString(@"hh\:mm")
+            };
 
             var bookedAppointments = await _unitOfWork.AppointmentRepository
                 .GetAppointmentsByDoctorAndDateAsync(request.DoctorId, request.Date);
 
-            var timeSlots = new List<TimeSlotDto>();
-
             foreach (var availability in availabilities)
             {
-                var slotDuration = TimeSpan.FromMinutes(availability.SlotDurationMinutes > 0 ? availability.SlotDurationMinutes : 30);
+                var slotDuration = TimeSpan.FromMinutes(response.SlotDurationMinutes);
                 var currentTime = availability.StartTime;
 
                 while (currentTime + slotDuration <= availability.EndTime)
                 {
                     var slotEndTime = currentTime + slotDuration;
 
-                    var isBooked = bookedAppointments.Any(a => 
+                    var isBooked = bookedAppointments.Any(a =>
                         a.StartTime < slotEndTime && a.EndTime > currentTime);
 
-                    timeSlots.Add(new TimeSlotDto
+                    response.Slots.Add(new TimeSlotDto
                     {
+                        Id = Guid.NewGuid(),
                         StartTime = currentTime.ToString(@"hh\:mm"),
                         EndTime = slotEndTime.ToString(@"hh\:mm"),
                         IsAvailable = !isBooked
@@ -55,7 +68,8 @@ namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
                 }
             }
 
-            return timeSlots.OrderBy(t => t.StartTime).ToList();
+            response.Slots = response.Slots.OrderBy(t => t.StartTime).ToList();
+            return response;
         }
     }
 }

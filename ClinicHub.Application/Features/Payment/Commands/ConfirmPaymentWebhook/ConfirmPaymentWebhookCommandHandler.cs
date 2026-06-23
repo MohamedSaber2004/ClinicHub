@@ -65,7 +65,7 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
             payment.MarkAsPaid(transaction.Id.ToString(), transaction.SourceData?.SubType ?? "Unknown");
 
             var appointment = await _unitOfWork.AppointmentRepository.GetAllAsync(x => x.Id == payment.AppointmentId).FirstOrDefaultAsync(cancellationToken);
-            appointment?.Confirm();
+            appointment?.Confirm(payment.Id);
 
         }
         else

@@ -1,0 +1,113 @@
+{clinicId}/doctors/{doctorId}/slots
+Copy URL
+Request History
+
+Send
+Send get request to https://localhost:44315//api/v1/clinics/{clinicId}/doctors/{doctorId}/slots
+Open API Client
+Close Client
+All
+Variables
+Cookies
+Headers
+Query
+All
+
+Variables
+ClearAll Variables
+Enabled
+Key
+Value
+
+clinicId
+Required
+6F292A45-0BA3-40B2-8AD2-05C913E943AA
+
+
+doctorId
+Required
+73B9F57D-855B-4F5E-9BDB-15F4944B7284
+
+
+Cookies
+Enabled
+Key
+Value
+
+Key
+Value
+
+Headers
+ClearAll Headers
+Enabled
+Key
+Value
+
+accept
+*/*
+
+
+Accept-Language
+
+ar
+
+
+Key
+Value
+
+Query Parameters
+Enabled
+Key
+Value
+
+date
+Value
+
+
+Key
+Value
+
+Code Snippet(Collapsed)
+Response
+Response Information, Duration:1.4s
+, Status:
+400 Bad Request
+All
+Cookies
+Headers
+Body
+All
+
+Cookies(Collapsed)
+
+Request Headers(Collapsed)
+1Item
+
+Response Headers(Collapsed)
+14Items
+
+Body
+DownloadResponse Body
+application/json
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+{
+  "success": false,
+  "errors": {
+    "": [
+      "Slots.DoctorIsNotFollowForThatClinic"
+    ]
+  },
+  "data": null,
+  "message": "Exceptions.Validation",
+  "statusCode": 400
+}

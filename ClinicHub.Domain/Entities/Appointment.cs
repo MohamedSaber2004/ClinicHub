@@ -1,6 +1,5 @@
 using ClinicHub.Domain.Common;
 using ClinicHub.Domain.Enums;
-using System;
 
 namespace ClinicHub.Domain.Entities
 {
@@ -31,6 +30,11 @@ namespace ClinicHub.Domain.Entities
 
         public string? CancellationReason { get; private set; }
 
+        public DateTime? ExpiresAt { get; private set; }
+        public string? BookingReference { get; private set; }
+        public Guid? PaymentId { get; private set; }
+        public Payment? Payment { get; private set; }
+
         private Appointment() { }
 
         public Appointment(
@@ -46,7 +50,9 @@ namespace ClinicHub.Domain.Entities
             int patientAge,
             Gender patientGender,
             string complaint,
-            string? chronicDiseases)
+            string? chronicDiseases,
+            string? bookingReference = null,
+            int ttlMinutes = 0)
         {
             BookedByUserId = bookedByUserId;
             DoctorId = doctorId;
@@ -61,18 +67,52 @@ namespace ClinicHub.Domain.Entities
             PatientGender = patientGender;
             Complaint = complaint;
             ChronicDiseases = chronicDiseases;
-            Status = AppointmentStatus.Pending;
+            BookingReference = bookingReference;
+
+            if (ttlMinutes > 0)
+            {
+                ExpiresAt = DateTime.UtcNow.AddMinutes(ttlMinutes);
+                Status = AppointmentStatus.Reserved;
+            }
+            else
+            {
+                Status = AppointmentStatus.Pending;
+            }
         }
 
-        public void Confirm() => Status = AppointmentStatus.Confirmed;
+        public bool IsReservationExpired() =>
+            ExpiresAt.HasValue && Status == AppointmentStatus.Reserved && DateTime.UtcNow >= ExpiresAt.Value;
+
+        public void Reserve(string bookingReference, int ttlMinutes)
+        {
+            BookingReference = bookingReference;
+            ExpiresAt = DateTime.UtcNow.AddMinutes(ttlMinutes);
+            Status = AppointmentStatus.Reserved;
+        }
+
+        public void ExpireReservation()
+        {
+            if (Status == AppointmentStatus.Reserved)
+                Status = AppointmentStatus.Cancelled;
+        }
+
+        public void Confirm(Guid paymentId)
+        {
+            PaymentId = paymentId;
+            Status = AppointmentStatus.Confirmed;
+            ExpiresAt = null;
+        }
 
         public void Cancel(string reason)
         {
             Status = AppointmentStatus.Cancelled;
             CancellationReason = reason;
+            ExpiresAt = null;
         }
 
         public void Complete() => Status = AppointmentStatus.Completed;
+
+        public void MarkNoShow() => Status = AppointmentStatus.NoShow;
 
         public void Update(
             DateTime appointmentDate,

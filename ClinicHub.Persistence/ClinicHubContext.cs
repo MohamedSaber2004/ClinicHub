@@ -38,6 +38,7 @@ namespace ClinicHub.Persistence
         public DbSet<ReadReceipt> ReadReceipts { get; set; }
         public DbSet<ConversationParticipant> ConversationParticipants { get; set; }
         public DbSet<Payment> Payments { get; set; }
+        public DbSet<BookingConfiguration> BookingConfigurations { get; set; }
 
 
         protected override void OnConfiguring(DbContextOptionsBuilder builder)

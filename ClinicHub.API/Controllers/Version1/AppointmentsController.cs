@@ -4,6 +4,7 @@ using ClinicHub.Application.Features.Appointments.Commands.CreateAppointment;
 using ClinicHub.Application.Features.Appointments.Commands.UpdateAppointment;
 using ClinicHub.Application.Features.Appointments.Commands.DeleteAppointment;
 using ClinicHub.Application.Features.Appointments.Queries.GetAllAppointmentsWithFilters;
+using ClinicHub.Application.Features.Appointments.Queries.GetAppointmentById;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -21,8 +22,6 @@ namespace ClinicHub.API.Controllers.Version1
         /// <summary>
         /// Get all appointments with filters.
         /// </summary>
-        /// <param name="query"></param>
-        /// <returns></returns>
         [Authorize]
         [HttpGet]
         [Route(ApiRoutes.Appointments.GetAll)]
@@ -35,10 +34,22 @@ namespace ClinicHub.API.Controllers.Version1
         }
 
         /// <summary>
+        /// Get appointment by ID.
+        /// </summary>
+        [HttpGet]
+        [Route(ApiRoutes.Appointments.GetById)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetById([FromRoute] Guid id)
+        {
+            var query = new GetAppointmentByIdQuery { Id = id };
+            var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Create a new appointment.
         /// </summary>
-        /// <param name="command"></param>
-        /// <returns></returns>
         [Authorize]
         [HttpPost]
         [Route(ApiRoutes.Appointments.Create)]
@@ -53,9 +64,6 @@ namespace ClinicHub.API.Controllers.Version1
         /// <summary>
         /// Update an existing appointment.
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="command"></param>
-        /// <returns></returns>
         [Authorize]
         [HttpPut]
         [Route(ApiRoutes.Appointments.Update)]
@@ -72,8 +80,6 @@ namespace ClinicHub.API.Controllers.Version1
         /// <summary>
         /// Delete an appointment.
         /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
         [Authorize]
         [HttpDelete]
         [Route(ApiRoutes.Appointments.Delete)]

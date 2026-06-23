@@ -1,5 +1,4 @@
 using ClinicHub.Domain.Entities;
-using ClinicHub.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -15,6 +14,10 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.Amount).IsRequired().HasColumnType("decimal(18,2)");
         builder.Property(p => p.Currency).IsRequired().HasMaxLength(3);
         builder.Property(p => p.Status).IsRequired().HasConversion<int>();
+        builder.Property(p => p.PaymentMethod).HasMaxLength(50);
+        builder.Property(p => p.RedirectUrl).HasMaxLength(500);
+        builder.Property(p => p.FailureReason).HasMaxLength(500);
+        builder.Property(p => p.TransactionId).HasMaxLength(100);
         builder.HasIndex(p => p.AppointmentId);
 
         builder.HasOne<Appointment>()

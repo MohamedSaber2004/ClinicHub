@@ -32,7 +32,7 @@ public class InitiatePaymentCommandValidator : AbstractValidator<InitiatePayment
             .MustAsync(async (id, ct) =>
             {
                 var appt = await _unitOfWork.AppointmentRepository.GetByIdAsync(id);
-                return appt != null && appt.Status == AppointmentStatus.Pending;
+                return appt != null && (appt.Status == AppointmentStatus.Pending || appt.Status == AppointmentStatus.Reserved);
             }).WithMessage(localizer[LocalizationKeys.PaymentMessages.AppointmentNotPending.Value])
             .MustAsync(async (id, ct) =>
             {
