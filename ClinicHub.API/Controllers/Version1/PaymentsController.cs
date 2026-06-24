@@ -80,4 +80,15 @@ public class PaymentsController : BaseApiController
         var result = await _mediator.Send(query);
         return Ok(result);
     }
+
+    [HttpGet]
+    [Route(ApiRoutes.Payments.Result)]
+    public IActionResult PaymentResult(
+        [FromQuery] long id,
+        [FromQuery] bool success,
+        [FromQuery] long order)
+    {
+        var redirectUrl = $"/payment/result?success={success}&transactionId={id}&orderId={order}";
+        return Redirect(redirectUrl);
+    }
 }
