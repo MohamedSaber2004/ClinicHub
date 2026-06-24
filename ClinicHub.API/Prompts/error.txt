@@ -1,0 +1,2 @@
+﻿'LocalizationKeys' does not contain a definition for 'ExceptionMessage'
+'UserType' does not contain a definition for 'None'

@@ -1,0 +1,42 @@
+If result.html is a standalone HTML file inside wwwroot/payment, add a favicon in the <head> section.
+
+1. Place the icon file
+
+For example:
+
+wwwroot/
+│
+├── images/
+│   └── favicon.ico
+│
+└── payment/
+    └── result.html
+2. Add this inside <head> of result.html
+<head>
+    <meta charset="UTF-8">
+    <title>Payment Result</title>
+
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+</head>
+
+Or if you have a PNG:
+
+<link rel="icon" type="image/png" href="/images/favicon.png">
+If the icon is in the same folder as result.html
+<link rel="icon" type="image/x-icon" href="./favicon.ico">
+Example
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Result</title>
+
+    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
+</head>
+<body>
+    <h1>Payment Success</h1>
+</body>
+</html>
+
+If the icon still does not appear, send the folder structure of wwwroot and the location of the icon file, and I will give you the exact path to use.
