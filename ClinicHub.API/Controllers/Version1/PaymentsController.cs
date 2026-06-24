@@ -88,7 +88,7 @@ public class PaymentsController : BaseApiController
         [FromQuery] bool success,
         [FromQuery] long order)
     {
-        var redirectUrl = $"/payment/result?success={success}&transactionId={id}&orderId={order}";
+        var redirectUrl = $"/payment/result.html?success={success}&transactionId={id}&orderId={order}";
         return Redirect(redirectUrl);
     }
 }
