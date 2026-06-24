@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Result</title>
+    <link rel="icon" type="image/svg" href="/favicon.svg"/>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -38,7 +39,6 @@
         <h1 id="title">Payment Successful</h1>
         <p id="message">Your payment has been completed successfully.</p>
         <div class="detail" id="details"></div>
-        <a href="/" class="btn">Back to Home</a>
     </div>
 
     <script>
@@ -53,9 +53,6 @@
         document.getElementById('message').textContent = success
             ? 'Your payment has been completed successfully.'
             : 'The payment was not completed. Please try again.';
-        document.getElementById('details').textContent = transactionId
-            ? 'Transaction: ' + transactionId + ' | Order: ' + orderId
-            : '';
     </script>
 </body>
 </html>

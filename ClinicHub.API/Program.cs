@@ -258,6 +258,19 @@ namespace ClinicHub.API
                     RequestPath = "/files"
                 });
 
+                app.Use(async (context, next) =>
+                {
+                    if (context.Request.Path.Equals("/favicon.svg", StringComparison.OrdinalIgnoreCase))
+                    {
+                        context.Response.ContentType = "image/svg";
+                        context.Response.Headers.CacheControl = "public, max-age=86400";
+                        var svgPath = Path.Combine(app.Environment.WebRootPath, "favicon.png");
+                        if (File.Exists(svgPath))
+                            await context.Response.SendFileAsync(svgPath);
+                        return;
+                    }
+                    await next();
+                });
 
                 app.MapHealthChecks("/health", new HealthCheckOptions
                 {

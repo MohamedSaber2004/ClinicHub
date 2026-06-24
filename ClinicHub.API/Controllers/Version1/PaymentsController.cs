@@ -84,11 +84,9 @@ public class PaymentsController : BaseApiController
     [HttpGet]
     [Route(ApiRoutes.Payments.Result)]
     public IActionResult PaymentResult(
-        [FromQuery] long id,
-        [FromQuery] bool success,
-        [FromQuery] long order)
+        [FromQuery] bool success)
     {
-        var redirectUrl = $"/payment/result.html?success={success}&transactionId={id}&orderId={order}";
+        var redirectUrl = $"/payment/result.html?success={success}";
         return Redirect(redirectUrl);
     }
 }
