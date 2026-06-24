@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Result</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; background: #f5f5f5;
+        }
+        .card {
+            background: white; border-radius: 16px; padding: 48px;
+            text-align: center; box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+            max-width: 420px; width: 90%;
+        }
+        .icon { width: 80px; height: 80px; border-radius: 50%; display: flex; margin: 0 auto 24px; justify-content: center; align-items: center; font-size: 40px; }
+        .icon.success { background: #e8f5e9; color: #2e7d32; }
+        .icon.failure { background: #fce4ec; color: #c62828; }
+        h1 { font-size: 24px; margin-bottom: 8px; }
+        p { color: #666; margin-bottom: 24px; line-height: 1.5; }
+        .detail { font-size: 14px; color: #999; margin-bottom: 24px; }
+        .btn {
+            display: inline-block; padding: 12px 32px; border-radius: 8px;
+            text-decoration: none; font-weight: 600; font-size: 16px;
+            background: #1976d2; color: white; transition: background 0.2s;
+        }
+        .btn:hover { background: #1565c0; }
+        .btn.retry { background: #f5f5f5; color: #333; margin-left: 8px; }
+        .btn.retry:hover { background: #e0e0e0; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="icon" id="icon">&#10003;</div>
+        <h1 id="title">Payment Successful</h1>
+        <p id="message">Your payment has been completed successfully.</p>
+        <div class="detail" id="details"></div>
+        <a href="/" class="btn">Back to Home</a>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const success = params.get('success') === 'True';
+        const transactionId = params.get('transactionId');
+        const orderId = params.get('orderId');
+
+        document.getElementById('icon').className = 'icon ' + (success ? 'success' : 'failure');
+        document.getElementById('icon').innerHTML = success ? '&#10003;' : '&#10007;';
+        document.getElementById('title').textContent = success ? 'Payment Successful' : 'Payment Failed';
+        document.getElementById('message').textContent = success
+            ? 'Your payment has been completed successfully.'
+            : 'The payment was not completed. Please try again.';
+        document.getElementById('details').textContent = transactionId
+            ? 'Transaction: ' + transactionId + ' | Order: ' + orderId
+            : '';
+    </script>
+</body>
+</html>

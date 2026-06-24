@@ -371,3 +371,4 @@ appsettings.Production.json
 .vscode/settings.json
 /ClinicHub.API/Prompts/error.txt
 /ClinicHub.API/Prompts/prompt.txt
+/ClinicHub.API/wwwroot/payment/result.html
