@@ -45,6 +45,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString PageNumberMustBeGreaterThanOrEqualToOne = new("Validation.PageNumberMustBeGreaterThanOrEqualToOne");
             public static readonly KeyString PageSizeMustBeGreaterThanOrEqualToOne = new("Validation.PageSizeMustBeGreaterThanOrEqualToOne");
             public static readonly KeyString PageSizeMustBeLessThanOrEqualToHundred = new("Validation.PageSizeMustBeLessThanOrEqualToHundred");
+            public static readonly KeyString InvalidRole = new("Validation.InvalidRole");
         }
 
         public static class AppointmentMessages
@@ -119,6 +120,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString LogoutSuccess = new("Auth.LogoutSuccess");
             public static readonly KeyString RefreshTokenRequired = new("Auth.RefreshTokenRequired");
             public static readonly KeyString PhoneNumberExistsBefore = new("Auth.PhoneNumberExistsBefore");
+            public static readonly KeyString RoleAssignmentFailed = new("Auth.RoleAssignmentFailed");
         }
 
         public static class ClinicMessages

@@ -45,7 +45,8 @@
     "InvalidAge": "العمر المقدم غير صالح",
     "PageNumberMustBeGreaterThanOrEqualToOne": "رقم الصفحة يجب أن يكون أكبر من أو يساوي 1",
     "PageSizeMustBeGreaterThanOrEqualToOne": "حجم الصفحة يجب أن يكون أكبر من أو يساوي 1",
-    "PageSizeMustBeLessThanOrEqualToHundred": "حجم الصفحة يجب أن يكون أقل من أو يساوي 100"
+    "PageSizeMustBeLessThanOrEqualToHundred": "حجم الصفحة يجب أن يكون أقل من أو يساوي 100",
+    "InvalidRole": "يجب أن يكون الدور اسماً صالحاً من نوع المستخدم (User, SuperAdmin, Doctor, Staff, ClinicOwner)"
   },
   "Messages": {
     "Success": "تم إكمال العملية بنجاح",
@@ -101,7 +102,8 @@
     "MustBeGmail": "يجب أن يكون الدومين الخاص بالبريد الإلكتروني @gmail.com",
     "LogoutSuccess": "تم تسجيل الخروج بنجاح",
     "RefreshTokenRequired": "رمز التحديث مطلوب",
-    "PhoneNumberExistsBefore": "رقم الهاتف هذا مسجل بالفعل"
+    "PhoneNumberExistsBefore": "رقم الهاتف هذا مسجل بالفعل",
+    "RoleAssignmentFailed": "فشل تعيين دور المستخدم"
   },
   "Clinics": {
     "InvalidLatitude": "يجب أن يكون خط العرض بين -90 و 90",

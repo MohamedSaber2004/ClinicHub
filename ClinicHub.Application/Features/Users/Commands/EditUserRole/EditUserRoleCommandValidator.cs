@@ -1,5 +1,6 @@
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
+using ClinicHub.Domain.Enums;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +20,9 @@ namespace ClinicHub.Application.Features.Users.Commands.EditUserRole
                 .MustAsync(UserExists)
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.UserNotFound.Value]));
 
-            RuleFor(x => x.NewRole).NotEmpty();
+            RuleFor(x => x.NewRole).NotEmpty()
+                .Must(role => Enum.TryParse<UserType>(role, ignoreCase: true, out _))
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidRole.Value]));
         }
 
         private async Task<bool> UserExists(Guid userId, CancellationToken cancellationToken)

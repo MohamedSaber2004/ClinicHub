@@ -27,6 +27,8 @@ namespace ClinicHub.API.Filters
             var allowAnonymous = context.ActionDescriptor.EndpointMetadata.OfType<AllowAnonymousAttribute>().Any();
             if (allowAnonymous) return;
 
+            if (!context.ActionDescriptor.EndpointMetadata.OfType<AuthorizeAttribute>().Any()) return;
+
             var user = context.HttpContext.User;
             var localizer = context.HttpContext.RequestServices.GetRequiredService<IStringLocalizer<Messages>>();
 
@@ -51,7 +53,7 @@ namespace ClinicHub.API.Filters
                     foreach (var roleName in _roles)
                     {
                         if (Enum.TryParse<UserType>(roleName, ignoreCase: true, out var requiredType)   
-                            && requiredType != UserType.None
+                            && Enum.IsDefined(typeof(UserType), requiredType)
                             && (userTypesInt & (int)requiredType) != 0)
                         {
                             hasRequiredRole = true;

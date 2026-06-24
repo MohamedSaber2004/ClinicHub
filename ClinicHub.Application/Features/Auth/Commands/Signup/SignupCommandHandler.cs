@@ -51,8 +51,12 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
                 throw new UnAuthorizedException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ExceptionMessages.Validation.Value]));
             }
 
-            await _userManager.AddToRoleAsync(user, UserType.User.ToString());
-            
+            var roleResult = await _userManager.AddToRoleAsync(user, UserType.User.ToString());
+            if (!roleResult.Succeeded)
+            {
+                throw new BadRequestException(_localizer[LocalizationKeys.AuthMessages.RoleAssignmentFailed.Value]);
+            }
+
             var roles = await _userManager.GetRolesAsync(user);
             var accessToken = _jwtTokenService.GenerateAccessToken(user, roles);
             var refreshToken = _jwtTokenService.GenerateRefreshToken(user);

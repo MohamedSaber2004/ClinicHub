@@ -59,6 +59,7 @@ namespace ClinicHub.API
                 builder.Services.AddControllers(options =>
                 {
                     options.Filters.Add<ApiExceptionFilterAttribute>();
+                    options.Filters.Add(new RoleAuthorizeAttribute());
                     options.MaxModelValidationErrors = 50;
 
                     // Hide NET-Tracker controllers from Swagger/Scalar without removing them from routing
@@ -92,11 +93,13 @@ namespace ClinicHub.API
                 {
                     options.AddOperationTransformer<LanguageHeaderOperationTransformer>();
                     options.AddOperationTransformer<MultipartOperationTransformer>();
+                    options.AddOperationTransformer<AuthorizeCheckOperationTransformer>();
                 });
                 builder.Services.AddOpenApi("v2", options =>
                 {
                     options.AddOperationTransformer<LanguageHeaderOperationTransformer>();
                     options.AddOperationTransformer<MultipartOperationTransformer>();
+                    options.AddOperationTransformer<AuthorizeCheckOperationTransformer>();
                 });
 
                 builder.Services.AddApplicationServices(builder.Configuration);

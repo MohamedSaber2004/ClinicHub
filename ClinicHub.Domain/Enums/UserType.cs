@@ -1,11 +1,13 @@
 namespace ClinicHub.Domain.Enums
 {
+    [Flags]
     public enum UserType
     {
-        User = 0,
+        None = 0,
+        User = 1,
         SuperAdmin = 2,
-        ClinicAdmin = 1,
-        Staff = 3,
-        Doctor = 4
+        Doctor = 4,
+        Staff = 8,
+        ClinicOwner = 16
     }
 }

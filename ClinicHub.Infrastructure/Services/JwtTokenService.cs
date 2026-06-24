@@ -5,6 +5,7 @@ using System.Text;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Common.Options;
 using ClinicHub.Domain.Entities;
+using ClinicHub.Domain.Enums;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -28,6 +29,12 @@ namespace ClinicHub.Infrastructure.Services
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim("FullName", user.FullName)
             };
+
+            var userTypesMask = roles
+                .Select(r => Enum.TryParse<UserType>(r, ignoreCase: true, out var ut) ? (int)ut : 0)
+                .Aggregate(0, (acc, val) => acc | val);
+
+            claims.Add(new Claim("UserTypes", userTypesMask.ToString()));
 
             foreach (var role in roles)
             {

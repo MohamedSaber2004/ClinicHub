@@ -46,6 +46,17 @@ namespace ClinicHub.Persistence.Seeders
                 }
             }
 
+            // Ensure all users have at least a default role assigned (fixes existing users created before role-assignment checks)
+            var rolelessUsers = await userManager.Users.ToListAsync();
+            foreach (var user in rolelessUsers)
+            {
+                var existingRoles = await userManager.GetRolesAsync(user);
+                if (existingRoles.Count == 0)
+                {
+                    await userManager.AddToRoleAsync(user, UserType.User.ToString());
+                }
+            }
+
             var allUsers = await userManager.Users.ToListAsync();
             var userIds = allUsers.Select(u => u.Id).ToList();
 
