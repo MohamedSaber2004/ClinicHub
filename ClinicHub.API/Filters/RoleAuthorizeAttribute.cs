@@ -27,7 +27,10 @@ namespace ClinicHub.API.Filters
             var allowAnonymous = context.ActionDescriptor.EndpointMetadata.OfType<AllowAnonymousAttribute>().Any();
             if (allowAnonymous) return;
 
-            if (!context.ActionDescriptor.EndpointMetadata.OfType<AuthorizeAttribute>().Any()) return;
+            var hasAuthorize = context.ActionDescriptor.EndpointMetadata.OfType<AuthorizeAttribute>().Any();
+            var hasRoleAuthorize = context.ActionDescriptor.EndpointMetadata.OfType<RoleAuthorizeAttribute>().Any(a => a._roles.Length > 0);
+
+            if (!hasAuthorize && !hasRoleAuthorize) return;
 
             var user = context.HttpContext.User;
             var localizer = context.HttpContext.RequestServices.GetRequiredService<IStringLocalizer<Messages>>();

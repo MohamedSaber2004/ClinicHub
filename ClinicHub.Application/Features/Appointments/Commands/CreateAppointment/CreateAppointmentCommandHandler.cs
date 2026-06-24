@@ -1,6 +1,8 @@
 using AutoMapper;
+using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Appointments.DTOs;
+using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
@@ -25,6 +27,13 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
 
         public async Task<AppointmentDto> Handle(CreateAppointmentCommand request, CancellationToken cancellationToken)
         {
+            var config = await _unitOfWork.BookingConfigurationRepository.GetByClinicIdAsync(request.ClinicId);
+            if (config == null)
+                throw new BadRequestException(LocalizationKeys.BookingMessages.BookingConfigNotFound.Value);
+
+            if (request.AppointmentDate > DateTime.UtcNow.Date.AddDays(config.MaxAdvanceBookingDays))
+                throw new BadRequestException(LocalizationKeys.BookingMessages.InvalidDate.Value);
+
             var userId = _currentUserService.UserId;
 
             var appointment = new Appointment(
@@ -40,9 +49,9 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
                 request.PatientAge,
                 request.PatientGender,
                 request.Complaint,
-                request.ChronicDiseases,
-                request.BookingReference,
-                request.TtlMinutes);
+                request.ChronicDiseases);
+
+            appointment.Reserve(config.ReservationTtlMinutes);
 
             await _unitOfWork.AppointmentRepository.AddAsync(appointment);
             await _unitOfWork.SaveChangesAsync();

@@ -1,42 +1,114 @@
-If result.html is a standalone HTML file inside wwwroot/payment, add a favicon in the <head> section.
+Prompt _ Complete Clinic Management Module
+Act as a Senior Backend Architect.
 
-1. Place the icon file
+Analyze the current ClinicHub solution and implement a complete Clinic Management module.
 
-For example:
+Architecture:
+- Clean Architecture
+- CQRS
+- MediatR
+- ASP.NET Core Identity
+- Entity Framework Core
+- FluentValidation
+- Result Pattern
 
-wwwroot/
-│
-├── images/
-│   └── favicon.ico
-│
-└── payment/
-    └── result.html
-2. Add this inside <head> of result.html
-<head>
-    <meta charset="UTF-8">
-    <title>Payment Result</title>
+Business Rule:
 
-    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
-</head>
+Clinics CANNOT self-register.
 
-Or if you have a PNG:
+Only SystemAdmin can create clinics.
 
-<link rel="icon" type="image/png" href="/images/favicon.png">
-If the icon is in the same folder as result.html
-<link rel="icon" type="image/x-icon" href="./favicon.ico">
-Example
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Result</title>
+Clinic Entity:
 
-    <link rel="icon" type="image/x-icon" href="/images/favicon.ico">
-</head>
-<body>
-    <h1>Payment Success</h1>
-</body>
-</html>
+Fields:
+- Id
+- Name
+- Description
+- Address
+- Phone
+- Email
+- Logo
+- WorkingHours
+- Status
+- IsActive
+- CreatedAt
+- UpdatedAt
+- CreatedBy
+- UpdatedBy
+- IsDeleted
 
-If the icon still does not appear, send the folder structure of wwwroot and the location of the icon file, and I will give you the exact path to use.
+Clinic Status:
+- Active
+- Inactive
+- Suspended
+
+Admin Operations:
+
+Commands:
+- CreateClinic
+- UpdateClinic
+- ActivateClinic
+- DeactivateClinic
+- SuspendClinic
+- DeleteClinic (Soft Delete)
+
+Queries:
+- GetClinicById
+- GetAllClinics
+- GetPaginatedClinics
+- SearchClinics
+- FilterClinics
+
+Identity Integration:
+
+When clinic is created:
+
+1. Create Identity account automatically.
+2. Assign Clinic role.
+3. Generate temporary password.
+4. Force password reset on first login.
+5. Send credentials notification.
+
+Pagination Requirements:
+
+If PageNumber = -1:
+- Return all records.
+- Ignore pagination logic.
+
+Otherwise:
+- Use normal pagination.
+
+Filtering:
+- Status
+- Name
+- Email
+- Phone
+- Created Date
+
+Sorting:
+- Name
+- Created Date
+- Status
+
+Additional Requirements:
+
+- Soft Delete
+- Audit Fields
+- Global Query Filters
+- Validation Rules
+- Domain Events
+- Notifications
+- Swagger Documentation
+
+Deliverables:
+- Entity Design
+- Configurations
+- Migrations
+- DTOs
+- Commands
+- Queries
+- Validators
+- Handlers
+- Controllers
+- Endpoints
+- Production-ready code

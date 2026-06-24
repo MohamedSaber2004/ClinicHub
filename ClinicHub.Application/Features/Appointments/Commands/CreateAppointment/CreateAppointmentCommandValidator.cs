@@ -19,7 +19,8 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
 
             RuleFor(v => v.ClinicId)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
-                .MustAsync(ClinicExists).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ClinicMessages.ClinicNotFound.Value]));
+                .MustAsync(ClinicExists).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ClinicMessages.ClinicNotFound.Value]))
+                .MustAsync(HasBookingConfiguration).WithMessage(localizer[LocalizationKeys.BookingMessages.BookingConfigNotFound]);
 
             RuleFor(v => v.AppointmentDate)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
@@ -37,7 +38,7 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
                 .MaximumLength(200).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
 
             RuleFor(v => v.PatientPhoneNumber)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value])
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
                 .MaximumLength(20).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
 
             RuleFor(v => v.PatientAge)
@@ -47,6 +48,9 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
 
             RuleFor(v => v)
+                .MustAsync(async (v, ct) => await IsWithinBookingWindow(v.ClinicId, v.AppointmentDate, ct))
+                .WithName("AppointmentDate")
+                .WithMessage(localizer[LocalizationKeys.BookingMessages.InvalidDate])
                 .MustAsync(async (v, ct) => await DoctorIsAvailable(v.DoctorId, v.AppointmentDate, v.StartTime, v.EndTime, ct))
                 .WithName("Appointment")
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AppointmentMessages.DoctorNotAvailableAtThisTime.Value]))
@@ -63,6 +67,17 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
         private Task<bool> DoctorExists(Guid doctorId, CancellationToken cancellationToken)
         {
             return _ctx.DoctorRepository.ExistsAsync(d => d.Id == doctorId, cancellationToken);
+        }
+
+        private async Task<bool> HasBookingConfiguration(Guid clinicId, CancellationToken cancellationToken)
+        {
+            return await _ctx.BookingConfigurationRepository.GetByClinicIdAsync(clinicId) != null;
+        }
+
+        private async Task<bool> IsWithinBookingWindow(Guid clinicId, DateTime appointmentDate, CancellationToken cancellationToken)
+        {
+            var config = await _ctx.BookingConfigurationRepository.GetByClinicIdAsync(clinicId);
+            return config == null || appointmentDate.Date <= DateTime.UtcNow.Date.AddDays(config.MaxAdvanceBookingDays);
         }
 
         private Task<bool> DoctorIsAvailable(Guid doctorId, DateTime appointmentDate, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken)

@@ -1,4 +1,5 @@
 using ClinicHub.Application.Common.Exceptions;
+using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -24,29 +25,29 @@ namespace ClinicHub.Application.Features.Users.Commands.EditUserRole
 
             if (user == null || user.IsDeleted)
             {
-                throw new NotFoundException(nameof(ApplicationUser), request.UserId);
+                throw new NotFoundException(LocalizationKeys.AuthMessages.UserNotFound.Value);
             }
 
             var roleExists = await _roleManager.RoleExistsAsync(request.NewRole);
             if (!roleExists)
             {
-                throw new BadRequestException($"Role '{request.NewRole}' does not exist.");
+                throw new BadRequestException(LocalizationKeys.AuthMessages.RoleAssignmentFailed.Value);
             }
 
             var currentRoles = await _userManager.GetRolesAsync(user);
-            
+
             var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
             if (!removeResult.Succeeded)
             {
                 var errors = string.Join(", ", removeResult.Errors.Select(e => e.Description));
-                throw new BadRequestException($"Failed to remove existing roles: {errors}");
+                throw new BadRequestException(LocalizationKeys.ExceptionMessages.BadRequest.Value);
             }
 
             var addResult = await _userManager.AddToRoleAsync(user, request.NewRole);
             if (!addResult.Succeeded)
             {
                 var errors = string.Join(", ", addResult.Errors.Select(e => e.Description));
-                throw new BadRequestException($"Failed to add new role: {errors}");
+                throw new BadRequestException(LocalizationKeys.ExceptionMessages.BadRequest.Value);
             }
 
             return true;

@@ -37,6 +37,27 @@ namespace ClinicHub.Infrastructure.Services
             await SendEmailAsync(toEmail, fullName, subject, body, ct);
         }
 
+        public async Task SendClinicCredentialsAsync(string toEmail, string clinicName, string email, string temporaryPassword, CancellationToken ct = default)
+        {
+            var subject = "ClinicHub - Clinic Account Created";
+            var body = $@"
+                <html>
+                <body style='font-family: Arial, sans-serif;'>
+                    <h2>Welcome to ClinicHub!</h2>
+                    <p>Your clinic <strong>{clinicName}</strong> has been registered successfully.</p>
+                    <p>Below are your login credentials:</p>
+                    <div style='background-color: #f4f4f4; padding: 15px; border-radius: 5px;'>
+                        <p><strong>Email:</strong> {email}</p>
+                        <p><strong>Temporary Password:</strong> <span style='font-weight: bold; font-size: 1.2em;'>{temporaryPassword}</span></p>
+                    </div>
+                    <p>You will be required to change your password upon first login.</p>
+                    <p>Regards,<br />ClinicHub Team</p>
+                </body>
+                </html>";
+
+            await SendEmailAsync(toEmail, clinicName, subject, body, ct);
+        }
+
         public async Task SendVerificationEmailAsync(string toEmail, string fullName, string verificationCode, CancellationToken ct = default)
         {
             var subject = "ClinicHub - Account Verification";

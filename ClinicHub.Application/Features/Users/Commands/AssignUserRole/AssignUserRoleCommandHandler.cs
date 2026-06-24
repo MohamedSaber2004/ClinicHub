@@ -1,4 +1,5 @@
 using ClinicHub.Application.Common.Exceptions;
+using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -25,14 +26,14 @@ namespace ClinicHub.Application.Features.Users.Commands.AssignUserRole
             var roleExists = await _roleManager.RoleExistsAsync(request.Role);
             if (!roleExists)
             {
-                throw new BadRequestException($"Role '{request.Role}' does not exist.");
+                throw new BadRequestException(LocalizationKeys.AuthMessages.RoleAssignmentFailed.Value);
             }
 
             var result = await _userManager.AddToRoleAsync(user, request.Role);
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                throw new BadRequestException(errors);
+                throw new BadRequestException(LocalizationKeys.ExceptionMessages.BadRequest.Value);
             }
 
             return true;

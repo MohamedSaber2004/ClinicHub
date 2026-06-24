@@ -27,13 +27,8 @@ namespace ClinicHub.Application.Features.Booking.BookingConfig.Queries
                 ConsultationFee = config.ConsultationFee,
                 Currency = config.Currency,
                 SlotDurationMinutes = config.SlotDurationMinutes,
-                MaxFutureDays = config.MaxFutureDays,
-                ReservationTtlMinutes = config.ReservationTtlMinutes,
-                PaymentMethods = (config.PaymentMethods ?? "credit_card,cash")
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                    .ToList(),
-                AllowOnlineBooking = config.AllowOnlineBooking,
-                RequirePayment = config.RequirePayment
+                MaxAdvanceBookingDays = config.MaxAdvanceBookingDays,
+                ReservationTtlMinutes = config.ReservationTtlMinutes
             };
         }
     }

@@ -26,7 +26,7 @@ namespace ClinicHub.Application.Features.Posts.Commands.TogglePostReaction
             var postExists = await _unitOfWork.PostRepository.ExistsAsync(
                 p => p.Id == request.PostId && !p.IsDeleted, cancellationToken);
             if (!postExists)
-                throw new NotFoundException($"Post with id {request.PostId} not found");
+                throw new NotFoundException(LocalizationKeys.PostMessages.NotFound.Value);
 
             var existingReaction = await _unitOfWork.ReactionRepository.GetFirstAsync(
                 r => r.PostId == request.PostId &&

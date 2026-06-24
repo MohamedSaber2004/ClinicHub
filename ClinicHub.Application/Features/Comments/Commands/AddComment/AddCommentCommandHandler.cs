@@ -35,7 +35,7 @@ namespace ClinicHub.Application.Features.Comments.Commands.AddComment
             {
                 var postExists = await _unitOfWork.PostRepository.ExistsAsync(p => p.Id == request.PostId && !p.IsDeleted, cancellationToken);
                 if (!postExists)
-                    throw new NotFoundException($"Post with id {request.PostId} not found");
+                    throw new NotFoundException(LocalizationKeys.PostMessages.NotFound.Value);
 
                 newComment = new Comment(request.Content, _currentUserService.UserId, request.PostId);
                 await _unitOfWork.CommentRepository.AddAsync(newComment);

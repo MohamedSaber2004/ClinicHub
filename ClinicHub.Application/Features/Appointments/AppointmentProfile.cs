@@ -19,7 +19,7 @@ namespace ClinicHub.Application.Features.Appointments
                 .ForMember(dest => dest.Currency, opt => opt.Ignore())
                 .ForMember(dest => dest.DoctorName, opt => opt.MapFrom(src => src.Doctor != null && src.Doctor.User != null ? src.Doctor.User.FullName : null))
                 .ForMember(dest => dest.ClinicName, opt => opt.MapFrom(src => src.Clinic != null ? src.Clinic.Name : null))
-                .ForMember(dest => dest.ReceiptUrl, opt => opt.MapFrom(src => src.BookingReference != null ? $"https://receipts.example.com/{src.BookingReference}" : null));
+                .ForMember(dest => dest.ReceiptUrl, opt => opt.Ignore());
         }
     }
 }

@@ -12,7 +12,12 @@ namespace ClinicHub.Application.Features.Clinics
                 .ForMember(dest => dest.Lat, opt => opt.MapFrom(src => src.Location.Y))
                 .ForMember(dest => dest.Lng, opt => opt.MapFrom(src => src.Location.X))
                 .ForMember(dest => dest.SpecializationName, opt => opt.MapFrom(src => src.Specialization.Name))
-                .ForMember(dest => dest.SpecializationNameAr, opt => opt.MapFrom(src => src.Specialization.ArName));
+                .ForMember(dest => dest.SpecializationNameAr, opt => opt.MapFrom(src => src.Specialization.ArName))
+                .ForMember(dest => dest.WorkingDays, opt => opt.MapFrom(src =>
+                    src.WorkingDays != null
+                        ? src.WorkingDays.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                            .Select(d => Enum.Parse<DayOfWeek>(d)).ToList()
+                        : null));
         }
     }
 }

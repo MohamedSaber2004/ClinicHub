@@ -26,7 +26,7 @@ namespace ClinicHub.Application.Features.Comments.Commands.ToggleCommentReaction
             var commentExists = await _unitOfWork.CommentRepository.ExistsAsync(
                 c => c.Id == request.CommentId && !c.IsDeleted, cancellationToken);
             if (!commentExists)
-                throw new NotFoundException($"Comment with id {request.CommentId} not found");
+                throw new NotFoundException(LocalizationKeys.CommentMessages.NotFound.Value);
 
             var existingReaction = await _unitOfWork.ReactionRepository.GetFirstAsync(
                 r => r.CommentId == request.CommentId &&

@@ -166,11 +166,8 @@ namespace ClinicHub.Persistence.Seeders
                         consultationFee: 350m,
                         currency: "EGP",
                         slotDurationMinutes: 30,
-                        maxFutureDays: 30,
-                        reservationTtlMinutes: 15,
-                        paymentMethods: "cash,wallet",
-                        allowOnlineBooking: true,
-                        requirePayment: true);
+                        maxAdvanceBookingDays: 30,
+                        reservationTtlMinutes: 15);
                     context.Set<BookingConfiguration>().Add(config);
                 }
                 await context.SaveChangesAsync();

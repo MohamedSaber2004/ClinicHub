@@ -31,7 +31,6 @@ namespace ClinicHub.Domain.Entities
         public string? CancellationReason { get; private set; }
 
         public DateTime? ExpiresAt { get; private set; }
-        public string? BookingReference { get; private set; }
         public Guid? PaymentId { get; private set; }
         public Payment? Payment { get; private set; }
 
@@ -50,9 +49,7 @@ namespace ClinicHub.Domain.Entities
             int patientAge,
             Gender patientGender,
             string complaint,
-            string? chronicDiseases,
-            string? bookingReference = null,
-            int ttlMinutes = 0)
+            string? chronicDiseases)
         {
             BookedByUserId = bookedByUserId;
             DoctorId = doctorId;
@@ -67,27 +64,17 @@ namespace ClinicHub.Domain.Entities
             PatientGender = patientGender;
             Complaint = complaint;
             ChronicDiseases = chronicDiseases;
-            BookingReference = bookingReference;
 
-            if (ttlMinutes > 0)
-            {
-                ExpiresAt = DateTime.UtcNow.AddMinutes(ttlMinutes);
-                Status = AppointmentStatus.Reserved;
-            }
-            else
-            {
-                Status = AppointmentStatus.Pending;
-            }
+            Status = AppointmentStatus.Pending;
         }
 
         public bool IsReservationExpired() =>
             ExpiresAt.HasValue && Status == AppointmentStatus.Reserved && DateTime.UtcNow >= ExpiresAt.Value;
 
-        public void Reserve(string bookingReference, int ttlMinutes)
+        public void Reserve(int reservationTtlMinutes)
         {
-            BookingReference = bookingReference;
-            ExpiresAt = DateTime.UtcNow.AddMinutes(ttlMinutes);
             Status = AppointmentStatus.Reserved;
+            ExpiresAt = DateTime.UtcNow.AddMinutes(reservationTtlMinutes);
         }
 
         public void ExpireReservation()

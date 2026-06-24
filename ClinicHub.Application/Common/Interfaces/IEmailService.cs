@@ -24,5 +24,10 @@ namespace ClinicHub.Application.Common.Interfaces
         /// <param name="ct">The cancellation token.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
         Task SendVerificationEmailAsync(string toEmail, string fullName, string verificationCode, CancellationToken ct = default);
+
+        /// <summary>
+        /// Sends clinic credentials to a newly created clinic admin.
+        /// </summary>
+        Task SendClinicCredentialsAsync(string toEmail, string clinicName, string email, string temporaryPassword, CancellationToken ct = default);
     }
 }

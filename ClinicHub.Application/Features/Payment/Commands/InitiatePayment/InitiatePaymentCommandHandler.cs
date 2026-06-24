@@ -45,7 +45,8 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
             throw new BadRequestException(LocalizationKeys.PaymentMessages.AppointmentNotPending.Value);
 
         var doctor = await _unitOfWork.DoctorRepository.GetByIdAsync(appointment.DoctorId);
-        var amount = doctor?.ConsultationFee ?? 0m;
+        var bookingConfig = await _unitOfWork.BookingConfigurationRepository.GetByClinicIdAsync(appointment.ClinicId);
+        var amount = bookingConfig?.ConsultationFee;
 
         var user = await _unitOfWork.GetRepository<ApplicationUser, Guid>().GetByIdAsync(currentUserId);
 
@@ -53,7 +54,7 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
 
         // Single orchestrated Paymob flow: Auth → Order → PaymentKey → WalletPay
         var walletResult = await _paymobService.InitiateWalletPaymentAsync(
-            amount, "EGP", billing, request.PhoneNumber, cancellationToken);
+            amount!.Value, "EGP", billing, request.PhoneNumber, cancellationToken);
 
         var payment = await _unitOfWork.PaymentRepository.GetByAppointmentIdAsync(request.AppointmentId);
         
@@ -69,7 +70,7 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
         }
         else
         {
-            payment = new ClinicHub.Domain.Entities.Payment(request.AppointmentId, currentUserId, amount)
+            payment = new ClinicHub.Domain.Entities.Payment(request.AppointmentId, currentUserId, amount.Value)
             {
                 PaymobOrderId = walletResult.OrderId
             };

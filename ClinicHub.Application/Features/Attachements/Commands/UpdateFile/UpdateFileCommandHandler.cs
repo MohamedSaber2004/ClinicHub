@@ -1,5 +1,6 @@
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
+using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Enums;
 using MediatR;
 
@@ -44,7 +45,7 @@ namespace ClinicHub.Application.Features.Attachements.Commands.UpdateFile
                 MediaType.Audio => await _audioValidator.UploadAudio(request.File, request.Place),
                 MediaType.Video => await _videoValidator.UploadVideo(request.File, request.Place),
                 MediaType.File => await _fileValidator.UploadFile(request.File, request.Place),
-                _ => throw new BadRequestException("Invalid file type")
+                _ => throw new BadRequestException(LocalizationKeys.AttachmentMessages.InvalidFileType.Value)
             };
 
             if (!result.Uploaded)

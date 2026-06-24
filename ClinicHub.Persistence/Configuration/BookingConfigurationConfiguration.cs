@@ -25,26 +25,13 @@ namespace ClinicHub.Persistence.Configuration
                 .IsRequired()
                 .HasDefaultValue(30);
 
-            builder.Property(x => x.MaxFutureDays)
+            builder.Property(x => x.MaxAdvanceBookingDays)
                 .IsRequired()
                 .HasDefaultValue(30);
 
             builder.Property(x => x.ReservationTtlMinutes)
                 .IsRequired()
                 .HasDefaultValue(10);
-
-            builder.Property(x => x.PaymentMethods)
-                .IsRequired()
-                .HasMaxLength(255)
-                .HasDefaultValue("credit_card,cash");
-
-            builder.Property(x => x.AllowOnlineBooking)
-                .IsRequired()
-                .HasDefaultValue(true);
-
-            builder.Property(x => x.RequirePayment)
-                .IsRequired()
-                .HasDefaultValue(true);
 
             builder.HasOne(x => x.Clinic)
                 .WithMany()

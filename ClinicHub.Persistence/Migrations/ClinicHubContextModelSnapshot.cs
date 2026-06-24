@@ -172,10 +172,6 @@ namespace ClinicHub.Persistence.Migrations
                     b.Property<Guid>("BookedByUserId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("BookingReference")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
                     b.Property<string>("CancellationReason")
                         .HasColumnType("nvarchar(max)");
 
@@ -255,10 +251,6 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.HasIndex("BookedByUserId");
 
-                    b.HasIndex("BookingReference")
-                        .IsUnique()
-                        .HasFilter("[BookingReference] IS NOT NULL");
-
                     b.HasIndex("ClinicId");
 
                     b.HasIndex("DoctorId");
@@ -273,11 +265,6 @@ namespace ClinicHub.Persistence.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<bool>("AllowOnlineBooking")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
 
                     b.Property<Guid>("ClinicId")
                         .HasColumnType("uniqueidentifier");
@@ -311,22 +298,10 @@ namespace ClinicHub.Persistence.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<int>("MaxFutureDays")
+                    b.Property<int>("MaxAdvanceBookingDays")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasDefaultValue(30);
-
-                    b.Property<string>("PaymentMethods")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)")
-                        .HasDefaultValue("credit_card,cash");
-
-                    b.Property<bool>("RequirePayment")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
 
                     b.Property<int>("ReservationTtlMinutes")
                         .ValueGeneratedOnAdd()
@@ -371,6 +346,13 @@ namespace ClinicHub.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<string>("ArDescription")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<Guid?>("ClinicAdminId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -383,6 +365,14 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.Property<string>("DeletedBy")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("ImageUrl")
                         .HasColumnType("nvarchar(max)");
@@ -402,13 +392,16 @@ namespace ClinicHub.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("geography");
 
+                    b.Property<string>("Logo")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("NameAr")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
@@ -422,6 +415,13 @@ namespace ClinicHub.Persistence.Migrations
                     b.Property<Guid>("SpecializationId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Active");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -433,7 +433,27 @@ namespace ClinicHub.Persistence.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
 
+                    b.Property<string>("Website")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("WorkingDays")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("WorkingHours")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<TimeOnly?>("WorkingHoursEnd")
+                        .HasColumnType("time");
+
+                    b.Property<TimeOnly?>("WorkingHoursStart")
+                        .HasColumnType("time");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ClinicAdminId");
 
                     b.HasIndex("Location")
                         .HasDatabaseName("IX_Clinics_Location")
@@ -1667,11 +1687,18 @@ namespace ClinicHub.Persistence.Migrations
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Clinic", b =>
                 {
+                    b.HasOne("ClinicHub.Domain.Entities.ApplicationUser", "ClinicAdmin")
+                        .WithMany()
+                        .HasForeignKey("ClinicAdminId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("ClinicHub.Domain.Entities.Specialization", "Specialization")
                         .WithMany("Clinics")
                         .HasForeignKey("SpecializationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("ClinicAdmin");
 
                     b.Navigation("Specialization");
                 });

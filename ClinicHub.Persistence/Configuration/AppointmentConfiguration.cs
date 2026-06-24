@@ -26,15 +26,8 @@ namespace ClinicHub.Persistence.Configuration
                 .HasForeignKey(x => x.DoctorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Property(x => x.BookingReference)
-                .HasMaxLength(50);
-
             builder.Property(x => x.ExpiresAt)
                 .HasColumnType("datetime2");
-
-            builder.HasIndex(x => x.BookingReference)
-                .IsUnique()
-                .HasFilter("[BookingReference] IS NOT NULL");
 
             builder.HasOne(x => x.Clinic)
                 .WithMany()

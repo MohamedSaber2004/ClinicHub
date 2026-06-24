@@ -1,5 +1,3 @@
-using Microsoft.Identity.Client;
-
 namespace ClinicHub.API.Routes
 {
     public static class ApiRoutes
@@ -60,6 +58,19 @@ namespace ClinicHub.API.Routes
         {
             public const string Search = Base + "/clinics/search";
             public const string GetRoute = Base + "/clinics/route";
+        }
+
+        public static class ClinicManagement
+        {
+            public const string BaseRoute = Base + "/admin/clinics";
+            public const string Create = BaseRoute;
+            public const string GetById = BaseRoute + "/{id:guid}";
+            public const string GetAll = BaseRoute;
+            public const string GetPaginated = BaseRoute;
+            public const string Update = BaseRoute + "/{id:guid}";
+            public const string Activate = BaseRoute + "/{id:guid}/activate";
+            public const string Deactivate = BaseRoute + "/{id:guid}/deactivate";
+            public const string Delete = BaseRoute + "/{id:guid}";
         }
 
         public static class Specializations
@@ -130,7 +141,11 @@ namespace ClinicHub.API.Routes
 
         public static class BookingConfig
         {
-            public const string GetByClinic = Base + "/clinics/{clinicId:guid}/booking-config";
+            public const string BaseRoute = Base + "/clinics/{clinicId:guid}/booking-config";
+            public const string GetByClinic = BaseRoute;
+            public const string Create = BaseRoute;
+            public const string Update = BaseRoute;
+            public const string Delete = BaseRoute;
         }
 
         public static class Payments

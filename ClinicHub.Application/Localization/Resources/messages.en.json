@@ -43,10 +43,13 @@
     "InvalidDate": "The date provided is invalid",
     "InvalidTimeRange": "The time range provided is invalid",
     "InvalidAge": "The age provided is invalid",
+    "InvalidDateRange": "'From' date must be before or equal to 'To' date",
     "PageNumberMustBeGreaterThanOrEqualToOne": "Page number must be greater than or equal to 1",
     "PageSizeMustBeGreaterThanOrEqualToOne": "Page size must be greater than or equal to 1",
     "PageSizeMustBeLessThanOrEqualToHundred": "Page size must be less than or equal to 100",
-    "InvalidRole": "Role must be a valid UserType name (User, SuperAdmin, Doctor, Staff, ClinicOwner)"
+    "InvalidRole": "Role must be a valid UserType name (User, SuperAdmin, Doctor, Staff, ClinicOwner)",
+    "InvalidWorkingDays": "{PropertyName} contains invalid day names. Valid days: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday",
+    "MustBeGreaterThanZero": "{PropertyName} must be greater than 0"
   },
   "Messages": {
     "Success": "Operation completed successfully",
@@ -110,7 +113,11 @@
     "InvalidLongitude": "Longitude must be between -180 and 180",
     "InvalidRadius": "Search radius must be between 0.1 and 5 km",
     "NotFound": "Clinic not found",
-    "DoctorNotFound": "Doctor not found"
+    "DoctorNotFound": "Doctor not found",
+    "EmailAlreadyExists": "This email is already used by another clinic",
+    "PhoneAlreadyExists": "This phone number is already used by another clinic",
+    "EmailNotFound": "No clinic found with this email",
+    "PhoneNotFound": "No clinic found with this phone number"
   },
   "Specializations": {
     "NotFound": "Specialization not found",
@@ -168,7 +175,11 @@
     "PastDate": "Cannot book for past dates",
     "InvalidDate": "Date exceeds maximum booking window",
     "ConfigNotFound": "Booking configuration not found",
-    "Created": "Booking created successfully"
+    "ConfigCreated": "Booking configuration created successfully",
+    "ConfigUpdated": "Booking configuration updated successfully",
+    "ConfigDeleted": "Booking configuration deleted successfully",
+    "Created": "Booking created successfully",
+    "FeeNotConfigured": "Consultation fee is not configured for this clinic"
   },
   "Slots": {
     "DoctorIsNotFollowForThatClinic": "Doctor is not following for that clinic"

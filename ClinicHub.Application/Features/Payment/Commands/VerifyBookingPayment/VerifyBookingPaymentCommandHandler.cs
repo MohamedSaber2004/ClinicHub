@@ -67,9 +67,7 @@ namespace ClinicHub.Application.Features.Payment.Commands.VerifyBookingPayment
                 FailureReason = payment.FailureReason,
                 CreatedAt = payment.CreatedAt,
                 CompletedAt = payment.PaidAt,
-                ReceiptUrl = appointment?.BookingReference != null
-                    ? $"https://receipts.example.com/{appointment.BookingReference}"
-                    : null
+                ReceiptUrl = null
             };
         }
     }

@@ -45,7 +45,10 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString PageNumberMustBeGreaterThanOrEqualToOne = new("Validation.PageNumberMustBeGreaterThanOrEqualToOne");
             public static readonly KeyString PageSizeMustBeGreaterThanOrEqualToOne = new("Validation.PageSizeMustBeGreaterThanOrEqualToOne");
             public static readonly KeyString PageSizeMustBeLessThanOrEqualToHundred = new("Validation.PageSizeMustBeLessThanOrEqualToHundred");
+            public static readonly KeyString InvalidDateRange = new("Validation.InvalidDateRange");
             public static readonly KeyString InvalidRole = new("Validation.InvalidRole");
+            public static readonly KeyString InvalidWorkingDays = new("Validation.InvalidWorkingDays");
+            public static readonly KeyString MustBeGreaterThanZero = new("Validation.MustBeGreaterThanZero");
         }
 
         public static class AppointmentMessages
@@ -129,6 +132,10 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString InvalidLongitude = new("Clinics.InvalidLongitude");
             public static readonly KeyString InvalidRadius = new("Clinics.InvalidRadius");
             public static readonly KeyString ClinicNotFound = new("Clinics.NotFound");
+            public static readonly KeyString EmailAlreadyExists = new("Clinics.EmailAlreadyExists");
+            public static readonly KeyString PhoneAlreadyExists = new("Clinics.PhoneAlreadyExists");
+            public static readonly KeyString EmailNotFound = new("Clinics.EmailNotFound");
+            public static readonly KeyString PhoneNotFound = new("Clinics.PhoneNotFound");
         }
 
         public static class SpecializationMessages
@@ -201,7 +208,11 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString PastDate = new("Booking.PastDate");
             public static readonly KeyString InvalidDate = new("Booking.InvalidDate");
             public static readonly KeyString BookingConfigNotFound = new("Booking.ConfigNotFound");
+            public static readonly KeyString BookingConfigCreated = new("Booking.ConfigCreated");
+            public static readonly KeyString BookingConfigUpdated = new("Booking.ConfigUpdated");
+            public static readonly KeyString BookingConfigDeleted = new("Booking.ConfigDeleted");
             public static readonly KeyString BookingCreated = new("Booking.Created");
+            public static readonly KeyString FeeNotConfigured = new("Booking.FeeNotConfigured");
         }
 
         public static class Slots

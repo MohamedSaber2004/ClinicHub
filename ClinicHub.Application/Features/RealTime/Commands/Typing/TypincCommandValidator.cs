@@ -1,5 +1,4 @@
 ﻿using ClinicHub.Application.Localization;
-using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
 using Microsoft.Extensions.Localization;
@@ -10,14 +9,13 @@ namespace ClinicHub.Application.Features.RealTime.Commands.Typing
     {
         private readonly IUnitOfWork _ctx;
 
-        public TypincCommandValidator(IStringLocalizer<Message> localizer, IUnitOfWork ctx)
+        public TypincCommandValidator(IStringLocalizer<Messages> localizer, IUnitOfWork ctx)
         {
             _ctx = ctx;
 
-
             RuleFor(x => x.ConversationId)
-                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.RealTimeMessages.ConversationIdRequired.Value]))
-                .MustAsync(ConversationFound).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.RealTimeMessages.ConversationNotFound.Value]));
+                .NotEmpty().WithMessage(localizer[LocalizationKeys.RealTimeMessages.ConversationIdRequired])
+                .MustAsync(ConversationFound).WithMessage(localizer[LocalizationKeys.RealTimeMessages.ConversationNotFound]);
         }
 
         private async Task<bool> ConversationFound(Guid conversationId, CancellationToken cancellationToken)
