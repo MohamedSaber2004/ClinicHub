@@ -369,3 +369,5 @@ appsettings.Test.json
 appsettings.Production.json
 /ClinicHub.API/wwwroot
 .vscode/settings.json
+/ClinicHub.API/Prompts/error.txt
+/ClinicHub.API/Prompts/prompt.txt
