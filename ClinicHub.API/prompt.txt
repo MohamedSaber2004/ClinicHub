@@ -1,114 +1,110 @@
-Prompt _ Complete Clinic Management Module
-Act as a Senior Backend Architect.
+If you already know the GetHybridSearch implementation in the ClinicHub repository and want an AI/code assistant to perform a deep analysis and enhancement, use this prompt:
 
-Analyze the current ClinicHub solution and implement a complete Clinic Management module.
+Act as a senior .NET Backend Engineer and Google Maps API specialist.
 
-Architecture:
-- Clean Architecture
-- CQRS
-- MediatR
-- ASP.NET Core Identity
-- Entity Framework Core
-- FluentValidation
-- Result Pattern
+Analyze the entire implementation of the GetHybridSearch feature in the ClinicHub repository.
 
-Business Rule:
+Current problem:
+Some clinics, hospitals, medical centers, and healthcare providers are visible on Google Maps but are not returned by the GetHybridSearch API response.
 
-Clinics CANNOT self-register.
+I need a complete root-cause analysis and implementation improvement.
 
-Only SystemAdmin can create clinics.
+Tasks:
 
-Clinic Entity:
+1. Locate all files involved in:
+   - GetHybridSearch endpoint
+   - Handlers
+   - Services
+   - Repositories
+   - Google Maps integrations
+   - Google Places API requests
+   - Geocoding requests
+   - Search filters
+   - Mapping and DTO projections
+   - Caching layers
 
-Fields:
-- Id
-- Name
-- Description
-- Address
-- Phone
-- Email
-- Logo
-- WorkingHours
-- Status
-- IsActive
-- CreatedAt
-- UpdatedAt
-- CreatedBy
-- UpdatedBy
-- IsDeleted
+2. Analyze the entire search flow:
+   - Request received
+   - Query generation
+   - Google API call
+   - Result filtering
+   - Deduplication
+   - Mapping
+   - Pagination
+   - Final response generation
 
-Clinic Status:
-- Active
-- Inactive
-- Suspended
+3. Identify why valid clinics/hospitals are missing:
+   - Incorrect Google Places API parameters
+   - Radius limitations
+   - Location bias issues
+   - Pagination token not handled correctly
+   - Missing NextPageToken requests
+   - Overly restrictive filtering
+   - Wrong business type filters
+   - Name matching issues
+   - Language issues
+   - Country restrictions
+   - DTO mapping bugs
+   - Search result truncation
+   - Database merge issues
+   - Async execution problems
+   - Exception swallowing
+   - Cache returning stale results
 
-Admin Operations:
+4. Verify whether:
+   - All Google Places pages are fetched
+   - NextPageToken is used correctly
+   - Nearby Search and Text Search are combined properly
+   - Clinics, hospitals, medical centers, laboratories, radiology centers and doctors are all searchable
+   - Arabic and English names are supported
+   - Search ranking is not removing valid results
 
-Commands:
-- CreateClinic
-- UpdateClinic
-- ActivateClinic
-- DeactivateClinic
-- SuspendClinic
-- DeleteClinic (Soft Delete)
+5. Improve search quality:
+   - Hybrid database + Google Places search
+   - Fuzzy matching
+   - Multiple medical business types
+   - Arabic/English keyword support
+   - Score-based ranking
+   - Better relevance ordering
+   - Duplicate removal using PlaceId
+   - Distance-based sorting
+   - Intelligent fallback search
 
-Queries:
-- GetClinicById
-- GetAllClinics
-- GetPaginatedClinics
-- SearchClinics
-- FilterClinics
+6. Add logging:
+   - Generated Google request
+   - Returned Google count
+   - Filtered count
+   - Final count
+   - Reasons for discarded results
 
-Identity Integration:
+7. Add performance improvements:
+   - Reduce unnecessary API calls
+   - Optimize LINQ queries
+   - Efficient caching strategy
+   - Async parallel execution where safe
 
-When clinic is created:
+8. Generate:
+   - Root cause report
+   - List of discovered issues
+   - Recommended fixes
+   - Updated production-ready code
+   - Explanation of every modification
 
-1. Create Identity account automatically.
-2. Assign Clinic role.
-3. Generate temporary password.
-4. Force password reset on first login.
-5. Send credentials notification.
+9. Ensure the final implementation returns the maximum possible number of valid healthcare providers from Google Maps without duplicates while maintaining good performance.
 
-Pagination Requirements:
+Output:
+- Root cause analysis
+- File-by-file review
+- Exact code changes
+- Improved implementation
+- Performance considerations
+- Testing scenarios
+- Edge cases
 
-If PageNumber = -1:
-- Return all records.
-- Ignore pagination logic.
+For even better results, provide the AI with the specific files containing:
 
-Otherwise:
-- Use normal pagination.
-
-Filtering:
-- Status
-- Name
-- Email
-- Phone
-- Created Date
-
-Sorting:
-- Name
-- Created Date
-- Status
-
-Additional Requirements:
-
-- Soft Delete
-- Audit Fields
-- Global Query Filters
-- Validation Rules
-- Domain Events
-- Notifications
-- Swagger Documentation
-
-Deliverables:
-- Entity Design
-- Configurations
-- Migrations
-- DTOs
-- Commands
-- Queries
-- Validators
-- Handlers
-- Controllers
-- Endpoints
-- Production-ready code
+GetHybridSearchHandler
+Google Places service
+Search service
+Clinic repository
+DTOs and response models

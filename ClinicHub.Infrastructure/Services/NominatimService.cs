@@ -20,9 +20,9 @@ namespace ClinicHub.Infrastructure.Services
             _httpClient.Timeout = TimeSpan.FromSeconds(30); // Global timeout high enough, but we use CTS per request
         }
 
-        public async Task<List<ClinicExternalDto>> GetNearbyFromMapAsync(double lat, double lng, string category, CancellationToken cancellationToken, double radius = 5000)
+        public async Task<List<ClinicExternalDto>> GetNearbyFromMapAsync(double lat, double lng, string category, CancellationToken cancellationToken, double radius = 5000, string? languageCode = null)
         {
-            var cacheKey = $"Nearby_{lat}_{lng}_{category}_{radius}";
+            var cacheKey = $"Nearby_{lat}_{lng}_{category}_{radius}_{languageCode}";
             if (_cache.TryGetValue(cacheKey, out List<ClinicExternalDto>? cachedResults))
             {
                 return cachedResults ?? new List<ClinicExternalDto>();
@@ -47,10 +47,78 @@ namespace ClinicHub.Infrastructure.Services
                 var results = response.Elements.Select(e => {
                     return new ClinicExternalDto
                     {
+                        PlaceId = $"osm_{e.Type}_{e.Id}",
                         Name = e.Tags?.GetValueOrDefault("name") ?? e.Tags?.GetValueOrDefault("name:en") ?? "Unknown Clinic",
                         NameAr = e.Tags?.GetValueOrDefault("name:ar"),
                         Lat = e.Lat != 0 ? e.Lat : (e.Center?.Lat ?? 0),
                         Lng = e.Lon != 0 ? e.Lon : (e.Center?.Lon ?? 0),
+                        Address = e.Tags?.GetValueOrDefault("addr:full") ?? e.Tags?.GetValueOrDefault("addr:street") ?? "Near " + (e.Tags?.GetValueOrDefault("addr:city") ?? ""),
+                        Phone = e.Tags?.GetValueOrDefault("phone") ?? e.Tags?.GetValueOrDefault("contact:phone"),
+                        Website = e.Tags?.GetValueOrDefault("website") ?? e.Tags?.GetValueOrDefault("contact:website")
+                    };
+                }).ToList();
+
+                _cache.Set(cacheKey, results, TimeSpan.FromMinutes(30));
+                return results;
+            }
+            catch (Exception)
+            {
+                return new List<ClinicExternalDto>();
+            }
+        }
+
+        public async Task<List<ClinicExternalDto>> TextSearchAsync(string query, double? lat, double? lng, double radius, CancellationToken cancellationToken, string? languageCode = null)
+        {
+            var cacheKey = $"TextSearch_{query}_{lat}_{lng}_{radius}_{languageCode}";
+            if (_cache.TryGetValue(cacheKey, out List<ClinicExternalDto>? cachedResults))
+            {
+                return cachedResults ?? new List<ClinicExternalDto>();
+            }
+
+            var tagsList = "hospital|clinic|doctors|dentist|pharmacy|physiotherapist|laboratory";
+            var centerLat = lat?.ToString(CultureInfo.InvariantCulture) ?? "0";
+            var centerLng = lng?.ToString(CultureInfo.InvariantCulture) ?? "0";
+            var radiusM = radius > 0 ? radius : 5000;
+
+            var escapedQuery = Uri.EscapeDataString(query);
+            var overpassQuery = $@"
+                [out:json][timeout:25];
+                (
+                  node(around:{radiusM},{centerLat},{centerLng})[""amenity""~""{tagsList}""][name~""{escapedQuery}"",i];
+                  way(around:{radiusM},{centerLat},{centerLng})[""amenity""~""{tagsList}""][name~""{escapedQuery}"",i];
+                  relation(around:{radiusM},{centerLat},{centerLng})[""amenity""~""{tagsList}""][name~""{escapedQuery}"",i];
+                );
+                out center;";
+
+            if (lat == null || lng == null)
+            {
+                overpassQuery = $@"
+                    [out:json][timeout:25];
+                    (
+                      node[""amenity""~""{tagsList}""][name~""{escapedQuery}"",i];
+                      way[""amenity""~""{tagsList}""][name~""{escapedQuery}"",i];
+                      relation[""amenity""~""{tagsList}""][name~""{escapedQuery}"",i];
+                    );
+                    out center;";
+            }
+
+            var url = $"https://overpass-api.de/api/interpreter?data={Uri.EscapeDataString(overpassQuery)}";
+
+            try
+            {
+                var response = await _httpClient.GetFromJsonAsync<OverpassResponse>(url, cancellationToken);
+                if (response?.Elements == null) return new List<ClinicExternalDto>();
+
+                var results = response.Elements.Select(e => {
+                    var elemLat = e.Lat != 0 ? e.Lat : (e.Center?.Lat ?? 0);
+                    var elemLng = e.Lon != 0 ? e.Lon : (e.Center?.Lon ?? 0);
+                    return new ClinicExternalDto
+                    {
+                        PlaceId = $"osm_{e.Type}_{e.Id}",
+                        Name = e.Tags?.GetValueOrDefault("name") ?? e.Tags?.GetValueOrDefault("name:en") ?? "Unknown Clinic",
+                        NameAr = e.Tags?.GetValueOrDefault("name:ar"),
+                        Lat = elemLat,
+                        Lng = elemLng,
                         Address = e.Tags?.GetValueOrDefault("addr:full") ?? e.Tags?.GetValueOrDefault("addr:street") ?? "Near " + (e.Tags?.GetValueOrDefault("addr:city") ?? ""),
                         Phone = e.Tags?.GetValueOrDefault("phone") ?? e.Tags?.GetValueOrDefault("contact:phone"),
                         Website = e.Tags?.GetValueOrDefault("website") ?? e.Tags?.GetValueOrDefault("contact:website")
@@ -179,6 +247,8 @@ namespace ClinicHub.Infrastructure.Services
 
         private class OverpassElement
         {
+            public long Id { get; set; }
+            public string Type { get; set; } = "node";
             public double Lat { get; set; }
             public double Lon { get; set; }
             public OverpassCenter? Center { get; set; }

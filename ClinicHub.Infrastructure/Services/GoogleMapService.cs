@@ -5,94 +5,274 @@ using System.Text.Json.Serialization;
 using ClinicHub.Application.Common.Options;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 namespace ClinicHub.Infrastructure.Services
 {
     public class GoogleMapService : IMapService
     {
-        private const string NearbyFieldMask = "places.displayName,places.formattedAddress,places.location,places.rating";
+        private const string NearbyFieldMask = "places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.nationalPhoneNumber,places.websiteUri";
+        private const string TextSearchFieldMask = "places.id,places.displayName,places.formattedAddress,places.location,places.rating,places.nationalPhoneNumber,places.websiteUri";
         private const string RouteFieldMask = "routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline";
+        private const int MaxResultsPerPage = 20;
+        private const int MaxTotalResults = 60;
+
+        private static readonly string[] HealthcareTypes =
+        [
+            "hospital",
+            "doctor",
+            "dentist",
+            "medical_center",
+            "physiotherapist",
+            "diagnostic_center",
+            "laboratory",
+            "radiology_center"
+        ];
 
         private readonly HttpClient _httpClient;
         private readonly GoogleMapsSettings _options;
         private readonly IMemoryCache _cache;
+        private readonly ILogger<GoogleMapService> _logger;
 
-        public GoogleMapService(HttpClient httpClient, IOptions<GoogleMapsSettings> options, IMemoryCache cache)
+        public GoogleMapService(HttpClient httpClient, IOptions<GoogleMapsSettings> options, IMemoryCache cache, ILogger<GoogleMapService> logger)
         {
             _httpClient = httpClient;
             _options = options.Value;
             _cache = cache;
+            _logger = logger;
         }
 
-        public async Task<List<ClinicExternalDto>> GetNearbyFromMapAsync(double lat, double lng, string category, CancellationToken cancellationToken, double radius = 5000)
+        public async Task<List<ClinicExternalDto>> GetNearbyFromMapAsync(double lat, double lng, string category, CancellationToken cancellationToken, double radius = 5000, string? languageCode = null)
         {
-            var cacheKey = $"Google_Nearby_{lat}_{lng}_{category}_{radius}";
+            var lang = languageCode ?? "en";
+            var cacheKey = $"Google_Nearby_{lat}_{lng}_{category}_{radius}_{lang}";
             if (_cache.TryGetValue(cacheKey, out List<ClinicExternalDto>? cachedResults))
             {
+                _logger.LogDebug("Cache hit for NearbySearch: {CacheKey} ({Count} results)", cacheKey, cachedResults?.Count ?? 0);
                 return cachedResults ?? new List<ClinicExternalDto>();
             }
 
             var includedTypes = NormalizePlaceTypes(category).ToList();
             if (includedTypes.Count == 0)
             {
-                includedTypes = ["hospital"];
+                includedTypes = [.. HealthcareTypes];
             }
 
-            var requestBody = new GoogleNearbySearchRequest
+            _logger.LogInformation("Google NearbySearch: lat={Lat}, lng={Lng}, types=[{Types}], radius={Radius}m, lang={Lang}",
+                lat, lng, string.Join(",", includedTypes), radius, lang);
+
+            var allResults = new List<ClinicExternalDto>();
+            string? nextPageToken = null;
+            var pageCount = 0;
+
+            do
             {
-                IncludedTypes = includedTypes,
-                LanguageCode = "en",
-                MaxResultCount = 20,
-                LocationRestriction = new GoogleLocationRestriction
+                var requestBody = new GoogleNearbySearchRequest
                 {
-                    Circle = new GoogleCircle
+                    IncludedTypes = includedTypes,
+                    LanguageCode = lang,
+                    MaxResultCount = MaxResultsPerPage,
+                    LocationRestriction = new GoogleLocationRestriction
                     {
-                        Center = new GoogleLatLng
+                        Circle = new GoogleCircle
                         {
-                            Latitude = lat,
-                            Longitude = lng
-                        },
-                        Radius = radius
+                            Center = new GoogleLatLng
+                            {
+                                Latitude = lat,
+                                Longitude = lng
+                            },
+                            Radius = radius
+                        }
+                    }
+                };
+
+                if (!string.IsNullOrEmpty(nextPageToken))
+                {
+                    requestBody.PageToken = nextPageToken;
+                }
+
+                try
+                {
+                    using var request = new HttpRequestMessage(HttpMethod.Post, _options.NearByFromMapBaseUrl);
+                    request.Headers.Add("X-Goog-Api-Key", _options.ApiKey);
+                    request.Headers.Add("X-Goog-FieldMask", NearbyFieldMask);
+                    request.Content = JsonContent.Create(requestBody);
+
+                    var response = await _httpClient.SendAsync(request, cancellationToken);
+                    var body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        _logger.LogError("Google NearbySearch failed ({Status}): {Body}", response.StatusCode, body);
+                        break;
+                    }
+
+                    var payload = await response.Content.ReadFromJsonAsync<GoogleNearbySearchResponse>(cancellationToken: cancellationToken);
+
+                    if (payload?.Places is not null && payload.Places.Count > 0)
+                    {
+                        _logger.LogDebug("Google NearbySearch page {Page}: got {Count} results", pageCount + 1, payload.Places.Count);
+
+                        foreach (var place in payload.Places)
+                        {
+                            allResults.Add(MapPlaceToDto(place, lang));
+                        }
+
+                        nextPageToken = payload.NextPageToken;
+                        pageCount++;
+                    }
+                    else
+                    {
+                        nextPageToken = null;
                     }
                 }
-            };
-
-            try
-            {
-                using var request = new HttpRequestMessage(HttpMethod.Post, _options.NearByFromMapBaseUrl);
-                request.Headers.Add("X-Goog-Api-Key", _options.ApiKey);
-                request.Headers.Add("X-Goog-FieldMask", NearbyFieldMask);
-                request.Content = JsonContent.Create(requestBody);
-
-                var response = await _httpClient.SendAsync(request, cancellationToken);
-                var payload = await response.Content.ReadFromJsonAsync<GoogleNearbySearchResponse>(cancellationToken: cancellationToken);
-
-                if (!response.IsSuccessStatusCode)
+                catch (OperationCanceledException)
                 {
-                    return new List<ClinicExternalDto>();
+                    _logger.LogWarning("Google NearbySearch cancelled");
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Google NearbySearch error: {Message}", ex.Message);
+                    break;
                 }
 
-                if (payload?.Places is not null && payload.Places.Any())
+                if (!string.IsNullOrEmpty(nextPageToken))
                 {
-                    var results = payload.Places.Select(r => new ClinicExternalDto
+                    await Task.Delay(500, cancellationToken);
+                }
+            }
+            while (!string.IsNullOrEmpty(nextPageToken) && allResults.Count < MaxTotalResults && pageCount < 3);
+
+            _logger.LogInformation("Google NearbySearch complete: total {Count} results across {Pages} page(s)", allResults.Count, pageCount);
+
+            if (allResults.Count > 0)
+            {
+                _cache.Set(cacheKey, allResults, TimeSpan.FromMinutes(30));
+            }
+
+            return allResults;
+        }
+
+        public async Task<List<ClinicExternalDto>> TextSearchAsync(string query, double? lat, double? lng, double radius, CancellationToken cancellationToken, string? languageCode = null)
+        {
+            var lang = languageCode ?? "en";
+            var cacheKey = $"Google_TextSearch_{query}_{lat}_{lng}_{radius}_{lang}";
+            if (_cache.TryGetValue(cacheKey, out List<ClinicExternalDto>? cachedResults))
+            {
+                _logger.LogDebug("Cache hit for TextSearch: {CacheKey} ({Count} results)", cacheKey, cachedResults?.Count ?? 0);
+                return cachedResults ?? new List<ClinicExternalDto>();
+            }
+
+            if (string.IsNullOrWhiteSpace(_options.TextSearchBaseUrl))
+            {
+                _logger.LogWarning("TextSearchBaseUrl not configured, falling back to NearbySearch");
+                if (lat.HasValue && lng.HasValue)
+                {
+                    return await GetNearbyFromMapAsync(lat.Value, lng.Value, string.Join(",", HealthcareTypes), cancellationToken, radius, lang);
+                }
+                return new List<ClinicExternalDto>();
+            }
+
+            _logger.LogInformation("Google TextSearch: query=\"{Query}\", lat={Lat}, lng={Lng}, radius={Radius}m, lang={Lang}",
+                query, lat, lng, radius, lang);
+
+            var allResults = new List<ClinicExternalDto>();
+            string? nextPageToken = null;
+            var pageCount = 0;
+
+            do
+            {
+                var requestBody = new GoogleTextSearchRequest
+                {
+                    TextQuery = query,
+                    LanguageCode = lang,
+                    MaxResultCount = MaxResultsPerPage,
+                    IncludedType = "health"
+                };
+
+                if (lat.HasValue && lng.HasValue)
+                {
+                    requestBody.LocationBias = new GoogleLocationBias
                     {
-                        Name = r.DisplayName?.Text ?? "Unknown Clinic",
-                        Lat = r.Location?.Latitude ?? 0,
-                        Lng = r.Location?.Longitude ?? 0,
-                        Address = r.FormattedAddress,
-                        Phone = null,
-                        Website = null
-                    }).ToList();
+                        Circle = new GoogleCircle
+                        {
+                            Center = new GoogleLatLng
+                            {
+                                Latitude = lat.Value,
+                                Longitude = lng.Value
+                            },
+                            Radius = radius > 0 ? radius : 50000
+                        }
+                    };
+                }
 
-                    _cache.Set(cacheKey, results, TimeSpan.FromMinutes(30));
-                    return results;
+                if (!string.IsNullOrEmpty(nextPageToken))
+                {
+                    requestBody.PageToken = nextPageToken;
+                }
+
+                try
+                {
+                    using var request = new HttpRequestMessage(HttpMethod.Post, _options.TextSearchBaseUrl);
+                    request.Headers.Add("X-Goog-Api-Key", _options.ApiKey);
+                    request.Headers.Add("X-Goog-FieldMask", TextSearchFieldMask);
+                    request.Content = JsonContent.Create(requestBody);
+
+                    var response = await _httpClient.SendAsync(request, cancellationToken);
+                    var body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        _logger.LogError("Google TextSearch failed ({Status}): {Body}", response.StatusCode, body);
+                        break;
+                    }
+
+                    var payload = await response.Content.ReadFromJsonAsync<GoogleTextSearchResponse>(cancellationToken: cancellationToken);
+
+                    if (payload?.Places is not null && payload.Places.Count > 0)
+                    {
+                        _logger.LogDebug("Google TextSearch page {Page}: got {Count} results", pageCount + 1, payload.Places.Count);
+
+                        foreach (var place in payload.Places)
+                        {
+                            allResults.Add(MapPlaceToDto(place, lang));
+                        }
+
+                        nextPageToken = payload.NextPageToken;
+                        pageCount++;
+                    }
+                    else
+                    {
+                        nextPageToken = null;
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogWarning("Google TextSearch cancelled");
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Google TextSearch error: {Message}", ex.Message);
+                    break;
+                }
+
+                if (!string.IsNullOrEmpty(nextPageToken))
+                {
+                    await Task.Delay(500, cancellationToken);
                 }
             }
-            catch
+            while (!string.IsNullOrEmpty(nextPageToken) && allResults.Count < MaxTotalResults && pageCount < 3);
+
+            _logger.LogInformation("Google TextSearch complete: total {Count} results across {Pages} page(s)", allResults.Count, pageCount);
+
+            if (allResults.Count > 0)
             {
+                _cache.Set(cacheKey, allResults, TimeSpan.FromMinutes(30));
             }
 
-            return new List<ClinicExternalDto>();
+            return allResults;
         }
 
         public async Task<List<ClinicExternalDto>> GeocodeAsync(string address, CancellationToken cancellationToken, int limit = 10)
@@ -100,17 +280,22 @@ namespace ClinicHub.Infrastructure.Services
             var cacheKey = $"Google_Geocode_{address}_{limit}";
             if (_cache.TryGetValue(cacheKey, out List<ClinicExternalDto>? cachedResults))
             {
+                _logger.LogDebug("Cache hit for Geocode: {CacheKey} ({Count} results)", cacheKey, cachedResults?.Count ?? 0);
                 return cachedResults ?? new List<ClinicExternalDto>();
             }
 
             var url = $"{_options.GeoCodeBaseUrl}/json?address={Uri.EscapeDataString(address)}&components=country:EG&key={_options.ApiKey}";
 
+            _logger.LogInformation("Google Geocode: address=\"{Address}\"", address);
+
             try
             {
                 var response = await _httpClient.GetFromJsonAsync<GoogleGeocodeResponse>(url, cancellationToken);
 
-                if (response?.Results != null && response.Results.Any())
+                if (response?.Results != null && response.Results.Count > 0)
                 {
+                    _logger.LogDebug("Google Geocode got {Count} results", response.Results.Count);
+
                     var results = response.Results.Take(limit).Select(res => new ClinicExternalDto
                     {
                         Name = res.FormattedAddress?.Split(',')[0] ?? "Unknown",
@@ -122,9 +307,12 @@ namespace ClinicHub.Infrastructure.Services
                     _cache.Set(cacheKey, results, TimeSpan.FromHours(24));
                     return results;
                 }
+
+                _logger.LogWarning("Google Geocode returned no results for address: {Address}", address);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Google Geocode error: {Message}", ex.Message);
             }
 
             return new List<ClinicExternalDto>();
@@ -136,9 +324,14 @@ namespace ClinicHub.Infrastructure.Services
             try
             {
                 var response = await _httpClient.GetFromJsonAsync<GoogleGeocodeResponse>(url, cancellationToken);
-                return response?.Results?.FirstOrDefault()?.FormattedAddress;
+                var result = response?.Results?.FirstOrDefault()?.FormattedAddress;
+                _logger.LogDebug("ReverseGeocode ({Lat},{Lng}) -> {Result}", lat, lng, result);
+                return result;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Google ReverseGeocode error: {Message}", ex.Message);
+            }
             return null;
         }
 
@@ -186,14 +379,18 @@ namespace ClinicHub.Infrastructure.Services
 
                 if (!response.IsSuccessStatusCode)
                 {
+                    _logger.LogError("Google Routes failed ({Status})", response.StatusCode);
                     return null;
                 }
 
                 var route = payload?.Routes?.FirstOrDefault();
                 if (route is null)
                 {
+                    _logger.LogWarning("Google Routes returned no routes");
                     return null;
                 }
+
+                _logger.LogDebug("Google Route: {Distance}m, {Duration}", route.DistanceMeters, route.Duration);
 
                 return new RouteDto
                 {
@@ -202,10 +399,36 @@ namespace ClinicHub.Infrastructure.Services
                     Geometry = DecodePolyline(route.Polyline?.EncodedPolyline)
                 };
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Google Routes error: {Message}", ex.Message);
                 return null;
             }
+        }
+
+        private static ClinicExternalDto MapPlaceToDto(GooglePlaceResult place, string languageCode)
+        {
+            var nameAr = languageCode == "ar"
+                ? place.DisplayName?.Text
+                : null;
+
+            var nameEn = languageCode != "ar"
+                ? place.DisplayName?.Text
+                : null;
+
+            return new ClinicExternalDto
+            {
+                PlaceId = place.Id ?? string.Empty,
+                Name = nameEn ?? place.DisplayName?.Text ?? "Unknown Clinic",
+                NameAr = nameAr,
+                Lat = place.Location?.Latitude ?? 0,
+                Lng = place.Location?.Longitude ?? 0,
+                Address = place.FormattedAddress,
+                AddressAr = languageCode != "ar" ? null : place.FormattedAddress,
+                Phone = place.NationalPhoneNumber,
+                Website = place.WebsiteUri,
+                Rating = place.Rating
+            };
         }
 
         private static IEnumerable<string> NormalizePlaceTypes(string category)
@@ -292,6 +515,10 @@ namespace ClinicHub.Infrastructure.Services
 
             [JsonPropertyName("locationRestriction")]
             public GoogleLocationRestriction? LocationRestriction { get; set; }
+
+            [JsonPropertyName("pageToken")]
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public string? PageToken { get; set; }
         }
 
         private class GoogleLocationRestriction
@@ -323,12 +550,60 @@ namespace ClinicHub.Infrastructure.Services
             [JsonPropertyName("places")]
             public List<GooglePlaceResult>? Places { get; set; }
 
+            [JsonPropertyName("nextPageToken")]
+            public string? NextPageToken { get; set; }
+
+            [JsonPropertyName("error")]
+            public GoogleApiError? Error { get; set; }
+        }
+
+        private class GoogleTextSearchRequest
+        {
+            [JsonPropertyName("textQuery")]
+            public string TextQuery { get; set; } = string.Empty;
+
+            [JsonPropertyName("languageCode")]
+            public string? LanguageCode { get; set; }
+
+            [JsonPropertyName("maxResultCount")]
+            public int MaxResultCount { get; set; }
+
+            [JsonPropertyName("locationBias")]
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public GoogleLocationBias? LocationBias { get; set; }
+
+            [JsonPropertyName("includedType")]
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public string? IncludedType { get; set; }
+
+            [JsonPropertyName("pageToken")]
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+            public string? PageToken { get; set; }
+        }
+
+        private class GoogleLocationBias
+        {
+            [JsonPropertyName("circle")]
+            public GoogleCircle? Circle { get; set; }
+        }
+
+        private class GoogleTextSearchResponse
+        {
+            [JsonPropertyName("places")]
+            public List<GooglePlaceResult>? Places { get; set; }
+
+            [JsonPropertyName("nextPageToken")]
+            public string? NextPageToken { get; set; }
+
             [JsonPropertyName("error")]
             public GoogleApiError? Error { get; set; }
         }
 
         private class GooglePlaceResult
         {
+            [JsonPropertyName("id")]
+            public string? Id { get; set; }
+
             [JsonPropertyName("displayName")]
             public GoogleDisplayName? DisplayName { get; set; }
 
@@ -340,6 +615,12 @@ namespace ClinicHub.Infrastructure.Services
 
             [JsonPropertyName("rating")]
             public double? Rating { get; set; }
+
+            [JsonPropertyName("nationalPhoneNumber")]
+            public string? NationalPhoneNumber { get; set; }
+
+            [JsonPropertyName("websiteUri")]
+            public string? WebsiteUri { get; set; }
         }
 
         private class GoogleDisplayName
