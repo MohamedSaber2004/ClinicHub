@@ -373,3 +373,5 @@ appsettings.Production.json
 /ClinicHub.API/Prompts/prompt.txt
 /ClinicHub.API/wwwroot/payment/result.html
 /ClinicHub.API/Payout_Prompt.txt
+/ClinicHub.API/prompt.txt
+/ClinicHub.API/error.txt
