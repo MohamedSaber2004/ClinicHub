@@ -29,6 +29,13 @@ namespace ClinicHub.Infrastructure.Services
             "radiology_center"
         ];
 
+        private static readonly string[][] NearbyTypeGroups =
+        [
+            ["hospital", "medical_center"],
+            ["doctor", "dentist"],
+            ["physiotherapist", "diagnostic_center", "laboratory", "radiology_center"]
+        ];
+
         private readonly HttpClient _httpClient;
         private readonly GoogleMapsSettings _options;
         private readonly IMemoryCache _cache;
@@ -53,98 +60,125 @@ namespace ClinicHub.Infrastructure.Services
             }
 
             var includedTypes = NormalizePlaceTypes(category).ToList();
-            if (includedTypes.Count == 0)
-            {
-                includedTypes = [.. HealthcareTypes];
-            }
+            string[][] typeGroups = SplitIntoTypeGroups(includedTypes);
 
-            _logger.LogInformation("Google NearbySearch: lat={Lat}, lng={Lng}, types=[{Types}], radius={Radius}m, lang={Lang}",
-                lat, lng, string.Join(",", includedTypes), radius, lang);
+            _logger.LogInformation("Google NearbySearch: lat={Lat}, lng={Lng}, {Groups} group(s), radius={Radius}m, lang={Lang}",
+                lat, lng, typeGroups.Length, radius, lang);
 
             var allResults = new List<ClinicExternalDto>();
-            string? nextPageToken = null;
-            var pageCount = 0;
+            var seenPlaceIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            do
+            var groupTasks = typeGroups.Select(async groupTypes =>
             {
-                var requestBody = new GoogleNearbySearchRequest
+                var groupResults = new List<ClinicExternalDto>();
+                string? nextPageToken = null;
+                var pageCount = 0;
+
+                do
                 {
-                    IncludedTypes = includedTypes,
-                    LanguageCode = lang,
-                    MaxResultCount = MaxResultsPerPage,
-                    LocationRestriction = new GoogleLocationRestriction
+                    var requestBody = new GoogleNearbySearchRequest
                     {
-                        Circle = new GoogleCircle
+                        IncludedTypes = [.. groupTypes],
+                        LanguageCode = lang,
+                        MaxResultCount = MaxResultsPerPage,
+                        LocationRestriction = new GoogleLocationRestriction
                         {
-                            Center = new GoogleLatLng
+                            Circle = new GoogleCircle
                             {
-                                Latitude = lat,
-                                Longitude = lng
-                            },
-                            Radius = radius
+                                Center = new GoogleLatLng
+                                {
+                                    Latitude = lat,
+                                    Longitude = lng
+                                },
+                                Radius = radius
+                            }
+                        }
+                    };
+
+                    if (!string.IsNullOrEmpty(nextPageToken))
+                    {
+                        requestBody.PageToken = nextPageToken;
+                    }
+
+                    try
+                    {
+                        using var request = new HttpRequestMessage(HttpMethod.Post, _options.NearByFromMapBaseUrl);
+                        request.Headers.Add("X-Goog-Api-Key", _options.ApiKey);
+                        request.Headers.Add("X-Goog-FieldMask", NearbyFieldMask);
+                        request.Content = JsonContent.Create(requestBody);
+
+                        var response = await _httpClient.SendAsync(request, cancellationToken);
+                        var body = await response.Content.ReadAsStringAsync(cancellationToken);
+
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            _logger.LogError("Google NearbySearch [{Types}] failed ({Status}): {Body}",
+                                string.Join(",", groupTypes), response.StatusCode, body);
+                            break;
+                        }
+
+                        var payload = await response.Content.ReadFromJsonAsync<GoogleNearbySearchResponse>(cancellationToken: cancellationToken);
+
+                        if (payload?.Error != null)
+                        {
+                            _logger.LogError("Google NearbySearch [{Types}] API error {Code}: {Message}",
+                                string.Join(",", groupTypes), payload.Error.Code, payload.Error.Message);
+                            break;
+                        }
+
+                        if (payload?.Places is not null && payload.Places.Count > 0)
+                        {
+                            _logger.LogDebug("Google NearbySearch [{Types}] page {Page}: got {Count} results",
+                                string.Join(",", groupTypes), pageCount + 1, payload.Places.Count);
+
+                            foreach (var place in payload.Places)
+                            {
+                                var dto = MapPlaceToDto(place, lang);
+                                if (!string.IsNullOrEmpty(dto.PlaceId) && !seenPlaceIds.Add(dto.PlaceId))
+                                    continue;
+                                groupResults.Add(dto);
+                            }
+
+                            nextPageToken = payload.NextPageToken;
+                            pageCount++;
+                        }
+                        else
+                        {
+                            nextPageToken = null;
                         }
                     }
-                };
-
-                if (!string.IsNullOrEmpty(nextPageToken))
-                {
-                    requestBody.PageToken = nextPageToken;
-                }
-
-                try
-                {
-                    using var request = new HttpRequestMessage(HttpMethod.Post, _options.NearByFromMapBaseUrl);
-                    request.Headers.Add("X-Goog-Api-Key", _options.ApiKey);
-                    request.Headers.Add("X-Goog-FieldMask", NearbyFieldMask);
-                    request.Content = JsonContent.Create(requestBody);
-
-                    var response = await _httpClient.SendAsync(request, cancellationToken);
-                    var body = await response.Content.ReadAsStringAsync(cancellationToken);
-
-                    if (!response.IsSuccessStatusCode)
+                    catch (OperationCanceledException)
                     {
-                        _logger.LogError("Google NearbySearch failed ({Status}): {Body}", response.StatusCode, body);
+                        break;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Google NearbySearch [{Types}] error: {Message}",
+                            string.Join(",", groupTypes), ex.Message);
                         break;
                     }
 
-                    var payload = await response.Content.ReadFromJsonAsync<GoogleNearbySearchResponse>(cancellationToken: cancellationToken);
-
-                    if (payload?.Places is not null && payload.Places.Count > 0)
+                    if (!string.IsNullOrEmpty(nextPageToken))
                     {
-                        _logger.LogDebug("Google NearbySearch page {Page}: got {Count} results", pageCount + 1, payload.Places.Count);
-
-                        foreach (var place in payload.Places)
-                        {
-                            allResults.Add(MapPlaceToDto(place, lang));
-                        }
-
-                        nextPageToken = payload.NextPageToken;
-                        pageCount++;
-                    }
-                    else
-                    {
-                        nextPageToken = null;
+                        await Task.Delay(500, cancellationToken);
                     }
                 }
-                catch (OperationCanceledException)
-                {
-                    _logger.LogWarning("Google NearbySearch cancelled");
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Google NearbySearch error: {Message}", ex.Message);
-                    break;
-                }
+                while (!string.IsNullOrEmpty(nextPageToken) && groupResults.Count < MaxTotalResults && pageCount < 3);
 
-                if (!string.IsNullOrEmpty(nextPageToken))
-                {
-                    await Task.Delay(500, cancellationToken);
-                }
+                _logger.LogDebug("Google NearbySearch [{Types}] complete: {Count} results across {Pages} page(s)",
+                    string.Join(",", groupTypes), groupResults.Count, pageCount);
+
+                return groupResults;
+            });
+
+            var nestedResults = await Task.WhenAll(groupTasks);
+            foreach (var groupResult in nestedResults)
+            {
+                allResults.AddRange(groupResult);
             }
-            while (!string.IsNullOrEmpty(nextPageToken) && allResults.Count < MaxTotalResults && pageCount < 3);
 
-            _logger.LogInformation("Google NearbySearch complete: total {Count} results across {Pages} page(s)", allResults.Count, pageCount);
+            _logger.LogInformation("Google NearbySearch complete: total {Count} results from {Groups} type group(s)",
+                allResults.Count, typeGroups.Length);
 
             if (allResults.Count > 0)
             {
@@ -187,8 +221,7 @@ namespace ClinicHub.Infrastructure.Services
                 {
                     TextQuery = query,
                     LanguageCode = lang,
-                    MaxResultCount = MaxResultsPerPage,
-                    IncludedType = "health"
+                    MaxResultCount = MaxResultsPerPage
                 };
 
                 if (lat.HasValue && lng.HasValue)
@@ -229,6 +262,13 @@ namespace ClinicHub.Infrastructure.Services
                     }
 
                     var payload = await response.Content.ReadFromJsonAsync<GoogleTextSearchResponse>(cancellationToken: cancellationToken);
+
+                    if (payload?.Error != null)
+                    {
+                        _logger.LogError("Google TextSearch API error {Code}: {Message}",
+                            payload.Error.Code, payload.Error.Message);
+                        break;
+                    }
 
                     if (payload?.Places is not null && payload.Places.Count > 0)
                     {
@@ -429,6 +469,27 @@ namespace ClinicHub.Infrastructure.Services
                 Website = place.WebsiteUri,
                 Rating = place.Rating
             };
+        }
+
+        private static string[][] SplitIntoTypeGroups(List<string> types)
+        {
+            if (types.Count == 0)
+                return NearbyTypeGroups;
+
+            if (types.Count <= 3)
+                return [types.ToArray()];
+
+            var hospitalLike = types.Where(t => t is "hospital" or "medical_center").ToArray();
+            var doctorLike = types.Where(t => t is "doctor" or "dentist").ToArray();
+            var specialized = types.Where(t =>
+                t is not "hospital" and not "medical_center" and not "doctor" and not "dentist").ToArray();
+
+            var groups = new List<string[]>();
+            if (hospitalLike.Length > 0) groups.Add(hospitalLike);
+            if (doctorLike.Length > 0) groups.Add(doctorLike);
+            if (specialized.Length > 0) groups.Add(specialized);
+
+            return groups.Count > 0 ? groups.ToArray() : [types.ToArray()];
         }
 
         private static IEnumerable<string> NormalizePlaceTypes(string category)

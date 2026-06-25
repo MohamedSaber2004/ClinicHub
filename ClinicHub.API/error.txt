@@ -1,1 +1,100 @@
-﻿
+﻿Transaction: 374a7f2a-8161-4277-91d7-b282aa6e5ff5
+✕
+Overview
+Request ID
+374a7f2a-8161-4277-91d7-b282aa6e5ff5
+Status Code
+200
+Method
+GET
+Duration
+170ms
+Timestamp
+25/06/2026, 11:07:42
+Success
+✓ Yes
+IP Address
+::1
+User Agent
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)
+URL
+https://localhost:44315/api/v1/clinics/search?SearchText=%D8%A7%D9%84%D8%AA%D8%A7%D9%85%D9%8A%D9%86+%D8%A7%D9%84%D8%B5%D8%AD%D9%8A&UserLat=31.02887424430706&UserLng=31.520458602681&IsNearest=true&RadiusInKm=20
+Request Headers
+{
+  "Accept": "*/*",
+  "Accept-Encoding": "gzip, deflate, br, zstd",
+  "Accept-Language": "en-GB,en;q=0.9,en-US;q=0.8",
+  "Authorization": "***MASKED***",
+  "Connection": "close",
+  "Host": "localhost:44315",
+  "Referer": "https://localhost:44315/scalar/v1/",
+  "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0",
+  "sec-ch-ua-platform": "\"Windows\"",
+  "sec-ch-ua": "\"Microsoft Edge\";v=\"149\", \"Chromium\";v=\"149\", \"Not)A;Brand\";v=\"24\"",
+  "sec-ch-ua-mobile": "?0",
+  "sec-fetch-site": "same-origin",
+  "sec-fetch-mode": "cors",
+  "sec-fetch-dest": "empty",
+  "priority": "u=1, i"
+}
+Response Headers
+{
+  "X-Content-Type-Options": "nosniff",
+  "X-XSS-Protection": "1; mode=block",
+  "X-Frame-Options": "Deny",
+  "Referrer-Policy": "no-referrer-when-downgrade",
+  "Content-Type": "application/json; charset=utf-8"
+}
+Response Body (1214 bytes)
+{
+  "success": true,
+  "errors": {},
+  "data": {
+    "items": [
+      {
+        "id": "716ce65d-b063-4787-95f9-3f98bdf8b34b",
+        "name": "Tillman - Murray",
+        "nameAr": "Bernier Group",
+        "address": "428 Corwin Shores, New Destany, Bangladesh",
+        "addressAr": "4069 Carmine Fort, Jenafort, Guinea-Bissau",
+        "phone": "01068607682",
+        "lat": 31.1166629532357,
+        "lng": 31.344796492736673,
+        "isRegistered": true,
+        "specializationName": "Sports Medicine",
+        "specializationNameAr": "الطب الرياضي",
+        "distance": 19369.661253488695,
+        "website": null,
+        "workingHoursStart": null,
+        "workingHoursEnd": null,
+        "workingDays": []
+      },
+      {
+        "id": "94ff8644-1650-42c2-a40b-eb7b4d67e4f9",
+        "name": "Leannon, Daniel and Gleichner",
+        "nameAr": "Jaskolski Group",
+        "address": "2962 Chester Ridges, East Joelle, Suriname",
+        "addressAr": "05897 Johnny Vista, Douglasfort, Saint Martin",
+        "phone": "01006045492",
+        "lat": 31.171946402569986,
+        "lng": 31.399059628459913,
+        "isRegistered": true,
+        "specializationName": "Family Medicine",
+        "specializationNameAr": "طب الأسرة",
+        "distance": 19664.5728467707,
+        "website": null,
+        "workingHoursStart": null,
+        "workingHoursEnd": null,
+        "workingDays": []
+      }
+    ],
+    "pageNumber": 1,
+    "pageSize": 20,
+    "totalPages": 1,
+    "totalCount": 2,
+    "hasPreviousPage": false,
+    "hasNextPage": false
+  },
+  "message": "The operation was successful",
+  "statusCode": 200
+}
