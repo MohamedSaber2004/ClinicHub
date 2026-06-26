@@ -58,6 +58,8 @@ namespace ClinicHub.API.Routes
         {
             public const string Search = Base + "/clinics/search";
             public const string GetRoute = Base + "/clinics/route";
+            public const string GetByIdForUser = Base + "/clinics/{id:guid}";
+            public const string GetAll = Base + "/clinics";
         }
 
         public static class ClinicManagement
@@ -65,12 +67,10 @@ namespace ClinicHub.API.Routes
             public const string BaseRoute = Base + "/admin/clinics";
             public const string Create = BaseRoute;
             public const string GetById = BaseRoute + "/{id:guid}";
-            public const string GetAll = BaseRoute;
             public const string GetPaginated = BaseRoute + "/paginated";
             public const string Update = BaseRoute + "/{id:guid}";
             public const string Activate = BaseRoute + "/{id:guid}/activate";
             public const string Deactivate = BaseRoute + "/{id:guid}/deactivate";
-            public const string Delete = BaseRoute + "/{id:guid}";
         }
 
         public static class Specializations
