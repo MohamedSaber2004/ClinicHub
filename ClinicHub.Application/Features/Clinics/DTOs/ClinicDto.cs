@@ -15,8 +15,6 @@ namespace ClinicHub.Application.Features.Clinics.DTOs
         public string? SpecializationNameAr { get; set; }
         public double Distance { get; set; }
         public string? Website { get; set; }
-        public TimeOnly? WorkingHoursStart { get; set; }
-        public TimeOnly? WorkingHoursEnd { get; set; }
-        public List<DayOfWeek>? WorkingDays { get; set; }
+        public List<WorkingDayDto>? WorkingDays { get; set; }
     }
 }

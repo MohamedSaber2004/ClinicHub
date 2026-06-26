@@ -122,33 +122,64 @@ namespace ClinicHub.Persistence.Seeders
             }
 
             // 4. Seed Clinics
-            if (!await context.Clinics.AnyAsync())
+            var hasClinicsWithoutWorkingData = await context.Clinics.AnyAsync(c => c.WorkingDays == null);
+            if (!await context.Clinics.AnyAsync() || hasClinicsWithoutWorkingData)
             {
-                logger.LogInformation("Seeding clinics...");
+                if (hasClinicsWithoutWorkingData)
+                {
+                    logger.LogInformation("Updating existing clinics with working day data...");
+                }
+                else
+                {
+                    logger.LogInformation("Seeding clinics...");
+                }
+
                 var specializations = await context.Specializations.ToListAsync();
 
                 if (specializations.Any())
                 {
-                    var clinicFaker = new Faker<Clinic>()
-                        .CustomInstantiator(f => new Clinic
-                        {
-                            Name = f.Company.CompanyName(),
-                            NameAr = f.Company.CompanyName(),
-                            Address = f.Address.FullAddress(),
-                            AddressAr = f.Address.FullAddress(),
-                            Phone = f.Phone.PhoneNumber("010########"),
-                            Location = new Point(new Coordinate(
-                                f.Random.Double(29.9, 31.5),  // Cairo latitude range
-                                f.Random.Double(30.9, 31.8))) // Cairo longitude range
-                            { SRID = 4326 },
-                            IsRegistered = true,
-                            SpecializationId = f.PickRandom(specializations).Id,
-                            Rating = f.Random.Double(3.5, 5.0),
-                            ImageUrl = f.Image.PicsumUrl()
-                        });
+                    var faker = new Faker();
+                    var allDays = new[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday" };
 
-                    var clinics = clinicFaker.Generate(10);
-                    context.Clinics.AddRange(clinics);
+                    if (!await context.Clinics.AnyAsync())
+                    {
+                        var clinicFaker = new Faker<Clinic>()
+                            .CustomInstantiator(f => new Clinic
+                            {
+                                Name = f.Company.CompanyName(),
+                                NameAr = f.Company.CompanyName(),
+                                Address = f.Address.FullAddress(),
+                                AddressAr = f.Address.FullAddress(),
+                                Phone = f.Phone.PhoneNumber("010########"),
+                                Location = new Point(new Coordinate(
+                                    f.Random.Double(29.9, 31.5),
+                                    f.Random.Double(30.9, 31.8)))
+                                { SRID = 4326 },
+                                IsRegistered = true,
+                                SpecializationId = f.PickRandom(specializations).Id,
+                                Rating = f.Random.Double(3.5, 5.0),
+                                ImageUrl = f.Image.PicsumUrl(),
+                                WorkingHours = "09:00 - 17:00",
+                                WorkingHoursStart = new TimeOnly(9, 0),
+                                WorkingHoursEnd = new TimeOnly(17, 0),
+                                WorkingDays = string.Join(",", allDays)
+                            });
+
+                        var clinics = clinicFaker.Generate(10);
+                        context.Clinics.AddRange(clinics);
+                    }
+                    else
+                    {
+                        var existingClinics = await context.Clinics.Where(c => c.WorkingDays == null).ToListAsync();
+                        foreach (var clinic in existingClinics)
+                        {
+                            clinic.WorkingHours = "09:00 - 17:00";
+                            clinic.WorkingHoursStart = new TimeOnly(9, 0);
+                            clinic.WorkingHoursEnd = new TimeOnly(17, 0);
+                            clinic.WorkingDays = string.Join(",", allDays);
+                        }
+                    }
+
                     await context.SaveChangesAsync();
                 }
             }

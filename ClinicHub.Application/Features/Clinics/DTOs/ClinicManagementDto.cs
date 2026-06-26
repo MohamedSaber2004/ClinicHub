@@ -53,9 +53,7 @@ namespace ClinicHub.Application.Features.Clinics.DTOs
         public string? Website { get; set; }
         public string? Logo { get; set; }
         public string? WorkingHours { get; set; }
-        public TimeOnly? WorkingHoursStart { get; set; }
-        public TimeOnly? WorkingHoursEnd { get; set; }
-        public List<DayOfWeek>? WorkingDays { get; set; }
+        public List<WorkingDayDto>? WorkingDays { get; set; }
         public double? Lat { get; set; }
         public double? Lng { get; set; }
         public bool IsRegistered { get; set; }

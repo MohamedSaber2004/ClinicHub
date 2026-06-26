@@ -16,9 +16,14 @@ namespace ClinicHub.Application.Features.Clinics
                 .ForMember(dest => dest.OwnerEmail, opt => opt.MapFrom(src => src.ClinicAdmin != null ? src.ClinicAdmin.Email : null))
                 .ForMember(dest => dest.OwnerPhone, opt => opt.MapFrom(src => src.ClinicAdmin != null ? src.ClinicAdmin.PhoneNumber : null))
                 .ForMember(dest => dest.WorkingDays, opt => opt.MapFrom(src =>
-                    src.WorkingDays != null
+                    src.WorkingDays != null && src.WorkingHoursStart.HasValue && src.WorkingHoursEnd.HasValue
                         ? src.WorkingDays.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                            .Select(d => Enum.Parse<DayOfWeek>(d)).ToList()
+                            .Select(d => new WorkingDayDto
+                            {
+                                DayOfWeek = Enum.Parse<DayOfWeek>(d).ToString(),
+                                StartTime = src.WorkingHoursStart!.Value,
+                                EndTime = src.WorkingHoursEnd!.Value
+                            }).ToList()
                         : null));
         }
     }
