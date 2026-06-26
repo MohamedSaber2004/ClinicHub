@@ -1,5 +1,4 @@
 using ClinicHub.Domain.Common;
-using System;
 
 namespace ClinicHub.Domain.Entities
 {
@@ -9,7 +8,7 @@ namespace ClinicHub.Domain.Entities
         public Doctor Doctor { get; private set; } = null!;
 
         public DayOfWeek DayOfWeek { get; private set; }
-        
+
         public TimeSpan StartTime { get; private set; }
         public TimeSpan EndTime { get; private set; }
 

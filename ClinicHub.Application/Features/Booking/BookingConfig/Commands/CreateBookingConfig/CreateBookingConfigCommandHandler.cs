@@ -31,7 +31,6 @@ namespace ClinicHub.Application.Features.Booking.BookingConfig.Commands.CreateBo
                 request.ClinicId,
                 dto.ConsultationFee,
                 "EGP",
-                dto.SlotDurationMinutes,
                 dto.MaxAdvanceBookingDays,
                 dto.ReservationTtlMinutes);
 
@@ -42,7 +41,6 @@ namespace ClinicHub.Application.Features.Booking.BookingConfig.Commands.CreateBo
             {
                 ConsultationFee = config.ConsultationFee,
                 Currency = config.Currency,
-                SlotDurationMinutes = config.SlotDurationMinutes,
                 MaxAdvanceBookingDays = config.MaxAdvanceBookingDays,
                 ReservationTtlMinutes = config.ReservationTtlMinutes
             };

@@ -1,5 +1,4 @@
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using ClinicHub.Application.Features.Clinics.DTOs;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
@@ -51,9 +50,8 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetAllClinics
             if (request.CreatedTo.HasValue)
                 query = query.Where(c => c.CreatedAt <= request.CreatedTo.Value);
 
-            return await query
-                .ProjectTo<ClinicManagementDto>(_mapper.ConfigurationProvider)
-                .ToListAsync(cancellationToken);
+            var clinics = await query.ToListAsync(cancellationToken);
+            return _mapper.Map<List<ClinicManagementDto>>(clinics);
         }
     }
 }

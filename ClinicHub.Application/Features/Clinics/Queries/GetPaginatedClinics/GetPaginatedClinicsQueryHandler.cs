@@ -1,6 +1,4 @@
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
-using ClinicHub.Application.Common.Extensions;
 using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Features.Clinics.DTOs;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
@@ -62,16 +60,17 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetPaginatedClinics
 
             if (request.PageNumber == -1)
             {
-                var allItems = await query
-                    .ProjectTo<ClinicManagementDto>(_mapper.ConfigurationProvider)
-                    .ToListAsync(cancellationToken);
-
-                return new PagginatedResult<ClinicManagementDto>(allItems, allItems.Count, 1, allItems.Count);
+                var allItems = await query.ToListAsync(cancellationToken);
+                return new PagginatedResult<ClinicManagementDto>(_mapper.Map<List<ClinicManagementDto>>(allItems), allItems.Count, 1, allItems.Count);
             }
 
-            return await query
-                .ProjectTo<ClinicManagementDto>(_mapper.ConfigurationProvider)
-                .AsPagginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+            var count = await query.CountAsync(cancellationToken);
+            var items = await query
+                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToListAsync(cancellationToken);
+
+            return new PagginatedResult<ClinicManagementDto>(_mapper.Map<List<ClinicManagementDto>>(items), count, request.PageNumber, request.PageSize);
         }
     }
 }

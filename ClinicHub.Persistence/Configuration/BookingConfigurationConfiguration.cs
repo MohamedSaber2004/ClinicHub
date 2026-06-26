@@ -21,10 +21,6 @@ namespace ClinicHub.Persistence.Configuration
                 .HasMaxLength(3)
                 .HasDefaultValue("EGP");
 
-            builder.Property(x => x.SlotDurationMinutes)
-                .IsRequired()
-                .HasDefaultValue(30);
-
             builder.Property(x => x.MaxAdvanceBookingDays)
                 .IsRequired()
                 .HasDefaultValue(30);

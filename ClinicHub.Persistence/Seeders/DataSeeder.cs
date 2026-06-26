@@ -165,7 +165,6 @@ namespace ClinicHub.Persistence.Seeders
                         clinicId: clinic.Id,
                         consultationFee: 350m,
                         currency: "EGP",
-                        slotDurationMinutes: 30,
                         maxAdvanceBookingDays: 30,
                         reservationTtlMinutes: 15);
                     context.Set<BookingConfiguration>().Add(config);
@@ -207,32 +206,67 @@ namespace ClinicHub.Persistence.Seeders
                 }
             }
 
-            // 6. Seed Doctor Availabilities
-            if (!await context.Set<DoctorAvailability>().AnyAsync())
-            {
-                logger.LogInformation("Seeding doctor availabilities...");
-                var doctors = await context.Set<Doctor>().ToListAsync();
+            // 6. Seed Doctor Availabilities (one-time: clears old Mon-Fri pattern if found, then seeds Sun-Thu)
+            var existingSlots = await context.Set<DoctorAvailability>().IgnoreQueryFilters().ToListAsync();
+            var hasOldPattern = existingSlots.Any(a => a.DayOfWeek == DayOfWeek.Friday || a.DayOfWeek == DayOfWeek.Saturday);
 
-                if (doctors.Any())
+            if (!existingSlots.Any() || hasOldPattern)
+            {
+                if (hasOldPattern)
+                {
+                    logger.LogInformation("Replacing old availabilities with new Sun-Thu pattern...");
+                    context.Set<DoctorAvailability>().RemoveRange(existingSlots);
+                    await context.SaveChangesAsync();
+                }
+
+                logger.LogInformation("Seeding doctor availabilities...");
+                var allDoctors = await context.Set<Doctor>().ToListAsync();
+
+                if (allDoctors.Any())
                 {
                     var availabilities = new List<DoctorAvailability>();
                     var faker = new Faker();
 
-                    foreach (var doctor in doctors.Take(Math.Min(settings.DoctorAvailabilityCount ?? 5, doctors.Count)))
+                    var workingDays = new[]
                     {
-                        // Create availability for each day of the week
-                        for (int day = 1; day <= 5; day++) // Monday to Friday
+                        DayOfWeek.Sunday,
+                        DayOfWeek.Monday,
+                        DayOfWeek.Tuesday,
+                        DayOfWeek.Wednesday,
+                        DayOfWeek.Thursday
+                    };
+
+                    foreach (var doctor in allDoctors.Take(Math.Min(settings.DoctorAvailabilityCount ?? 5, allDoctors.Count)))
+                    {
+                        foreach (var dayOfWeek in workingDays)
                         {
-                            var dayOfWeek = (DayOfWeek)day;
-                            var startTime = new TimeSpan(faker.Random.Int(8, 10), 0, 0);
-                            var endTime = startTime.Add(TimeSpan.FromHours(faker.Random.Int(4, 8)));
+                            var startHour = faker.Random.Int(8, 10);
+                            var hoursRange = dayOfWeek switch
+                            {
+                                DayOfWeek.Sunday => faker.Random.Int(4, 5),
+                                DayOfWeek.Monday => faker.Random.Int(7, 8),
+                                DayOfWeek.Tuesday => faker.Random.Int(6, 8),
+                                DayOfWeek.Wednesday => faker.Random.Int(7, 8),
+                                DayOfWeek.Thursday => faker.Random.Int(4, 6),
+                                _ => 6
+                            };
+
+                            var slotDuration = dayOfWeek switch
+                            {
+                                DayOfWeek.Sunday => 45,
+                                DayOfWeek.Monday => 30,
+                                DayOfWeek.Tuesday => faker.Random.Bool() ? 30 : 45,
+                                DayOfWeek.Wednesday => 30,
+                                DayOfWeek.Thursday => 60,
+                                _ => 30
+                            };
 
                             availabilities.Add(new DoctorAvailability(
                                 doctorId: doctor.Id,
                                 dayOfWeek: dayOfWeek,
-                                startTime: startTime,
-                                endTime: endTime,
-                                slotDurationMinutes: 30
+                                startTime: new TimeSpan(startHour, 0, 0),
+                                endTime: new TimeSpan(startHour, 0, 0).Add(TimeSpan.FromHours(hoursRange)),
+                                slotDurationMinutes: slotDuration
                             ));
                         }
                     }

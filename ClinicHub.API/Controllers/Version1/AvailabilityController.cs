@@ -1,9 +1,11 @@
 ﻿using Asp.Versioning;
+using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Availability.Commands.CreateNewAvailability;
 using ClinicHub.Application.Features.Availability.Commands.DeleteAvailability;
 using ClinicHub.Application.Features.Availability.Commands.UpdateExistingAvailability;
 using ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots;
+using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,17 +20,23 @@ namespace ClinicHub.API.Controllers.Version1
         }
 
         /// <summary>
-        /// Get All Availability
+        /// Get All Availability for a doctor (all days of week with slots)
         /// </summary>
-        /// <param name="query"></param>
-        /// <returns></returns>
         [Authorize]
         [HttpGet]
         [Route(ApiRoutes.Availability.GetAllAvailability)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetAllAvailability([FromQuery] GetAvailableSlotsQuery query)
+        public async Task<IActionResult> GetAllAvailability(
+            [FromQuery] Guid doctorId,
+            [FromQuery] Guid clinicId)
         {
+            var query = new GetAvailableSlotsQuery
+            {
+                DoctorId = doctorId,
+                ClinicId = clinicId,
+                Date = null
+            };
             var result = await _mediator.Send(query);
             return Ok(result);
         }
@@ -38,8 +46,8 @@ namespace ClinicHub.API.Controllers.Version1
         /// </summary>
         /// <param name="command"></param>
         /// <returns></returns>
-        [Authorize]
         [HttpPost]
+        [RoleAuthorize(nameof(UserType.Doctor))]
         [Route(ApiRoutes.Availability.Create)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -54,8 +62,8 @@ namespace ClinicHub.API.Controllers.Version1
         /// </summary>
         /// <param name="command"></param>
         /// <returns></returns>
-        [Authorize]
         [HttpPut]
+        [RoleAuthorize(nameof(UserType.Doctor))]
         [Route(ApiRoutes.Availability.Update)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType (StatusCodes.Status400BadRequest)]
@@ -71,8 +79,8 @@ namespace ClinicHub.API.Controllers.Version1
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [Authorize]
         [HttpDelete]
+        [RoleAuthorize(nameof(UserType.Doctor))]
         [Route(ApiRoutes.Availability.Delete)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

@@ -66,7 +66,7 @@ namespace ClinicHub.API.Routes
             public const string Create = BaseRoute;
             public const string GetById = BaseRoute + "/{id:guid}";
             public const string GetAll = BaseRoute;
-            public const string GetPaginated = BaseRoute;
+            public const string GetPaginated = BaseRoute + "/paginated";
             public const string Update = BaseRoute + "/{id:guid}";
             public const string Activate = BaseRoute + "/{id:guid}/activate";
             public const string Deactivate = BaseRoute + "/{id:guid}/deactivate";

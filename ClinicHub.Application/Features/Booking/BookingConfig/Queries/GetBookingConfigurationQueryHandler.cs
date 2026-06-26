@@ -26,7 +26,6 @@ namespace ClinicHub.Application.Features.Booking.BookingConfig.Queries
             {
                 ConsultationFee = config.ConsultationFee,
                 Currency = config.Currency,
-                SlotDurationMinutes = config.SlotDurationMinutes,
                 MaxAdvanceBookingDays = config.MaxAdvanceBookingDays,
                 ReservationTtlMinutes = config.ReservationTtlMinutes
             };

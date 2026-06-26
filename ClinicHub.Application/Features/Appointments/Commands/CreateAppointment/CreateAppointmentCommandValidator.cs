@@ -1,6 +1,7 @@
 using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
@@ -80,14 +81,25 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
             return config == null || appointmentDate.Date <= DateTime.UtcNow.Date.AddDays(config.MaxAdvanceBookingDays);
         }
 
-        private Task<bool> DoctorIsAvailable(Guid doctorId, DateTime appointmentDate, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken)
+        private async Task<bool> DoctorIsAvailable(Guid doctorId, DateTime appointmentDate, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken)
         {
             var dayOfWeek = appointmentDate.DayOfWeek;
-            return _ctx.DoctorAvailabilityRepository.ExistsAsync(a =>
-                a.DoctorId == doctorId &&
-                a.DayOfWeek == dayOfWeek &&
+
+            var availabilities = await _ctx.DoctorAvailabilityRepository
+                .GetAllAsync(a => a.DoctorId == doctorId && a.DayOfWeek == dayOfWeek)
+                .ToListAsync(cancellationToken);
+
+            return availabilities.Any(a =>
                 a.StartTime <= startTime &&
-                a.EndTime >= endTime, cancellationToken);
+                a.EndTime >= endTime &&
+                (endTime - startTime).TotalMinutes == a.SlotDurationMinutes &&
+                IsAlignedToSlot(a.StartTime, startTime, a.SlotDurationMinutes));
+        }
+
+        private static bool IsAlignedToSlot(TimeSpan availabilityStart, TimeSpan slotStart, int slotDurationMinutes)
+        {
+            var minutesSinceStart = (slotStart - availabilityStart).TotalMinutes;
+            return minutesSinceStart >= 0 && minutesSinceStart % slotDurationMinutes == 0;
         }
 
         private Task<bool> HasOverlappingAppointment(Guid doctorId, DateTime appointmentDate, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken)
