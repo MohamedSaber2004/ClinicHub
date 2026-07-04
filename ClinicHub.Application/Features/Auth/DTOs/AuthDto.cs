@@ -8,7 +8,8 @@ namespace ClinicHub.Application.Features.Auth.DTOs
         string FullName,
         string Email,
         string Roles,
-        Guid id);
+        Guid id,
+        Guid? ClinicId);
 
     public record RefreshTokenResponseDto(
         string AccessToken,
