@@ -107,7 +107,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWithFacebook
                 await _unitOfWork.SaveChangesAsync();
             }
 
-            return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, user.Id);
+            return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, roles.ToList(), user.Id);
         }
     }
 }

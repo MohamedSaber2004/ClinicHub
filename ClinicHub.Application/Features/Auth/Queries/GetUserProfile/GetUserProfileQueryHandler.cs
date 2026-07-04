@@ -22,7 +22,8 @@ namespace ClinicHub.Application.Features.Auth.Queries.GetUserProfile
         public async Task<UserProfileDto> Handle(GetUserProfileQuery request, CancellationToken cancellationToken)
         {
             var user = await _userManager.FindByIdAsync(_currentUserService.UserId.ToString());
-            
+            var roles = await _userManager.GetRolesAsync(user!);
+
             return new UserProfileDto(
                 user!.Id,
                 user.FullName,
@@ -31,7 +32,8 @@ namespace ClinicHub.Application.Features.Auth.Queries.GetUserProfile
                 user.PhoneNumber ?? string.Empty,
                 user.BirthDate,
                 user.ProfilePictureUrl,
-                user.Language);
+                user.Language,
+                roles.ToList());
         }
     }
 }
