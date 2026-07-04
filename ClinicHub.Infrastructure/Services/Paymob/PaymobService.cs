@@ -219,4 +219,60 @@ public class PaymobService : IPaymobService
         var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
         return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
     }
+
+    public async Task<RefundResultDto> RefundTransactionAsync(string transactionId, decimal amount, CancellationToken cancellationToken)
+    {
+        if (!long.TryParse(transactionId, out var txId))
+        {
+            return new RefundResultDto
+            {
+                Success = false,
+                Message = _localizer[LocalizationKeys.PaymentMessages.InvalidTransactionId]
+            };
+        }
+
+        var amountCents = (int)Math.Round(amount * 100);
+
+        var payload = new
+        {
+            transaction_id = txId,
+            amount_cents = amountCents
+        };
+
+        var request = new HttpRequestMessage(HttpMethod.Post, $"{_settings.BaseUrl}/ecommerce/refunds")
+        {
+            Content = new StringContent(
+                JsonSerializer.Serialize(payload),
+                Encoding.UTF8,
+                "application/json")
+        };
+
+        request.Headers.Add("Authorization", $"Token {_settings.SecretKey}");
+
+        var response = await _httpClient.SendAsync(request, cancellationToken);
+        var json = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            return new RefundResultDto
+            {
+                Success = false,
+                Message = _localizer[LocalizationKeys.PaymentMessages.RefundFailed]
+            };
+        }
+
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+
+        var refundId = root.TryGetProperty("id", out var idElement)
+            ? idElement.GetInt64().ToString()
+            : null;
+
+        return new RefundResultDto
+        {
+            Success = true,
+            RefundId = refundId,
+            Message = _localizer[LocalizationKeys.PaymentMessages.RefundSuccess]
+        };
+    }
 }

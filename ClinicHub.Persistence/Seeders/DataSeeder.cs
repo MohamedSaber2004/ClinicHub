@@ -225,7 +225,6 @@ namespace ClinicHub.Persistence.Seeders
                             clinicId: clinic.Id,
                             specializationId: specialization.Id,
                             bio: new Faker().Lorem.Sentence(10, 15),
-                            consultationFee: new Faker().Random.Decimal(50, 300),
                             yearsOfExperience: new Faker().Random.Int(1, 30)
                         );
 

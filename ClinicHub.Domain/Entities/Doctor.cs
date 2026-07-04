@@ -14,7 +14,6 @@ namespace ClinicHub.Domain.Entities
         public Specialization Specialization { get; private set; } = null!;
 
         public string Bio { get; private set; } = string.Empty;
-        public decimal ConsultationFee { get; private set; }
         public int YearsOfExperience { get; private set; }
 
         public virtual ICollection<DoctorAvailability> Availabilities { get; private set; } = new List<DoctorAvailability>();
@@ -27,21 +26,18 @@ namespace ClinicHub.Domain.Entities
             Guid clinicId,
             Guid specializationId,
             string bio,
-            decimal consultationFee,
             int yearsOfExperience)
         {
             UserId = userId;
             ClinicId = clinicId;
             SpecializationId = specializationId;
             Bio = bio;
-            ConsultationFee = consultationFee;
             YearsOfExperience = yearsOfExperience;
         }
 
-        public void Update(string bio, decimal consultationFee, int yearsOfExperience)
+        public void Update(string bio, int yearsOfExperience)
         {
             Bio = bio;
-            ConsultationFee = consultationFee;
             YearsOfExperience = yearsOfExperience;
         }
     }

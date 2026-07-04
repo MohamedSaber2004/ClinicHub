@@ -1,4 +1,0 @@
-       public string? WorkingHours { get; set; }
-       public TimeOnly? WorkingHoursStart { get; set; }
-       public TimeOnly? WorkingHoursEnd { get; set; }
-       public List<DayOfWeek>? WorkingDays { get; set; }

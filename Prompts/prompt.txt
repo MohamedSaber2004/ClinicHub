@@ -1,0 +1,191 @@
+# ClinicHub — Full Implementation Prompt
+
+## Project Overview
+
+ClinicHub is a **multi-tenant healthcare SaaS platform** built with **Clean Architecture + CQRS**. It connects patients with clinics and doctors, supporting clinic discovery, appointment booking, payment processing (Paymob), real-time chat (Pusher), social features (posts/comments/reactions), and multi-language (EN/AR).
+
+### Technology Stack
+- .NET 10 (net10.0), C# with nullable enabled, implicit usings
+- EF Core + SQL Server + NetTopologySuite (spatial types)
+- MediatR (CQRS), AutoMapper, FluentValidation
+- ASP.NET Core Identity + JWT Bearer + Facebook/Google OAuth
+- Paymob (payments), Pusher (real-time), Google Maps + Nominatim
+- Serilog (Seq sink), NET-Tracker (monitoring)
+- AspNetCoreRateLimit, Scalar (API docs, not Swagger)
+- JSON-based IStringLocalizer (Arabic default, English fallback)
+
+### Solution Structure
+```
+Domain (Entities, Enums, Repo Interfaces, BaseEntity)
+  ← Application (CQRS Commands/Queries, DTOs, Profiles, Validators, Localizer, Interfaces)
+    ← Persistence (DbContext, Configurations, Migrations, Seeders)
+      ← Infrastructure (Repo Implementations, UnitOfWork, External Services)
+        ← API (Controllers, Routes, Filters, Middleware, Program.cs)
+```
+
+DI registration order: `AddApplicationServices` → `AddPersistenceServices` → `AddInfrastructureServices`
+
+---
+
+## Domain Entities & Relationships
+
+### Core Business Entities
+
+| Entity | Key Properties | Relationships |
+|--------|---------------|---------------|
+| **BaseEntity** | `Id` (Guid), `CreatedAt`, `UpdatedAt`, `DeletedAt`, `IsDeleted` (soft delete), `IsActive`, `Version` (timestamp) | Base for all entities |
+| **ApplicationUser** (IdentityUser\<Guid\>) | `FullName`, `Email`, `PhoneNumber`, `BirthDate`, `Gender`, `ProfilePictureUrl`, `Language`, `FacebookUserId`, `GoogleUserId` | 1--* UserRefreshTokens, 1--* UserFbTokens, 1--* Notifications |
+| **Clinic** | `Name`, `NameAr`, `Description`, `Address`, `Location` (Point), `Phone`, `Email`, `Website`, `Logo`, `WorkingHours`, `Status` (Active/Inactive), `Rating`, `IsRegistered` | *--1 Specialization, *--1 ApplicationUser (ClinicAdmin), 1--* Doctor |
+| **Doctor** | `Bio`, `ConsultationFee`, `YearsOfExperience` | *--1 ApplicationUser, *--1 Clinic, *--1 Specialization, 1--* DoctorAvailability, 1--* Appointment |
+| **Specialization** | `Name`, `ArName`, `Description`, `IconUrl`, `IsFamous` | 1--* Clinic |
+| **DoctorAvailability** | `DayOfWeek`, `StartTime`, `EndTime`, `SlotDurationMinutes` | *--1 Doctor |
+| **BookingConfiguration** | `ConsultationFee`, `Currency` ("EGP"), `MaxAdvanceBookingDays`, `ReservationTtlMinutes` | *--1 Clinic |
+| **Appointment** | `AppointmentDate`, `StartTime`, `EndTime`, `AppointmentType` (Examination/FollowUp), `Status` (Pending/Confirmed/Cancelled/Completed/Reserved/NoShow), `PatientFullName`, `PatientPhone`, `PatientAge`, `PatientGender`, `Complaint`, `ChronicDiseases`, `ExpiresAt` | *--1 BookedByUser, *--1 Doctor, *--1 Clinic, 1--1 Payment |
+| **Payment** | `Amount`, `Currency`, `PaymobOrderId`, `PaymobTransactionId`, `Status` (Pending/Paid/Failed/Refunded/Processing), `Method`, `RedirectUrl` | 1--1 Appointment |
+
+### Social Entities
+
+| Entity | Key Properties | Relationships |
+|--------|---------------|---------------|
+| **Post** | `Content` | 1--* Comment, 1--* Reaction, 1--* Media |
+| **Comment** | `Content`, `ParentCommentId` | *--1 Post, *--1 Comment (self-referencing), 1--* Replies, 1--* Reaction, 1--* Media |
+| **Reaction** | `Type` (Like/Love/Haha/Wow/Sad/Angry) | *--1 Post (optional), *--1 Comment (optional) |
+| **Media** | `Url`, `Type` (Image/Video/Audio/File) | *--1 Post (optional), *--1 Comment (optional) |
+
+### Chat Entities
+
+| Entity | Key Properties | Relationships |
+|--------|---------------|---------------|
+| **Conversation** | `Name`, `GroupPhotoUrl`, `IsGroup`, `InitiatorId`, `RecipientId`, `LastMessageDate`, `LastMessageContent` | 1--* Message, 1--* ConversationParticipant |
+| **ConversationParticipant** | `IsMuted`, `IsArchived`, `IsBlocked`, `JoinedAt` | *--1 Conversation, *--1 ApplicationUser |
+| **Message** | `Content`, `IsRead`, `ReadAt`, `Status` (Pending/Sent/Delivered/Read/Failed), `ReplyToMessageId`, `IsEdited` | *--1 Conversation, 1--* MessageReaction, 1--* MessageMedia, *--1 Message (ReplyTo) |
+| **MessageReaction** | `ReactionType` | *--1 Message, *--1 ApplicationUser |
+| **MessageMedia** | `MediaType`, `FileName` | *--1 Message |
+| **ReadReceipt** | `ReadAt` | *--1 Message, *--1 ApplicationUser |
+| **Notification** | `TitleEn`, `TitleAr`, `BodyEn`, `BodyAr`, `IsRead` | *--1 ApplicationUser |
+| **UserRefreshToken** | `Token`, `ExpiryDate`, `IsRevoked` | *--1 ApplicationUser |
+| **UserFbToken** | `Token` | *--1 ApplicationUser |
+
+### Enums
+- `AppointmentStatus`: Pending=0, Confirmed=1, Cancelled=2, Completed=3, Reserved=4, NoShow=5
+- `AppointmentType`: Examination=0, FollowUp=1
+- `ClinicStatus`: Active=0, Inactive=1
+- `Gender`: Male=1, Female=2, Other=3
+- `LanguageCode`: en=1, ar=2
+- `MediaType`: Image=0, Video=1, Audio=2, File=3
+- `MessageStatus`: Pending=1, Sent=2, Delivered=3, Read=4, Failed=5
+- `PaymentStatus`: Pending=0, Paid=1, Failed=2, Refunded=3, Processing=4
+- `ReactionType`: Like=1, Love=2, Haha=3, Wow=4, Sad=5, Angry=6
+- `UserType` (Flags): None=0, User=1, SuperAdmin=2, Doctor=4, Staff=8, ClinicOwner=16
+
+---
+
+## Existing Feature Modules (14)
+
+| Module | Commands | Queries |
+|--------|----------|---------|
+| **Auth** | Signup, Login, LoginWithFacebook, LoginWithGoogle, ValidateGoogleAccessToken, CompleteFacebookRegistration, RefreshToken, ForgetPassword, VerifyResetToken, ResetPassword, UpdateProfile, UpdateLanguage, Logout, VerifyUser | GetUserProfile, SearchUsers |
+| **Appointments** | CreateAppointment, UpdateAppointment, DeleteAppointment | GetAllAppointmentsWithFilters, GetAppointmentById |
+| **Clinics** | CreateClinic, UpdateClinic, ActivateClinic, DeactivateClinic, DeleteClinic | GetAllClinics, GetClinicById, GetClinicByIdForUser, GetHybridSearch (spatial), GetPaginatedClinics, GetRoute (maps) |
+| **Booking** | CreateBookingConfig, UpdateBookingConfig | GetBookingConfiguration |
+| **Availability** | CreateNewAvailability, UpdateExistingAvailability, DeleteAvailability | GetAvailableSlots |
+| **Conversations** | CreateConversation, UpdateConversation, UpdateConversationParticipantSettings, SendMessage, DeleteMessage, DeleteConversation | GetConversations, GetConversationById, GetConversationMessages |
+| **Payment** | InitiatePayment, InitiateBookingPayment, VerifyBookingPayment, ConfirmPaymentWebhook | GetPaymentStatus |
+| **Posts** | CreatePost, UpdatePost, DeletePost, TogglePostReaction | GetPostsPagginated, GetPostById, GetPostReactions |
+| **Comments** | AddComment, UpdateComment, DeleteComment, ToggleCommentReaction | GetAllCommentsPagginated, GetCommentsByPost, GetCommentReplies, GetCommentReactions |
+| **Specializations** | CreateSpecialization, UpdateSpecialization, DeleteSpecialization | GetAllSpecializations, GetSpecializationById |
+| **Users** | AddUser, EditUser, DeleteUser, AssignUserRole, EditUserRole | GetAllUsers |
+| **RealTime** | AuthenticatePusher, HandlePusherWebhook, SetTyping, SetActiveConversation, ConnectUser, DisconnectUser, DeliverPendingMessages, Typing | GetTypingUsers, GetOnlineUsers |
+| **Attachments** | UploadFile, UploadMultiAttachments, UpdateFile, DownloadFile | — |
+| **Logs** | — | GetLogFiles, GetLogFileContent |
+
+---
+
+## Coding Conventions (MANDATORY — Follow These Exactly)
+
+### Architecture & Patterns
+- **Clean Architecture**: Strict layer dependencies. Domain has ZERO dependencies.
+- **CQRS with MediatR**: Commands in `Features/*/Commands/`, Queries in `Features/*/Queries/`. Handler classes named `*CommandHandler` / `*QueryHandler`.
+- **Repository Pattern + Unit of Work**: `IGenericRepository<T, Guid>` base. Domain-specific repo interfaces in `Domain/Repositories/Interfaces/`. Implementations in `Infrastructure/Repositories/Implementations/`. All accessed via `IUnitOfWork`.
+- **Pipeline Behaviors** (in order): `UnhandledException` → `Validation` → `Performance` (>600ms) → `Logging`
+- **AutoMapper**: Profiles in each feature module's `DTOs/` folder. One `MappingProfile.cs` per feature.
+- **FluentValidation**: One validator per Command/Query. Inject `IStringLocalizer<Messages>` for error messages. Use localization keys from `LocalizationKeys` static class.
+
+### Naming & File Structure
+- **PascalCase** for classes/methods, `_camelCase` for private fields
+- **One file = one class = one handler**
+- DTOs named `*Dto` or `*Response`/`*Request`
+- Commands: `CreateXCommand`, `UpdateXCommand`, `DeleteXCommand`
+- Queries: `GetXQuery`, `GetAllXQuery`
+- Validators: `CreateXCommandValidator`, `UpdateXCommandValidator`
+
+### Entity Rules
+- All entities inherit from `BaseEntity` (provides `Id` Guid, soft delete, audit fields)
+- **Soft delete**: Set `IsDeleted = true` in handler. DbContext intercepts `EntityState.Deleted` in SaveChangesAsync.
+- Use `MarkAsCreated()`, `MarkAsUpdated()`, `MarkAsDeleted()` methods on BaseEntity.
+
+### API Layer Rules
+- All controllers inherit from `BaseApiController` (injects `IMediator`)
+- Return `ApiResponse<T>` using helper methods: `Ok()`, `Created()`, `Deleted()`, `Accepted()`
+- Route constants in `ClinicHub.API/Routes/ApiRoutes.cs` using nested static classes
+- Controllers decorated with `[ApiVersion("1.0")]`
+- Most endpoints require `[Authorize]` (exceptions: auth endpoints)
+- Custom `[RoleAuthorize(UserType.SuperAdmin)]` for admin-only endpoints
+- Global exception handling via `ApiExceptionFilterAttribute`
+- Default culture is Arabic; set via `Accept-Language` header
+
+### Localization
+- All user-facing messages use `IStringLocalizer<Messages>`
+- Keys defined in `LocalizationKeys` static class (grouped by module)
+- JSON resource files: `messages.ar.json` (default), `messages.en.json`
+- Access in validators via `localizer["KeyName"]`
+
+---
+
+## 12-Phase Implementation Workflow
+
+### Phase 1: Research & Planning
+1. Analyze requirements, entity fields, and relationships
+2. **WAIT for user approval** before proceeding to code
+
+### Phase 2: Domain & Persistence
+3. Create/modify entity in `Domain/Entities/` (inherit `BaseEntity`)
+4. Create repo interface in `Domain/Repositories/Interfaces/` (inherit `IGenericRepository<T, Guid>`)
+5. Create EF config in `Persistence/Configuration/` + register in `ClinicHubContext`
+6. Create migration
+
+### Phase 3: Infrastructure
+7. Implement repo in `Infrastructure/Repositories/Implementations/`
+8. Add to `IUnitOfWork` (interface in Domain, implementation in Infrastructure)
+
+### Phase 4: Application Logic
+9. Create DTOs and AutoMapper Profile in `Application/Features/[Feature]/DTOs/`
+10. Create MediatR Command/Query + Handler in `Application/Features/[Feature]/`
+11. Create FluentValidation validator (inject `IStringLocalizer<Messages>`)
+
+### Phase 5: Presentation
+12. Add route constants to `API/Routes/ApiRoutes.cs`
+13. Create/update controller in `API/Controllers/Version1/`
+
+### Phase 6: Verification
+14. Build + run project, test via `.http` files or Scalar docs
+15. Verify database state
+
+---
+
+## Implementation Notes
+
+- **Only create what's requested** — don't add extra features or endpoints
+- **Always check existing patterns** before writing new code (look at similar files first)
+- **Never add comments** to code unless logic is genuinely complex
+- **Never modify existing working behavior** — extend, don't break
+- After implementation, run `dotnet build` to verify compilation
+- Run `dotnet run --project ClinicHub.API` to test if needed
+
+---
+
+## Pending Feature Requests (from original prompt)
+1. Appointment cancel for user in mobile application
+2. Doctors actions inside each clinic
+3. Doctor rating for user mobile application
+4. Clinic rating for user mobile application

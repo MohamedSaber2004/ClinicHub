@@ -18,6 +18,8 @@ public class Payment : BaseEntity<Guid>
     public string? RedirectUrl { get; private set; }
     public string? FailureReason { get; private set; }
     public string? TransactionId { get; private set; }
+    public DateTime? RefundedAt { get; private set; }
+    public string? RefundReason { get; private set; }
 
     private Payment() { }
 
@@ -52,12 +54,12 @@ public class Payment : BaseEntity<Guid>
         FailureReason = failureReason;
     }
 
-    public void MarkAsRefunded()
+    public void MarkAsRefunded(string? reason = null)
     {
         Status = PaymentStatus.Refunded;
+        RefundedAt = DateTime.UtcNow;
+        RefundReason = reason;
         PaidAt = null;
-        PaymobTransactionId = null;
-        TransactionId = null;
         PaymentMethod = null;
     }
 }

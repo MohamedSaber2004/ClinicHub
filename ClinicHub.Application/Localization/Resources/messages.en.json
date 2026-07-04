@@ -145,7 +145,10 @@
     "DoctorNotAvailableAtThisTime": "The doctor is not available at this time.",
     "TimeSlotAlreadyBooked": "This time slot is already booked.",
     "DoctorNotFound": "Doctor not found",
-    "AppointmentNotFound": "Appointment not found"
+    "AppointmentNotFound": "Appointment not found",
+    "NotAuthorizedToCancel": "You are not authorized to cancel this appointment",
+    "CannotCancelAppointment": "This appointment cannot be cancelled in its current status",
+    "Cancelled": "Appointment cancelled successfully"
   },
   "Payments": {
     "NotFound": "Payment not found",
@@ -165,7 +168,11 @@
     "InvalidPhoneNumber": "Invalid Egyptian phone number format",
     "PaymentFailed": "Payment processing failed",
     "VerificationFailed": "Payment verification failed",
-    "AlreadyVerified": "Payment is already verified"
+    "AlreadyVerified": "Payment is already verified",
+    "RefundFailed": "Refund processing failed",
+    "RefundSuccess": "Refund processed successfully",
+    "InvalidTransactionId": "Invalid payment transaction ID",
+    "AlreadyRefunded": "This payment has already been refunded"
   },
   "Booking": {
     "SlotNotFound": "Time slot not found",
@@ -180,6 +187,20 @@
     "ConfigDeleted": "Booking configuration deleted successfully",
     "Created": "Booking created successfully",
     "FeeNotConfigured": "Consultation fee is not configured for this clinic"
+  },
+  "Doctors": {
+    "NotFound": "Doctor not found",
+    "Created": "Doctor created successfully",
+    "Updated": "Doctor updated successfully",
+    "Deleted": "Doctor deleted successfully",
+    "AlreadyExistsInClinic": "This user is already a doctor in this clinic"
+  },
+  "Ratings": {
+    "TargetRequired": "Either a doctor or a clinic must be specified for rating",
+    "SingleTargetRequired": "Cannot rate both a doctor and a clinic at the same time",
+    "InvalidValue": "Rating value must be between 1 and 5",
+    "AlreadyRated": "You have already rated this item",
+    "Created": "Rating submitted successfully"
   },
   "Slots": {
     "DoctorIsNotFollowForThatClinic": "Doctor is not following for that clinic"

@@ -52,6 +52,7 @@ namespace ClinicHub.Infrastructure
             services.AddScoped<IConversationParticipantRepository, ConversationParticipantRepository>();
             services.AddScoped<IPaymentRepository, PaymentRepository>();
             services.AddScoped<IBookingConfigurationRepository, BookingConfigurationRepository>();
+            services.AddScoped<IRatingRepository, RatingRepository>();
             services.AddScoped<IJwtTokenService, JwtTokenService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IFacebookAuth, FacebookAuth>();

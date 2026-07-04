@@ -12,4 +12,6 @@ public interface IPaymobService
         CancellationToken cancellationToken);
 
     Task<bool> ValidateWebhookAsync(string hmac, IDictionary<string, string> transactionData);
+
+    Task<RefundResultDto> RefundTransactionAsync(string transactionId, decimal amount, CancellationToken cancellationToken);
 }

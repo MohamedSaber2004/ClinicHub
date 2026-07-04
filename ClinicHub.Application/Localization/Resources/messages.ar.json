@@ -145,7 +145,10 @@
     "DoctorNotAvailableAtThisTime": "الطبيب غير متاح في هذا الوقت.",
     "TimeSlotAlreadyBooked": "هذا الموعد محجوز مسبقاً.",
     "DoctorNotFound": "الطبيب غير موجود.",
-    "AppointmentNotFound": "الموعد غير موجود."
+    "AppointmentNotFound": "الموعد غير موجود.",
+    "NotAuthorizedToCancel": "ليس لديك صلاحية إلغاء هذا الموعد",
+    "CannotCancelAppointment": "لا يمكن إلغاء هذا الموعد في حالته الحالية",
+    "Cancelled": "تم إلغاء الموعد بنجاح"
   },
   "Payments": {
     "NotFound": "الدفع غير موجود",
@@ -165,7 +168,11 @@
     "InvalidPhoneNumber": "صيغة رقم الهاتف المصري غير صحيحة",
     "PaymentFailed": "فشل معالجة الدفع",
     "VerificationFailed": "فشل التحقق من الدفع",
-    "AlreadyVerified": "تم التحقق من الدفع مسبقاً"
+    "AlreadyVerified": "تم التحقق من الدفع مسبقاً",
+    "RefundFailed": "فشل معالجة الاسترداد",
+    "RefundSuccess": "تم استرداد المبلغ بنجاح",
+    "InvalidTransactionId": "معرّف معاملة الدفع غير صالح",
+    "AlreadyRefunded": "تم استرداد هذا الدفع مسبقاً"
   },
   "Booking": {
     "SlotNotFound": "الموعد غير موجود",
@@ -180,6 +187,20 @@
     "ConfigDeleted": "تم حذف إعدادات الحجز بنجاح",
     "Created": "تم إنشاء الحجز بنجاح",
     "FeeNotConfigured": "رسوم الاستشارة غير محددة لهذه العيادة"
+  },
+  "Doctors": {
+    "NotFound": "الطبيب غير موجود",
+    "Created": "تم إنشاء الطبيب بنجاح",
+    "Updated": "تم تحديث بيانات الطبيب بنجاح",
+    "Deleted": "تم حذف الطبيب بنجاح",
+    "AlreadyExistsInClinic": "هذا المستخدم طبيب بالفعل في هذه العيادة"
+  },
+  "Ratings": {
+    "TargetRequired": "يجب تحديد طبيب أو عيادة للتقييم",
+    "SingleTargetRequired": "لا يمكن تقييم طبيب وعيادة في نفس الوقت",
+    "InvalidValue": "قيمة التقييم يجب أن تكون بين 1 و 5",
+    "AlreadyRated": "لقد قمت بتقييم هذا العنصر مسبقاً",
+    "Created": "تم إرسال التقييم بنجاح"
   },
   "Slots": {
     "DoctorIsNotFollowForThatClinic": "الطبيب غير تابع لهذه العيادة"

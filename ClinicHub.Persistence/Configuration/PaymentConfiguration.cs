@@ -18,6 +18,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.RedirectUrl).HasMaxLength(500);
         builder.Property(p => p.FailureReason).HasMaxLength(500);
         builder.Property(p => p.TransactionId).HasMaxLength(100);
+        builder.Property(p => p.RefundReason).HasMaxLength(500);
         builder.HasIndex(p => p.AppointmentId);
 
         builder.HasOne<Appointment>()

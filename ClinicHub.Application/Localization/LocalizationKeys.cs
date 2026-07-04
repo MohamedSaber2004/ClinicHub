@@ -57,6 +57,9 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString TimeSlotAlreadyBooked = new("Appointments.TimeSlotAlreadyBooked");
             public static readonly KeyString DoctorNotFound = new("Appointments.DoctorNotFound");
             public static readonly KeyString AppointmentNotFound = new("Appointments.AppointmentNotFound");
+            public static readonly KeyString NotAuthorizedToCancel = new("Appointments.NotAuthorizedToCancel");
+            public static readonly KeyString CannotCancelAppointment = new("Appointments.CannotCancelAppointment");
+            public static readonly KeyString Cancelled = new("Appointments.Cancelled");
         }
 
         public static class GeneralMessages
@@ -155,6 +158,15 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString Restored = new("Availability.Restored");
         }
 
+        public static class RatingMessages
+        {
+            public static readonly KeyString TargetRequired = new("Ratings.TargetRequired");
+            public static readonly KeyString SingleTargetRequired = new("Ratings.SingleTargetRequired");
+            public static readonly KeyString InvalidValue = new("Ratings.InvalidValue");
+            public static readonly KeyString AlreadyRated = new("Ratings.AlreadyRated");
+            public static readonly KeyString Created = new("Ratings.Created");
+        }
+
         public static class RealTimeMessages
         {
             public static readonly KeyString SocketIdRequired = new("RealTime.SocketIdRequired");
@@ -197,6 +209,19 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString PaymentFailed = new("Payments.PaymentFailed");
             public static readonly KeyString VerificationFailed = new("Payments.VerificationFailed");
             public static readonly KeyString AlreadyVerified = new("Payments.AlreadyVerified");
+            public static readonly KeyString RefundFailed = new("Payments.RefundFailed");
+            public static readonly KeyString RefundSuccess = new("Payments.RefundSuccess");
+            public static readonly KeyString InvalidTransactionId = new("Payments.InvalidTransactionId");
+            public static readonly KeyString AlreadyRefunded = new("Payments.AlreadyRefunded");
+        }
+
+        public static class DoctorMessages
+        {
+            public static readonly KeyString NotFound = new("Doctors.NotFound");
+            public static readonly KeyString Created = new("Doctors.Created");
+            public static readonly KeyString Updated = new("Doctors.Updated");
+            public static readonly KeyString Deleted = new("Doctors.Deleted");
+            public static readonly KeyString AlreadyExistsInClinic = new("Doctors.AlreadyExistsInClinic");
         }
 
         public static class BookingMessages

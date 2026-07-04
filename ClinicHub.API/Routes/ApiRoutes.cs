@@ -119,6 +119,7 @@ namespace ClinicHub.API.Routes
             public const string GetById = Base + "/appointments/{id:guid}";
             public const string Update = Base + "/appointments/{id:guid}";
             public const string Delete = Base + "/appointments/{id:guid}";
+            public const string Cancel = Base + "/appointments/{id:guid}/cancel";
         }
 
         public static class Availability
@@ -156,6 +157,22 @@ namespace ClinicHub.API.Routes
             public const string Webhook = Base + "/payments/webhook";
             public const string GetStatus = Base + "/payments/status/{appointmentId:guid}";
             public const string Result = Base + "/payments/result";
+        }
+
+        public static class Ratings
+        {
+            public const string Create = Base + "/ratings";
+            public const string GetDoctorRatings = Base + "/doctors/{doctorId:guid}/ratings";
+            public const string GetClinicRatings = Base + "/clinics/{clinicId:guid}/ratings";
+        }
+
+        public static class Doctors
+        {
+            public const string GetAllByClinic = Base + "/admin/clinics/{clinicId:guid}/doctors";
+            public const string GetById = Base + "/doctors/{id:guid}";
+            public const string Create = Base + "/admin/clinics/{clinicId:guid}/doctors";
+            public const string Update = Base + "/doctors/{id:guid}";
+            public const string Delete = Base + "/doctors/{id:guid}";
         }
 
         public static class Users

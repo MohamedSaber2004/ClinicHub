@@ -1,5 +1,6 @@
 using Asp.Versioning;
 using ClinicHub.API.Routes;
+using ClinicHub.Application.Features.Appointments.Commands.CancelAppointment;
 using ClinicHub.Application.Features.Appointments.Commands.CreateAppointment;
 using ClinicHub.Application.Features.Appointments.Commands.UpdateAppointment;
 using ClinicHub.Application.Features.Appointments.Commands.DeleteAppointment;
@@ -91,6 +92,22 @@ namespace ClinicHub.API.Controllers.Version1
             var command = new DeleteAppointmentCommand { AppointmentId = id };
             var result = await _mediator.Send(command);
                 return NoContent();
+        }
+
+        /// <summary>
+        /// Cancel an appointment by the booking user.
+        /// </summary>
+        [Authorize]
+        [HttpPut]
+        [Route(ApiRoutes.Appointments.Cancel)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Cancel(Guid id, [FromBody] CancelAppointmentCommand command)
+        {
+            command.AppointmentId = id;
+            var result = await _mediator.Send(command);
+            return Ok(result);
         }
     }
 }
