@@ -33,7 +33,7 @@ namespace ClinicHub.Application.Features.Auth.Queries.GetUserProfile
                 user.BirthDate,
                 user.ProfilePictureUrl,
                 user.Language,
-                roles.ToList());
+                roles.FirstOrDefault());
         }
     }
 }

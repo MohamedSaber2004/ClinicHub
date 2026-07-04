@@ -62,7 +62,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
                 await _unitOfWork.SaveChangesAsync();
             }
 
-            return new AuthResponseDto(accessToken, refreshToken, user!.FullName, user.Email!, roles.ToList(), user.Id);
+            return new AuthResponseDto(accessToken, refreshToken, user!.FullName, user.Email!, roles.FirstOrDefault(), user.Id);
         }
     }
 }

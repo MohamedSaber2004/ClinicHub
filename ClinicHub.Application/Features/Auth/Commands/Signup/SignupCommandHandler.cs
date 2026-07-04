@@ -70,7 +70,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
             await _unitOfWork.UserRefreshTokenRepository.AddAsync(userRefreshToken);
             await _unitOfWork.SaveChangesAsync();
 
-            return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, roles.ToList(), user.Id);
+            return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, roles.FirstOrDefault(), user.Id);
         }
     }
 }
