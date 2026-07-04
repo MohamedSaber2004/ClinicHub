@@ -244,9 +244,5 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString FeeNotConfigured = new("Booking.FeeNotConfigured");
         }
 
-        public static class Slots
-        {
-            public static readonly KeyString DoctorIsNotFollowForThatClinic = new("Slots.DoctorIsNotFollowForThatClinic");
-        }
     }
 }

@@ -205,8 +205,5 @@
     "InvalidValue": "قيمة التقييم يجب أن تكون بين 1 و 5",
     "AlreadyRated": "لقد قمت بتقييم هذا العنصر مسبقاً",
     "Created": "تم إرسال التقييم بنجاح"
-  },
-  "Slots": {
-    "DoctorIsNotFollowForThatClinic": "الطبيب غير تابع لهذه العيادة"
   }
 }

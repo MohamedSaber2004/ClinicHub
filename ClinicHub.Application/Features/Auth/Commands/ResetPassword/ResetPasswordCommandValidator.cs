@@ -1,4 +1,3 @@
-using ClinicHub.Application.Features.Auth.Commands.ForgetPassword;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using FluentValidation;
@@ -43,8 +42,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.ResetPassword
             var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null || user.PasswordResetTokenExpiry < DateTime.UtcNow) return false;
 
-            var submittedHash = ForgetPasswordCommandHandler.ComputeSha256Hash(request.Token);
-            return string.Equals(user.PasswordResetToken, submittedHash, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(user.PasswordResetToken, request.Token, StringComparison.Ordinal);
         }
     }
 }

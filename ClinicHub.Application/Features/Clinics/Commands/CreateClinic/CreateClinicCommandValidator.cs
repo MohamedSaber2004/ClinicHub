@@ -29,7 +29,8 @@ namespace ClinicHub.Application.Features.Clinics.Commands.CreateClinic
 
             RuleFor(x => x.Dto.Email)
                 .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value])
-                .EmailAddress().WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidEmail.Value]);
+                .EmailAddress().WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidEmail.Value])
+                .MustAsync(BeUniqueClinicEmail).WithMessage(localizer[LocalizationKeys.ClinicMessages.EmailAlreadyExists.Value]);
 
             RuleFor(x => x.Dto.SpecializationId)
                 .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value])
@@ -38,6 +39,7 @@ namespace ClinicHub.Application.Features.Clinics.Commands.CreateClinic
             RuleFor(x => x.Dto.Phone)
                 .MaximumLength(11).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value])
                 .Matches(@"^01[0125][0-9]{8}$").WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value])
+                .MustAsync(BeUniqueClinicPhone).WithMessage(localizer[LocalizationKeys.ClinicMessages.PhoneAlreadyExists.Value])
                 .When(x => !string.IsNullOrWhiteSpace(x.Dto.Phone));
 
             RuleFor(x => x.Dto.Website)
@@ -76,6 +78,7 @@ namespace ClinicHub.Application.Features.Clinics.Commands.CreateClinic
             RuleFor(x => x.Dto.OwnerPhone)
                 .MaximumLength(11).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value])
                 .Matches(@"^01[0125][0-9]{8}$").WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value])
+                .MustAsync(async (phone, ct) => !await OwnerPhoneExists(phone, ct)).WithMessage(localizer[LocalizationKeys.AuthMessages.PhoneNumberExistsBefore.Value])
                 .When(x => !string.IsNullOrWhiteSpace(x.Dto.OwnerPhone));
 
             RuleFor(x => x.Dto.WorkingHoursStart)
@@ -103,6 +106,21 @@ namespace ClinicHub.Application.Features.Clinics.Commands.CreateClinic
         private async Task<bool> EmailExists(string email, CancellationToken cancellationToken)
         {
             return await _userManager.Users.AnyAsync(u => u.Email == email, cancellationToken);
+        }
+
+        private async Task<bool> BeUniqueClinicEmail(string email, CancellationToken cancellationToken)
+        {
+            return !await _ctx.ClinicRepository.ExistsAsync(c => c.Email == email, cancellationToken);
+        }
+
+        private async Task<bool> BeUniqueClinicPhone(string? phone, CancellationToken cancellationToken)
+        {
+            return !await _ctx.ClinicRepository.ExistsAsync(c => c.Phone == phone, cancellationToken);
+        }
+
+        private async Task<bool> OwnerPhoneExists(string phone, CancellationToken cancellationToken)
+        {
+            return await _userManager.Users.AnyAsync(u => u.PhoneNumber == phone, cancellationToken);
         }
     }
 }

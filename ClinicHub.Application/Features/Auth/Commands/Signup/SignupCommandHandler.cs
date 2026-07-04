@@ -58,20 +58,12 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
                 throw new BadRequestException(_localizer[LocalizationKeys.AuthMessages.RoleAssignmentFailed.Value]);
             }
 
-            if (request.ClinicId.HasValue)
-            {
-                var clinicExists = await _unitOfWork.ClinicRepository
-                    .GetAllAsync(c => c.Id == request.ClinicId && !c.IsDeleted).AnyAsync(cancellationToken);
-
-                if (clinicExists)
-                {
-                    var userClinic = new UserClinic(user.Id, request.ClinicId.Value);
-                    await _unitOfWork.GetRepository<UserClinic, Guid>().AddAsync(userClinic);
-                }
-            }
-
             var roles = await _userManager.GetRolesAsync(user);
-            var accessToken = _jwtTokenService.GenerateAccessToken(user, roles);
+            var clinicId = await _unitOfWork.ClinicRepository
+                .GetAllAsync(c => c.ClinicAdminId == user.Id && !c.IsDeleted)
+                .Select(c => (Guid?)c.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+            var accessToken = _jwtTokenService.GenerateAccessToken(user, roles, clinicId);
             var refreshToken = _jwtTokenService.GenerateRefreshToken(user);
 
             var userRefreshToken = UserRefreshToken.Create(user.Id, refreshToken, DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays));

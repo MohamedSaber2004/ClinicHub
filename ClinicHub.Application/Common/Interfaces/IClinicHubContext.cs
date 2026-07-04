@@ -22,7 +22,6 @@ namespace ClinicHub.Application.Common.Interfaces
         DbSet<Advertisement> Advertisements { get; }
         DbSet<ClinicVerification> ClinicVerifications { get; }
         DbSet<AuditLog> AuditLogs { get; }
-        DbSet<UserClinic> UserClinics { get; }
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

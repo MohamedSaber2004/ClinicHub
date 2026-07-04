@@ -5,7 +5,6 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
-using System.Text;
 
 namespace ClinicHub.Application.Features.Auth.Commands.ForgetPassword
 {
@@ -34,9 +33,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.ForgetPassword
             var user = await _userManager.FindByEmailAsync(request.Email);
 
             var otp = RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
-
-            var otpHash = ComputeSha256Hash(otp);
-            user!.SetPasswordResetToken(otpHash, DateTime.UtcNow.AddMinutes(_settings.ForgetPasswordExpiryMinutes));
+            user!.SetPasswordResetToken(otp, DateTime.UtcNow.AddMinutes(_settings.ForgetPasswordExpiryMinutes));
             await _userManager.UpdateAsync(user);
 
             await _emailService.SendPasswordResetEmailAsync(user.Email!, user.FullName, otp, cancellationToken);
@@ -44,10 +41,6 @@ namespace ClinicHub.Application.Features.Auth.Commands.ForgetPassword
             return Unit.Value;
         }
 
-        internal static string ComputeSha256Hash(string input)
-        {
-            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(input));
-            return Convert.ToHexString(bytes);
-        }
+
     }
 }

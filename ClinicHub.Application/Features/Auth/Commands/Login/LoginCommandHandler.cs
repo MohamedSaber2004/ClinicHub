@@ -5,6 +5,7 @@ using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace ClinicHub.Application.Features.Auth.Commands.Login
@@ -39,7 +40,11 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
             var user = await _userManager.FindByEmailAsync(request.Email);
 
             var roles = await _userManager.GetRolesAsync(user!);
-            var accessToken = _jwtTokenService.GenerateAccessToken(user!, roles);
+            var clinicId = await _unitOfWork.ClinicRepository
+                .GetAllAsync(c => c.ClinicAdminId == user!.Id && !c.IsDeleted)
+                .Select(c => (Guid?)c.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+            var accessToken = _jwtTokenService.GenerateAccessToken(user!, roles, clinicId);
 
             var existingToken = await _unitOfWork.UserRefreshTokenRepository
                 .GetFirstAsync(x => x.UserId == user!.Id && !x.IsRevoked && x.ExpiryDate > DateTime.UtcNow, cancellationToken);

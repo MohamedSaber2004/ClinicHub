@@ -39,7 +39,11 @@ namespace ClinicHub.Application.Features.Auth.Commands.RefreshToken
             tokenEntity.Revoke();
 
             var roles = await _userManager.GetRolesAsync(user);
-            var newAccessToken = _jwtTokenService.GenerateAccessToken(user, roles);
+            var clinicId = await _unitOfWork.ClinicRepository
+                .GetAllAsync(c => c.ClinicAdminId == user.Id && !c.IsDeleted)
+                .Select(c => (Guid?)c.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+            var newAccessToken = _jwtTokenService.GenerateAccessToken(user, roles, clinicId);
             var newRefreshToken = _jwtTokenService.GenerateRefreshToken(user);
 
             var newTokenEntity = UserRefreshToken.Create(user.Id, newRefreshToken, DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays));

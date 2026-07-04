@@ -12,9 +12,6 @@ using ClinicHub.Application.Features.Clinics.Queries.GetClinicByIdForUser;
 using ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch;
 using ClinicHub.Application.Features.Clinics.Queries.GetPaginatedClinics;
 using ClinicHub.Application.Features.Clinics.Queries.GetRoute;
-using ClinicHub.Application.Features.UserClinics.Commands.FollowClinic;
-using ClinicHub.Application.Features.UserClinics.Commands.UnfollowClinic;
-using ClinicHub.Application.Features.UserClinics.Queries.GetFollowedClinics;
 using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -87,54 +84,6 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> GetClinicById(Guid id)
         {
             var result = await _mediator.Send(new GetClinicByIdForUserQuery(id));
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Follow a clinic for the authenticated user.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        [HttpPost]
-        [Route(ApiRoutes.Clinics.Follow)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> FollowClinic(Guid id, CancellationToken ct)
-        {
-            var result = await _mediator.Send(new FollowClinicCommand { ClinicId = id }, ct);
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Unfollow a clinic for the authenticated user.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        [HttpPost]
-        [Route(ApiRoutes.Clinics.Unfollow)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> UnfollowClinic(Guid id, CancellationToken ct)
-        {
-            var result = await _mediator.Send(new UnfollowClinicCommand { ClinicId = id }, ct);
-            return Ok(result);
-        }
-
-        /// <summary>
-        /// Get the list of clinics followed by the authenticated user.
-        /// </summary>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        [HttpGet]
-        [Route(ApiRoutes.Clinics.Followed)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> GetFollowedClinics(CancellationToken ct)
-        {
-            var result = await _mediator.Send(new GetFollowedClinicsQuery(), ct);
             return Ok(result);
         }
     }

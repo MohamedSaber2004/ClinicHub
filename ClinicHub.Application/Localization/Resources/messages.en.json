@@ -205,8 +205,5 @@
     "InvalidValue": "Rating value must be between 1 and 5",
     "AlreadyRated": "You have already rated this item",
     "Created": "Rating submitted successfully"
-  },
-  "Slots": {
-    "DoctorIsNotFollowForThatClinic": "Doctor is not following for that clinic"
   }
 }

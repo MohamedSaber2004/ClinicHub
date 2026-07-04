@@ -1,4 +1,3 @@
-using ClinicHub.Application.Features.Auth.Commands.ForgetPassword;
 using ClinicHub.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -21,8 +20,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.VerifyResetToken
 
             if (user.PasswordResetTokenExpiry < DateTime.UtcNow) return false;
 
-            var submittedHash = ForgetPasswordCommandHandler.ComputeSha256Hash(request.Token);
-            return string.Equals(user.PasswordResetToken, submittedHash, StringComparison.OrdinalIgnoreCase);
+            return string.Equals(user.PasswordResetToken, request.Token, StringComparison.Ordinal);
         }
     }
 }

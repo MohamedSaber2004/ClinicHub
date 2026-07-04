@@ -8,7 +8,6 @@ using ClinicHub.Application.Features.Clinics.Commands.UpdateClinic;
 using ClinicHub.Application.Features.Clinics.DTOs;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicById;
 using ClinicHub.Application.Features.Clinics.Queries.GetPaginatedClinics;
-using ClinicHub.Application.Features.UserClinics.Queries.GetClinicFollowers;
 using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -118,25 +117,6 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> GetPaginated([FromQuery] GetPaginatedClinicsQuery query)
         {
             var result = await _mediator.Send(query);
-            return Ok(result);
-        }
-
-
-        /// <summary>
-        /// Gets the followers of a specific clinic identified by its unique identifier (ID).
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        [HttpGet]
-        [Route(ApiRoutes.ClinicManagement.Followers)]
-        [RoleAuthorize]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> GetFollowers(Guid id, CancellationToken ct)
-        {
-            var result = await _mediator.Send(new GetClinicFollowersQuery { ClinicId = id }, ct);
             return Ok(result);
         }
     }
