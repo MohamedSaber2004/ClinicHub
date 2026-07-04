@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
+    [RoleAuthorize]
     public class ClinicController : BaseApiController
     {
         public ClinicController(IMediator mediator) : base(mediator)
@@ -31,7 +32,6 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="query">The query parameters for searching clinics.</param>
         /// <returns>A list of clinics matching the search criteria.</returns>
         [HttpGet]
-        [RoleAuthorize(nameof(UserType.User))]
         [Route(ApiRoutes.Clinics.Search)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -47,7 +47,6 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="query">The query parameters for getting the route.</param>
         /// <returns>The route information between the specified locations.</returns>
         [HttpGet]
-        [RoleAuthorize(nameof(UserType.User))]
         [Route(ApiRoutes.Clinics.GetRoute)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -64,7 +63,6 @@ namespace ClinicHub.API.Controllers.Version1
         /// <returns></returns>
         [HttpGet]
         [Route(ApiRoutes.Clinics.GetAll)]
-        [RoleAuthorize(nameof(UserType.User))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetAll([FromQuery] GetAllClinicsQuery query)
@@ -80,7 +78,6 @@ namespace ClinicHub.API.Controllers.Version1
         /// <returns></returns>
         [HttpGet]
         [Route(ApiRoutes.Clinics.GetByIdForUser)]
-        [RoleAuthorize(nameof(UserType.User))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

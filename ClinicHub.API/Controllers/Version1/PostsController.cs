@@ -10,11 +10,13 @@ using Microsoft.AspNetCore.Mvc;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Posts.Queries.GetPostsPagginated;
 using ClinicHub.Application.Features.Posts.Queries.GetPostReactions;
+using ClinicHub.API.Filters;
+using ClinicHub.Domain.Enums;
 
 namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
-    [Authorize]
+    [RoleAuthorize]
     public class PostsController : BaseApiController
     {
         public PostsController(IMediator mediator) : base(mediator)

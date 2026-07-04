@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Users.Commands.AddUser;
 using ClinicHub.Application.Features.Users.Commands.AssignUserRole;
@@ -6,14 +7,14 @@ using ClinicHub.Application.Features.Users.Commands.DeleteUser;
 using ClinicHub.Application.Features.Users.Commands.EditUser;
 using ClinicHub.Application.Features.Users.Commands.EditUserRole;
 using ClinicHub.Application.Features.Users.Queries.GetAllUsers;
+using ClinicHub.Domain.Enums;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
-    //[Authorize(Roles = "Admin")]
+    [RoleAuthorize]
     public class UsersController : BaseApiController
     {
         public UsersController(IMediator mediator) : base(mediator)

@@ -1,17 +1,18 @@
 using Asp.Versioning;
+using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Attachements.Commands.DownloadFile;
 using ClinicHub.Application.Features.Attachements.Commands.UpdateFile;
 using ClinicHub.Application.Features.Attachements.Commands.UploadFile;
 using ClinicHub.Application.Features.Attachements.Commands.Upload_Multi_Attachments;
+using ClinicHub.Domain.Enums;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicHub.API.Controllers.Version1;
 
 [ApiVersion("1.0")]
-[Authorize]
+[RoleAuthorize]
 public class AttachementsController : BaseApiController
 {
     public AttachementsController(IMediator mediator) : base(mediator)

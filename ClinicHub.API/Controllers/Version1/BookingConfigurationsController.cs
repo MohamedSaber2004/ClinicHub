@@ -43,7 +43,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="dto">The booking configuration data transfer object.</param>
         /// <returns>The created booking configuration.</returns>
         [HttpPost]
-        [RoleAuthorize(nameof(UserType.ClinicOwner))]
+        [RoleAuthorize]
         [Route(ApiRoutes.BookingConfig.Create)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -60,7 +60,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="dto">The booking configuration data transfer object.</param>
         /// <returns>The updated booking configuration.</returns>
         [HttpPut]
-        [RoleAuthorize(nameof(UserType.ClinicOwner))]
+        [RoleAuthorize]
         [Route(ApiRoutes.BookingConfig.Update)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

@@ -60,6 +60,10 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString NotAuthorizedToCancel = new("Appointments.NotAuthorizedToCancel");
             public static readonly KeyString CannotCancelAppointment = new("Appointments.CannotCancelAppointment");
             public static readonly KeyString Cancelled = new("Appointments.Cancelled");
+            public static readonly KeyString NotAuthorizedToRespond = new("Appointments.NotAuthorizedToRespond");
+            public static readonly KeyString CannotRespondAppointment = new("Appointments.CannotRespondAppointment");
+            public static readonly KeyString Accepted = new("Appointments.Accepted");
+            public static readonly KeyString Rejected = new("Appointments.Rejected");
         }
 
         public static class GeneralMessages

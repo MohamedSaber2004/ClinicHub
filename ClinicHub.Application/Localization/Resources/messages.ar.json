@@ -148,7 +148,11 @@
     "AppointmentNotFound": "الموعد غير موجود.",
     "NotAuthorizedToCancel": "ليس لديك صلاحية إلغاء هذا الموعد",
     "CannotCancelAppointment": "لا يمكن إلغاء هذا الموعد في حالته الحالية",
-    "Cancelled": "تم إلغاء الموعد بنجاح"
+    "Cancelled": "تم إلغاء الموعد بنجاح",
+    "NotAuthorizedToRespond": "ليس لديك صلاحية الرد على طلب الموعد هذا",
+    "CannotRespondAppointment": "لا يمكن الرد على هذا الموعد في حالته الحالية",
+    "Accepted": "تم قبول الموعد بنجاح",
+    "Rejected": "تم رفض الموعد بنجاح"
   },
   "Payments": {
     "NotFound": "الدفع غير موجود",

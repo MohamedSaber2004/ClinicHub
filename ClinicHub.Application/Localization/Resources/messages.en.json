@@ -148,7 +148,11 @@
     "AppointmentNotFound": "Appointment not found",
     "NotAuthorizedToCancel": "You are not authorized to cancel this appointment",
     "CannotCancelAppointment": "This appointment cannot be cancelled in its current status",
-    "Cancelled": "Appointment cancelled successfully"
+    "Cancelled": "Appointment cancelled successfully",
+    "NotAuthorizedToRespond": "You are not authorized to respond to this appointment request",
+    "CannotRespondAppointment": "This appointment cannot be responded to in its current status",
+    "Accepted": "Appointment accepted successfully",
+    "Rejected": "Appointment rejected successfully"
   },
   "Payments": {
     "NotFound": "Payment not found",

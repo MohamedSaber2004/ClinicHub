@@ -12,11 +12,13 @@ using Microsoft.AspNetCore.Mvc;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Comments.Queries.GetCommentReactions;
 using ClinicHub.Application.Features.Comments.Queries.GetAllCommentsPagginated;
+using ClinicHub.API.Filters;
+using ClinicHub.Domain.Enums;
 
 namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
-    [Authorize]
+    [RoleAuthorize]
     public class CommentsController : BaseApiController
     {
         public CommentsController(IMediator mediator) : base(mediator)

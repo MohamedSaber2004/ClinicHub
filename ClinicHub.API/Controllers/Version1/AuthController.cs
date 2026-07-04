@@ -18,6 +18,8 @@ using Microsoft.AspNetCore.Mvc;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Auth.Commands.ValidateGoogleAccessToken;
 using ClinicHub.Application.Features.Auth.Commands.Logout;
+using ClinicHub.API.Filters;
+using ClinicHub.Domain.Enums;
 
 namespace ClinicHub.API.Controllers.Version1
 {
@@ -194,7 +196,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="ct">Cancellation token.</param>
         /// <returns>The user's profile info.</returns>
         [HttpGet]
-        [Authorize]
+        [RoleAuthorize]
         [Route(ApiRoutes.Auth.Profile)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -211,7 +213,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="ct">Cancellation token.</param>
         /// <returns>A success message.</returns>
         [HttpPatch]
-        [Authorize]
+        [RoleAuthorize]
         [Route(ApiRoutes.Auth.UpdateProfile)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -229,7 +231,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="ct">Cancellation token.</param>
         /// <returns>A success message.</returns>
         [HttpPut]
-        [Authorize]
+        [RoleAuthorize]
         [Route(ApiRoutes.Auth.UpdateLanguage)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -263,7 +265,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="ct">Cancellation token.</param>
         /// <returns>List of matching users.</returns>
         [HttpGet]
-        [Authorize]
+        [RoleAuthorize]
         [Route(ApiRoutes.Auth.SearchUsers)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]

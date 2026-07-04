@@ -97,6 +97,19 @@ namespace ClinicHub.Domain.Entities
             ExpiresAt = null;
         }
 
+        public void Accept()
+        {
+            Status = AppointmentStatus.Accepted;
+            ExpiresAt = null;
+        }
+
+        public void Reject(string? reason)
+        {
+            Status = AppointmentStatus.Rejected;
+            CancellationReason = reason;
+            ExpiresAt = null;
+        }
+
         public void Complete() => Status = AppointmentStatus.Completed;
 
         public void MarkNoShow() => Status = AppointmentStatus.NoShow;

@@ -1,18 +1,19 @@
 using Asp.Versioning;
+using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Specializations.Commands.CreateSpecialization;
 using ClinicHub.Application.Features.Specializations.Commands.DeleteSpecialization;
 using ClinicHub.Application.Features.Specializations.Commands.UpdateSpecialization;
 using ClinicHub.Application.Features.Specializations.Queries.GetAllSpecializations;
 using ClinicHub.Application.Features.Specializations.Queries.GetSpecializationById;
+using ClinicHub.Domain.Enums;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
-    [Authorize]
+    [RoleAuthorize]
     public class SpecializationsController : BaseApiController
     {
         public SpecializationsController(IMediator mediator) : base(mediator)

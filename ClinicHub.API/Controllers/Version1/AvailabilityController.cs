@@ -1,4 +1,4 @@
-﻿using Asp.Versioning;
+using Asp.Versioning;
 using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Availability.Commands.CreateNewAvailability;
@@ -47,7 +47,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="command"></param>
         /// <returns></returns>
         [HttpPost]
-        [RoleAuthorize(nameof(UserType.Doctor))]
+        [RoleAuthorize]
         [Route(ApiRoutes.Availability.Create)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -63,7 +63,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="command"></param>
         /// <returns></returns>
         [HttpPut]
-        [RoleAuthorize(nameof(UserType.Doctor))]
+        [RoleAuthorize]
         [Route(ApiRoutes.Availability.Update)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType (StatusCodes.Status400BadRequest)]
@@ -80,7 +80,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpDelete]
-        [RoleAuthorize(nameof(UserType.Doctor))]
+        [RoleAuthorize]
         [Route(ApiRoutes.Availability.Delete)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

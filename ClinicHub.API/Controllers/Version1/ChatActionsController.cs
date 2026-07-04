@@ -1,14 +1,15 @@
 using Asp.Versioning;
+using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.RealTime.Commands.Typing;
+using ClinicHub.Domain.Enums;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
-    [Authorize]
+    [RoleAuthorize]
     public class ChatActionsController : BaseApiController
     {
         public ChatActionsController(IMediator mediator) : base(mediator)

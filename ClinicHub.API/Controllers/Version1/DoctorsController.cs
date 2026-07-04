@@ -1,17 +1,19 @@
 using Asp.Versioning;
+using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Doctors.Commands.CreateDoctor;
 using ClinicHub.Application.Features.Doctors.Commands.UpdateDoctor;
 using ClinicHub.Application.Features.Doctors.Commands.DeleteDoctor;
 using ClinicHub.Application.Features.Doctors.Queries.GetDoctorById;
 using ClinicHub.Application.Features.Doctors.Queries.GetDoctorsByClinic;
+using ClinicHub.Domain.Enums;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
+    [RoleAuthorize]
     public class DoctorsController : BaseApiController
     {
         public DoctorsController(IMediator mediator)
@@ -19,7 +21,6 @@ namespace ClinicHub.API.Controllers.Version1
         {
         }
 
-        [Authorize]
         [HttpGet]
         [Route(ApiRoutes.Doctors.GetAllByClinic)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -31,7 +32,6 @@ namespace ClinicHub.API.Controllers.Version1
             return Ok(result);
         }
 
-        [Authorize]
         [HttpGet]
         [Route(ApiRoutes.Doctors.GetById)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -43,7 +43,6 @@ namespace ClinicHub.API.Controllers.Version1
             return Ok(result);
         }
 
-        [Authorize]
         [HttpPost]
         [Route(ApiRoutes.Doctors.Create)]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -55,7 +54,6 @@ namespace ClinicHub.API.Controllers.Version1
             return Created(ApiRoutes.Doctors.GetById, result);
         }
 
-        [Authorize]
         [HttpPut]
         [Route(ApiRoutes.Doctors.Update)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -68,7 +66,6 @@ namespace ClinicHub.API.Controllers.Version1
             return Ok(result);
         }
 
-        [Authorize]
         [HttpDelete]
         [Route(ApiRoutes.Doctors.Delete)]
         [ProducesResponseType(StatusCodes.Status200OK)]

@@ -1,11 +1,15 @@
 using Asp.Versioning;
+using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
+using ClinicHub.Application.Features.Appointments.Commands.AcceptAppointment;
 using ClinicHub.Application.Features.Appointments.Commands.CancelAppointment;
 using ClinicHub.Application.Features.Appointments.Commands.CreateAppointment;
-using ClinicHub.Application.Features.Appointments.Commands.UpdateAppointment;
 using ClinicHub.Application.Features.Appointments.Commands.DeleteAppointment;
+using ClinicHub.Application.Features.Appointments.Commands.RejectAppointment;
+using ClinicHub.Application.Features.Appointments.Commands.UpdateAppointment;
 using ClinicHub.Application.Features.Appointments.Queries.GetAllAppointmentsWithFilters;
 using ClinicHub.Application.Features.Appointments.Queries.GetAppointmentById;
+using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
+    [RoleAuthorize]
     public class AppointmentsController : BaseApiController
     {
         public AppointmentsController(IMediator mediator)
@@ -23,7 +28,6 @@ namespace ClinicHub.API.Controllers.Version1
         /// <summary>
         /// Get all appointments with filters.
         /// </summary>
-        [Authorize]
         [HttpGet]
         [Route(ApiRoutes.Appointments.GetAll)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -51,7 +55,6 @@ namespace ClinicHub.API.Controllers.Version1
         /// <summary>
         /// Create a new appointment.
         /// </summary>
-        [Authorize]
         [HttpPost]
         [Route(ApiRoutes.Appointments.Create)]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -65,7 +68,6 @@ namespace ClinicHub.API.Controllers.Version1
         /// <summary>
         /// Update an existing appointment.
         /// </summary>
-        [Authorize]
         [HttpPut]
         [Route(ApiRoutes.Appointments.Update)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -81,7 +83,6 @@ namespace ClinicHub.API.Controllers.Version1
         /// <summary>
         /// Delete an appointment.
         /// </summary>
-        [Authorize]
         [HttpDelete]
         [Route(ApiRoutes.Appointments.Delete)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -95,9 +96,40 @@ namespace ClinicHub.API.Controllers.Version1
         }
 
         /// <summary>
+        /// Accept an appointment request by the clinic admin.
+        /// </summary>
+        [RoleAuthorize]
+        [HttpPut]
+        [Route(ApiRoutes.Appointments.Accept)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Accept(Guid id)
+        {
+            var command = new AcceptAppointmentCommand { AppointmentId = id };
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Reject an appointment request by the clinic admin.
+        /// </summary>
+        [RoleAuthorize]
+        [HttpPut]
+        [Route(ApiRoutes.Appointments.Reject)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Reject(Guid id, [FromBody] RejectAppointmentCommand command)
+        {
+            command.AppointmentId = id;
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Cancel an appointment by the booking user.
         /// </summary>
-        [Authorize]
         [HttpPut]
         [Route(ApiRoutes.Appointments.Cancel)]
         [ProducesResponseType(StatusCodes.Status200OK)]

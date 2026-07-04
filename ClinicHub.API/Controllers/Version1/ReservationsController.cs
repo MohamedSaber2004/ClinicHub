@@ -1,12 +1,15 @@
 using Asp.Versioning;
+using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Appointments.Commands.CreateAppointment;
+using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
+    [RoleAuthorize]
     public class ReservationsController : BaseApiController
     {
         public ReservationsController(IMediator mediator) : base(mediator)

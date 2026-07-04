@@ -7,6 +7,8 @@ namespace ClinicHub.Domain.Enums
         Cancelled = 2,
         Completed = 3,
         Reserved = 4,
-        NoShow = 5
+        NoShow = 5,
+        Accepted = 6,
+        Rejected = 7
     }
 }

@@ -1,15 +1,17 @@
 using Asp.Versioning;
+using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Ratings.Commands.CreateRating;
 using ClinicHub.Application.Features.Ratings.Queries.GetDoctorRatings;
 using ClinicHub.Application.Features.Ratings.Queries.GetClinicRatings;
+using ClinicHub.Domain.Enums;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
+    [RoleAuthorize]
     public class RatingsController : BaseApiController
     {
         public RatingsController(IMediator mediator)
@@ -17,7 +19,6 @@ namespace ClinicHub.API.Controllers.Version1
         {
         }
 
-        [Authorize]
         [HttpPost]
         [Route(ApiRoutes.Ratings.Create)]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -28,7 +29,6 @@ namespace ClinicHub.API.Controllers.Version1
             return Created("", result);
         }
 
-        [Authorize]
         [HttpGet]
         [Route(ApiRoutes.Ratings.GetDoctorRatings)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -40,7 +40,6 @@ namespace ClinicHub.API.Controllers.Version1
             return Ok(result);
         }
 
-        [Authorize]
         [HttpGet]
         [Route(ApiRoutes.Ratings.GetClinicRatings)]
         [ProducesResponseType(StatusCodes.Status200OK)]

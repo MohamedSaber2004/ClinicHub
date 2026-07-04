@@ -9,6 +9,8 @@ using ClinicHub.Application.Features.Conversations.Queries.GetConversationById;
 using ClinicHub.Application.Features.Conversations.Queries.GetConversationMessages;
 using ClinicHub.Application.Features.Conversations.Queries.GetConversations;
 using ClinicHub.API.Routes;
+using ClinicHub.API.Filters;
+using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
-    [Authorize]
+    [RoleAuthorize]
     public class ConversationsController : BaseApiController
     {
         public ConversationsController(IMediator mediator) : base(mediator)

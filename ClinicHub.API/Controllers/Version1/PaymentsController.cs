@@ -1,10 +1,12 @@
 using Asp.Versioning;
+using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Payment.Commands.ConfirmPaymentWebhook;
 using ClinicHub.Application.Features.Payment.Commands.InitiateBookingPayment;
 using ClinicHub.Application.Features.Payment.Commands.InitiatePayment;
 using ClinicHub.Application.Features.Payment.Commands.VerifyBookingPayment;
 using ClinicHub.Application.Features.Payment.Queries.GetPaymentStatus;
+using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +14,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ClinicHub.API.Controllers.Version1;
 
 [ApiVersion("1.0")]
+[RoleAuthorize]
 public class PaymentsController : BaseApiController
 {
     public PaymentsController(IMediator mediator) : base(mediator)
@@ -51,6 +54,7 @@ public class PaymentsController : BaseApiController
         return Ok(result);
     }
 
+    [AllowAnonymous]
     [HttpPost]
     [Route(ApiRoutes.Payments.Webhook)]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -81,6 +85,7 @@ public class PaymentsController : BaseApiController
         return Ok(result);
     }
 
+    [AllowAnonymous]
     [HttpGet]
     [Route(ApiRoutes.Payments.Result)]
     public IActionResult PaymentResult(

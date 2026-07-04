@@ -120,6 +120,8 @@ namespace ClinicHub.API.Routes
             public const string Update = Base + "/appointments/{id:guid}";
             public const string Delete = Base + "/appointments/{id:guid}";
             public const string Cancel = Base + "/appointments/{id:guid}/cancel";
+            public const string Accept = Base + "/appointments/{id:guid}/accept";
+            public const string Reject = Base + "/appointments/{id:guid}/reject";
         }
 
         public static class Availability

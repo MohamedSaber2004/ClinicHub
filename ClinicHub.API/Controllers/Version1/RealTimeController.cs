@@ -8,6 +8,8 @@ using ClinicHub.Application.Features.RealTime.Commands.SetActiveConversation;
 using ClinicHub.Application.Features.RealTime.Commands.SetTyping;
 using ClinicHub.Application.Features.RealTime.Queries.GetOnlineUsers;
 using ClinicHub.Application.Features.RealTime.Queries.GetTypingUsers;
+using ClinicHub.API.Filters;
+using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
-    [Authorize]
+    [RoleAuthorize]
     public class RealTimeController : BaseApiController
     {
         public RealTimeController(IMediator mediator) : base(mediator)
