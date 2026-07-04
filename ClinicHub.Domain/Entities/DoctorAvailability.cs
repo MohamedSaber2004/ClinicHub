@@ -1,11 +1,16 @@
 using ClinicHub.Domain.Common;
+using ClinicHub.Domain.Common.Interfaces;
 
 namespace ClinicHub.Domain.Entities
 {
-    public class DoctorAvailability : BaseEntity<Guid>
+    public class DoctorAvailability : BaseEntity<Guid>, IClinicScopedEntity
     {
         public Guid DoctorId { get; private set; }
         public Doctor Doctor { get; private set; } = null!;
+
+        public Guid ClinicId { get; private set; }
+        Guid? IClinicScopedEntity.ClinicId => ClinicId;
+        public Clinic Clinic { get; private set; } = null!;
 
         public DayOfWeek DayOfWeek { get; private set; }
 
@@ -18,12 +23,14 @@ namespace ClinicHub.Domain.Entities
 
         public DoctorAvailability(
             Guid doctorId,
+            Guid clinicId,
             DayOfWeek dayOfWeek,
             TimeSpan startTime,
             TimeSpan endTime,
             int slotDurationMinutes = 30)
         {
             DoctorId = doctorId;
+            ClinicId = clinicId;
             DayOfWeek = dayOfWeek;
             StartTime = startTime;
             EndTime = endTime;

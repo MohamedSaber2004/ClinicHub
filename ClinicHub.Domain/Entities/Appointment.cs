@@ -1,9 +1,10 @@
 using ClinicHub.Domain.Common;
+using ClinicHub.Domain.Common.Interfaces;
 using ClinicHub.Domain.Enums;
 
 namespace ClinicHub.Domain.Entities
 {
-    public class Appointment : BaseEntity<Guid>
+    public class Appointment : BaseEntity<Guid>, IClinicScopedEntity
     {
         public Guid BookedByUserId { get; private set; }
         public ApplicationUser BookedByUser { get; private set; } = null!;
@@ -12,6 +13,7 @@ namespace ClinicHub.Domain.Entities
         public Doctor Doctor { get; private set; } = null!;
 
         public Guid ClinicId { get; private set; }
+        Guid? IClinicScopedEntity.ClinicId => ClinicId;
         public Clinic Clinic { get; private set; } = null!;
 
         public DateTime AppointmentDate { get; private set; }

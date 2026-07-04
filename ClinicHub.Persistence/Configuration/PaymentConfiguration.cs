@@ -26,6 +26,11 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .HasForeignKey(p => p.AppointmentId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasQueryFilter(p => !p.IsDeleted);
+        builder.HasOne(p => p.Clinic)
+            .WithMany()
+            .HasForeignKey(p => p.ClinicId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(p => p.ClinicId);
     }
 }

@@ -21,7 +21,12 @@ namespace ClinicHub.Persistence.Configuration
                 .HasForeignKey(x => x.DoctorId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            builder.HasQueryFilter(x => !x.IsDeleted);
+            builder.HasOne(x => x.Clinic)
+                .WithMany()
+                .HasForeignKey(x => x.ClinicId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasIndex(x => x.ClinicId);
         }
     }
 }

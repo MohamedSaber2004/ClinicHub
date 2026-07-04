@@ -11,5 +11,6 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
         string ConfirmPassword,
         string PhoneNumber,
         DateTime? BirthDate,
-        Gender? Gender) : IRequest<AuthResponseDto>;
+        Gender? Gender,
+        Guid? ClinicId = null) : IRequest<AuthResponseDto>;
 }

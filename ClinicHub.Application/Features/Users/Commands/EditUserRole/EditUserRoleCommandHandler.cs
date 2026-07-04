@@ -28,7 +28,8 @@ namespace ClinicHub.Application.Features.Users.Commands.EditUserRole
                 throw new NotFoundException(LocalizationKeys.AuthMessages.UserNotFound.Value);
             }
 
-            var roleExists = await _roleManager.RoleExistsAsync(request.NewRole);
+            var roleName = request.NewRole.ToString();
+            var roleExists = await _roleManager.RoleExistsAsync(roleName);
             if (!roleExists)
             {
                 throw new BadRequestException(LocalizationKeys.AuthMessages.RoleAssignmentFailed.Value);
@@ -43,7 +44,7 @@ namespace ClinicHub.Application.Features.Users.Commands.EditUserRole
                 throw new BadRequestException(LocalizationKeys.ExceptionMessages.BadRequest.Value);
             }
 
-            var addResult = await _userManager.AddToRoleAsync(user, request.NewRole);
+            var addResult = await _userManager.AddToRoleAsync(user, roleName);
             if (!addResult.Succeeded)
             {
                 var errors = string.Join(", ", addResult.Errors.Select(e => e.Description));

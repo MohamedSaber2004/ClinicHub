@@ -11,6 +11,10 @@ namespace ClinicHub.API.Services
 
         public string? IpAddress { get; }
 
+        public int? UserTypes { get; }
+
+        public Guid? CurrentClinicId { get; }
+
         public CurrentUserService(IHttpContextAccessor httpContextAccessor)
         {
             var httpContext = httpContextAccessor.HttpContext;
@@ -27,6 +31,18 @@ namespace ClinicHub.API.Services
 
             IsAuthenticated = httpContext?.User?.Identity?.IsAuthenticated ?? false;
             IpAddress = httpContext?.Connection?.RemoteIpAddress?.ToString();
+
+            var userTypesClaim = httpContext?.User?.FindFirst("UserTypes")?.Value;
+            if (int.TryParse(userTypesClaim, out var userTypes))
+            {
+                UserTypes = userTypes;
+            }
+
+            var clinicIdHeader = httpContext?.Request?.Headers["X-ClinicId"].FirstOrDefault();
+            if (Guid.TryParse(clinicIdHeader, out var clinicId))
+            {
+                CurrentClinicId = clinicId;
+            }
         }
     }
 }

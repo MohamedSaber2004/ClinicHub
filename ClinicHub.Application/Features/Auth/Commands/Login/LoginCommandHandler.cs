@@ -37,12 +37,10 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
         public async Task<AuthResponseDto> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
             var user = await _userManager.FindByEmailAsync(request.Email);
-            
-            // Generate Access Token
+
             var roles = await _userManager.GetRolesAsync(user!);
             var accessToken = _jwtTokenService.GenerateAccessToken(user!, roles);
 
-            // Check for existing valid refresh token
             var existingToken = await _unitOfWork.UserRefreshTokenRepository
                 .GetFirstAsync(x => x.UserId == user!.Id && !x.IsRevoked && x.ExpiryDate > DateTime.UtcNow, cancellationToken);
 

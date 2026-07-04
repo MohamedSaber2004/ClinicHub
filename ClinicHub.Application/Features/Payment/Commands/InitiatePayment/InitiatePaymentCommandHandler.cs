@@ -70,7 +70,7 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
         }
         else
         {
-            payment = new ClinicHub.Domain.Entities.Payment(request.AppointmentId, currentUserId, amount.Value)
+            payment = new ClinicHub.Domain.Entities.Payment(request.AppointmentId, currentUserId, appointment.ClinicId, amount.Value)
             {
                 PaymobOrderId = walletResult.OrderId
             };

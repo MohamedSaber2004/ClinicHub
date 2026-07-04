@@ -34,6 +34,8 @@ namespace ClinicHub.Domain.Entities
         public Guid? ClinicAdminId { get; set; }
         public ApplicationUser? ClinicAdmin { get; set; }
 
+        public ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
+
         public void UpdateStatus(ClinicStatus status, string updatedBy)
         {
             Status = status;

@@ -20,7 +20,10 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetPaginatedClinics
 
         public async Task<PagginatedResult<ClinicManagementDto>> Handle(GetPaginatedClinicsQuery request, CancellationToken cancellationToken)
         {
-            var query = _unitOfWork.ClinicRepository.GetAllAsync(null);
+            var query = _unitOfWork.ClinicRepository.GetAllWithIncluding(null,
+                c => c.Specialization,
+                c => c.ClinicAdmin!,
+                c => c.Subscriptions);
 
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
             {
@@ -50,6 +53,12 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetPaginatedClinics
 
             if (request.CreatedTo.HasValue)
                 query = query.Where(c => c.CreatedAt <= request.CreatedTo.Value);
+
+            if (request.SubscriptionStatus.HasValue)
+                query = query.Where(c => c.Subscriptions
+                    .OrderByDescending(s => s.EndDate)
+                    .Select(s => s.Status)
+                    .FirstOrDefault() == request.SubscriptionStatus.Value);
 
             query = (request.SortBy?.ToLower()) switch
             {

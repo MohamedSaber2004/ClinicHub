@@ -1,1 +1,54 @@
-1) i want to give me a prompt to implement accept appointment from clinics and reject from clinics (appointment requests to clinics)
+**Implement SuperAdmin Dashboard (5 endpoints)**
+
+Build the following admin dashboard feature set for the SuperAdmin role following ClinicHub's Clean Architecture + CQRS patterns.
+
+## New entities to create in Domain layer
+
+Create these entities in `ClinicHub.Domain.Entities`:
+
+1. **SupportTicket** — Id (Guid), UserId (Guid), Subject, Description, Status (Open/InProgress/Resolved/Closed), Priority (Low/Medium/High/Urgent), CreatedAt, ResolvedAt, CreatedBy/UpdatedBy from BaseEntity
+2. **Subscription** — Id (Guid), ClinicId (Guid), Plan (enum: Monthly/Yearly), StartDate, EndDate, Status (Active/Expired/Cancelled/Revoked), Amount, PaidAt
+3. **Advertisement** — Id (Guid), ClinicId (Guid?), Title, ImageUrl, TargetUrl, StartDate, EndDate, Status (Active/Inactive/Expired), AmountPaid
+4. **ClinicVerification** — Id (Guid), ClinicId (Guid), Status (Pending/Approved/Rejected), RequestedAt, ReviewedAt, ReviewedByUserId, Notes
+5. **AuditLog** — Id (Guid), ClinicId (Guid?), UserId (Guid?), Action, EntityType, EntityId, OldValues (json), NewValues (json), Timestamp
+
+Add corresponding enums in `ClinicHub.Domain.Enums`.
+
+## Queries to create in Application layer
+
+Under `ClinicHub.Application.Features.Admin.Queries`:
+
+### Q1: GetAdminDashboardStatsQuery
+Returns a DTO with: VerificationRequestsCount, ActiveClinicsCount, TotalUsersCount, SupportTicketsCount (open/urgent), SpecializationsCount, ActiveAdsCount, RevokedSubscriptionsCount.
+
+### Q2: GetUrgentSupportTicketsQuery
+Returns paginated urgent/high-priority tickets ordered by CreatedAt desc.
+
+### Q3: GetAllUsersForAdminQuery
+Returns paginated users with roles, status, created date — SuperAdmin can search/filter by name, email, role, status.
+
+### Q4: GetSubscribedClinicsQuery
+Returns paginated clinics with subscription details (plan, start/end date, status, amount paid). Include clinic name, admin name, contact info.
+
+### Q5: GetClinicAuditLogsQuery
+Accepts ClinicId, optional date range, optional action filter. Returns paginated audit log entries for that clinic ordered by Timestamp desc.
+
+## Endpoints to create in API layer
+
+Create `AdminController` under `Controllers/Version1/` with routes under `/api/v{version}/admin/dashboard/`:
+
+- `GET /stats` → Q1
+- `GET /support-tickets/urgent` → Q2
+- `GET /users` → Q3
+- `GET /clinics/subscribed` → Q4
+- `GET /clinics/{clinicId}/logs` → Q5
+
+Add route constants in `ApiRoutes.cs`.
+
+## Additional notes
+
+- All endpoints require `[RoleAuthorize(nameof(UserType.SuperAdmin))]`
+- Register new entities in `DbContext`, create EF configurations, and add migration
+- Create `IGenericRepository<SupportTicket, Guid>` etc. via existing GenericRepository pattern
+- Add localization keys/messages for any user-facing messages
+- Seed some test data in the DataSeeder for development

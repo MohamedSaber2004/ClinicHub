@@ -37,6 +37,8 @@ namespace ClinicHub.Persistence.Configuration
                 .HasForeignKey(x => x.DoctorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.HasIndex(x => x.ClinicId);
+
             builder.HasQueryFilter(x => !x.IsDeleted);
 
             builder.HasIndex(x => x.UserId)

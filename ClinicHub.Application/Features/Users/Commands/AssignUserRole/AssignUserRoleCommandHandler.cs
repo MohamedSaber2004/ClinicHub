@@ -23,13 +23,14 @@ namespace ClinicHub.Application.Features.Users.Commands.AssignUserRole
         {
             var user = await _userManager.FindByIdAsync(request.UserId.ToString());
 
-            var roleExists = await _roleManager.RoleExistsAsync(request.Role);
+            var roleName = request.Role.ToString();
+            var roleExists = await _roleManager.RoleExistsAsync(roleName);
             if (!roleExists)
             {
                 throw new BadRequestException(LocalizationKeys.AuthMessages.RoleAssignmentFailed.Value);
             }
 
-            var result = await _userManager.AddToRoleAsync(user, request.Role);
+            var result = await _userManager.AddToRoleAsync(user, roleName);
             if (!result.Succeeded)
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));

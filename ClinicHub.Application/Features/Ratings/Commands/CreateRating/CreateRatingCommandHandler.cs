@@ -32,15 +32,19 @@ namespace ClinicHub.Application.Features.Ratings.Commands.CreateRating
 
             var userId = _currentUserService.UserId;
 
+            Guid? clinicId = request.ClinicId;
+
             if (request.DoctorId != null)
             {
-                var doctorExists = await _unitOfWork.DoctorRepository.ExistsAsync(d => d.Id == request.DoctorId.Value, cancellationToken);
-                if (!doctorExists)
+                var doctor = await _unitOfWork.DoctorRepository.GetByIdAsync(request.DoctorId.Value);
+                if (doctor == null)
                     throw new NotFoundException(LocalizationKeys.DoctorMessages.NotFound.Value);
 
                 var existing = await _unitOfWork.RatingRepository.GetUserRatingForDoctorAsync(userId, request.DoctorId.Value);
                 if (existing != null)
                     throw new BadRequestException(LocalizationKeys.RatingMessages.AlreadyRated.Value);
+
+                clinicId = doctor.ClinicId;
             }
 
             if (request.ClinicId != null)
@@ -54,7 +58,7 @@ namespace ClinicHub.Application.Features.Ratings.Commands.CreateRating
                     throw new BadRequestException(LocalizationKeys.RatingMessages.AlreadyRated.Value);
             }
 
-            var rating = new Rating(userId, request.DoctorId, request.ClinicId, request.Value, request.Review);
+            var rating = new Rating(userId, request.DoctorId, clinicId, request.Value, request.Review);
 
             await _unitOfWork.RatingRepository.AddAsync(rating);
             await _unitOfWork.SaveChangesAsync();

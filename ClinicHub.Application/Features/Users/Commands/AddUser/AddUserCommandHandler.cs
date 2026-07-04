@@ -1,6 +1,7 @@
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
+using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Localization;
@@ -40,12 +41,13 @@ namespace ClinicHub.Application.Features.Users.Commands.AddUser
                 throw new BadRequestException(errors);
             }
 
-            if (!string.IsNullOrWhiteSpace(request.Role))
+            if (request.Role != UserType.None)
             {
-                var roleExists = await _roleManager.RoleExistsAsync(request.Role);
+                var roleName = request.Role.ToString();
+                var roleExists = await _roleManager.RoleExistsAsync(roleName);
                 if (roleExists)
                 {
-                    await _userManager.AddToRoleAsync(user, request.Role);
+                    await _userManager.AddToRoleAsync(user, roleName);
                 }
             }
 

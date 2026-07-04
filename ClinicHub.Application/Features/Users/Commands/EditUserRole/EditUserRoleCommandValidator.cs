@@ -20,9 +20,7 @@ namespace ClinicHub.Application.Features.Users.Commands.EditUserRole
                 .MustAsync(UserExists)
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.UserNotFound.Value]));
 
-            RuleFor(x => x.NewRole).NotEmpty()
-                .Must(role => Enum.TryParse<UserType>(role, ignoreCase: true, out _))
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidRole.Value]));
+            RuleFor(x => x.NewRole).IsInEnum().NotEqual(UserType.None);
         }
 
         private async Task<bool> UserExists(Guid userId, CancellationToken cancellationToken)

@@ -19,8 +19,11 @@ namespace ClinicHub.Application.Features.Availability.Commands.CreateNewAvailabi
 
         public async Task<AvailabilityDto> Handle(CreateNewAvailabilityCommand request, CancellationToken cancellationToken)
         {
+            var doctor = await _unitOfWork.DoctorRepository.GetByIdAsync(request.DoctorId);
+
             var availability = new DoctorAvailability(
                 request.DoctorId,
+                doctor.ClinicId,
                 request.DayOfWeek,
                 request.StartTime,
                 request.EndTime,

@@ -60,6 +60,9 @@ namespace ClinicHub.API.Routes
             public const string GetRoute = Base + "/clinics/route";
             public const string GetByIdForUser = Base + "/clinics/{id:guid}";
             public const string GetAll = Base + "/clinics";
+            public const string Follow = Base + "/clinics/{id:guid}/follow";
+            public const string Unfollow = Base + "/clinics/{id:guid}/unfollow";
+            public const string Followed = Base + "/clinics/followed";
         }
 
         public static class ClinicManagement
@@ -71,6 +74,7 @@ namespace ClinicHub.API.Routes
             public const string Update = BaseRoute + "/{id:guid}";
             public const string Activate = BaseRoute + "/{id:guid}/activate";
             public const string Deactivate = BaseRoute + "/{id:guid}/deactivate";
+            public const string Followers = BaseRoute + "/{id:guid}/followers";
         }
 
         public static class Specializations
@@ -185,6 +189,15 @@ namespace ClinicHub.API.Routes
             public const string Delete = Base + "/users/{id:guid}";
             public const string AssignRole = Base + "/users/{id:guid}/roles";
             public const string EditRole = Base + "/users/{id:guid}/roles";
+        }
+
+        public static class AdminDashboard
+        {
+            public const string BaseRoute = Base + "/admin/dashboard";
+            public const string Stats = BaseRoute + "/stats";
+            public const string UrgentTickets = BaseRoute + "/urgent-tickets";
+            public const string Users = BaseRoute + "/users";
+            public const string ClinicLogs = BaseRoute + "/clinics/{clinicId:guid}/logs";
         }
     }
 }

@@ -67,6 +67,7 @@ namespace ClinicHub.Application.Features.Clinics.DTOs
         public string? OwnerName { get; set; }
         public string? OwnerEmail { get; set; }
         public string? OwnerPhone { get; set; }
+        public SubscriptionStatus? SubscriptionStatus { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public string CreatedBy { get; set; } = string.Empty;

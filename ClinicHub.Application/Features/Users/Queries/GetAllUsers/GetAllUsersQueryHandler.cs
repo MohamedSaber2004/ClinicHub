@@ -1,6 +1,7 @@
 using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Features.Users.DTOs;
 using ClinicHub.Domain.Entities;
+using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -57,6 +58,9 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
                     IsActive = user.IsActive,
                     CreatedAt = user.CreatedAt,
                     Roles = roles
+                        .Select(r => Enum.TryParse<UserType>(r, ignoreCase: true, out var ut) ? ut : UserType.None)
+                        .Where(ut => ut != UserType.None)
+                        .ToList() as IList<UserType>
                 });
             }
 

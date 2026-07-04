@@ -293,6 +293,7 @@ namespace ClinicHub.Persistence.Seeders
 
                             availabilities.Add(new DoctorAvailability(
                                 doctorId: doctor.Id,
+                                clinicId: doctor.ClinicId,
                                 dayOfWeek: dayOfWeek,
                                 startTime: new TimeSpan(startHour, 0, 0),
                                 endTime: new TimeSpan(startHour, 0, 0).Add(TimeSpan.FromHours(hoursRange)),
@@ -304,6 +305,136 @@ namespace ClinicHub.Persistence.Seeders
                     context.Set<DoctorAvailability>().AddRange(availabilities);
                     await context.SaveChangesAsync();
                 }
+            }
+
+            var superAdminUser = allUsers.FirstOrDefault();
+
+            // If SuperAdmin role exists, try to find a user with that role
+            var superAdminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == nameof(UserType.SuperAdmin));
+            if (superAdminRole != null)
+            {
+                var superAdminUserEntry = await context.UserRoles
+                    .FirstOrDefaultAsync(ur => ur.RoleId == superAdminRole.Id);
+                if (superAdminUserEntry != null)
+                {
+                    superAdminUser = allUsers.FirstOrDefault(u => u.Id == superAdminUserEntry.UserId);
+                }
+            }
+
+            // 8. Seed Support Tickets
+            if (!await context.Set<SupportTicket>().AnyAsync())
+            {
+                logger.LogInformation("Seeding {Count} support tickets...", settings.SupportTicketCount);
+                var ticketFaker = new Faker<SupportTicket>()
+                    .CustomInstantiator(f => new SupportTicket
+                    {
+                        UserId = f.PickRandom(userIds),
+                        ClinicId = f.Random.Bool(0.5f) ? f.PickRandom(allClinics).Id : null,
+                        Subject = f.Lorem.Sentence(3, 8),
+                        Description = f.Lorem.Paragraphs(1, 3),
+                        Status = f.PickRandom<SupportTicketStatus>(),
+                        Priority = f.PickRandom<SupportTicketPriority>(),
+                        ResolvedAt = f.Random.Bool(0.3f) ? f.Date.Recent(5) : null
+                    });
+
+                var tickets = ticketFaker.Generate(settings.SupportTicketCount ?? 10);
+                context.Set<SupportTicket>().AddRange(tickets);
+                await context.SaveChangesAsync();
+            }
+
+            // 9. Seed Clinic Verifications
+            if (!await context.Set<ClinicVerification>().AnyAsync())
+            {
+                logger.LogInformation("Seeding {Count} clinic verifications...", settings.ClinicVerificationCount);
+                var verificationFaker = new Faker<ClinicVerification>()
+                    .CustomInstantiator(f =>
+                    {
+                        var clinic = f.PickRandom(allClinics);
+                        var isReviewed = f.Random.Bool(0.5f);
+                        return new ClinicVerification
+                        {
+                            ClinicId = clinic.Id,
+                            Status = isReviewed ? f.PickRandom(new[] { VerificationStatus.Approved, VerificationStatus.Rejected }) : VerificationStatus.Pending,
+                            RequestedAt = f.Date.Past(20),
+                            ReviewedAt = isReviewed ? f.Date.Recent(10) : null,
+                            ReviewedByUserId = isReviewed ? superAdminUser?.Id : null,
+                            Notes = isReviewed && f.Random.Bool(0.7f) ? f.Lorem.Sentence() : null
+                        };
+                    });
+
+                var verifications = verificationFaker.Generate(settings.ClinicVerificationCount ?? 5);
+                context.Set<ClinicVerification>().AddRange(verifications);
+                await context.SaveChangesAsync();
+            }
+
+            // 10. Seed Subscriptions
+            if (!await context.Set<Subscription>().AnyAsync())
+            {
+                logger.LogInformation("Seeding {Count} subscriptions...", settings.SubscriptionCount);
+                var subscriptionFaker = new Faker<Subscription>()
+                    .CustomInstantiator(f =>
+                    {
+                        var clinic = f.PickRandom(allClinics);
+                        var startDate = f.Date.Past(60);
+                        return new Subscription
+                        {
+                            ClinicId = clinic.Id,
+                            Plan = f.PickRandom<SubscriptionPlan>(),
+                            StartDate = startDate,
+                            EndDate = startDate.AddDays(f.Random.Int(30, 365)),
+                            Status = f.PickRandom(new[] { SubscriptionStatus.Active, SubscriptionStatus.Active, SubscriptionStatus.Expired, SubscriptionStatus.Revoked }),
+                            Amount = f.Random.Decimal(100, 5000),
+                            PaidAt = f.Random.Bool(0.8f) ? f.Date.Recent(30) : null
+                        };
+                    });
+
+                var subscriptions = subscriptionFaker.Generate(settings.SubscriptionCount ?? 5);
+                context.Set<Subscription>().AddRange(subscriptions);
+                await context.SaveChangesAsync();
+            }
+
+            // 11. Seed Advertisements
+            if (!await context.Set<Advertisement>().AnyAsync())
+            {
+                logger.LogInformation("Seeding {Count} advertisements...", settings.AdvertisementCount);
+                var adFaker = new Faker<Advertisement>()
+                    .CustomInstantiator(f => new Advertisement
+                    {
+                        ClinicId = f.Random.Bool(0.7f) ? f.PickRandom(allClinics).Id : null,
+                        Title = f.Commerce.ProductName(),
+                        ImageUrl = f.Image.PicsumUrl(),
+                        TargetUrl = f.Internet.Url(),
+                        StartDate = f.Date.Past(10),
+                        EndDate = f.Date.Future(30),
+                        Status = f.PickRandom<AdvertisementStatus>(),
+                        AmountPaid = f.Random.Decimal(50, 2000)
+                    });
+
+                var ads = adFaker.Generate(settings.AdvertisementCount ?? 5);
+                context.Set<Advertisement>().AddRange(ads);
+                await context.SaveChangesAsync();
+            }
+
+            // 12. Seed Audit Logs
+            if (!await context.Set<AuditLog>().AnyAsync())
+            {
+                logger.LogInformation("Seeding {Count} audit logs...", settings.AuditLogCount);
+                var logFaker = new Faker<AuditLog>()
+                    .CustomInstantiator(f => new AuditLog
+                    {
+                        ClinicId = f.Random.Bool(0.6f) ? f.PickRandom(allClinics).Id : null,
+                        UserId = f.PickRandom(allUsers).Id,
+                        Action = f.PickRandom(new[] { "ClinicCreated", "ClinicUpdated", "ClinicActivated", "ClinicDeactivated", "DoctorAdded", "DoctorRemoved", "PaymentProcessed", "VerificationApproved", "VerificationRejected" }),
+                        EntityType = f.PickRandom(new[] { "Clinic", "Doctor", "Payment", "Verification", "Subscription" }),
+                        EntityId = Guid.NewGuid().ToString(),
+                        OldValues = f.Random.Bool(0.3f) ? f.Lorem.Sentence() : null,
+                        NewValues = f.Random.Bool(0.5f) ? f.Lorem.Sentence() : null,
+                        Timestamp = f.Date.Recent(60)
+                    });
+
+                var logs = logFaker.Generate(settings.AuditLogCount ?? 20);
+                context.Set<AuditLog>().AddRange(logs);
+                await context.SaveChangesAsync();
             }
 
             // 7. Seed Appointments

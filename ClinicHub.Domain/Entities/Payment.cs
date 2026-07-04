@@ -1,12 +1,16 @@
 using ClinicHub.Domain.Common;
+using ClinicHub.Domain.Common.Interfaces;
 using ClinicHub.Domain.Enums;
 
 namespace ClinicHub.Domain.Entities;
 
-public class Payment : BaseEntity<Guid>
+public class Payment : BaseEntity<Guid>, IClinicScopedEntity
 {
     public Guid AppointmentId { get; private set; }
     public Guid UserId { get; private set; }
+    public Guid ClinicId { get; private set; }
+    Guid? IClinicScopedEntity.ClinicId => ClinicId;
+    public Clinic Clinic { get; private set; } = null!;
     public decimal Amount { get; private set; }
     public string Currency { get; private set; } = "EGP";
     public string? PaymobOrderId { get; set; }
@@ -23,10 +27,11 @@ public class Payment : BaseEntity<Guid>
 
     private Payment() { }
 
-    public Payment(Guid appointmentId, Guid userId, decimal amount, string currency = "EGP")
+    public Payment(Guid appointmentId, Guid userId, Guid clinicId, decimal amount, string currency = "EGP")
     {
         AppointmentId = appointmentId;
         UserId = userId;
+        ClinicId = clinicId;
         Amount = amount;
         Currency = currency ?? "EGP";
     }

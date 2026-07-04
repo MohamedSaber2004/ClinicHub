@@ -1,3 +1,4 @@
+using ClinicHub.Domain.Enums;
 using MediatR;
 
 namespace ClinicHub.Application.Features.Users.Commands.EditUserRole
@@ -5,6 +6,6 @@ namespace ClinicHub.Application.Features.Users.Commands.EditUserRole
     public class EditUserRoleCommand : IRequest<bool>
     {
         public Guid UserId { get; set; }
-        public string NewRole { get; set; } = null!;
+        public UserType NewRole { get; set; }
     }
 }

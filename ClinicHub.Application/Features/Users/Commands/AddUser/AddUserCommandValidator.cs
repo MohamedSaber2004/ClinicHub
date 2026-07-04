@@ -15,9 +15,7 @@ namespace ClinicHub.Application.Features.Users.Commands.AddUser
             RuleFor(x => x.PhoneNumber).NotEmpty();
             RuleFor(x => x.BirthDate).NotEmpty();
             RuleFor(x => x.Gender).IsInEnum();
-            RuleFor(x => x.Role).NotEmpty()
-                .Must(role => Enum.TryParse<UserType>(role, ignoreCase: true, out _))
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidRole.Value]));
+            RuleFor(x => x.Role).IsInEnum().NotEqual(UserType.None);
         }
     }
 }

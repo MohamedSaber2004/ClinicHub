@@ -11,6 +11,6 @@ namespace ClinicHub.Application.Features.Users.Commands.AddUser
         public string PhoneNumber { get; set; } = null!;
         public DateTime BirthDate { get; set; }
         public Gender Gender { get; set; }
-        public string Role { get; set; } = null!;
+        public UserType Role { get; set; }
     }
 }

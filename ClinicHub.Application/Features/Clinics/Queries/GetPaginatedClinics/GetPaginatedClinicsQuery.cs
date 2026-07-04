@@ -18,5 +18,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetPaginatedClinics
         public string? Phone { get; set; }
         public DateTime? CreatedFrom { get; set; }
         public DateTime? CreatedTo { get; set; }
+        public SubscriptionStatus? SubscriptionStatus { get; set; }
     }
 }
+

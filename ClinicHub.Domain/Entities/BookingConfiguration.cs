@@ -1,10 +1,12 @@
 using ClinicHub.Domain.Common;
+using ClinicHub.Domain.Common.Interfaces;
 
 namespace ClinicHub.Domain.Entities
 {
-    public class BookingConfiguration : BaseEntity<Guid>
+    public class BookingConfiguration : BaseEntity<Guid>, IClinicScopedEntity
     {
         public Guid ClinicId { get; private set; }
+        Guid? IClinicScopedEntity.ClinicId => ClinicId;
         public Clinic Clinic { get; private set; } = null!;
 
         public decimal ConsultationFee { get; private set; }

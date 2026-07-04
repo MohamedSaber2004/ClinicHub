@@ -8,6 +8,7 @@ using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
 
@@ -55,6 +56,18 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
             if (!roleResult.Succeeded)
             {
                 throw new BadRequestException(_localizer[LocalizationKeys.AuthMessages.RoleAssignmentFailed.Value]);
+            }
+
+            if (request.ClinicId.HasValue)
+            {
+                var clinicExists = await _unitOfWork.ClinicRepository
+                    .GetAllAsync(c => c.Id == request.ClinicId && !c.IsDeleted).AnyAsync(cancellationToken);
+
+                if (clinicExists)
+                {
+                    var userClinic = new UserClinic(user.Id, request.ClinicId.Value);
+                    await _unitOfWork.GetRepository<UserClinic, Guid>().AddAsync(userClinic);
+                }
             }
 
             var roles = await _userManager.GetRolesAsync(user);

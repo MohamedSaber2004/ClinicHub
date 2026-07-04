@@ -41,7 +41,7 @@ namespace ClinicHub.Persistence.Configuration
                 .IsUnique()
                 .HasFilter("[ClinicId] IS NOT NULL");
 
-            builder.HasQueryFilter(x => !x.IsDeleted);
         }
+
     }
 }

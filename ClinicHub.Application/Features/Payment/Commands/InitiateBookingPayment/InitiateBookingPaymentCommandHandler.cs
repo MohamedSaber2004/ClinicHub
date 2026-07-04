@@ -39,7 +39,7 @@ namespace ClinicHub.Application.Features.Payment.Commands.InitiateBookingPayment
             if (existingPayment != null && existingPayment.Status == PaymentStatus.Paid)
                 throw new BadRequestException(LocalizationKeys.PaymentMessages.AlreadyPaid.Value);
 
-            var payment = new Domain.Entities.Payment(request.ReservationId, _currentUser.UserId, request.Amount, request.Currency);
+            var payment = new Domain.Entities.Payment(request.ReservationId, _currentUser.UserId, appointment.ClinicId, request.Amount, request.Currency);
             payment.MarkAsProcessing(paymentMethod: "cash");
 
             await _unitOfWork.PaymentRepository.AddAsync(payment);

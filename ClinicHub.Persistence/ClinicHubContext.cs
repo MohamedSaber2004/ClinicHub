@@ -1,6 +1,9 @@
+using System.Reflection;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Domain.Common;
+using ClinicHub.Domain.Common.Interfaces;
 using ClinicHub.Domain.Entities;
+using ClinicHub.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -13,10 +16,12 @@ namespace ClinicHub.Persistence
         IdentityRoleClaim<Guid>, IdentityUserToken<Guid>>, IClinicHubContext
     {
         private readonly ICurrentUserService? _currentUserService;
+        private readonly Guid? _currentClinicId;
         public ClinicHubContext(ICurrentUserService? currentUserService, DbContextOptions<ClinicHubContext> options)
             : base(options)
         {
             _currentUserService = currentUserService;
+            _currentClinicId = _currentUserService?.CurrentClinicId;
         }
 
         public DbSet<Post> Posts { get; set; }
@@ -39,7 +44,12 @@ namespace ClinicHub.Persistence
         public DbSet<ConversationParticipant> ConversationParticipants { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<BookingConfiguration> BookingConfigurations { get; set; }
-
+        public DbSet<SupportTicket> SupportTickets { get; set; }
+        public DbSet<Subscription> Subscriptions { get; set; }
+        public DbSet<Advertisement> Advertisements { get; set; }
+        public DbSet<ClinicVerification> ClinicVerifications { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<UserClinic> UserClinics { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder builder)
         {
@@ -57,6 +67,21 @@ namespace ClinicHub.Persistence
                 type => type.Namespace is not null && type.Namespace.EndsWith("Configuration"));
 
             builder.HasDefaultSchema("dbo");
+
+            foreach (var entityType in builder.Model.GetEntityTypes()
+                .Where(e => typeof(IClinicScopedEntity).IsAssignableFrom(e.ClrType)))
+            {
+                var method = typeof(ClinicHubContext)
+                    .GetMethod(nameof(ApplyClinicFilter), BindingFlags.NonPublic | BindingFlags.Instance)
+                    ?.MakeGenericMethod(entityType.ClrType);
+                method?.Invoke(this, new object[] { builder });
+            }
+        }
+
+        private void ApplyClinicFilter<TEntity>(ModelBuilder builder) where TEntity : BaseEntity, IClinicScopedEntity
+        {
+            builder.Entity<TEntity>().HasQueryFilter(e =>
+                !e.IsDeleted && (_currentClinicId == null || e.ClinicId == null || e.ClinicId == _currentClinicId));
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

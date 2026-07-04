@@ -1,8 +1,9 @@
 using ClinicHub.Domain.Common;
+using ClinicHub.Domain.Common.Interfaces;
 
 namespace ClinicHub.Domain.Entities
 {
-    public class Rating : BaseEntity<Guid>
+    public class Rating : BaseEntity<Guid>, IClinicScopedEntity
     {
         public Guid UserId { get; private set; }
         public ApplicationUser User { get; private set; } = null!;

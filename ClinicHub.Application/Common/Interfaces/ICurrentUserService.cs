@@ -5,5 +5,7 @@
         Guid UserId { get; }
         bool IsAuthenticated { get; }
         string? IpAddress { get; }
+        int? UserTypes { get; }
+        Guid? CurrentClinicId { get; }
     }
 }

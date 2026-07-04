@@ -11,7 +11,7 @@ namespace ClinicHub.Application.Features.Users.DTOs
         public DateTime? BirthDate { get; set; }
         public Gender? Gender { get; set; }
         public bool IsActive { get; set; }
-        public IList<string> Roles { get; set; } = new List<string>();
+        public IList<UserType> Roles { get; set; } = new List<UserType>();
         public DateTime CreatedAt { get; set; }
     }
 }
