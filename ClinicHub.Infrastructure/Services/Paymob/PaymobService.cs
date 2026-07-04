@@ -239,7 +239,7 @@ public class PaymobService : IPaymobService
             amount_cents = amountCents
         };
 
-        var request = new HttpRequestMessage(HttpMethod.Post, $"{_settings.BaseUrl}/ecommerce/refunds")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"{BaseUrl}/api/acceptance/void_refund/refund")
         {
             Content = new StringContent(
                 JsonSerializer.Serialize(payload),
