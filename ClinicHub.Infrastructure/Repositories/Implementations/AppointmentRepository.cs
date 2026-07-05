@@ -42,9 +42,13 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations
             string? startDate = null,
             string? endDate = null,
             AppointmentStatus? status = null,
-            string? patientName = null)
+            string? patientName = null,
+            Guid? bookedByUserId = null)
         {
             var query = _context.Appointments.AsQueryable();
+
+            if (bookedByUserId.HasValue)
+                query = query.Where(a => a.BookedByUserId == bookedByUserId.Value);
 
             if (doctorId.HasValue)
                 query = query.Where(a => a.DoctorId == doctorId.Value);

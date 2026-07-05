@@ -1,4 +1,5 @@
 using AutoMapper;
+using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Features.Appointments.DTOs;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
@@ -10,15 +11,19 @@ namespace ClinicHub.Application.Features.Appointments.Queries.GetAllAppointments
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ICurrentUserService _currentUserService;
 
-        public GetAllAppointmentsWithFiltersQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        public GetAllAppointmentsWithFiltersQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _currentUserService = currentUserService;
         }
 
         public async Task<PagginatedResult<AppointmentDto>> Handle(GetAllAppointmentsWithFiltersQuery request, CancellationToken cancellationToken)
         {
+            var currentUserId = _currentUserService.UserId;
+
             var (items, totalCount) = await _unitOfWork.AppointmentRepository.GetAppointmentsWithFiltersAsync(
                 request.PageNumber,
                 request.PageSize,
@@ -27,7 +32,8 @@ namespace ClinicHub.Application.Features.Appointments.Queries.GetAllAppointments
                 request.StartDate.HasValue ? request.StartDate.Value.ToString("dd/MM/yyyy hh:mm tt") : null,
                 request.EndDate.HasValue ? request.EndDate.Value.ToString("dd/MM/yyyy hh:mm tt") : null,
                 request.Status,
-                request.PatientName);
+                request.PatientName,
+                currentUserId);
 
             var dtos = _mapper.Map<List<AppointmentDto>>(items);
 

@@ -6,6 +6,7 @@ using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Features.Notifications.DTOs;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -32,6 +33,8 @@ namespace ClinicHub.Application.Features.Notifications.Queries.GetAllNotificatio
             var query = _unitOfWork.NotificationRepository
                 .GetAllAsync(n => n.UserId == userId)
                 .OrderByDescending(n => n.CreatedAt);
+
+            await query.ForEachAsync(n => n.MarkAsRead(), cancellationToken);
 
             var paginatedResult = await query
                 .ProjectTo<NotificationDto>(_mapper.ConfigurationProvider)

@@ -18,6 +18,7 @@ namespace ClinicHub.Domain.Repositories.Interfaces
             string? startDate = null,
             string? endDate = null,
             AppointmentStatus? status = null,
-            string? patientName = null);
+            string? patientName = null,
+            Guid? bookedByUserId = null);
     }
 }
