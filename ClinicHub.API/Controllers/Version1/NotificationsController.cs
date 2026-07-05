@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
-    [Authorize]
     [RoleAuthorize]
     public class NotificationsController : BaseApiController
     {
@@ -49,9 +48,9 @@ namespace ClinicHub.API.Controllers.Version1
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetNotificationsCount([FromQuery] GetNotificationsCountQuery query, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetNotificationsCount(CancellationToken cancellationToken)
         {
-            var result = await _mediator.Send(query, cancellationToken);
+            var result = await _mediator.Send(new GetNotificationsCountQuery(),cancellationToken);
             return Ok(result);
         }
     }

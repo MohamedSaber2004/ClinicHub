@@ -7,6 +7,8 @@ namespace ClinicHub.Domain.Entities
     public class Notification : BaseEntity<Guid>, IClinicScopedEntity
     {
         public Guid UserId { get; private set; }
+        public Guid? SenderUserId { get; private set; }
+        public ApplicationUser? SenderUser { get; private set; }
         public string TitleEn { get; private set; } = null!;
         public string TitleAr { get; private set; } = null!;
         public string BodyEn { get; private set; } = null!;
@@ -22,6 +24,7 @@ namespace ClinicHub.Domain.Entities
         public static Notification Create(Guid userId, Guid? senderUserId, string titleEn, string titleAr, string bodyEn, string bodyAr, NotificationType type, Guid? clinicId = null) => new()
         {
             UserId = userId,
+            SenderUserId = senderUserId,
             TitleEn = titleEn,
             TitleAr = titleAr,
             BodyEn = bodyEn,

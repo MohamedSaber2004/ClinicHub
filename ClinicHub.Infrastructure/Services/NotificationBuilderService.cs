@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common.Extensions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
@@ -28,6 +29,7 @@ namespace ClinicHub.Infrastructure.Services
             var message = GetParam(parameters, "message", "تحديث من النظام");
             var conversationId = GetParam(parameters, "conversationId");
             var appointmentId = GetParam(parameters, "appointmentId");
+            var senderUserIdParam = GetParam(parameters, "SenderUserId");
 
             switch (type)
             {
@@ -78,7 +80,7 @@ namespace ClinicHub.Infrastructure.Services
                     break;
             }
 
-            var notification = Notification.Create(userId, null, "", title, "", body, type);
+            var notification = Notification.Create(userId, senderUserIdParam.ToGuid(), "", title, "", body, type);
             await _notificationRepository.AddAsync(notification);
 
             return new NotificationPayload

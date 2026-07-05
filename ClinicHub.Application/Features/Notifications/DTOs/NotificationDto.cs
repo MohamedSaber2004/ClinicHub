@@ -7,6 +7,7 @@ namespace ClinicHub.Application.Features.Notifications.DTOs
     {
         public Guid Id { get; set; }
         public Guid UserId { get; set; }
+        public Guid? SenderUserId { get; set; }
         public string TitleEn { get; set; } = null!;
         public string TitleAr { get; set; } = null!;
         public string BodyEn { get; set; } = null!;

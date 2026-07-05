@@ -4,6 +4,5 @@ namespace ClinicHub.Application.Features.Notifications.Queries.GetNotificationsC
 {
     public class GetNotificationsCountQuery : IRequest<int>
     {
-        public bool? IsRead { get; set; }
     }
 }

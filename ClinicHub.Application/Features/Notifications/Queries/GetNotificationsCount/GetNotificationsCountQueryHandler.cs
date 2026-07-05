@@ -26,10 +26,7 @@ namespace ClinicHub.Application.Features.Notifications.Queries.GetNotificationsC
             var query = _unitOfWork.NotificationRepository
                 .GetAllAsync(n => n.UserId == userId);
 
-            if (request.IsRead.HasValue)
-            {
-                query = query.Where(n => n.IsRead == request.IsRead.Value);
-            }
+            query = query.Where(n => n.IsRead == false);
 
             var count = await query.CountAsync(cancellationToken);
             return count;
