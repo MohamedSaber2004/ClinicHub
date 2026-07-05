@@ -21,19 +21,22 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
         private readonly JwtSettings _jwtSettings;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IStringLocalizer<Messages> _localizer;
+        private readonly IFcmService _fcmService;
 
         public SignupCommandHandler(
             UserManager<ApplicationUser> userManager,
             IJwtTokenService jwtTokenService,
             IOptions<JwtSettings> jwtSettings,
             IUnitOfWork unitOfWork,
-            IStringLocalizer<Messages> localizer)
+            IStringLocalizer<Messages> localizer,
+            IFcmService fcmService)
         {
             _userManager = userManager;
             _jwtTokenService = jwtTokenService;
             _jwtSettings = jwtSettings.Value;
             _unitOfWork = unitOfWork;
             _localizer = localizer;
+            _fcmService = fcmService;
         }
 
         public async Task<AuthResponseDto> Handle(SignupCommand request, CancellationToken cancellationToken)
@@ -69,6 +72,9 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
             var userRefreshToken = UserRefreshToken.Create(user.Id, refreshToken, DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays));
             await _unitOfWork.UserRefreshTokenRepository.AddAsync(userRefreshToken);
             await _unitOfWork.SaveChangesAsync();
+
+            if (!string.IsNullOrEmpty(request.FcmToken) && request.DevicePlatform.HasValue)
+                await _fcmService.RegisterTokenAsync(user.Id, request.FcmToken, request.DevicePlatform.Value);
 
             return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, roles.FirstOrDefault(), user.Id, clinicId);
         }

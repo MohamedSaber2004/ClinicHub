@@ -13,15 +13,18 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
         private readonly IPaymobService _paymobService;
+        private readonly IFcmService _fcmService;
 
         public CancelAppointmentCommandHandler(
             IUnitOfWork unitOfWork,
             ICurrentUserService currentUserService,
-            IPaymobService paymobService)
+            IPaymobService paymobService,
+            IFcmService fcmService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
             _paymobService = paymobService;
+            _fcmService = fcmService;
         }
 
         public async Task<bool> Handle(CancelAppointmentCommand request, CancellationToken cancellationToken)
@@ -63,6 +66,12 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
                 var result = await _unitOfWork.SaveChangesAsync();
 
                 await _unitOfWork.CommitAsync();
+
+                await _fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.AppointmentCancellation, new()
+                {
+                    ["clinicName"] = appointment.Clinic.Name,
+                    ["reason"] = request.CancellationReason
+                });
 
                 return result > 0;
             }

@@ -12,13 +12,16 @@ namespace ClinicHub.Application.Features.Appointments.Commands.AcceptAppointment
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IFcmService _fcmService;
 
         public AcceptAppointmentCommandHandler(
             IUnitOfWork unitOfWork,
-            ICurrentUserService currentUserService)
+            ICurrentUserService currentUserService,
+            IFcmService fcmService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
+            _fcmService = fcmService;
         }
 
         public async Task<bool> Handle(AcceptAppointmentCommand request, CancellationToken cancellationToken)
@@ -33,6 +36,12 @@ namespace ClinicHub.Application.Features.Appointments.Commands.AcceptAppointment
 
             appointment.Accept();
             var result = await _unitOfWork.SaveChangesAsync();
+
+            await _fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.AppointmentConfirmation, new()
+            {
+                ["clinicName"] = appointment.Clinic.Name,
+                ["date"] = appointment.AppointmentDate.ToString("yyyy-MM-dd")
+            });
 
             return result > 0;
         }

@@ -18,6 +18,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
         private readonly JwtSettings _jwtSettings;
         private readonly EmailSettings _emailSettings;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IFcmService _fcmService;
 
         public LoginCommandHandler(
             UserManager<ApplicationUser> userManager,
@@ -25,7 +26,8 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
             IJwtTokenService jwtTokenService,
             IOptions<JwtSettings> jwtSettings,
             IOptions<EmailSettings> emailSettings,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IFcmService fcmService)
         {
             _userManager = userManager;
             _emailService = emailService;
@@ -33,6 +35,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
             _jwtSettings = jwtSettings.Value;
             _emailSettings = emailSettings.Value;
             _unitOfWork = unitOfWork;
+            _fcmService = fcmService;
         }
 
         public async Task<AuthResponseDto> Handle(LoginCommand request, CancellationToken cancellationToken)
@@ -61,6 +64,9 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
                 await _unitOfWork.UserRefreshTokenRepository.AddAsync(userRefreshToken);
                 await _unitOfWork.SaveChangesAsync();
             }
+
+            if (!string.IsNullOrEmpty(request.FcmToken) && request.DevicePlatform.HasValue)
+                await _fcmService.RegisterTokenAsync(user!.Id, request.FcmToken, request.DevicePlatform.Value);
 
             return new AuthResponseDto(accessToken, refreshToken, user!.FullName, user.Email!, roles.FirstOrDefault(), user.Id, clinicId);
         }

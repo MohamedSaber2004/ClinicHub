@@ -53,6 +53,8 @@ namespace ClinicHub.Infrastructure
             services.AddScoped<IPaymentRepository, PaymentRepository>();
             services.AddScoped<IBookingConfigurationRepository, BookingConfigurationRepository>();
             services.AddScoped<IRatingRepository, RatingRepository>();
+            services.AddScoped<IUserFbTokenRepository, UserFbTokenRepository>();
+            services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<IJwtTokenService, JwtTokenService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IFacebookAuth, FacebookAuth>();
@@ -60,6 +62,10 @@ namespace ClinicHub.Infrastructure
             services.AddScoped<IPusherService, PusherService>();
             services.AddSingleton<IChatConnectionManager, ChatConnectionManager>();
             services.Configure<PusherSettings>(configuration.GetSection(nameof(PusherSettings)));
+
+            services.AddScoped<IFcmService, FcmService>();
+            services.AddScoped<INotificationBuilder, NotificationBuilderService>();
+            services.Configure<FirebaseSettings>(configuration.GetSection(nameof(FirebaseSettings)));
 
             //File Services
             services.AddScoped<IBaseFileService, BaseFileService>();

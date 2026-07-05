@@ -12,12 +12,14 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
     private readonly IUnitOfWork _unitOfWork;
     private readonly IPaymobService _paymobService;
     private readonly ILogger<ConfirmPaymentWebhookCommandHandler> _logger;
+    private readonly IFcmService _fcmService;
 
-    public ConfirmPaymentWebhookCommandHandler(IUnitOfWork unitOfWork, IPaymobService paymobService, ILogger<ConfirmPaymentWebhookCommandHandler> logger)
+    public ConfirmPaymentWebhookCommandHandler(IUnitOfWork unitOfWork, IPaymobService paymobService, ILogger<ConfirmPaymentWebhookCommandHandler> logger, IFcmService fcmService)
     {
         _unitOfWork = unitOfWork;
         _paymobService = paymobService;
         _logger = logger;
+        _fcmService = fcmService;
     }
 
     public async Task<bool> Handle(ConfirmPaymentWebhookCommand request, CancellationToken cancellationToken)
@@ -67,6 +69,12 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
             var appointment = await _unitOfWork.AppointmentRepository.GetAllAsync(x => x.Id == payment.AppointmentId).FirstOrDefaultAsync(cancellationToken);
             appointment?.Confirm(payment.Id);
 
+            if (appointment is not null)
+                await _fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.PaymentConfirmation, new()
+                {
+                    ["amount"] = $"{payment.Amount:N2} EGP",
+                    ["appointmentId"] = appointment.Id.ToString()
+                });
         }
         else
         {

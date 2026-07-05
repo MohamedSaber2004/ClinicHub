@@ -12,7 +12,12 @@ namespace ClinicHub.Persistence.Configuration
             builder.HasKey(x => x.Id);
 
             builder.Property(x => x.Token)
-                .IsRequired();
+                .IsRequired()
+                .HasMaxLength(500);
+
+            builder.Property(x => x.DevicePlatform)
+                .IsRequired()
+                .HasConversion<int>();
 
             builder.Property(x => x.Version)
                 .IsRowVersion();
@@ -21,6 +26,10 @@ namespace ClinicHub.Persistence.Configuration
                 .WithMany(x => x.UserFbTokens)
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasIndex(x => x.Token)
+                .IsUnique()
+                .HasFilter("[IsDeleted] = 0");
         }
     }
 }

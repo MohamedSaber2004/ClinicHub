@@ -7,6 +7,7 @@ using MediatR;
 using Microsoft.Extensions.Localization;
 using AutoMapper;
 using ClinicHub.Application.Features.Conversations.DTOs;
+using ClinicHub.Domain.Enums;
 
 namespace ClinicHub.Application.Features.Conversations.Commands.SendMessage
 {
@@ -19,6 +20,7 @@ namespace ClinicHub.Application.Features.Conversations.Commands.SendMessage
         private readonly IPusherService _pusherService;
         private readonly IMapper _mapper;
         private readonly IChatConnectionManager _chatConnectionManager;
+        private readonly IFcmService _fcmService;
 
         public SendMessageCommandHandler(
             IUnitOfWork unitOfWork, 
@@ -26,7 +28,8 @@ namespace ClinicHub.Application.Features.Conversations.Commands.SendMessage
             IStringLocalizer<Messages> localizer, 
             IPusherService pusherService, 
             IMapper mapper,
-            IChatConnectionManager chatConnectionManager)
+            IChatConnectionManager chatConnectionManager,
+            IFcmService fcmService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
@@ -34,6 +37,7 @@ namespace ClinicHub.Application.Features.Conversations.Commands.SendMessage
             _pusherService = pusherService;
             _mapper = mapper;
             _chatConnectionManager = chatConnectionManager;
+            _fcmService = fcmService;
         }
 
         public async Task<MessageDto> Handle(SendMessageCommand request, CancellationToken cancellationToken)
@@ -136,6 +140,14 @@ namespace ClinicHub.Application.Features.Conversations.Commands.SendMessage
                     new { conversationId = request.ConversationId }
                 );
             }
+
+            // 4. Send FCM push notification to the recipient
+            var senderName = sender?.FullName ?? "";
+            await _fcmService.SendToUserAsync(recipientId, NotificationType.NewMessage, new()
+            {
+                ["senderName"] = senderName,
+                ["conversationId"] = request.ConversationId.ToString()
+            });
 
             return messageDto;
         }
