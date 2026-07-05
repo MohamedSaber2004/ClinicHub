@@ -93,8 +93,8 @@ namespace ClinicHub.Infrastructure.Services
                 {
                     Aps = new Aps
                     {
-                        Sound = _settings.Ios?.Sound,
-                        Badge = _settings.Ios?.Badge,
+                        Sound = _settings.Ios?.Sound ?? "default",
+                        Badge = _settings.Ios?.Badge ?? 1,
                         ContentAvailable = true,
                         Category = _settings.Ios?.Category
                     }
@@ -104,10 +104,11 @@ namespace ClinicHub.Infrastructure.Services
                     Priority = Priority.High,
                     Notification = new AndroidNotification
                     {
-                        ChannelId = _settings.Android?.ChannelId,
+                        ChannelId = _settings.Android?.ChannelId ?? "clinic_hub_default",
                         Priority = NotificationPriority.HIGH,
-                        Sound = _settings.Android?.Sound,
-                        Icon = _settings.Android?.Icon
+                        Sound = _settings.Android?.Sound ?? "default",
+                        Icon = _settings.Android?.Icon ?? "notification_logo",
+                        ImageUrl = _settings.Android?.ImageUrl
                     }
                 },
                 Webpush = new WebpushConfig
@@ -116,7 +117,7 @@ namespace ClinicHub.Infrastructure.Services
                     {
                         Title = payload.Title,
                         Body = payload.Body,
-                        Icon = _settings.Web?.Icon
+                        Icon = _settings.Web?.Icon ?? "/notification_logo.png"
                     },
                     FcmOptions = (!string.IsNullOrWhiteSpace(_settings.Web?.Link) && 
                                   Uri.TryCreate(_settings.Web.Link, UriKind.Absolute, out var uri) && 
