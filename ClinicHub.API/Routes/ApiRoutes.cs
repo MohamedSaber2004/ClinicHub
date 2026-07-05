@@ -54,6 +54,12 @@ namespace ClinicHub.API.Routes
             public const string ToggleReaction = Base + "/comments/{id:guid}/reactions";
         }
 
+        public static class Notifications
+        {
+            public const string GetAllPagginated = Base + "/notifications/pagginated";
+            public const string GetCount = Base + "/notifications/count";
+        }
+
         public static class Clinics
         {
             public const string Search = Base + "/clinics/search";

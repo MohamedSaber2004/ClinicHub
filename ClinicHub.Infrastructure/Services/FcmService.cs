@@ -114,12 +114,13 @@ namespace ClinicHub.Infrastructure.Services
                     {
                         Title = payload.Title,
                         Body = payload.Body,
-                        Icon = "/favicon.ico"
+                        Icon = _settings.Web?.Icon ?? "/favicon.ico"
                     },
-                    FcmOptions = new WebpushFcmOptions
-                    {
-                        Link = "/"
-                    }
+                    FcmOptions = (!string.IsNullOrWhiteSpace(_settings.Web?.Link) && 
+                                  Uri.TryCreate(_settings.Web.Link, UriKind.Absolute, out var uri) && 
+                                  uri.Scheme == Uri.UriSchemeHttps)
+                        ? new WebpushFcmOptions { Link = _settings.Web.Link }
+                        : null
                 }
             };
 
