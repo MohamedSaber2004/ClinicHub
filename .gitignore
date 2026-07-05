@@ -375,3 +375,5 @@ appsettings.Production.json
 /ClinicHub.API/Payout_Prompt.txt
 /ClinicHub.API/prompt.txt
 /ClinicHub.API/error.txt
+/ClinicHub.API/Firebase/firebase-credentials.json
+/ClinicHub.API/Firebase/firebase-credentials.json
