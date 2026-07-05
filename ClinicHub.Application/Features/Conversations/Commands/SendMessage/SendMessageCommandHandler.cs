@@ -146,7 +146,8 @@ namespace ClinicHub.Application.Features.Conversations.Commands.SendMessage
             await _fcmService.SendToUserAsync(recipientId, NotificationType.NewMessage, new()
             {
                 ["senderName"] = senderName,
-                ["conversationId"] = request.ConversationId.ToString()
+                ["conversationId"] = request.ConversationId.ToString(),
+                ["SenderUserId"] = currentUserId.ToString()
             });
 
             return messageDto;

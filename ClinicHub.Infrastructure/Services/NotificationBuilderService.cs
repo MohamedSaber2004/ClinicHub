@@ -78,7 +78,7 @@ namespace ClinicHub.Infrastructure.Services
                     break;
             }
 
-            var notification = Notification.Create(userId, "", title, "", body);
+            var notification = Notification.Create(userId, null, "", title, "", body, type);
             await _notificationRepository.AddAsync(notification);
 
             return new NotificationPayload

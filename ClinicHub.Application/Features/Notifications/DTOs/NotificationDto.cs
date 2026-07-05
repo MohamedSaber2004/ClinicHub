@@ -1,3 +1,4 @@
+using ClinicHub.Domain.Enums;
 using System;
 
 namespace ClinicHub.Application.Features.Notifications.DTOs
@@ -13,5 +14,6 @@ namespace ClinicHub.Application.Features.Notifications.DTOs
         public bool IsRead { get; set; }
         public Guid? ClinicId { get; set; }
         public DateTime CreatedAt { get; set; }
+        public NotificationType Type { get; set; }
     }
 }

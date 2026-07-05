@@ -22,6 +22,10 @@ namespace ClinicHub.Persistence.Configuration
             builder.Property(x => x.BodyEn)
                 .IsRequired();
 
+            builder.Property(x => x.Type)
+                .IsRequired()
+                .HasConversion<int>();
+
             builder.Property(x => x.BodyAr)
                 .IsRequired();
 
