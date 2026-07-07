@@ -59,6 +59,13 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
             }
             else
             {
+                var expiredTokens = await _unitOfWork.UserRefreshTokenRepository
+                    .GetAllAsync(x => x.UserId == user!.Id && (x.IsRevoked || x.ExpiryDate <= DateTime.UtcNow))
+                    .ToListAsync(cancellationToken);
+
+                foreach (var token in expiredTokens)
+                    token.Revoke();
+
                 refreshToken = _jwtTokenService.GenerateRefreshToken(user!);
                 var userRefreshToken = UserRefreshToken.Create(user!.Id, refreshToken, DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays));
                 await _unitOfWork.UserRefreshTokenRepository.AddAsync(userRefreshToken);
