@@ -25,6 +25,7 @@ namespace ClinicHub.Application.Common.Services
         public static string? MessageVideos => Options?.MessageVideos;
         public static string? MessageDocuments => Options?.MessageDocuments;
         public static string? MessageAudio => Options?.MessageAudio;
+        public static string? SpecializationIcons => Options?.SpecializationIcons;
 
         public static string? GetPath(int place)
         {
@@ -43,6 +44,7 @@ namespace ClinicHub.Application.Common.Services
                 10 => MessageVideos,
                 11 => MessageDocuments,
                 12 => MessageAudio,
+                13 => SpecializationIcons,
                 _ => string.Empty
             };
         }
@@ -63,6 +65,7 @@ namespace ClinicHub.Application.Common.Services
             yield return Options.MessageVideos;
             yield return Options.MessageDocuments;
             yield return Options.MessageAudio;
+            yield return Options.SpecializationIcons;
         }
     }
 }

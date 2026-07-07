@@ -15,5 +15,6 @@
         public string MessageVideos { get; set; } = null!;
         public string MessageDocuments { get; set; } = null!;
         public string MessageAudio { get; set; } = null!;
+        public string SpecializationIcons { get; set; } = null!;
     }
 }

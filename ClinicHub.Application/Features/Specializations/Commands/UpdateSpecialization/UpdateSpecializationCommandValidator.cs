@@ -20,9 +20,6 @@ namespace ClinicHub.Application.Features.Specializations.Commands.UpdateSpeciali
                 .MaximumLength(100).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
             RuleFor(x => x.Description)
                 .MaximumLength(500).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
-
-            RuleFor(x => x.IconUrl)
-                .MaximumLength(255).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
         }
     }
 }

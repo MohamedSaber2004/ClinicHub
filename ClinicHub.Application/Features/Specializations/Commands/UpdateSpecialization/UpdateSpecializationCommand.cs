@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Http;
 
 namespace ClinicHub.Application.Features.Specializations.Commands.UpdateSpecialization
 {
@@ -8,6 +9,7 @@ namespace ClinicHub.Application.Features.Specializations.Commands.UpdateSpeciali
         public string Name { get; set; } = null!;
         public string ArName { get; set; } = null!;
         public string? Description { get; set; }
-        public string? IconUrl { get; set; }
+        public IFormFile? Icon { get; set; }
+        public bool IsFamous { get; set; }
     }
 }
