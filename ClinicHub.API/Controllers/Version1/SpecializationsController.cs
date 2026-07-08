@@ -13,7 +13,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
-    [RoleAuthorize]
     public class SpecializationsController : BaseApiController
     {
         public SpecializationsController(IMediator mediator) : base(mediator)
@@ -27,6 +26,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="ct"></param>
         /// <returns></returns>
         [HttpGet]
+        [RoleAuthorize]
         [Route(ApiRoutes.Specializations.GetAll)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll([FromQuery]GetAllSpecializationsQuery query, CancellationToken ct)
@@ -42,6 +42,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="ct"></param>
         /// <returns></returns>
         [HttpGet]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [Route(ApiRoutes.Specializations.GetById)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -58,6 +59,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="ct"></param>
         /// <returns></returns>
         [HttpPost]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [Route(ApiRoutes.Specializations.Create)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -74,6 +76,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="ct"></param>
         /// <returns></returns>
         [HttpPut]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [Route(ApiRoutes.Specializations.Update)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -91,6 +94,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="ct"></param>
         /// <returns></returns>
         [HttpDelete]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [Route(ApiRoutes.Specializations.Delete)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
