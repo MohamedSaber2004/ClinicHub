@@ -2,6 +2,7 @@
 using ClinicHub.Application.Features.Users.DTOs;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
+using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
@@ -17,6 +18,15 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
         public GetAllUsersQueryValidator(IStringLocalizer<Messages> localizer, UserManager<ApplicationUser> userManager)
         {
             _userManager = userManager;
+
+            var definedFlags = Enum.GetValues<UserType>()
+                .Where(ut => ut != UserType.None)
+                .Aggregate(UserType.None, (acc, ut) => acc | ut);
+
+            RuleFor(x => x.UserTypes)
+                .Must(ut => (ut!.Value & ~definedFlags) == UserType.None)
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.InvalidUserType.Value]))
+                .When(x => x.UserTypes.HasValue && x.UserTypes.Value != UserType.None);
 
             RuleFor(x => x.UserId)
                 .MustAsync((userId, cancellationToken) => UserExists(userId, cancellationToken))

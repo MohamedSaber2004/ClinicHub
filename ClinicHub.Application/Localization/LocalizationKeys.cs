@@ -122,6 +122,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString FacebookEmailRequired = new("Auth.FacebookEmailRequired");
             public static readonly KeyString InvalidGoogleToken = new("Auth.InvalidGoogleToken");
             public static readonly KeyString GoogleUserInfoError = new("Auth.GoogleUserInfoError");
+            public static readonly KeyString InvalidUserType = new("Auth.InvalidUserType");
             public static readonly KeyString GoogleUserCreationFailed = new("Auth.GoogleUserCreationFailed");
             public static readonly KeyString GoogleTokenRequired = new("Auth.GoogleTokenRequired");
             public static readonly KeyString GoogleEmailRequired = new("Auth.GoogleEmailRequired");

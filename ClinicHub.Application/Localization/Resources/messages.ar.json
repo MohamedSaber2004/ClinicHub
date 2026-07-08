@@ -106,7 +106,8 @@
     "LogoutSuccess": "تم تسجيل الخروج بنجاح",
     "RefreshTokenRequired": "رمز التحديث مطلوب",
     "PhoneNumberExistsBefore": "رقم الهاتف هذا مسجل بالفعل",
-    "RoleAssignmentFailed": "فشل تعيين دور المستخدم"
+    "RoleAssignmentFailed": "فشل تعيين دور المستخدم",
+    "InvalidUserType": "نوع المستخدم المحدد غير صالح"
   },
   "Clinics": {
     "InvalidLatitude": "يجب أن يكون خط العرض بين -90 و 90",

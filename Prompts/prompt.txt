@@ -1,1 +1,155 @@
-﻿            if (conversation.InitiatorId != currentUserId && conversation.RecipientId != currentUserId)
+﻿## User Management API — Frontend Reference
+
+Base: `/api/v1/users` — All endpoints require `Authorization: Bearer <token>` + `SuperAdmin` role.
+
+---
+
+### 1. GetAllUsers (GET /users)
+
+**Request (query):** `GetAllUsersQuery`
+| Property | Type | Default |
+|----------|------|---------|
+| `PageNumber` | `int` | 1 |
+| `PageSize` | `int` | 20 |
+| `SearchTerm` | `string?` | null |
+| `UserId` | `Guid?` | null |
+| `UserTypes` | `UserType?` | null |
+
+**Response (200):** `PagginatedResult<UserDto>`
+| Property | Type |
+|----------|------|
+| `Items` | `IReadOnlyCollection<UserDto>` |
+| `PageNumber` | `int` |
+| `PageSize` | `int` |
+| `TotalPages` | `int` |
+| `TotalCount` | `int` |
+| `HasPreviousPage` | `bool` |
+| `HasNextPage` | `bool` |
+
+**`UserDto`**
+| Property | Type |
+|----------|------|
+| `Id` | `Guid` |
+| `FullName` | `string` |
+| `Email` | `string` |
+| `PhoneNumber` | `string` |
+| `BirthDate` | `DateTime?` |
+| `Gender` | `Gender?` |
+| `IsActive` | `bool` |
+| `Roles` | `IList<UserType>` |
+| `CreatedAt` | `DateTime` |
+
+**`Gender`:** `Male = 0, Female = 1`
+
+**`UserType` (Flags):**
+| Value | Name |
+|-------|------|
+| 0 | `None` |
+| 1 | `User` |
+| 2 | `SuperAdmin` |
+| 4 | `Doctor` |
+| 8 | `Staff` |
+| 16 | `ClinicOwner` |
+
+---
+
+### 2. GetUserById (GET /users/{id:guid})
+
+**Request (route):** `GetUserByIdQuery`
+| Property | Type |
+|----------|------|
+| `Id` | `Guid` |
+
+**Response (200):** `UserDto` (see above)
+
+---
+
+### 3. AddUser (POST /users)
+
+**Request (body):** `AddUserCommand`
+| Property | Type |
+|----------|------|
+| `FullName` | `string` |
+| `Email` | `string` |
+| `Password` | `string` |
+| `PhoneNumber` | `string` |
+| `BirthDate` | `DateTime` |
+| `Gender` | `Gender` |
+| `Role` | `UserType` |
+
+**Response (201):** `Guid` (user id)
+
+---
+
+### 4. EditUser (PUT /users/{id:guid})
+
+**Request (route):**
+| Property | Type |
+|----------|------|
+| `id` | `Guid` |
+
+**Request (body):** `EditUserCommand`
+| Property | Type |
+|----------|------|
+| `FullName` | `string?` |
+| `PhoneNumber` | `string?` |
+| `BirthDate` | `DateTime?` |
+| `Gender` | `Gender?` |
+| `IsActive` | `bool?` |
+
+**Response (200):** `bool`
+
+---
+
+### 5. DeleteUser (DELETE /users/{id:guid})
+
+**Request (route):** `DeleteUserCommand`
+| Property | Type |
+|----------|------|
+| `Id` | `Guid` |
+
+**Response (200):** `bool`
+
+---
+
+### 6. AssignUserRole (POST /users/{id:guid}/roles)
+
+**Request (route):**
+| Property | Type |
+|----------|------|
+| `id` | `Guid` |
+
+**Request (body):** `AssignUserRoleCommand`
+| Property | Type |
+|----------|------|
+| `Role` | `UserType` |
+
+**Response (200):** `bool`
+
+---
+
+### 7. EditUserRole (PUT /users/{id:guid}/roles)
+
+**Request (route):**
+| Property | Type |
+|----------|------|
+| `id` | `Guid` |
+
+**Request (body):** `EditUserRoleCommand`
+| Property | Type |
+|----------|------|
+| `NewRole` | `UserType` |
+
+**Response (200):** `bool`
+
+---
+
+### ApiResponse\<T\> (wrapper)
+
+| Property | Type |
+|----------|------|
+| `Success` | `bool` |
+| `Data` | `T?` |
+| `Message` | `string?` |
+| `Errors` | `IDictionary<string, string[]>` |
+| `StatusCode` | `int` |

@@ -7,6 +7,7 @@ using ClinicHub.Application.Features.Users.Commands.DeleteUser;
 using ClinicHub.Application.Features.Users.Commands.EditUser;
 using ClinicHub.Application.Features.Users.Commands.EditUserRole;
 using ClinicHub.Application.Features.Users.Queries.GetAllUsers;
+using ClinicHub.Application.Features.Users.Queries.GetUserById;
 using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +15,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
-    [RoleAuthorize]
     public class UsersController : BaseApiController
     {
         public UsersController(IMediator mediator) : base(mediator)
@@ -25,6 +25,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// Gets a paginated list of all users.
         /// </summary>
         [HttpGet]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [Route(ApiRoutes.Users.GetAll)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -36,9 +37,26 @@ namespace ClinicHub.API.Controllers.Version1
         }
 
         /// <summary>
+        /// Gets a single user by ID.
+        /// </summary>
+        [HttpGet]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
+        [Route(ApiRoutes.Users.GetById)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetById([FromRoute] Guid id, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new GetUserByIdQuery(id), ct);
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Creates a new user and optionally assigns a role.
         /// </summary>
         [HttpPost]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [Route(ApiRoutes.Users.Add)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -53,6 +71,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// Updates an existing user's profile details.
         /// </summary>
         [HttpPut]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [Route(ApiRoutes.Users.Edit)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -68,6 +87,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// Soft deletes a user by ID.
         /// </summary>
         [HttpDelete]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [Route(ApiRoutes.Users.Delete)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -82,6 +102,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// Assigns a role to a user (adds without removing existing roles).
         /// </summary>
         [HttpPost]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [Route(ApiRoutes.Users.AssignRole)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -97,6 +118,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// Replaces the user's current roles with a new role.
         /// </summary>
         [HttpPut]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [Route(ApiRoutes.Users.EditRole)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

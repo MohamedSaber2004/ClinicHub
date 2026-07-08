@@ -85,20 +85,45 @@ namespace ClinicHub.Persistence
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
+            var userId = _currentUserService?.UserId.ToString() ?? "System";
+
             foreach (var entry in ChangeTracker.Entries<BaseEntity>())
             {
                 switch (entry.State)
                 {
                     case EntityState.Added:
-                        entry.Entity.MarkAsCreated(_currentUserService?.UserId.ToString() ?? "System");
+                        entry.Entity.MarkAsCreated(userId);
                         break;
                     case EntityState.Modified:
-                        entry.Entity.MarkAsUpdated(_currentUserService?.UserId.ToString() ?? "System");
+                        entry.Entity.MarkAsUpdated(userId);
                         break;
                     case EntityState.Deleted:
-                        // Only convert to Soft Delete if the entity is already persisted (not a new entity being detached)
                         entry.State = EntityState.Modified;
-                        entry.Entity.MarkAsDeleted(_currentUserService?.UserId.ToString() ?? "System");
+                        entry.Entity.MarkAsDeleted(userId);
+                        break;
+                }
+            }
+
+            foreach (var entry in ChangeTracker.Entries().Where(e => e.Entity is ApplicationUser && e.State != EntityState.Detached))
+            {
+                var user = (ApplicationUser)entry.Entity;
+                switch (entry.State)
+                {
+                    case EntityState.Added:
+                        user.CreatedAt = DateTime.Now;
+                        user.CreatedBy = userId;
+                        user.IsActive = true;
+                        break;
+                    case EntityState.Modified:
+                        user.UpdatedAt = DateTime.Now;
+                        user.UpdatedBy = userId;
+                        break;
+                    case EntityState.Deleted:
+                        entry.State = EntityState.Modified;
+                        user.IsDeleted = true;
+                        user.DeletedAt = DateTime.Now;
+                        user.DeletedBy = userId;
+                        user.IsActive = false;
                         break;
                 }
             }

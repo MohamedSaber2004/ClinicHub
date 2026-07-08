@@ -186,6 +186,7 @@ namespace ClinicHub.API.Routes
         public static class Users
         {
             public const string GetAll = Base + "/users";
+            public const string GetById = Base + "/users/{id:guid}";
             public const string Add = Base + "/users";
             public const string Edit = Base + "/users/{id:guid}";
             public const string Delete = Base + "/users/{id:guid}";
