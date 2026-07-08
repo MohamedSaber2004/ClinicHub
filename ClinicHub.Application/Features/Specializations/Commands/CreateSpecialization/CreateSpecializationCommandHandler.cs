@@ -27,15 +27,6 @@ namespace ClinicHub.Application.Features.Specializations.Commands.CreateSpeciali
         {
             var specialization = _mapper.Map<Specialization>(request);
 
-            if (request.Icon is not null)
-            {
-                var (uploaded, result) = await _imageValidator.UploadImage(request.Icon, 13);
-                if (!uploaded)
-                    return result;
-
-                specialization.IconUrl = result;
-            }
-
             var repo = _unitOfWork.SpecializationRepository;
             await repo.AddAsync(specialization);
             var saveResult = await _unitOfWork.SaveChangesAsync();

@@ -9,7 +9,7 @@ namespace ClinicHub.Application.Features.Specializations.Commands.CreateSpeciali
         public string Name { get; set; } = null!;
         public string ArName { get; set; } = null!;
         public string? Description { get; set; }
-        public IFormFile? Icon { get; set; }
+        public string? Icon { get; set; }
         public bool IsFamous { get; set; }
     }
 }
