@@ -123,7 +123,9 @@
     "NotFound": "Specialization not found",
     "Created": "Specialization created successfully",
     "Updated": "Specialization updated successfully",
-    "Deleted": "Specialization deleted successfully"
+    "Deleted": "Specialization deleted successfully",
+    "UniqueName": "Specialization name in English must be unique",
+    "UniqueArName": "Specialization name in Arabic must be unique"
   },
   "Availability": {
     "NotFound": "Availability not found",

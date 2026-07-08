@@ -151,6 +151,8 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString Created = new("Specializations.Created");
             public static readonly KeyString Updated = new("Specializations.Updated");
             public static readonly KeyString Deleted = new("Specializations.Deleted");
+            public static readonly KeyString UniqueArName = new("Specializations.UniqueArName");
+            public static readonly KeyString UniqueName = new("Specializations.UniqueName");
         }
 
         public static class AvailabilityMessages
