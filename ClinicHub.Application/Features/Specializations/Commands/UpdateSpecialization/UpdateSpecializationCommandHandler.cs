@@ -35,18 +35,6 @@ namespace ClinicHub.Application.Features.Specializations.Commands.UpdateSpeciali
 
             _mapper.Map(request, specialization);
 
-            if (request.Icon is not null)
-            {
-                if (!string.IsNullOrEmpty(specialization.IconUrl))
-                    await _imageValidator.DeleteImage(specialization.IconUrl, SpecializationIconsPlace);
-
-                var (uploaded, result) = await _imageValidator.UploadImage(request.Icon, SpecializationIconsPlace);
-                if (!uploaded)
-                    return result;
-
-                specialization.IconUrl = result;
-            }
-
             repo.Update(specialization);
             var saveResult = await _unitOfWork.SaveChangesAsync();
 
