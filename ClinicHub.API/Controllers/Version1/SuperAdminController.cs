@@ -15,10 +15,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
-    [RoleAuthorize]
-    public class AdminController : BaseApiController
+    [RoleAuthorize(nameof(UserType.SuperAdmin))]
+    public class SuperAdminController : BaseApiController
     {
-        public AdminController(IMediator mediator) : base(mediator)
+        public SuperAdminController(IMediator mediator) : base(mediator)
         {
         }
 
@@ -64,7 +64,6 @@ namespace ClinicHub.API.Controllers.Version1
         }
 
         [HttpGet]
-        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [Route(ApiRoutes.UserVerifications.GetPending)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -75,7 +74,6 @@ namespace ClinicHub.API.Controllers.Version1
         }
 
         [HttpPost]
-        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [Route(ApiRoutes.UserVerifications.Approve)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -87,7 +85,6 @@ namespace ClinicHub.API.Controllers.Version1
         }
 
         [HttpPost]
-        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [Route(ApiRoutes.UserVerifications.Reject)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
