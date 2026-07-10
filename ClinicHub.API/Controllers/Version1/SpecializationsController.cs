@@ -42,7 +42,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="ct"></param>
         /// <returns></returns>
         [HttpGet]
-        [RoleAuthorize]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [Route(ApiRoutes.Specializations.GetById)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -59,7 +59,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="ct"></param>
         /// <returns></returns>
         [HttpPost]
-        [RoleAuthorize]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [Route(ApiRoutes.Specializations.Create)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -76,7 +76,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="ct"></param>
         /// <returns></returns>
         [HttpPut]
-        [RoleAuthorize]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [Route(ApiRoutes.Specializations.Update)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -94,7 +94,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="ct"></param>
         /// <returns></returns>
         [HttpDelete]
-        [RoleAuthorize]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [Route(ApiRoutes.Specializations.Delete)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

@@ -28,7 +28,7 @@ namespace ClinicHub.API.Filters
             if (allowAnonymous) return;
 
             var hasAuthorize = context.ActionDescriptor.EndpointMetadata.OfType<AuthorizeAttribute>().Any();
-            var hasRoleAuthorize = context.ActionDescriptor.EndpointMetadata.OfType<RoleAuthorizeAttribute>().Any(a => a._roles.Length > 0);
+            var hasRoleAuthorize = context.ActionDescriptor.EndpointMetadata.OfType<RoleAuthorizeAttribute>().Any();
 
             if (!hasAuthorize && !hasRoleAuthorize) return;
 
