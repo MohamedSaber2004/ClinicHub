@@ -27,12 +27,12 @@ namespace ClinicHub.Application.Features.Specializations.Commands.CreateSpeciali
 
         private async Task<bool> BeUniqueName(string name, CancellationToken cancellationToken)
         {
-            return await _ctx.SpecializationRepository.ExistsAsync(s => s.Name == name, cancellationToken);
+            return !await _ctx.SpecializationRepository.ExistsAsync(s => s.Name == name, cancellationToken);
         }
 
         private async Task<bool> BeUniqueArName(string arName, CancellationToken cancellationToken)
         {
-            return await _ctx.SpecializationRepository.ExistsAsync(s => s.ArName == arName, cancellationToken);
+            return !await _ctx.SpecializationRepository.ExistsAsync(s => s.ArName == arName, cancellationToken);
         }
     }
 }
