@@ -12,6 +12,11 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
         string PhoneNumber,
         DateTime? BirthDate,
         Gender? Gender,
+        string? ProfessionalPracticeCardImage,
+        string? TaxCardImage,
+        string? UnionIdCardImage,
+        string? DoctorImage,
+        TypeOfUserForRegisterFlow TypeOfUser,
         string? FcmToken = null,
-        DevicePlatform? DevicePlatform = null) : IRequest<AuthResponseDto>;
+        DevicePlatform? DevicePlatform = null) : IRequest<SignupResult>;
 }

@@ -39,11 +39,14 @@ namespace ClinicHub.API.Controllers.Version1
         [HttpPost]
         [Route(ApiRoutes.Auth.Signup)]
         [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status202Accepted)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Signup(SignupCommand command, CancellationToken ct)
         {
-            var result  = await _mediator.Send(command, ct);
-            return Created(null!,result);
+            var result = await _mediator.Send(command, ct);
+            if (result.IsPendingApproval)
+                return Accepted(result.PendingData);
+            return Created(null!, result.AuthData);
         }
 
         /// <summary>

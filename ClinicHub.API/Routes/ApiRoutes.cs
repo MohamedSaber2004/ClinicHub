@@ -202,5 +202,13 @@ namespace ClinicHub.API.Routes
             public const string Users = BaseRoute + "/users";
             public const string ClinicLogs = BaseRoute + "/clinics/{clinicId:guid}/logs";
         }
+
+        public static class UserVerifications
+        {
+            public const string BaseRoute = Base + "/admin/users";
+            public const string GetPending = BaseRoute + "/pending";
+            public const string Approve = BaseRoute + "/{id:guid}/approve";
+            public const string Reject = BaseRoute + "/{id:guid}/reject";
+        }
     }
 }

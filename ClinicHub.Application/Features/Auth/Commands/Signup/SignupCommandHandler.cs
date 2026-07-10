@@ -14,7 +14,7 @@ using Microsoft.Extensions.Options;
 
 namespace ClinicHub.Application.Features.Auth.Commands.Signup
 {
-    public sealed class SignupCommandHandler : IRequestHandler<SignupCommand, AuthResponseDto>
+    public sealed class SignupCommandHandler : IRequestHandler<SignupCommand, SignupResult>
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IJwtTokenService _jwtTokenService;
@@ -39,44 +39,71 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
             _fcmService = fcmService;
         }
 
-        public async Task<AuthResponseDto> Handle(SignupCommand request, CancellationToken cancellationToken)
+        public async Task<SignupResult> Handle(SignupCommand request, CancellationToken cancellationToken)
         {
+            var typeOfUser = request.TypeOfUser;
+
             var user = ApplicationUser.Create(
-                request.FullName, 
-                request.Email, 
-                request.PhoneNumber, 
+                request.FullName,
+                request.Email,
+                request.PhoneNumber,
                 request.BirthDate,
                 request.Gender);
 
-            var result = await _userManager.CreateAsync(user, request.Password);
-
-            if (!result.Succeeded)
-            {
+            var createResult = await _userManager.CreateAsync(user, request.Password);
+            if (!createResult.Succeeded)
                 throw new UnAuthorizedException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ExceptionMessages.Validation.Value]));
-            }
 
             var roleResult = await _userManager.AddToRoleAsync(user, UserType.User.ToString());
             if (!roleResult.Succeeded)
-            {
                 throw new BadRequestException(_localizer[LocalizationKeys.AuthMessages.RoleAssignmentFailed.Value]);
-            }
-
-            var roles = await _userManager.GetRolesAsync(user);
-            var clinicId = await _unitOfWork.ClinicRepository
-                .GetAllAsync(c => c.ClinicAdminId == user.Id && !c.IsDeleted)
-                .Select(c => (Guid?)c.Id)
-                .FirstOrDefaultAsync(cancellationToken);
-            var accessToken = _jwtTokenService.GenerateAccessToken(user, roles, clinicId);
-            var refreshToken = _jwtTokenService.GenerateRefreshToken(user);
-
-            var userRefreshToken = UserRefreshToken.Create(user.Id, refreshToken, DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays));
-            await _unitOfWork.UserRefreshTokenRepository.AddAsync(userRefreshToken);
-            await _unitOfWork.SaveChangesAsync();
 
             if (!string.IsNullOrEmpty(request.FcmToken) && request.DevicePlatform.HasValue)
                 await _fcmService.RegisterTokenAsync(user.Id, request.FcmToken, request.DevicePlatform.Value);
 
-            return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, roles.FirstOrDefault(), user.Id, clinicId);
+            if (typeOfUser == TypeOfUserForRegisterFlow.User)
+            {
+                user.IsActive = true;
+
+                var roles = await _userManager.GetRolesAsync(user);
+                var clinicId = await _unitOfWork.ClinicRepository
+                    .GetAllAsync(c => c.ClinicAdminId == user.Id && !c.IsDeleted)
+                    .Select(c => (Guid?)c.Id)
+                    .FirstOrDefaultAsync(cancellationToken);
+                var accessToken = _jwtTokenService.GenerateAccessToken(user, roles, clinicId);
+                var refreshToken = _jwtTokenService.GenerateRefreshToken(user);
+
+                var userRefreshToken = UserRefreshToken.Create(user.Id, refreshToken, DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays));
+                await _unitOfWork.UserRefreshTokenRepository.AddAsync(userRefreshToken);
+                await _unitOfWork.SaveChangesAsync();
+
+                return SignupResult.Authenticated(new AuthResponseDto(
+                    accessToken, refreshToken, user.FullName, user.Email!, roles.FirstOrDefault(), user.Id, clinicId));
+            }
+            else
+            {
+                user.IsActive = false;
+
+                var requestedRole = typeOfUser == TypeOfUserForRegisterFlow.FreeLanceDoctor
+                    ? UserType.Doctor
+                    : UserType.ClinicOwner;
+
+                var verification = UserVerification.Create(
+                    user.Id,
+                    requestedRole,
+                    request.ProfessionalPracticeCardImage,
+                    request.TaxCardImage,
+                    request.UnionIdCardImage,
+                    request.DoctorImage);
+
+                await _unitOfWork.UserVerificationRepository.AddAsync(verification);
+                await _unitOfWork.SaveChangesAsync();
+
+                return SignupResult.Pending(new SignupResponseDto(
+                    user.Id,
+                    _localizer[LocalizationKeys.AuthMessages.SignupPendingApproval.Value],
+                    IsPendingApproval: true));
+            }
         }
     }
 }

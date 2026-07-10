@@ -49,6 +49,7 @@ namespace ClinicHub.Persistence
         public DbSet<Advertisement> Advertisements { get; set; }
         public DbSet<ClinicVerification> ClinicVerifications { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<UserVerification> UserVerifications { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder builder)
         {

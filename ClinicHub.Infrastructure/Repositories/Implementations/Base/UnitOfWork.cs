@@ -33,6 +33,7 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations.Base
         private IPaymentRepository? _paymentRepository;
         private IBookingConfigurationRepository? _bookingConfigurationRepository;
         private IRatingRepository? _ratingRepository;
+        private IUserVerificationRepository? _userVerificationRepository;
         private IDbContextTransaction? _transaction;
 
         public UnitOfWork(ClinicHubContext context)
@@ -72,6 +73,7 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations.Base
         public IPaymentRepository PaymentRepository => _paymentRepository ??= new PaymentRepository(_context);
         public IBookingConfigurationRepository BookingConfigurationRepository => _bookingConfigurationRepository ??= new BookingConfigurationRepository(_context);
         public IRatingRepository RatingRepository => _ratingRepository ??= new RatingRepository(_context);
+        public IUserVerificationRepository UserVerificationRepository => _userVerificationRepository ??= new UserVerificationRepository(_context);
 
         public async Task<int> SaveChangesAsync()
         {

@@ -107,7 +107,12 @@
     "RefreshTokenRequired": "رمز التحديث مطلوب",
     "PhoneNumberExistsBefore": "رقم الهاتف هذا مسجل بالفعل",
     "RoleAssignmentFailed": "فشل تعيين دور المستخدم",
-    "InvalidUserType": "نوع المستخدم المحدد غير صالح"
+    "InvalidUserType": "نوع المستخدم المحدد غير صالح",
+    "SignupPendingApproval": "تم إرسال طلب التسجيل للمراجعة من قبل المسؤول. سيتم إشعارك بعد اعتماد الحساب.",
+    "AccountPendingApproval": "حسابك قيد المراجعة. يرجى انتظار تفعيل المسؤول لحسابك.",
+    "UserApproved": "تم اعتماد المستخدم بنجاح",
+    "UserRejected": "تم رفض المستخدم",
+    "AlreadyReviewed": "تمت مراجعة طلب التحقق هذا بالفعل"
   },
   "Clinics": {
     "InvalidLatitude": "يجب أن يكون خط العرض بين -90 و 90",
