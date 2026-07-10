@@ -1,14 +1,15 @@
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using ClinicHub.Application.Common.Extensions;
+using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Features.Users.DTOs;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace ClinicHub.Application.Features.Admin.Queries.GetPendingVerifications
 {
-    public sealed class GetPendingVerificationsQueryHandler : IRequestHandler<GetPendingVerificationsQuery, IReadOnlyList<UserVerificationDto>>
+    public sealed class GetPendingVerificationsQueryHandler : IRequestHandler<GetPendingVerificationsQuery, PagginatedResult<UserVerificationDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -19,12 +20,12 @@ namespace ClinicHub.Application.Features.Admin.Queries.GetPendingVerifications
             _mapper = mapper;
         }
 
-        public async Task<IReadOnlyList<UserVerificationDto>> Handle(GetPendingVerificationsQuery request, CancellationToken cancellationToken)
+        public async Task<PagginatedResult<UserVerificationDto>> Handle(GetPendingVerificationsQuery request, CancellationToken cancellationToken)
         {
             return await _unitOfWork.UserVerificationRepository
                 .GetAllAsync(v => v.Status == VerificationStatus.Pending)
                 .ProjectTo<UserVerificationDto>(_mapper.ConfigurationProvider)
-                .ToListAsync(cancellationToken);
+                .AsPagginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
         }
     }
 }
