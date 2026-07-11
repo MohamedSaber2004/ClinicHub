@@ -2,8 +2,8 @@
 {
     public enum TypeOfUserForRegisterFlow
     {
-        User = 1,
-        FreeLanceDoctor = 2,
-        Clinic = 3
+        User = 0,
+        FreeLanceDoctor = 1,
+        ClinicOwner = 2
     }
 }
