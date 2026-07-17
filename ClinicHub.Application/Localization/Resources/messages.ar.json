@@ -20,6 +20,7 @@
     "NotFound": "المورد غير موجود",
     "BadRequest": "طلب غير صحيح",
     "Unauthorized": "الوصول غير مصرح",
+    "Forbidden": "الوصول محظور",
     "UnknownError": "حدث خطأ غير معروف"
   },
   "Validation": {

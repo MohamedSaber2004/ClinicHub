@@ -16,6 +16,7 @@ namespace ClinicHub.API.Filters
         {
             _exceptionHandlers = new Dictionary<Type, Action<ExceptionContext>>
             {
+                { typeof(ForbiddenException), HandleForbiddenException },
                 { typeof(ValidationException), HandleValidationException },
                 { typeof(NotFoundException), HandleNotFoundException },
                 { typeof(BadRequestException), HandleBadRequestException },
@@ -129,6 +130,21 @@ namespace ClinicHub.API.Filters
             context.Result = new ObjectResult(details)
             {
                 StatusCode = StatusCodes.Status500InternalServerError
+            };
+
+            context.ExceptionHandled = true;
+        }
+
+        private void HandleForbiddenException(ExceptionContext context)
+        {
+            var exception = context.Exception as ForbiddenException;
+            var localizedForbidden = JsonLocalizationProvider.GetLocalizedString(exception?.Message ?? LocalizationKeys.ExceptionMessages.Forbidden.Value);
+            string? message = localizedForbidden ?? "Forbidden access";
+            var details = ApiResponse<object>.Error(message, StatusCodes.Status403Forbidden);
+
+            context.Result = new ObjectResult(details)
+            {
+                StatusCode = StatusCodes.Status403Forbidden
             };
 
             context.ExceptionHandled = true;

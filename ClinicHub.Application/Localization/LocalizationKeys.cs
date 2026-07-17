@@ -17,6 +17,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString NotFound = new("Exceptions.NotFound");
             public static readonly KeyString BadRequest = new("Exceptions.BadRequest");
             public static readonly KeyString Unauthorized = new("Exceptions.Unauthorized");
+            public static readonly KeyString Forbidden = new("Exceptions.Forbidden");
             public static readonly KeyString UnknownException = new("Exceptions.UnknownError");
         }
 

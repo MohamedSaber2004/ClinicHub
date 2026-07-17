@@ -52,7 +52,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
                 throw new UnAuthorizedException(_localizer[LocalizationKeys.AuthMessages.InvalidCredentials.Value]);
 
             if (!user.IsActive)
-                throw new UnAuthorizedException(_localizer[LocalizationKeys.AuthMessages.AccountPendingApproval.Value]);
+                throw new ForbiddenException(_localizer[LocalizationKeys.AuthMessages.AccountPendingApproval.Value]);
 
             var roles = await _userManager.GetRolesAsync(user);
             var clinicId = await _unitOfWork.ClinicRepository

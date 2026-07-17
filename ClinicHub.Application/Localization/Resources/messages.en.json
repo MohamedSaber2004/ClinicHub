@@ -20,6 +20,7 @@
     "NotFound": "Resource not found",
     "BadRequest": "Bad request",
     "Unauthorized": "Unauthorized access",
+    "Forbidden": "Forbidden access",
     "UnknownError": "An unknown error occurred"
   },
   "Validation": {
