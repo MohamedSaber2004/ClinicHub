@@ -35,10 +35,24 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
                 query = query.Where(u => u.Id == request.UserId.Value);
             }
 
-            var userTypeName = UserType.User.ToString();
-            var usersInRole = await _userManager.GetUsersInRoleAsync(userTypeName);
-            var userIds = usersInRole.Select(u => u.Id).ToHashSet();
-            query = query.Where(u => userIds.Contains(u.Id));
+            if (request.UserType.HasValue)
+            {
+                var flags = Enum.GetValues<UserType>()
+                    .Where(ut => ut != UserType.None && request.UserType.Value.HasFlag(ut))
+                    .ToList();
+
+                if (flags.Count != 0)
+                {
+                    var userIds = new HashSet<Guid>();
+                    foreach (var flag in flags)
+                    {
+                        var usersInRole = await _userManager.GetUsersInRoleAsync(flag.ToString());
+                        foreach (var user in usersInRole)
+                            userIds.Add(user.Id);
+                    }
+                    query = query.Where(u => userIds.Contains(u.Id));
+                }
+            }
 
             var totalCount = await query.CountAsync(cancellationToken);
 

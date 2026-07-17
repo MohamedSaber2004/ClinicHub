@@ -27,6 +27,11 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
                 .MustAsync((userId, cancellationToken) => UserExists(userId, cancellationToken))
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.UserNotFound.Value]))
                 .When(x => x.UserId.HasValue);
+
+            RuleFor(x => x.UserType)
+                .Must(ut => ut == null || (ut.Value != UserType.None && (ut.Value & ~definedFlags) == UserType.None))
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.InvalidUserType.Value]))
+                .When(x => x.UserType.HasValue);
         }
 
         private async Task<bool> UserExists(Guid? userId, CancellationToken cancellationToken)
