@@ -9,7 +9,8 @@ namespace ClinicHub.Application.Features.Auth.DTOs
         string Email,
         string Roles,
         Guid id,
-        Guid? ClinicId);
+        Guid? ClinicId, 
+        string? ProfilePictureUrl);
 
     public record RefreshTokenResponseDto(
         string AccessToken,

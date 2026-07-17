@@ -87,7 +87,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
             if (!string.IsNullOrEmpty(request.FcmToken) && request.DevicePlatform.HasValue)
                 await _fcmService.RegisterTokenAsync(user.Id, request.FcmToken, request.DevicePlatform.Value);
 
-            return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, roles.FirstOrDefault(), user.Id, clinicId);
+            return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, roles.FirstOrDefault(), user.Id, clinicId, user.ProfilePictureUrl);
         }
     }
 }

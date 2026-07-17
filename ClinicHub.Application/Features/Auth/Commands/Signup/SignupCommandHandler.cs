@@ -78,7 +78,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
                 await _unitOfWork.SaveChangesAsync();
 
                 return SignupResult.Authenticated(new AuthResponseDto(
-                    accessToken, refreshToken, user.FullName, user.Email!, roles.FirstOrDefault(), user.Id, clinicId));
+                    accessToken, refreshToken, user.FullName, user.Email!, roles.FirstOrDefault(), user.Id, clinicId, user.ProfilePictureUrl));
             }
             else
             {
