@@ -31,6 +31,8 @@ namespace ClinicHub.Domain.Entities
             DoctorImage = doctorImage
         };
 
+        public void UpdateDoctorImage(string? doctorImage) => DoctorImage = doctorImage;
+
         public void Approve(Guid reviewedByUserId)
         {
             Status = VerificationStatus.Approved;
