@@ -11,12 +11,10 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
     public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagginatedResult<UserDto>>
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<IdentityRole<Guid>> _roleManager;
 
-        public GetAllUsersQueryHandler(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole<Guid>> roleManager)
+        public GetAllUsersQueryHandler(UserManager<ApplicationUser> userManager)
         {
             _userManager = userManager;
-            _roleManager = roleManager;
         }
 
         public async Task<PagginatedResult<UserDto>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
@@ -37,29 +35,10 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
                 query = query.Where(u => u.Id == request.UserId.Value);
             }
 
-            if (request.UserTypes.HasValue && request.UserTypes.Value != UserType.None)
-            {
-                var roleNames = new List<string>();
-                foreach (var userType in Enum.GetValues<UserType>())
-                {
-                    if (userType != UserType.None && request.UserTypes.Value.HasFlag(userType))
-                    {
-                        roleNames.Add(userType.ToString());
-                    }
-                }
-
-                var userIds = new HashSet<Guid>();
-                foreach (var roleName in roleNames)
-                {
-                    var usersInRole = await _userManager.GetUsersInRoleAsync(roleName);
-                    foreach (var user in usersInRole)
-                    {
-                        userIds.Add(user.Id);
-                    }
-                }
-
-                query = query.Where(u => userIds.Contains(u.Id));
-            }
+            var userTypeName = UserType.User.ToString();
+            var usersInRole = await _userManager.GetUsersInRoleAsync(userTypeName);
+            var userIds = usersInRole.Select(u => u.Id).ToHashSet();
+            query = query.Where(u => userIds.Contains(u.Id));
 
             var totalCount = await query.CountAsync(cancellationToken);
 

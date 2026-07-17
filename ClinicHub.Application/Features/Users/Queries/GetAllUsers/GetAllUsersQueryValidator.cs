@@ -23,11 +23,6 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
                 .Where(ut => ut != UserType.None)
                 .Aggregate(UserType.None, (acc, ut) => acc | ut);
 
-            RuleFor(x => x.UserTypes)
-                .Must(ut => (ut!.Value & ~definedFlags) == UserType.None)
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.InvalidUserType.Value]))
-                .When(x => x.UserTypes.HasValue && x.UserTypes.Value != UserType.None);
-
             RuleFor(x => x.UserId)
                 .MustAsync((userId, cancellationToken) => UserExists(userId, cancellationToken))
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.UserNotFound.Value]))
