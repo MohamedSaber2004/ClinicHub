@@ -108,6 +108,8 @@
     "RefreshTokenRequired": "Refresh token is required",
     "PhoneNumberExistsBefore": "This phone number is already registered",
     "RoleAssignmentFailed": "Failed to assign user role",
+    "PasswordChanged": "Password changed successfully",
+    "IncorrectOldPassword": "Old password is incorrect",
     "InvalidUserType": "Invalid user type specified",
     "SignupPendingApproval": "Your registration has been submitted for review by an administrator. You will be notified once your account is approved.",
     "AccountPendingApproval": "Your account is pending approval. Please wait for an administrator to activate your account.",

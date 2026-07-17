@@ -108,6 +108,8 @@
     "RefreshTokenRequired": "رمز التحديث مطلوب",
     "PhoneNumberExistsBefore": "رقم الهاتف هذا مسجل بالفعل",
     "RoleAssignmentFailed": "فشل تعيين دور المستخدم",
+    "PasswordChanged": "تم تغيير كلمة المرور بنجاح",
+    "IncorrectOldPassword": "كلمة المرور القديمة غير صحيحة",
     "InvalidUserType": "نوع المستخدم المحدد غير صالح",
     "SignupPendingApproval": "تم إرسال طلب التسجيل للمراجعة من قبل المسؤول. سيتم إشعارك بعد اعتماد الحساب.",
     "AccountPendingApproval": "حسابك قيد المراجعة. يرجى انتظار تفعيل المسؤول لحسابك.",

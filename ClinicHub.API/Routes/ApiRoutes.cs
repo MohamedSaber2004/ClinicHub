@@ -192,6 +192,7 @@ namespace ClinicHub.API.Routes
             public const string Delete = Base + "/users/{id:guid}";
             public const string AssignRole = Base + "/users/{id:guid}/roles";
             public const string EditRole = Base + "/users/{id:guid}/roles";
+            public const string ChangePassword = Base + "/users/change-password";
         }
 
         public static class AdminDashboard

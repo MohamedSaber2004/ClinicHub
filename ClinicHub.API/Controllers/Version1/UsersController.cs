@@ -3,6 +3,7 @@ using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Users.Commands.AddUser;
 using ClinicHub.Application.Features.Users.Commands.AssignUserRole;
+using ClinicHub.Application.Features.Users.Commands.ChangePassword;
 using ClinicHub.Application.Features.Users.Commands.DeleteUser;
 using ClinicHub.Application.Features.Users.Commands.EditUser;
 using ClinicHub.Application.Features.Users.Commands.EditUserRole;
@@ -126,6 +127,24 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> EditRole([FromRoute] Guid id, [FromBody] EditUserRoleCommand command, CancellationToken ct)
         {
             command.UserId = id;
+            var result = await _mediator.Send(command, ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Changes the password for the currently authenticated user.
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [RoleAuthorize]
+        [Route(ApiRoutes.Users.ChangePassword)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> ChangePassword(ChangePasswordCommand command, CancellationToken ct)
+        {
             var result = await _mediator.Send(command, ct);
             return Ok(result);
         }

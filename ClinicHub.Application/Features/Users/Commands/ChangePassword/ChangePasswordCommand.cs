@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using MediatR;
 
 namespace ClinicHub.Application.Features.Users.Commands.ChangePassword
 {
-    internal class ChangePasswordCommand
-    {
-    }
+    public record ChangePasswordCommand(
+        Guid? Id,
+        string? OldPassword,
+        string NewPassword,
+        string ConfirmPassword) : IRequest<Unit>;
 }
