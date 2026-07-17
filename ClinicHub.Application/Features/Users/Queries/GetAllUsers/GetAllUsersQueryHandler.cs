@@ -2,6 +2,7 @@ using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Features.Users.DTOs;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
+using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -11,10 +12,12 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
     public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagginatedResult<UserDto>>
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public GetAllUsersQueryHandler(UserManager<ApplicationUser> userManager)
+        public GetAllUsersQueryHandler(UserManager<ApplicationUser> userManager, IUnitOfWork unitOfWork)
         {
             _userManager = userManager;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<PagginatedResult<UserDto>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
@@ -52,6 +55,19 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
                     }
                     query = query.Where(u => userIds.Contains(u.Id));
                 }
+            }
+
+            if (request.IsUnassigned.HasValue)
+            {
+                var doctorUserIds = await _unitOfWork.DoctorRepository
+                    .GetAllAsync(null)
+                    .Select(d => d.UserId)
+                    .ToListAsync(cancellationToken);
+
+                if (request.IsUnassigned.Value)
+                    query = query.Where(u => !doctorUserIds.Contains(u.Id));
+                else
+                    query = query.Where(u => doctorUserIds.Contains(u.Id));
             }
 
             var totalCount = await query.CountAsync(cancellationToken);
