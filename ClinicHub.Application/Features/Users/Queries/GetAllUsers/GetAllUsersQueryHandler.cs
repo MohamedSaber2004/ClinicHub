@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Features.Users.DTOs;
 using ClinicHub.Domain.Entities;
@@ -13,11 +14,16 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUserService;
 
-        public GetAllUsersQueryHandler(UserManager<ApplicationUser> userManager, IUnitOfWork unitOfWork)
+        public GetAllUsersQueryHandler(
+            UserManager<ApplicationUser> userManager,
+            IUnitOfWork unitOfWork,
+            ICurrentUserService currentUserService)
         {
             _userManager = userManager;
             _unitOfWork = unitOfWork;
+            _currentUserService = currentUserService;
         }
 
         public async Task<PagginatedResult<UserDto>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
@@ -49,9 +55,22 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
                     var userIds = new HashSet<Guid>();
                     foreach (var flag in flags)
                     {
-                        var usersInRole = await _userManager.GetUsersInRoleAsync(flag.ToString());
-                        foreach (var user in usersInRole)
-                            userIds.Add(user.Id);
+                        if (flag == UserType.Doctor && _currentUserService.CurrentClinicId.HasValue)
+                        {
+                            var doctorUserIds = await _unitOfWork.DoctorRepository
+                                .GetAllAsync(d => d.ClinicId == _currentUserService.CurrentClinicId.Value)
+                                .Select(d => d.UserId)
+                                .ToListAsync(cancellationToken);
+
+                            foreach (var id in doctorUserIds)
+                                userIds.Add(id);
+                        }
+                        else
+                        {
+                            var usersInRole = await _userManager.GetUsersInRoleAsync(flag.ToString());
+                            foreach (var user in usersInRole)
+                                userIds.Add(user.Id);
+                        }
                     }
                     query = query.Where(u => userIds.Contains(u.Id));
                 }
