@@ -202,6 +202,7 @@ namespace ClinicHub.API.Routes
             public const string UrgentTickets = BaseRoute + "/urgent-tickets";
             public const string Users = BaseRoute + "/users";
             public const string ClinicLogs = BaseRoute + "/clinics/{clinicId:guid}/logs";
+            public const string ClinicsLookup = BaseRoute + "/clinics";
         }
 
         public static class UserVerifications
