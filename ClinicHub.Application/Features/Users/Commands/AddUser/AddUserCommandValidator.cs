@@ -15,7 +15,7 @@ namespace ClinicHub.Application.Features.Users.Commands.AddUser
             RuleFor(x => x.PhoneNumber).NotEmpty();
             RuleFor(x => x.BirthDate).NotEmpty();
             RuleFor(x => x.Gender).IsInEnum();
-            RuleFor(x => x.Role).IsInEnum().NotEqual(UserType.None);
+            RuleFor(x => x.Role).IsInEnum().Must(role => role != UserType.None && role != UserType.SuperAdmin);
         }
     }
 }
