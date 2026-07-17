@@ -88,6 +88,9 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
                     ? UserType.Doctor
                     : UserType.ClinicOwner;
 
+                if (!string.IsNullOrEmpty(request.DoctorImage))
+                    user.UpdateProfilePicture(request.DoctorImage);
+
                 var verification = UserVerification.Create(
                     user.Id,
                     requestedRole,
