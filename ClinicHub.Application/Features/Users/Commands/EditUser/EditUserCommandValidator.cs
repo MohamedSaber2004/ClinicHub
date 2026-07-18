@@ -22,7 +22,7 @@ namespace ClinicHub.Application.Features.Users.Commands.EditUser
 
         private async Task<bool> UserExists(Guid userId, CancellationToken cancellationToken)
         {
-            return await _userManager.Users.AnyAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
+            return await _userManager.Users.IgnoreQueryFilters().AnyAsync(u => u.Id == userId, cancellationToken);
         }
     }
 }
