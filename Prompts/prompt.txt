@@ -1,40 +1,131 @@
-﻿## 1. GET `/dashboard/stats`
+﻿
+## 2. GET `/bookings`
 
-Returns clinic operational statistics with period breakdowns.
+Returns a paginated list of booking requests filtered by status.
+
+### Query Parameters
+
+| Param | Type | Required | Default | Description |
+|---|---|---|---|---|
+| `status` | `string` | Yes | — | Filter by status. One of: `pending`, `accepted`, `rejected` |
+| `page` | `int` | Yes | — | Page number (1-indexed) |
+| `perPage` | `int` | Yes | — | Number of items per page (max 50) |
 
 ### Response `200 OK`
 
 ```json
 {
-  "todayVisits": 45,
-  "todayIncome": 1450.0,
-  "weeklyVisits": 280,
-  "weeklyIncome": 8500.0,
-  "monthlyVisits": 1200,
-  "monthlyIncome": 36000.0,
-  "yearlyVisits": 15400,
-  "yearlyIncome": 468000.0,
-  "pendingActions": 5
+  "data": [
+    {
+      "id": 1,
+      "patientName": "Sulaiman Ahmed",
+      "patientPhone": "0551234567",
+      "patientAge": 34,
+      "clinicName": "Cardiology Clinic",
+      "doctorName": "Dr. Khalid",
+      "requestedDate": "2026-07-04",
+      "requestedTime": "10:30 AM",
+      "reason": "Chest pain for the past 3 days",
+      "appointmentType": "inPerson",
+      "status": "pending",
+      "createdAt": "2026-07-04"
+    }
+  ],
+  "pagination": {
+    "currentPage": 1,
+    "perPage": 10,
+    "totalItems": 14,
+    "totalPages": 2
+  }
 }
 ```
 
-### Response Fields
+### Booking Object Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `id` | `int` | Yes | Unique booking ID |
+| `patientName` | `string` | Yes | Full name of the patient |
+| `patientPhone` | `string?` | No | Contact phone number |
+| `patientAge` | `int?` | No | Patient age at time of booking |
+| `clinicName` | `string` | Yes | Name of the clinic |
+| `doctorName` | `string?` | No | Name of the requested doctor |
+| `requestedDate` | `string` | Yes | Appointment date (`YYYY-MM-DD`) |
+| `requestedTime` | `string` | Yes | Appointment time (`HH:MM AM/PM`) |
+| `reason` | `string?` | No | Reason or complaint for the visit |
+| `appointmentType` | `string` | Yes | One of: `inPerson`, `online`, `followUp` |
+| `status` | `string` | Yes | One of: `pending`, `accepted`, `rejected` |
+| `createdAt` | `string` | Yes | When the booking was created (`YYYY-MM-DD`) |
+
+### Pagination Fields
 
 | Field | Type | Description |
 |---|---|---|
-| `todayVisits` | `int` | Number of patient visits today |
-| `todayIncome` | `double` | Total income today (EGP) |
-| `weeklyVisits` | `int` | Number of patient visits this week |
-| `weeklyIncome` | `double` | Total income this week (EGP) |
-| `monthlyVisits` | `int` | Number of patient visits this month |
-| `monthlyIncome` | `double` | Total income this month (EGP) |
-| `yearlyVisits` | `int` | Number of patient visits this year |
-| `yearlyIncome` | `double` | Total income this year (EGP) |
-| `pendingActions` | `int` | Count of pending booking requests (shortcut for UI badge) |
+| `currentPage` | `int` | Current page number |
+| `perPage` | `int` | Items per page |
+| `totalItems` | `int` | Total items matching the filter |
+| `totalPages` | `int` | Total number of pages |
 
 ### Business Rules
 
-- All periods are calculated based on the clinic's local timezone.
-- "week" starts on Monday 00:00:00.
-- "month" and "year" are calendar-based.
-- `pendingActions` should equal the count of bookings where `status == "pending"`.
+- Results should be ordered by `createdAt` descending (newest first).
+- The `reason` field should be `null` (not empty string) when absent.
+- The UI shows Accept/Reject buttons only when `status == "pending"`.
+
+---
+
+## 3. POST `/bookings/accept`
+
+Accept a pending booking request.
+
+### Request
+
+```json
+{
+  "id": 1
+}
+```
+
+### Response `200 OK`
+
+```json
+{
+  "success": true
+}
+```
+
+### Business Rules
+
+- Only bookings with `status == "pending"` can be accepted.
+- Returns `404` if the booking ID does not exist.
+- Returns `409` if the booking is already accepted or rejected.
+- On success, the booking status transitions to `"accepted"`.
+
+---
+
+## 4. POST `/bookings/reject`
+
+Reject a pending booking request.
+
+### Request
+
+```json
+{
+  "id": 1
+}
+```
+
+### Response `200 OK`
+
+```json
+{
+  "success": true
+}
+```
+
+### Business Rules
+
+- Only bookings with `status == "pending"` can be rejected.
+- Returns `404` if the booking ID does not exist.
+- Returns `409` if the booking is already accepted or rejected.
+- On success, the booking status transitions to `"rejected"`.

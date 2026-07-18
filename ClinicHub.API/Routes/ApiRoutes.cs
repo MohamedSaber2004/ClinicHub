@@ -79,6 +79,9 @@ namespace ClinicHub.API.Routes
             public const string Update = BaseRoute + "/{id:guid}";
             public const string Activate = BaseRoute + "/{id:guid}/activate";
             public const string Deactivate = BaseRoute + "/{id:guid}/deactivate";
+            public const string GetBookings = BaseRoute + "/bookings";
+            public const string AcceptBooking = BaseRoute + "/bookings/accept";
+            public const string RejectBooking = BaseRoute + "/bookings/reject";
         }
 
         public static class Specializations

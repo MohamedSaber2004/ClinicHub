@@ -1,18 +1,20 @@
 using Asp.Versioning;
 using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
+using ClinicHub.Application.Features.Clinics.Commands.AcceptBooking;
 using ClinicHub.Application.Features.Clinics.Commands.ActivateClinic;
 using ClinicHub.Application.Features.Clinics.Commands.CreateClinic;
 using ClinicHub.Application.Features.Clinics.Commands.DeactivateClinic;
+using ClinicHub.Application.Features.Clinics.Commands.RejectBooking;
 using ClinicHub.Application.Features.Clinics.Commands.SetupClinic;
 using ClinicHub.Application.Features.Clinics.Commands.UpdateClinic;
+using ClinicHub.Application.Features.Clinics.Queries.GetClinicBookings;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicDashboardStats;
 using ClinicHub.Application.Features.Clinics.DTOs;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicById;
 using ClinicHub.Application.Features.Clinics.Queries.GetPaginatedClinics;
 using ClinicHub.Domain.Enums;
 using MediatR;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicHub.API.Controllers.Version1
@@ -148,6 +150,50 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> Dashboard()
         {
             var result = await _mediator.Send(new GetClinicDashboardStatsQuery());
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Retrieves paginated clinic bookings filtered by status.
+        /// </summary>
+        [HttpGet]
+        [Route(ApiRoutes.ClinicManagement.GetBookings)]
+        [RoleAuthorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetBookings([FromQuery] GetClinicBookingsQuery query)
+        {
+            var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Accepts a pending booking.
+        /// </summary>
+        [HttpPost]
+        [Route(ApiRoutes.ClinicManagement.AcceptBooking)]
+        [RoleAuthorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> AcceptBooking([FromBody] AcceptBookingCommand command)
+        {
+            var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Rejects a pending booking with an optional reason.
+        /// </summary>
+        [HttpPost]
+        [Route(ApiRoutes.ClinicManagement.RejectBooking)]
+        [RoleAuthorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> RejectBooking([FromBody] RejectBookingCommand command)
+        {
+            var result = await _mediator.Send(command);
             return Ok(result);
         }
     }
