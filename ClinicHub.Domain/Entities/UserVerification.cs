@@ -18,8 +18,11 @@ namespace ClinicHub.Domain.Entities
         public string? TaxCardImage { get; set; }
         public string? UnionIdCardImage { get; set; }
         public string? DoctorImage { get; set; }
+        public Guid? SpecializationId { get; set; }
+        public string? Bio { get; set; }
+        public int? YearsOfExperience { get; set; }
 
-        public static UserVerification Create(Guid userId, UserType requestedRole, string? professionalPracticeCardImage = null, string? taxCardImage = null, string? unionIdCardImage = null, string? doctorImage = null) => new()
+        public static UserVerification Create(Guid userId, UserType requestedRole, string? professionalPracticeCardImage = null, string? taxCardImage = null, string? unionIdCardImage = null, string? doctorImage = null, Guid? specializationId = null, string? bio = null, int? yearsOfExperience = null) => new()
         {
             UserId = userId,
             RequestedRole = requestedRole,
@@ -28,7 +31,10 @@ namespace ClinicHub.Domain.Entities
             ProfessionalPracticeCardImage = professionalPracticeCardImage,
             TaxCardImage = taxCardImage,
             UnionIdCardImage = unionIdCardImage,
-            DoctorImage = doctorImage
+            DoctorImage = doctorImage,
+            SpecializationId = specializationId,
+            Bio = bio,
+            YearsOfExperience = yearsOfExperience
         };
 
         public void UpdateDoctorImage(string? doctorImage) => DoctorImage = doctorImage;

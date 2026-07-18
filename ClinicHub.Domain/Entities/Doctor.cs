@@ -8,9 +8,9 @@ namespace ClinicHub.Domain.Entities
         public Guid UserId { get; private set; }
         public ApplicationUser User { get; private set; } = null!;
 
-        public Guid ClinicId { get; private set; }
+        public Guid? ClinicId { get; private set; }
         Guid? IClinicScopedEntity.ClinicId => ClinicId;
-        public Clinic Clinic { get; private set; } = null!;
+        public Clinic? Clinic { get; private set; }
 
         public Guid SpecializationId { get; private set; }
         public Specialization Specialization { get; private set; } = null!;
@@ -25,7 +25,15 @@ namespace ClinicHub.Domain.Entities
 
         public Doctor(
             Guid userId,
-            Guid clinicId,
+            Guid specializationId,
+            string bio,
+            int yearsOfExperience) : this(userId, null, specializationId, bio, yearsOfExperience)
+        {
+        }
+
+        public Doctor(
+            Guid userId,
+            Guid? clinicId,
             Guid specializationId,
             string bio,
             int yearsOfExperience)
@@ -35,6 +43,11 @@ namespace ClinicHub.Domain.Entities
             SpecializationId = specializationId;
             Bio = bio;
             YearsOfExperience = yearsOfExperience;
+        }
+
+        public void AssignToClinic(Guid clinicId)
+        {
+            ClinicId = clinicId;
         }
 
         public void Update(string bio, int yearsOfExperience)

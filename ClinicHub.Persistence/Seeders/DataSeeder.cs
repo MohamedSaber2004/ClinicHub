@@ -293,7 +293,7 @@ namespace ClinicHub.Persistence.Seeders
 
                             availabilities.Add(new DoctorAvailability(
                                 doctorId: doctor.Id,
-                                clinicId: doctor.ClinicId,
+                                clinicId: doctor.ClinicId.Value,
                                 dayOfWeek: dayOfWeek,
                                 startTime: new TimeSpan(startHour, 0, 0),
                                 endTime: new TimeSpan(startHour, 0, 0).Add(TimeSpan.FromHours(hoursRange)),
@@ -339,31 +339,6 @@ namespace ClinicHub.Persistence.Seeders
 
                 var tickets = ticketFaker.Generate(settings.SupportTicketCount ?? 10);
                 context.Set<SupportTicket>().AddRange(tickets);
-                await context.SaveChangesAsync();
-            }
-
-            // 9. Seed Clinic Verifications
-            if (!await context.Set<ClinicVerification>().AnyAsync())
-            {
-                logger.LogInformation("Seeding {Count} clinic verifications...", settings.ClinicVerificationCount);
-                var verificationFaker = new Faker<ClinicVerification>()
-                    .CustomInstantiator(f =>
-                    {
-                        var clinic = f.PickRandom(allClinics);
-                        var isReviewed = f.Random.Bool(0.5f);
-                        return new ClinicVerification
-                        {
-                            ClinicId = clinic.Id,
-                            Status = isReviewed ? f.PickRandom(new[] { VerificationStatus.Approved, VerificationStatus.Rejected }) : VerificationStatus.Pending,
-                            RequestedAt = f.Date.Past(20),
-                            ReviewedAt = isReviewed ? f.Date.Recent(10) : null,
-                            ReviewedByUserId = isReviewed ? superAdminUser?.Id : null,
-                            Notes = isReviewed && f.Random.Bool(0.7f) ? f.Lorem.Sentence() : null
-                        };
-                    });
-
-                var verifications = verificationFaker.Generate(settings.ClinicVerificationCount ?? 5);
-                context.Set<ClinicVerification>().AddRange(verifications);
                 await context.SaveChangesAsync();
             }
 

@@ -97,7 +97,10 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
                     request.ProfessionalPracticeCardImage,
                     request.TaxCardImage,
                     request.UnionIdCardImage,
-                    request.DoctorImage);
+                    request.DoctorImage,
+                    request.SpecializationId,
+                    request.Bio,
+                    request.YearsOfExperience);
 
                 await _unitOfWork.UserVerificationRepository.AddAsync(verification);
                 await _unitOfWork.SaveChangesAsync();

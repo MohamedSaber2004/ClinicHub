@@ -56,6 +56,17 @@ namespace ClinicHub.Application.Features.Admin.Commands.ApproveUserVerification
 
             await _userManager.AddToRoleAsync(user, roleName);
 
+            if (verification.RequestedRole == UserType.Doctor && verification.SpecializationId.HasValue)
+            {
+                var doctor = new Doctor(
+                    user.Id,
+                    verification.SpecializationId.Value,
+                    verification.Bio ?? string.Empty,
+                    verification.YearsOfExperience ?? 0);
+
+                await _unitOfWork.DoctorRepository.AddAsync(doctor);
+            }
+
             await _unitOfWork.SaveChangesAsync();
             return true;
         }

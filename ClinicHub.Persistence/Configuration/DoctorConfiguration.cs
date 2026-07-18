@@ -20,7 +20,8 @@ namespace ClinicHub.Persistence.Configuration
             builder.HasOne(x => x.Clinic)
                 .WithMany()
                 .HasForeignKey(x => x.ClinicId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.SetNull)
+                .IsRequired(false);
 
             builder.HasOne(x => x.Specialization)
                 .WithMany()

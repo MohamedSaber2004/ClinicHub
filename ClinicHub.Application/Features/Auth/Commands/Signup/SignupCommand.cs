@@ -17,6 +17,9 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
         string? UnionIdCardImage,
         string? DoctorImage,
         TypeOfUserForRegisterFlow TypeOfUser,
+        Guid? SpecializationId = null,
+        string? Bio = null,
+        int? YearsOfExperience = null,
         string? FcmToken = null,
         DevicePlatform? DevicePlatform = null) : IRequest<SignupResult>;
 }

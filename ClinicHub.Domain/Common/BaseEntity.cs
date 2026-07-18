@@ -16,8 +16,17 @@ namespace ClinicHub.Domain.Common
         [Timestamp]
         public byte[]? Version { get; internal set; }
 
-        public void Deactive() => IsActive = false;
-        public void Active() => IsActive = true;
+        public void Deactive()
+        {
+            IsActive = false;
+            IsDeleted = true;
+        }
+
+        public void Active()
+        {
+            IsActive = true;
+            IsDeleted = false;
+        }
 
         public virtual void MarkAsDeleted(string deletedBy)
         {

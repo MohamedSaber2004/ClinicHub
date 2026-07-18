@@ -16,7 +16,6 @@ namespace ClinicHub.Application.Common.Options
         public int? SupportTicketCount { get; set; } = 10;
         public int? SubscriptionCount { get; set; } = 5;
         public int? AdvertisementCount { get; set; } = 5;
-        public int? ClinicVerificationCount { get; set; } = 5;
         public int? AuditLogCount { get; set; } = 20;
     }
 }

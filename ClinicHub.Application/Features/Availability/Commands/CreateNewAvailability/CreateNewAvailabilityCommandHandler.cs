@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Features.Availability.DTOs;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
@@ -21,9 +22,12 @@ namespace ClinicHub.Application.Features.Availability.Commands.CreateNewAvailabi
         {
             var doctor = await _unitOfWork.DoctorRepository.GetByIdAsync(request.DoctorId);
 
+            if (doctor.ClinicId == null)
+                throw new BadRequestException("Doctor must be assigned to a clinic to create availability");
+
             var availability = new DoctorAvailability(
                 request.DoctorId,
-                doctor.ClinicId,
+                doctor.ClinicId.Value,
                 request.DayOfWeek,
                 request.StartTime,
                 request.EndTime,

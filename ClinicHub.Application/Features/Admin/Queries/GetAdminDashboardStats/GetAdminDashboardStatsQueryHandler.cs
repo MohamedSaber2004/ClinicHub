@@ -27,7 +27,7 @@ namespace ClinicHub.Application.Features.Admin.Queries.GetAdminDashboardStats
         {
             if (_currentUser.UserTypes is null || (_currentUser.UserTypes.Value & (int)UserType.SuperAdmin) == 0)
                 throw new UnAuthorizedException();
-            var verificationRequestsCount = await _unitOfWork.GetRepository<ClinicVerification, Guid>()
+            var verificationRequestsCount = await _unitOfWork.UserVerificationRepository
                 .GetAllAsync(v => v.Status == VerificationStatus.Pending).CountAsync(cancellationToken);
 
             var activeClinicsCount = await _unitOfWork.ClinicRepository

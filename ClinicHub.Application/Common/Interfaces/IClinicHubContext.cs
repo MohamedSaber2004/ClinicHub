@@ -21,7 +21,6 @@ namespace ClinicHub.Application.Common.Interfaces
         DbSet<SupportTicket> SupportTickets { get; }
         DbSet<Subscription> Subscriptions { get; }
         DbSet<Advertisement> Advertisements { get; }
-        DbSet<ClinicVerification> ClinicVerifications { get; }
         DbSet<AuditLog> AuditLogs { get; }
         DbSet<IdentityUserRole<Guid>> UserRoles { get; }
         DbSet<IdentityRole<Guid>> Roles { get; }
