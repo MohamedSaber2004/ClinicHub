@@ -36,7 +36,12 @@ namespace ClinicHub.Application.Features.Users.Commands.EditUser
                 throw new NotFoundException(nameof(ApplicationUser), request.Id);
 
             user.UpdateProfile(request.FullName!, request.PhoneNumber!, request.BirthDate, request.Gender);
-            user.IsActive = request.IsActive ?? user.IsActive;
+
+            if (request.IsActive.HasValue)
+            {
+                user.IsActive = request.IsActive.Value;
+                user.IsDeleted = !request.IsActive.Value;
+            }
             
             var result = await _userManager.UpdateAsync(user);
 
