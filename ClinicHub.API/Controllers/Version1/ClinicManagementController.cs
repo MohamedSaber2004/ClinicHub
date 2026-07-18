@@ -4,12 +4,14 @@ using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Clinics.Commands.ActivateClinic;
 using ClinicHub.Application.Features.Clinics.Commands.CreateClinic;
 using ClinicHub.Application.Features.Clinics.Commands.DeactivateClinic;
+using ClinicHub.Application.Features.Clinics.Commands.SetupClinic;
 using ClinicHub.Application.Features.Clinics.Commands.UpdateClinic;
 using ClinicHub.Application.Features.Clinics.DTOs;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicById;
 using ClinicHub.Application.Features.Clinics.Queries.GetPaginatedClinics;
 using ClinicHub.Domain.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicHub.API.Controllers.Version1
@@ -35,6 +37,21 @@ namespace ClinicHub.API.Controllers.Version1
         {
             var result = await _mediator.Send(new CreateClinicCommand(dto));
             return Created(nameof(CreateClinicCommand), result);
+        }
+
+        /// <summary>
+        /// Sets up a clinic for an already-approved ClinicOwner user.
+        /// Creates the clinic and a linked Doctor record.
+        /// </summary>
+        [HttpPost]
+        [Route(ApiRoutes.ClinicManagement.Setup)]
+        [RoleAuthorize(nameof(UserType.ClinicOwner))]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Setup([FromBody] SetupClinicDto dto)
+        {
+            var result = await _mediator.Send(new SetupClinicCommand(dto));
+            return Created(nameof(SetupClinicCommand), result);
         }
 
         /// <summary>
