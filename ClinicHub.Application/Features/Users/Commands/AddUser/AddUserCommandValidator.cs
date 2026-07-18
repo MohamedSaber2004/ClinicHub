@@ -21,6 +21,11 @@ namespace ClinicHub.Application.Features.Users.Commands.AddUser
             {
                 RuleFor(x => x.ClinicId).NotNull().NotEmpty();
             });
+
+            When(x => x.Role is UserType.ClinicOwner or UserType.Doctor, () =>
+            {
+                RuleFor(x => x.SpecializationId).NotNull().NotEmpty();
+            });
         }
     }
 }
