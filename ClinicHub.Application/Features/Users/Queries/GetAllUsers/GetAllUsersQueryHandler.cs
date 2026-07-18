@@ -31,7 +31,7 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
 
         public async Task<PagginatedResult<UserDto>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
         {
-            var query = _userManager.Users.Where(u => !u.IsDeleted);
+            var query = _userManager.Users;
 
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
             {
@@ -56,6 +56,7 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
                     {
                         var doctorUserIds = await _unitOfWork.DoctorRepository
                             .GetAllAsync(d => d.ClinicId == _currentUserService.CurrentClinicId.Value)
+                            .IgnoreQueryFilters()
                             .Select(d => d.UserId)
                             .ToListAsync(cancellationToken);
 

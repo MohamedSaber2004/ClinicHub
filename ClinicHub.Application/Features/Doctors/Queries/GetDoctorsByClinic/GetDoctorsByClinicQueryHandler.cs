@@ -28,6 +28,7 @@ namespace ClinicHub.Application.Features.Doctors.Queries.GetDoctorsByClinic
 
             var doctors = await _unitOfWork.DoctorRepository
                 .GetAllAsync(d => d.ClinicId == request.ClinicId)
+                .IgnoreQueryFilters()
                 .Include(d => d.User)
                 .Include(d => d.Clinic)
                 .Include(d => d.Specialization)
