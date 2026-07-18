@@ -93,6 +93,11 @@ namespace ClinicHub.Domain.Entities
             GoogleUserId = googleUserId;
         }
 
+        public Guid? ClinicId { get; private set; }
+        public Clinic? Clinic { get; private set; }
+
+        public void AssignToClinic(Guid clinicId) => ClinicId = clinicId;
+
         public virtual ICollection<UserRefreshToken> UserRefreshTokens { get; private set; } = new List<UserRefreshToken>();
 
         public virtual ICollection<UserFbToken> UserFbTokens { get; private set; } = new List<UserFbToken>();

@@ -12,5 +12,9 @@ namespace ClinicHub.Application.Features.Users.Commands.AddUser
         public DateTime BirthDate { get; set; }
         public Gender Gender { get; set; }
         public UserType Role { get; set; }
+        public Guid? ClinicId { get; set; }
+        public Guid? SpecializationId { get; set; }
+        public string? Bio { get; set; }
+        public int? YearsOfExperience { get; set; }
     }
 }

@@ -35,6 +35,13 @@ namespace ClinicHub.Persistence.Configuration
                 .IsRequired()
                 .HasConversion<string>()
                 .HasMaxLength(10);
+
+            builder.Property(u => u.ClinicId);
+
+            builder.HasOne(u => u.Clinic)
+                .WithMany()
+                .HasForeignKey(u => u.ClinicId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }
