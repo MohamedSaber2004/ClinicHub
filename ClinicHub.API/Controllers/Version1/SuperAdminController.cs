@@ -3,11 +3,8 @@ using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Admin.Commands.ApproveUserVerification;
 using ClinicHub.Application.Features.Admin.Commands.RejectUserVerification;
-using ClinicHub.Application.Features.Admin.Queries.GetAdminDashboardStats;
-using ClinicHub.Application.Features.Admin.Queries.GetClinicAuditLogs;
 using ClinicHub.Application.Features.Admin.Queries.GetClinicsLookup;
 using ClinicHub.Application.Features.Admin.Queries.GetPendingVerifications;
-using ClinicHub.Application.Features.Admin.Queries.GetUrgentSupportTickets;
 using ClinicHub.Application.Features.Users.Queries.GetAllUsers;
 using ClinicHub.Domain.Enums;
 using MediatR;
@@ -21,26 +18,6 @@ namespace ClinicHub.API.Controllers.Version1
     {
         public SuperAdminController(IMediator mediator) : base(mediator)
         {
-        }
-
-        [HttpGet]
-        [Route(ApiRoutes.AdminDashboard.Stats)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> GetStats(CancellationToken ct)
-        {
-            var result = await _mediator.Send(new GetAdminDashboardStatsQuery(), ct);
-            return Ok(result);
-        }
-
-        [HttpGet]
-        [Route(ApiRoutes.AdminDashboard.UrgentTickets)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> GetUrgentTickets([FromQuery] GetUrgentSupportTicketsQuery query, CancellationToken ct)
-        {
-            var result = await _mediator.Send(query, ct);
-            return Ok(result);
         }
 
         [HttpGet]
@@ -60,17 +37,6 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> GetClinicsLookup(CancellationToken ct)
         {
             var result = await _mediator.Send(new GetClinicsLookupQuery(), ct);
-            return Ok(result);
-        }
-
-        [HttpGet]
-        [Route(ApiRoutes.AdminDashboard.ClinicLogs)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> GetClinicLogs(Guid clinicId, [FromQuery] GetClinicAuditLogsQuery query, CancellationToken ct)
-        {
-            query.ClinicId = clinicId;
-            var result = await _mediator.Send(query, ct);
             return Ok(result);
         }
 

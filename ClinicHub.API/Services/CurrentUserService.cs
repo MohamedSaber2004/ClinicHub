@@ -38,8 +38,8 @@ namespace ClinicHub.API.Services
                 UserTypes = userTypes;
             }
 
-            var clinicIdHeader = httpContext?.Request?.Headers["X-ClinicId"].FirstOrDefault();
-            if (Guid.TryParse(clinicIdHeader, out var clinicId))
+            var clinicIdClaim = httpContext?.User?.FindFirst("ClinicId")?.Value;
+            if (Guid.TryParse(clinicIdClaim, out var clinicId))
             {
                 CurrentClinicId = clinicId;
             }

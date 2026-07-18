@@ -1,155 +1,40 @@
-﻿## User Management API — Frontend Reference
+﻿## 1. GET `/dashboard/stats`
 
-Base: `/api/v1/users` — All endpoints require `Authorization: Bearer <token>` + `SuperAdmin` role.
+Returns clinic operational statistics with period breakdowns.
 
----
+### Response `200 OK`
 
-### 1. GetAllUsers (GET /users)
+```json
+{
+  "todayVisits": 45,
+  "todayIncome": 1450.0,
+  "weeklyVisits": 280,
+  "weeklyIncome": 8500.0,
+  "monthlyVisits": 1200,
+  "monthlyIncome": 36000.0,
+  "yearlyVisits": 15400,
+  "yearlyIncome": 468000.0,
+  "pendingActions": 5
+}
+```
 
-**Request (query):** `GetAllUsersQuery`
-| Property | Type | Default |
-|----------|------|---------|
-| `PageNumber` | `int` | 1 |
-| `PageSize` | `int` | 20 |
-| `SearchTerm` | `string?` | null |
-| `UserId` | `Guid?` | null |
-| `UserTypes` | `UserType?` | null |
+### Response Fields
 
-**Response (200):** `PagginatedResult<UserDto>`
-| Property | Type |
-|----------|------|
-| `Items` | `IReadOnlyCollection<UserDto>` |
-| `PageNumber` | `int` |
-| `PageSize` | `int` |
-| `TotalPages` | `int` |
-| `TotalCount` | `int` |
-| `HasPreviousPage` | `bool` |
-| `HasNextPage` | `bool` |
+| Field | Type | Description |
+|---|---|---|
+| `todayVisits` | `int` | Number of patient visits today |
+| `todayIncome` | `double` | Total income today (EGP) |
+| `weeklyVisits` | `int` | Number of patient visits this week |
+| `weeklyIncome` | `double` | Total income this week (EGP) |
+| `monthlyVisits` | `int` | Number of patient visits this month |
+| `monthlyIncome` | `double` | Total income this month (EGP) |
+| `yearlyVisits` | `int` | Number of patient visits this year |
+| `yearlyIncome` | `double` | Total income this year (EGP) |
+| `pendingActions` | `int` | Count of pending booking requests (shortcut for UI badge) |
 
-**`UserDto`**
-| Property | Type |
-|----------|------|
-| `Id` | `Guid` |
-| `FullName` | `string` |
-| `Email` | `string` |
-| `PhoneNumber` | `string` |
-| `BirthDate` | `DateTime?` |
-| `Gender` | `Gender?` |
-| `IsActive` | `bool` |
-| `Roles` | `IList<UserType>` |
-| `CreatedAt` | `DateTime` |
+### Business Rules
 
-**`Gender`:** `Male = 0, Female = 1`
-
-**`UserType` (Flags):**
-| Value | Name |
-|-------|------|
-| 0 | `None` |
-| 1 | `User` |
-| 2 | `SuperAdmin` |
-| 4 | `Doctor` |
-| 8 | `Staff` |
-| 16 | `ClinicOwner` |
-
----
-
-### 2. GetUserById (GET /users/{id:guid})
-
-**Request (route):** `GetUserByIdQuery`
-| Property | Type |
-|----------|------|
-| `Id` | `Guid` |
-
-**Response (200):** `UserDto` (see above)
-
----
-
-### 3. AddUser (POST /users)
-
-**Request (body):** `AddUserCommand`
-| Property | Type |
-|----------|------|
-| `FullName` | `string` |
-| `Email` | `string` |
-| `Password` | `string` |
-| `PhoneNumber` | `string` |
-| `BirthDate` | `DateTime` |
-| `Gender` | `Gender` |
-| `Role` | `UserType` |
-
-**Response (201):** `Guid` (user id)
-
----
-
-### 4. EditUser (PUT /users/{id:guid})
-
-**Request (route):**
-| Property | Type |
-|----------|------|
-| `id` | `Guid` |
-
-**Request (body):** `EditUserCommand`
-| Property | Type |
-|----------|------|
-| `FullName` | `string?` |
-| `PhoneNumber` | `string?` |
-| `BirthDate` | `DateTime?` |
-| `Gender` | `Gender?` |
-| `IsActive` | `bool?` |
-
-**Response (200):** `bool`
-
----
-
-### 5. DeleteUser (DELETE /users/{id:guid})
-
-**Request (route):** `DeleteUserCommand`
-| Property | Type |
-|----------|------|
-| `Id` | `Guid` |
-
-**Response (200):** `bool`
-
----
-
-### 6. AssignUserRole (POST /users/{id:guid}/roles)
-
-**Request (route):**
-| Property | Type |
-|----------|------|
-| `id` | `Guid` |
-
-**Request (body):** `AssignUserRoleCommand`
-| Property | Type |
-|----------|------|
-| `Role` | `UserType` |
-
-**Response (200):** `bool`
-
----
-
-### 7. EditUserRole (PUT /users/{id:guid}/roles)
-
-**Request (route):**
-| Property | Type |
-|----------|------|
-| `id` | `Guid` |
-
-**Request (body):** `EditUserRoleCommand`
-| Property | Type |
-|----------|------|
-| `NewRole` | `UserType` |
-
-**Response (200):** `bool`
-
----
-
-### ApiResponse\<T\> (wrapper)
-
-| Property | Type |
-|----------|------|
-| `Success` | `bool` |
-| `Data` | `T?` |
-| `Message` | `string?` |
-| `Errors` | `IDictionary<string, string[]>` |
-| `StatusCode` | `int` |
+- All periods are calculated based on the clinic's local timezone.
+- "week" starts on Monday 00:00:00.
+- "month" and "year" are calendar-based.
+- `pendingActions` should equal the count of bookings where `status == "pending"`.

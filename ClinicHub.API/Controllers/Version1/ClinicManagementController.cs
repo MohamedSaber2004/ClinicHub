@@ -6,6 +6,7 @@ using ClinicHub.Application.Features.Clinics.Commands.CreateClinic;
 using ClinicHub.Application.Features.Clinics.Commands.DeactivateClinic;
 using ClinicHub.Application.Features.Clinics.Commands.SetupClinic;
 using ClinicHub.Application.Features.Clinics.Commands.UpdateClinic;
+using ClinicHub.Application.Features.Clinics.Queries.GetClinicDashboardStats;
 using ClinicHub.Application.Features.Clinics.DTOs;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicById;
 using ClinicHub.Application.Features.Clinics.Queries.GetPaginatedClinics;
@@ -134,6 +135,19 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> GetPaginated([FromQuery] GetPaginatedClinicsQuery query)
         {
             var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Returns clinic dashboard statistics with period breakdowns.
+        /// </summary>
+        [HttpGet]
+        [Route(ApiRoutes.ClinicManagement.Dashboard)]
+        [RoleAuthorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> Dashboard()
+        {
+            var result = await _mediator.Send(new GetClinicDashboardStatsQuery());
             return Ok(result);
         }
     }
