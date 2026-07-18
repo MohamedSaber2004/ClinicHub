@@ -23,12 +23,20 @@ namespace ClinicHub.Application.Features.Posts.Queries.GetPostsPagginated
         {
             var postsRepo = _unitOfWork.GetRepository<Post, Guid>();
             var usersRepo = _unitOfWork.GetRepository<ApplicationUser, Guid>();
-            
+            var doctorsRepo = _unitOfWork.DoctorRepository;
+
             var query = postsRepo.GetAllAsync(null)
                 .Join(usersRepo.GetAllAsync(null),
                     post => post.AuthorId,
                     user => user.Id,
                     (post, user) => new { post, user })
+                .GroupJoin(doctorsRepo.GetAllAsync(null),
+                    x => x.user.Id,
+                    doctor => doctor.UserId,
+                    (x, doctors) => new { x.post, x.user, doctors })
+                .SelectMany(
+                    x => x.doctors.DefaultIfEmpty(),
+                    (x, doctor) => new { x.post, x.user, doctor })
                 .OrderByDescending(x => x.post.CreatedAt);
 
             return await query
@@ -41,6 +49,7 @@ namespace ClinicHub.Application.Features.Posts.Queries.GetPostsPagginated
                     x.post.CreatedAt,
                     x.post.Reactions.Count,
                     x.post.Comments.Count,
+                    x.doctor != null && x.doctor.IsFreelance,
                     x.post.Media.Select(m => new MediaDto(m.Id, m.Url, m.Type.ToString())).ToList()
                 ))
                 .AsPagginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);

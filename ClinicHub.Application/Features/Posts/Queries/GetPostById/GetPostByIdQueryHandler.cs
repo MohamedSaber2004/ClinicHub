@@ -2,6 +2,7 @@ using ClinicHub.Application.Features.Posts.DTOs;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace ClinicHub.Application.Features.Posts.Queries.GetPostById
 {
@@ -18,6 +19,9 @@ namespace ClinicHub.Application.Features.Posts.Queries.GetPostById
         {
             var post = (await _unitOfWork.PostRepository.GetByIdWithDetailsAsync(request.PostId, cancellationToken))!;
             var author = await _unitOfWork.GetRepository<ApplicationUser, Guid>().GetByIdAsync(post.AuthorId);
+            var doctor = await _unitOfWork.DoctorRepository
+                .GetAllAsync(d => d.UserId == post.AuthorId)
+                .FirstOrDefaultAsync(cancellationToken);
 
             return new PostDto(
                 post.Id,
@@ -28,6 +32,7 @@ namespace ClinicHub.Application.Features.Posts.Queries.GetPostById
                 post.CreatedAt,
                 post.Reactions.Count,
                 post.Comments.Count,
+                doctor != null && doctor.IsFreelance,
                 post.Media.Select(m => new MediaDto(m.Id, m.Url, m.Type.ToString())).ToList()
             );
         }

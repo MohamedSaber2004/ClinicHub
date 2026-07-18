@@ -17,6 +17,12 @@ namespace ClinicHub.Persistence.Migrations
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
+
+            migrationBuilder.Sql("""
+                UPDATE [dbo].[Doctors]
+                SET [IsFreelance] = 1
+                WHERE [ClinicId] IS NULL
+                """);
         }
 
         /// <inheritdoc />

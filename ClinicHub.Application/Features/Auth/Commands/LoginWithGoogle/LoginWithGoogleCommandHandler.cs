@@ -104,7 +104,12 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWithGoogle
                 await _unitOfWork.SaveChangesAsync();
             }
 
-            return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, roles.FirstOrDefault(), user.Id, clinicId, user.ProfilePictureUrl);
+            var isFreelanceDoctor = await _unitOfWork.DoctorRepository
+                .GetAllAsync(d => d.UserId == user.Id)
+                .Select(d => (bool?)d.IsFreelance)
+                .FirstOrDefaultAsync(cancellationToken) ?? false;
+
+            return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, roles.FirstOrDefault(), user.Id, clinicId, user.ProfilePictureUrl, isFreelanceDoctor);
         }
     }
 }

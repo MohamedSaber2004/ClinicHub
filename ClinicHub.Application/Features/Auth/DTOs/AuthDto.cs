@@ -10,7 +10,8 @@ namespace ClinicHub.Application.Features.Auth.DTOs
         string Roles,
         Guid id,
         Guid? ClinicId, 
-        string? ProfilePictureUrl);
+        string? ProfilePictureUrl,
+        bool IsFreelanceDoctor = false);
 
     public record RefreshTokenResponseDto(
         string AccessToken,
@@ -26,5 +27,6 @@ namespace ClinicHub.Application.Features.Auth.DTOs
         DateTime? BirthDate,
         string? ProfilePictureUrl,
         LanguageCode Language,
-        string Roles);
+        string Roles,
+        bool IsFreelanceDoctor = false);
 }

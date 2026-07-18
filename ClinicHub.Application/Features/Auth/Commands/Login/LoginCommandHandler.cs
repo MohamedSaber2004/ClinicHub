@@ -87,7 +87,12 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
             if (!string.IsNullOrEmpty(request.FcmToken) && request.DevicePlatform.HasValue)
                 await _fcmService.RegisterTokenAsync(user.Id, request.FcmToken, request.DevicePlatform.Value);
 
-            return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, roles.FirstOrDefault(), user.Id, clinicId, user.ProfilePictureUrl);
+            var isFreelanceDoctor = await _unitOfWork.DoctorRepository
+                .GetAllAsync(d => d.UserId == user.Id)
+                .Select(d => (bool?)d.IsFreelance)
+                .FirstOrDefaultAsync(cancellationToken) ?? false;
+
+            return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, roles.FirstOrDefault(), user.Id, clinicId, user.ProfilePictureUrl, isFreelanceDoctor);
         }
     }
 }

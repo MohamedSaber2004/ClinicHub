@@ -1,8 +1,10 @@
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Auth.DTOs;
 using ClinicHub.Domain.Entities;
+using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace ClinicHub.Application.Features.Auth.Queries.GetUserProfile
 {
@@ -10,19 +12,27 @@ namespace ClinicHub.Application.Features.Auth.Queries.GetUserProfile
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IUnitOfWork _unitOfWork;
 
         public GetUserProfileQueryHandler(
             UserManager<ApplicationUser> userManager,
-            ICurrentUserService currentUserService)
+            ICurrentUserService currentUserService,
+            IUnitOfWork unitOfWork)
         {
             _userManager = userManager;
             _currentUserService = currentUserService;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<UserProfileDto> Handle(GetUserProfileQuery request, CancellationToken cancellationToken)
         {
             var user = await _userManager.FindByIdAsync(_currentUserService.UserId.ToString());
             var roles = await _userManager.GetRolesAsync(user!);
+
+            var isFreelanceDoctor = await _unitOfWork.DoctorRepository
+                .GetAllAsync(d => d.UserId == user!.Id)
+                .Select(d => (bool?)d.IsFreelance)
+                .FirstOrDefaultAsync(cancellationToken) ?? false;
 
             return new UserProfileDto(
                 user!.Id,
@@ -33,7 +43,8 @@ namespace ClinicHub.Application.Features.Auth.Queries.GetUserProfile
                 user.BirthDate,
                 user.ProfilePictureUrl,
                 user.Language,
-                roles.FirstOrDefault());
+                roles.FirstOrDefault(),
+                isFreelanceDoctor);
         }
     }
 }
