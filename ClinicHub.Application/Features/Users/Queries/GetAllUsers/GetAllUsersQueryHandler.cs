@@ -13,15 +13,18 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
     public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagginatedResult<UserDto>>
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IClinicHubContext _context;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
 
         public GetAllUsersQueryHandler(
             UserManager<ApplicationUser> userManager,
+            IClinicHubContext context,
             IUnitOfWork unitOfWork,
             ICurrentUserService currentUserService)
         {
             _userManager = userManager;
+            _context = context;
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
         }
@@ -97,11 +100,15 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
                 .Take(request.PageSize)
                 .ToListAsync(cancellationToken);
 
-            var dtos = new List<UserDto>();
-            foreach (var user in users)
-            {
-                var roles = await _userManager.GetRolesAsync(user);
-                dtos.Add(new UserDto
+            var roleIdToName = await _context.Roles
+                .ToDictionaryAsync(r => r.Id, r => r.Name!, cancellationToken);
+
+            var userRoleLookup = (await _context.UserRoles
+                .Where(ur => users.Select(u => u.Id).Contains(ur.UserId))
+                .ToListAsync(cancellationToken))
+                .ToLookup(ur => ur.UserId, ur => ur.RoleId);
+
+            var dtos = users.Select(user => new UserDto
                 {
                     Id = user.Id,
                     FullName = user.FullName,
@@ -111,12 +118,12 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
                     Gender = user.Gender,
                     IsActive = user.IsActive,
                     CreatedAt = user.CreatedAt,
-                    Roles = roles
+                    Roles = (userRoleLookup[user.Id]
+                        .Select(roleId => roleIdToName.GetValueOrDefault(roleId, string.Empty))
                         .Select(r => Enum.TryParse<UserType>(r, ignoreCase: true, out var ut) ? ut : UserType.None)
                         .Where(ut => ut != UserType.None)
-                        .ToList() as IList<UserType>
-                });
-            }
+                        .ToList() as IList<UserType>) ?? []
+                }).ToList();
 
             return new PagginatedResult<UserDto>(dtos.AsReadOnly(), totalCount, request.PageNumber, request.PageSize);
         }

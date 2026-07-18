@@ -1,4 +1,5 @@
 using ClinicHub.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClinicHub.Application.Common.Interfaces
@@ -22,6 +23,8 @@ namespace ClinicHub.Application.Common.Interfaces
         DbSet<Advertisement> Advertisements { get; }
         DbSet<ClinicVerification> ClinicVerifications { get; }
         DbSet<AuditLog> AuditLogs { get; }
+        DbSet<IdentityUserRole<Guid>> UserRoles { get; }
+        DbSet<IdentityRole<Guid>> Roles { get; }
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }
