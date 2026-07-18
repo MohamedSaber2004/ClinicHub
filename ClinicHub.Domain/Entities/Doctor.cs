@@ -17,6 +17,7 @@ namespace ClinicHub.Domain.Entities
 
         public string Bio { get; private set; } = string.Empty;
         public int YearsOfExperience { get; private set; }
+        public bool IsFreelance { get; private set; }
 
         public virtual ICollection<DoctorAvailability> Availabilities { get; private set; } = new List<DoctorAvailability>();
         public virtual ICollection<Appointment> Appointments { get; private set; } = new List<Appointment>();
@@ -43,11 +44,13 @@ namespace ClinicHub.Domain.Entities
             SpecializationId = specializationId;
             Bio = bio;
             YearsOfExperience = yearsOfExperience;
+            IsFreelance = clinicId == null;
         }
 
         public void AssignToClinic(Guid clinicId)
         {
             ClinicId = clinicId;
+            IsFreelance = false;
         }
 
         public void Update(string bio, int yearsOfExperience)
