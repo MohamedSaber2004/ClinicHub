@@ -19,19 +19,19 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
         {
             _userManager = userManager;
 
-            var definedFlags = Enum.GetValues<UserType>()
+            var validTypes = Enum.GetValues<UserType>()
                 .Where(ut => ut != UserType.None)
-                .Aggregate(UserType.None, (acc, ut) => acc | ut);
+                .ToHashSet();
 
             RuleFor(x => x.UserId)
                 .MustAsync((userId, cancellationToken) => UserExists(userId, cancellationToken))
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.UserNotFound.Value]))
                 .When(x => x.UserId.HasValue);
 
-            RuleFor(x => x.UserType)
-                .Must(ut => ut == null || (ut.Value != UserType.None && (ut.Value & ~definedFlags) == UserType.None))
+            RuleFor(x => x.UserTypes)
+                .Must(types => types == null || types.All(t => validTypes.Contains(t)))
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.InvalidUserType.Value]))
-                .When(x => x.UserType.HasValue);
+                .When(x => x.UserTypes is { Count: > 0 });
         }
 
         private async Task<bool> UserExists(Guid? userId, CancellationToken cancellationToken)

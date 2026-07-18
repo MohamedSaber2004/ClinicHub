@@ -12,6 +12,6 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
         public string? SearchTerm { get; set; }
         public bool? IsUnassigned { get; set; }
         public Guid? UserId { get; set; }
-        public UserType? UserType { get; set; }
+        public List<UserType>? UserTypes { get; set; }
     }
 }

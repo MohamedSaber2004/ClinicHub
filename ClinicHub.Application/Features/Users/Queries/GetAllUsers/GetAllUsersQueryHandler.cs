@@ -47,36 +47,29 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
                 query = query.Where(u => u.Id == request.UserId.Value);
             }
 
-            if (request.UserType.HasValue)
+            if (request.UserTypes is { Count: > 0 })
             {
-                var flags = Enum.GetValues<UserType>()
-                    .Where(ut => ut != UserType.None && request.UserType.Value.HasFlag(ut))
-                    .ToList();
-
-                if (flags.Count != 0)
+                var userIds = new HashSet<Guid>();
+                foreach (var userType in request.UserTypes.Where(ut => ut != UserType.None))
                 {
-                    var userIds = new HashSet<Guid>();
-                    foreach (var flag in flags)
+                    if (userType == UserType.Doctor && _currentUserService.CurrentClinicId.HasValue)
                     {
-                        if (flag == UserType.Doctor && _currentUserService.CurrentClinicId.HasValue)
-                        {
-                            var doctorUserIds = await _unitOfWork.DoctorRepository
-                                .GetAllAsync(d => d.ClinicId == _currentUserService.CurrentClinicId.Value)
-                                .Select(d => d.UserId)
-                                .ToListAsync(cancellationToken);
+                        var doctorUserIds = await _unitOfWork.DoctorRepository
+                            .GetAllAsync(d => d.ClinicId == _currentUserService.CurrentClinicId.Value)
+                            .Select(d => d.UserId)
+                            .ToListAsync(cancellationToken);
 
-                            foreach (var id in doctorUserIds)
-                                userIds.Add(id);
-                        }
-                        else
-                        {
-                            var usersInRole = await _userManager.GetUsersInRoleAsync(flag.ToString());
-                            foreach (var user in usersInRole)
-                                userIds.Add(user.Id);
-                        }
+                        foreach (var id in doctorUserIds)
+                            userIds.Add(id);
                     }
-                    query = query.Where(u => userIds.Contains(u.Id));
+                    else
+                    {
+                        var usersInRole = await _userManager.GetUsersInRoleAsync(userType.ToString());
+                        foreach (var user in usersInRole)
+                            userIds.Add(user.Id);
+                    }
                 }
+                query = query.Where(u => userIds.Contains(u.Id));
             }
 
             if (request.IsUnassigned.HasValue)
