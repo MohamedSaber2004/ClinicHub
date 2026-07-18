@@ -28,7 +28,9 @@ namespace ClinicHub.Application.Features.Users.Commands.EditUser
 
         public async Task<bool> Handle(EditUserCommand request, CancellationToken cancellationToken)
         {
-            var user = await _userManager.FindByIdAsync(request.Id.ToString());
+            var user = await _userManager.Users
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(u => u.Id == request.Id, cancellationToken);
 
             if (user == null)
                 throw new NotFoundException(nameof(ApplicationUser), request.Id);
