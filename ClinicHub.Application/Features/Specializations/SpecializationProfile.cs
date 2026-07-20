@@ -11,6 +11,7 @@ namespace ClinicHub.Application.Features.Specializations
         public SpecializationProfile()
         {
             CreateMap<Specialization, SpecializationDto>();
+            CreateMap<Specialization, SpecializationLookupDto>();
             CreateMap<CreateSpecializationCommand, Specialization>()
                 .ForMember(dest => dest.IconUrl, opt => opt.MapFrom(src => src.Icon));
             CreateMap<UpdateSpecializationCommand, Specialization>()

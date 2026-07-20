@@ -2,26 +2,6 @@ using ClinicHub.Domain.Enums;
 
 namespace ClinicHub.Application.Features.Clinics.DTOs
 {
-    public record CreateClinicDto(
-        string? Name,
-        string? NameAr,
-        string? Description,
-        string? ArDescription,
-        string? Address,
-        string? AddressAr,
-        string? Phone,
-        string Email,
-        string? Website,
-        string? Logo,
-        string? WorkingHours,
-        Guid SpecializationId,
-        string OwnerName,
-        string OwnerEmail,
-        string? OwnerPhone,
-        TimeOnly? WorkingHoursStart = null,
-        TimeOnly? WorkingHoursEnd = null,
-        List<DayOfWeek>? WorkingDays = null);
-
     public record UpdateClinicDto(
         string? Name,
         string? NameAr,
@@ -61,6 +41,7 @@ namespace ClinicHub.Application.Features.Clinics.DTOs
         public bool IsActive { get; set; }
         public Guid SpecializationId { get; set; }
         public string? SpecializationName { get; set; }
+        public string? SpecializationNameAr { get; set; }
         public double? Rating { get; set; }
         public string? ImageUrl { get; set; }
         public Guid? ClinicAdminId { get; set; }

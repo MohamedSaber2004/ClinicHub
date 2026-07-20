@@ -4,10 +4,12 @@ using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Specializations.Commands.CreateSpecialization;
 using ClinicHub.Application.Features.Specializations.Commands.DeleteSpecialization;
 using ClinicHub.Application.Features.Specializations.Commands.UpdateSpecialization;
+using ClinicHub.Application.Features.Specializations.Queries.GetActiveSpecializations;
 using ClinicHub.Application.Features.Specializations.Queries.GetAllSpecializations;
 using ClinicHub.Application.Features.Specializations.Queries.GetSpecializationById;
 using ClinicHub.Domain.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicHub.API.Controllers.Version1
@@ -20,11 +22,21 @@ namespace ClinicHub.API.Controllers.Version1
         }
 
         /// <summary>
+        /// Get all active specializations (public, no auth required).
+        /// </summary>
+        [HttpGet]
+        [AllowAnonymous]
+        [Route(ApiRoutes.Specializations.GetActive)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetActive(CancellationToken ct)
+        {
+            var result = await _mediator.Send(new GetActiveSpecializationsQuery(), ct);
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Get all specializations with pagination support.
         /// </summary>
-        /// <param name="query"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
         [HttpGet]
         [RoleAuthorize]
         [Route(ApiRoutes.Specializations.GetAll)]

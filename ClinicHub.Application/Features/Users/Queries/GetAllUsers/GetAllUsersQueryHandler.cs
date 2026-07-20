@@ -7,6 +7,7 @@ using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
 {
@@ -52,13 +53,20 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
                 var userIds = new HashSet<Guid>();
                 foreach (var userType in request.UserTypes.Where(ut => ut != UserType.None))
                 {
-                    if (userType == UserType.Doctor && _currentUserService.CurrentClinicId.HasValue)
+                    if (userType == UserType.Doctor)
                     {
-                        var doctorUserIds = await _unitOfWork.DoctorRepository
-                            .GetAllAsync(d => d.ClinicId == _currentUserService.CurrentClinicId.Value)
-                            .IgnoreQueryFilters()
-                            .Select(d => d.UserId)
-                            .ToListAsync(cancellationToken);
+                        var clinicId = request.ClinicId ?? _currentUserService.CurrentClinicId;
+                        var doctorUserIds = clinicId.HasValue
+                            ? await _unitOfWork.DoctorRepository
+                                .GetAllAsync(d => d.ClinicId == clinicId.Value)
+                                .IgnoreQueryFilters()
+                                .Select(d => d.UserId)
+                                .ToListAsync(cancellationToken)
+                            : await _unitOfWork.DoctorRepository
+                                .GetAllAsync(null)
+                                .IgnoreQueryFilters()
+                                .Select(d => d.UserId)
+                                .ToListAsync(cancellationToken);
 
                         foreach (var id in doctorUserIds)
                             userIds.Add(id);
@@ -75,8 +83,12 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
 
             if (request.IsUnassigned.HasValue)
             {
+                var clinicId = request.ClinicId ?? _currentUserService.CurrentClinicId;
+                Expression<Func<Doctor, bool>>? doctorFilter = clinicId.HasValue
+                    ? (d => d.ClinicId == clinicId.Value)
+                    : null;
                 var doctorUserIds = await _unitOfWork.DoctorRepository
-                    .GetAllAsync(null)
+                    .GetAllAsync(doctorFilter)
                     .Select(d => d.UserId)
                     .ToListAsync(cancellationToken);
 

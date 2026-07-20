@@ -1,8 +1,6 @@
-﻿Opening repositories:
-E:\ClinicHub
-Commit b1ad0c2e created locally in repository E:\ClinicHub
-Git failed with a fatal error.
-unable to access 'https://github.com/MohamedSaber2004/ClinicHub.git/': Could not resolve host: github.com
-
-Git failed with a fatal error.
-unable to access 'https://github.com/MohamedSaber2004/ClinicHub.git/': Could not resolve host: github.com
+﻿I've traced the full subscription filter flow end-to-end and the ClinicHub frontend code is correct — the parameter flows properly:
+1. JS → sends &subscriptionStatus=0 (camelCase, "0" as string)
+2. Controller → int? subscriptionStatus = 0 → SubscriptionStatus = SubscriptionStatus.Active
+3. Service → sends &SubscriptionStatus=0 (PascalCase, 0 as int) to Doctory API
+The issue is likely in the Doctory API's GetAllClinicsPaginated endpoint — it probably doesn't implement filtering by SubscriptionStatus, causing the parameter to be silently ignored. All the scaffolding on our end (dropdown value="0..3", buildFilterQuery(), controller mapping, service URL builder, ClinicManagmentDto.SubscriptionStatus) is in place and correct.
+Could you check the Doctory API's GetAllClinicsQuery handler to see if SubscriptionStatus filtering is implemented there? If not, I can implement a client-side workaround (filter the already-fetched results), but it won't work with server-side pagination properly.

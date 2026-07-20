@@ -40,33 +40,34 @@ namespace ClinicHub.Application.Features.Clinics.Commands.CreateClinic
 
         public async Task<ClinicManagementDto> Handle(CreateClinicCommand request, CancellationToken cancellationToken)
         {
-            var dto = request.Dto;
 
             var clinic = new Clinic
             {
-                Name = dto.Name,
-                NameAr = dto.NameAr,
-                Description = dto.Description,
-                ArDescription = dto.ArDescription,
-                Address = dto.Address,
-                AddressAr = dto.AddressAr,
-                Phone = dto.Phone,
-                Email = dto.Email,
-                Website = dto.Website,
-                Logo = dto.Logo,
-                WorkingHours = dto.WorkingHours,
-                WorkingHoursStart = dto.WorkingHoursStart,
-                WorkingHoursEnd = dto.WorkingHoursEnd,
-                WorkingDays = dto.WorkingDays != null ? string.Join(",", dto.WorkingDays) : null,
-                SpecializationId = dto.SpecializationId,
-                Location = new Point(0, 0) { SRID = 4326 },
+                Name = request.NameAr,
+                NameAr = request.NameAr,
+                Description = request.Description,
+                ArDescription = request.ArDescription,
+                Address = request.Address,
+                AddressAr = request.AddressAr,
+                Phone = request.Phone,
+                Email = request.Email,
+                Website = request.Website,
+                Logo = request.Logo,
+                WorkingHours = request.WorkingHours,
+                WorkingHoursStart = request.WorkingHoursStart,
+                WorkingHoursEnd = request.WorkingHoursEnd,
+                WorkingDays = request.WorkingDays != null ? string.Join(",", request.WorkingDays) : null,
+                SpecializationId = request.SpecializationId,
+                Location = request.Lat.HasValue && request.Lng.HasValue
+                    ? new Point(request.Lng.Value, request.Lat.Value) { SRID = 4326 }
+                    : new Point(0, 0) { SRID = 4326 },
                 IsRegistered = true,
                 Status = ClinicStatus.Active
             };
 
             var tempPassword = GenerateRandomPassword(12);
 
-            var user = ApplicationUser.Create(dto.OwnerName, dto.OwnerEmail, dto.OwnerPhone ?? string.Empty, null, null);
+            var user = ApplicationUser.Create(request.OwnerName, request.OwnerEmail, request.OwnerPhone ?? string.Empty, null, null);
             user.EmailConfirmed = true;
 
             var createResult = await _userManager.CreateAsync(user, tempPassword);
@@ -93,7 +94,25 @@ namespace ClinicHub.Application.Features.Clinics.Commands.CreateClinic
             await _unitOfWork.ClinicRepository.AddAsync(clinic);
             await _unitOfWork.SaveChangesAsync();
 
-            await _emailService.SendClinicCredentialsAsync(dto.OwnerEmail, dto.Name, dto.OwnerEmail, tempPassword, cancellationToken);
+            user.AssignToClinic(clinic.Id);
+            var updateResult = await _userManager.UpdateAsync(user);
+            if (!updateResult.Succeeded)
+            {
+                var errors = string.Join(", ", updateResult.Errors.Select(e => e.Description));
+                throw new BadRequestException(errors);
+            }
+
+            var doctor = new Doctor(
+                userId: user.Id,
+                clinicId: clinic.Id,
+                specializationId: request.DoctorSpecializationId,
+                bio: request.Bio ?? string.Empty,
+                yearsOfExperience: request.YearsOfExperience);
+            doctor.MarkAsCreated(createdBy);
+            await _unitOfWork.DoctorRepository.AddAsync(doctor);
+            await _unitOfWork.SaveChangesAsync();
+
+            await _emailService.SendClinicCredentialsAsync(request.OwnerEmail, request.Name, request.OwnerEmail, tempPassword, cancellationToken);
 
             var clinicDto = _mapper.Map<ClinicManagementDto>(clinic);
             return clinicDto;

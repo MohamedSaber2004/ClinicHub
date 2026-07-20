@@ -20,76 +20,94 @@ namespace ClinicHub.Application.Features.Clinics.Commands.CreateClinic
             _userManager = userManager;
             _localizer = localizer;
 
-            RuleFor(x => x.Dto)
-                .NotNull().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value]);
+            //RuleFor(x => x.Dto.Name)
+            //    .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value])
+            //    .MaximumLength(200).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
 
-            RuleFor(x => x.Dto.Name)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value])
-                .MaximumLength(200).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
-
-            RuleFor(x => x.Dto.Email)
+            RuleFor(x => x.Email)
                 .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value])
                 .EmailAddress().WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidEmail.Value])
                 .MustAsync(BeUniqueClinicEmail).WithMessage(localizer[LocalizationKeys.ClinicMessages.EmailAlreadyExists.Value]);
 
-            RuleFor(x => x.Dto.SpecializationId)
+            RuleFor(x => x.SpecializationId)
                 .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value])
                 .MustAsync(SpecializationExists);
 
-            RuleFor(x => x.Dto.Phone)
+            RuleFor(x => x.Phone)
                 .MaximumLength(11).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value])
                 .Matches(@"^01[0125][0-9]{8}$").WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value])
                 .MustAsync(BeUniqueClinicPhone).WithMessage(localizer[LocalizationKeys.ClinicMessages.PhoneAlreadyExists.Value])
-                .When(x => !string.IsNullOrWhiteSpace(x.Dto.Phone));
+                .When(x => !string.IsNullOrWhiteSpace(x.Phone));
+            //RuleFor(x => x.Dto.Website)
+            //    .MaximumLength(500).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value])
+            //    .When(x => !string.IsNullOrWhiteSpace(x.Dto.Website));
 
-            RuleFor(x => x.Dto.Website)
-                .MaximumLength(500).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
+            //RuleFor(x => x.Dto.Logo)
+            //    .MaximumLength(500).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value])
+            //    .When(x => !string.IsNullOrWhiteSpace(x.Dto.Logo));
 
-            RuleFor(x => x.Dto.Logo)
-                .MaximumLength(500).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
+            //RuleFor(x => x.Dto.NameAr)
+            //    .MaximumLength(200).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value])
+            //    .When(x => !string.IsNullOrWhiteSpace(x.Dto.NameAr));
 
-            RuleFor(x => x.Dto.NameAr)
-                .MaximumLength(200).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
+            //RuleFor(x => x.Dto.Description)
+            //    .MaximumLength(1000).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
 
-            RuleFor(x => x.Dto.Description)
-                .MaximumLength(1000).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
+            //RuleFor(x => x.Dto.ArDescription)
+            //    .MaximumLength(1000).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
 
-            RuleFor(x => x.Dto.ArDescription)
-                .MaximumLength(1000).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
+            //RuleFor(x => x.Dto.Address)
+            //    .MaximumLength(500).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
 
-            RuleFor(x => x.Dto.Address)
-                .MaximumLength(500).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
+            //RuleFor(x => x.Dto.AddressAr)
+            //    .MaximumLength(500).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
 
-            RuleFor(x => x.Dto.AddressAr)
-                .MaximumLength(500).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
+            //RuleFor(x => x.Dto.WorkingHours)
+            //    .MaximumLength(500).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
 
-            RuleFor(x => x.Dto.WorkingHours)
-                .MaximumLength(500).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
+            RuleFor(x => x.OwnerName)
+                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value]);
 
-            RuleFor(x => x.Dto.OwnerName)
-                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value])
-                .MaximumLength(100).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
-
-            RuleFor(x => x.Dto.OwnerEmail)
+            RuleFor(x => x.OwnerEmail)
                 .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value])
                 .EmailAddress().WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidEmail.Value])
                 .MustAsync(async (email, ct) => !await EmailExists(email, ct)).WithMessage(localizer[LocalizationKeys.AuthMessages.EmailAlreadyExists.Value]);
 
-            RuleFor(x => x.Dto.OwnerPhone)
+            RuleFor(x => x.OwnerPhone)
                 .MaximumLength(11).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value])
                 .Matches(@"^01[0125][0-9]{8}$").WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value])
                 .MustAsync(async (phone, ct) => !await OwnerPhoneExists(phone, ct)).WithMessage(localizer[LocalizationKeys.AuthMessages.PhoneNumberExistsBefore.Value])
-                .When(x => !string.IsNullOrWhiteSpace(x.Dto.OwnerPhone));
+                .When(x => !string.IsNullOrWhiteSpace(x.OwnerPhone));
 
-            RuleFor(x => x.Dto.WorkingHoursStart)
-                .LessThan(x => x.Dto.WorkingHoursEnd)
+            RuleFor(x => x.WorkingHoursStart)
+                .LessThan(x => x.WorkingHoursEnd)
                 .WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidTimeRange.Value])
-                .When(x => x.Dto.WorkingHoursStart.HasValue && x.Dto.WorkingHoursEnd.HasValue);
+                .When(x => x.WorkingHoursStart.HasValue && x.WorkingHoursEnd.HasValue);
 
-            RuleFor(x => x.Dto.WorkingDays)
+            RuleFor(x => x.Lat)
+                .InclusiveBetween(-90, 90).WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value])
+                .When(x => x.Lat.HasValue);
+
+            RuleFor(x => x.Lng)
+                .InclusiveBetween(-180, 180).WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value])
+                .When(x => x.Lng.HasValue);
+
+            RuleFor(x => x.DoctorSpecializationId)
+                .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value])
+                .MustAsync(SpecializationExists);
+
+            RuleFor(x => x.Bio)
+                .MaximumLength(2000).WithMessage(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value])
+                .When(x => !string.IsNullOrWhiteSpace(x.Bio));
+
+            RuleFor(x => x.YearsOfExperience)
+                .GreaterThanOrEqualTo(0).WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value])
+                .LessThanOrEqualTo(50).WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value]);
+
+            RuleFor(x => x.WorkingDays)
                 .Must(BeValidDayNames)
                 .WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidWorkingDays.Value])
-                .When(x => x.Dto.WorkingDays != null && x.Dto.WorkingDays.Count > 0);
+                .When(x => x.WorkingDays != null && x.WorkingDays.Count > 0);
         }
 
         private static bool BeValidDayNames(List<DayOfWeek>? days)

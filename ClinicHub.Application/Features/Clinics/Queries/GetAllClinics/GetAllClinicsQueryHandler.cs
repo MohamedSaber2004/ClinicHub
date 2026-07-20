@@ -1,5 +1,6 @@
 using AutoMapper;
 using ClinicHub.Application.Features.Clinics.DTOs;
+using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +20,10 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetAllClinics
 
         public async Task<List<ClinicManagementDto>> Handle(GetAllClinicsQuery request, CancellationToken cancellationToken)
         {
-            var query = _unitOfWork.ClinicRepository.GetAllAsync(null);
+            var query = _unitOfWork.ClinicRepository.GetAllWithIncluding(null,
+                c => c.Specialization,
+                c => c.ClinicAdmin!,
+                c => c.Subscriptions);
 
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
             {

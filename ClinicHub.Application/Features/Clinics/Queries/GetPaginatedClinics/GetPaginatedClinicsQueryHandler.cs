@@ -1,6 +1,7 @@
 using AutoMapper;
 using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Features.Clinics.DTOs;
+using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -53,12 +54,6 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetPaginatedClinics
 
             if (request.CreatedTo.HasValue)
                 query = query.Where(c => c.CreatedAt <= request.CreatedTo.Value);
-
-            if (request.SubscriptionStatus.HasValue)
-                query = query.Where(c => c.Subscriptions
-                    .OrderByDescending(s => s.EndDate)
-                    .Select(s => s.Status)
-                    .FirstOrDefault() == request.SubscriptionStatus.Value);
 
             query = (request.SortBy?.ToLower()) switch
             {

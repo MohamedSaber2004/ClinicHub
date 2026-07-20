@@ -32,13 +32,13 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="dto"></param>
         /// <returns></returns>
         [HttpPost]
-        [RoleAuthorize]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [Route(ApiRoutes.ClinicManagement.Create)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Create([FromBody] CreateClinicDto dto)
+        public async Task<IActionResult> Create([FromBody]CreateClinicCommand request)
         {
-            var result = await _mediator.Send(new CreateClinicCommand(dto));
+            var result = await _mediator.Send(request);
             return Created(nameof(CreateClinicCommand), result);
         }
 
@@ -66,7 +66,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <returns>The updated clinic information.</returns>
         [HttpPut]
         [Route(ApiRoutes.ClinicManagement.Update)]
-        [RoleAuthorize]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateClinicDto dto)
@@ -82,7 +82,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <returns>The activated clinic information.</returns>
         [HttpPatch]
         [Route(ApiRoutes.ClinicManagement.Activate)]
-        [RoleAuthorize]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Activate(Guid id)
@@ -97,7 +97,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <param name="id">The ID of the clinic to deactivate.</param>
         /// <returns>The deactivated clinic information.</returns>
         [HttpPatch]
-        [RoleAuthorize]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [Route(ApiRoutes.ClinicManagement.Deactivate)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -114,7 +114,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <returns>The clinic information.</returns>
         [HttpGet]
         [Route(ApiRoutes.ClinicManagement.GetById)]
-        [RoleAuthorize]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById(Guid id)
@@ -131,7 +131,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <returns></returns>
         [HttpGet]
         [Route(ApiRoutes.ClinicManagement.GetPaginated)]
-        [RoleAuthorize]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetPaginated([FromQuery] GetPaginatedClinicsQuery query)
@@ -145,7 +145,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// </summary>
         [HttpGet]
         [Route(ApiRoutes.ClinicManagement.Dashboard)]
-        [RoleAuthorize]
+        [RoleAuthorize(nameof(UserType.ClinicOwner))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Dashboard()
         {
@@ -158,7 +158,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// </summary>
         [HttpGet]
         [Route(ApiRoutes.ClinicManagement.GetBookings)]
-        [RoleAuthorize]
+        [RoleAuthorize(nameof(UserType.ClinicOwner))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetBookings([FromQuery] GetClinicBookingsQuery query)
@@ -172,7 +172,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// </summary>
         [HttpPost]
         [Route(ApiRoutes.ClinicManagement.AcceptBooking)]
-        [RoleAuthorize]
+        [RoleAuthorize(nameof(UserType.ClinicOwner))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -187,7 +187,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// </summary>
         [HttpPost]
         [Route(ApiRoutes.ClinicManagement.RejectBooking)]
-        [RoleAuthorize]
+        [RoleAuthorize(nameof(UserType.ClinicOwner))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
