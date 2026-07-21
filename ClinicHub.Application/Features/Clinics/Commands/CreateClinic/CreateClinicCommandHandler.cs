@@ -40,82 +40,86 @@ namespace ClinicHub.Application.Features.Clinics.Commands.CreateClinic
 
         public async Task<ClinicManagementDto> Handle(CreateClinicCommand request, CancellationToken cancellationToken)
         {
-
-            var clinic = new Clinic
+            await _unitOfWork.BeginTransactionAsync();
+            try
             {
-                Name = request.NameAr,
-                NameAr = request.NameAr,
-                Description = request.Description,
-                ArDescription = request.ArDescription,
-                Address = request.Address,
-                AddressAr = request.AddressAr,
-                Phone = request.Phone,
-                Email = request.Email,
-                Website = request.Website,
-                Logo = request.Logo,
-                WorkingHours = request.WorkingHours,
-                WorkingHoursStart = request.WorkingHoursStart,
-                WorkingHoursEnd = request.WorkingHoursEnd,
-                WorkingDays = request.WorkingDays != null ? string.Join(",", request.WorkingDays) : null,
-                SpecializationId = request.SpecializationId,
-                Location = request.Lat.HasValue && request.Lng.HasValue
-                    ? new Point(request.Lng.Value, request.Lat.Value) { SRID = 4326 }
-                    : new Point(0, 0) { SRID = 4326 },
-                IsRegistered = true,
-                Status = ClinicStatus.Active
-            };
+                var clinic = new Clinic
+                {
+                    Name = request.NameAr,
+                    NameAr = request.NameAr,
+                    Description = request.Description,
+                    ArDescription = request.ArDescription,
+                    Address = request.Address,
+                    AddressAr = request.AddressAr,
+                    Phone = request.Phone,
+                    Email = request.Email,
+                    Website = request.Website,
+                    Logo = request.Logo,
+                    WorkingHours = request.WorkingHours,
+                    WorkingHoursStart = request.WorkingHoursStart,
+                    WorkingHoursEnd = request.WorkingHoursEnd,
+                    WorkingDays = request.WorkingDays != null ? string.Join(",", request.WorkingDays) : null,
+                    SpecializationId = request.SpecializationId,
+                    Location = request.Lat.HasValue && request.Lng.HasValue
+                        ? new Point(request.Lng.Value, request.Lat.Value) { SRID = 4326 }
+                        : new Point(0, 0) { SRID = 4326 },
+                    IsRegistered = true,
+                    Status = ClinicStatus.Active
+                };
 
-            var tempPassword = GenerateRandomPassword(12);
+                var tempPassword = GenerateRandomPassword(12);
 
-            var user = ApplicationUser.Create(request.OwnerName, request.OwnerEmail, request.OwnerPhone ?? string.Empty, null, null);
-            user.EmailConfirmed = true;
+                var user = ApplicationUser.Create(request.OwnerName, request.OwnerEmail, request.OwnerPhone ?? string.Empty, null, null);
+                user.EmailConfirmed = true;
 
-            var createResult = await _userManager.CreateAsync(user, tempPassword);
-            if (!createResult.Succeeded)
-            {
-                var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
-                throw new BadRequestException(errors);
+                var createResult = await _userManager.CreateAsync(user, tempPassword);
+                if (!createResult.Succeeded)
+                {
+                    var errors = string.Join(", ", createResult.Errors.Select(e => e.Description));
+                    throw new BadRequestException(errors);
+                }
+
+                var roleResult = await _userManager.AddToRoleAsync(user, UserType.ClinicOwner.ToString());
+                if (!roleResult.Succeeded)
+                {
+                    var roleErrors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
+                    throw new BadRequestException(roleErrors);
+                }
+
+                clinic.ClinicAdminId = user.Id;
+
+                var createdBy = _currentUserService.IsAuthenticated
+                    ? _currentUserService.UserId.ToString()
+                    : "system";
+                clinic.MarkAsCreated(createdBy);
+
+                user.AssignToClinic(clinic.Id);
+
+                await _unitOfWork.ClinicRepository.AddAsync(clinic);
+
+                var doctor = new Doctor(
+                    userId: user.Id,
+                    clinicId: clinic.Id,
+                    specializationId: request.DoctorSpecializationId,
+                    bio: request.Bio ?? string.Empty,
+                    yearsOfExperience: request.YearsOfExperience);
+                doctor.MarkAsCreated(createdBy);
+                await _unitOfWork.DoctorRepository.AddAsync(doctor);
+
+                await _unitOfWork.SaveChangesAsync();
+
+                await _unitOfWork.CommitAsync();
+
+                await _emailService.SendClinicCredentialsAsync(request.OwnerEmail, request.Name, request.OwnerEmail, tempPassword, cancellationToken);
+
+                var clinicDto = _mapper.Map<ClinicManagementDto>(clinic);
+                return clinicDto;
             }
-
-            var roleResult = await _userManager.AddToRoleAsync(user, UserType.ClinicOwner.ToString());
-            if (!roleResult.Succeeded)
+            catch
             {
-                var roleErrors = string.Join(", ", roleResult.Errors.Select(e => e.Description));
-                throw new BadRequestException(roleErrors);
+                await _unitOfWork.RollbackAsync();
+                throw;
             }
-
-            clinic.ClinicAdminId = user.Id;
-
-            var createdBy = _currentUserService.IsAuthenticated
-                ? _currentUserService.UserId.ToString()
-                : "system";
-            clinic.MarkAsCreated(createdBy);
-
-            await _unitOfWork.ClinicRepository.AddAsync(clinic);
-            await _unitOfWork.SaveChangesAsync();
-
-            user.AssignToClinic(clinic.Id);
-            var updateResult = await _userManager.UpdateAsync(user);
-            if (!updateResult.Succeeded)
-            {
-                var errors = string.Join(", ", updateResult.Errors.Select(e => e.Description));
-                throw new BadRequestException(errors);
-            }
-
-            var doctor = new Doctor(
-                userId: user.Id,
-                clinicId: clinic.Id,
-                specializationId: request.DoctorSpecializationId,
-                bio: request.Bio ?? string.Empty,
-                yearsOfExperience: request.YearsOfExperience);
-            doctor.MarkAsCreated(createdBy);
-            await _unitOfWork.DoctorRepository.AddAsync(doctor);
-            await _unitOfWork.SaveChangesAsync();
-
-            await _emailService.SendClinicCredentialsAsync(request.OwnerEmail, request.Name, request.OwnerEmail, tempPassword, cancellationToken);
-
-            var clinicDto = _mapper.Map<ClinicManagementDto>(clinic);
-            return clinicDto;
         }
 
         private static string GenerateRandomPassword(int length)
