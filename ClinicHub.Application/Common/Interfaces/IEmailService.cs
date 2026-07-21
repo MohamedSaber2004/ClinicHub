@@ -29,5 +29,10 @@ namespace ClinicHub.Application.Common.Interfaces
         /// Sends clinic credentials to a newly created clinic admin.
         /// </summary>
         Task SendClinicCredentialsAsync(string toEmail, string clinicName, string email, string temporaryPassword, CancellationToken ct = default);
+
+        /// <summary>
+        /// Sends a verification approved notification with a deep link to open the app.
+        /// </summary>
+        Task SendVerificationApprovedAsync(string toEmail, string fullName, string userId, string role, CancellationToken ct = default);
     }
 }

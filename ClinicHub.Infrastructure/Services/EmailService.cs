@@ -58,6 +58,27 @@ namespace ClinicHub.Infrastructure.Services
             await SendEmailAsync(toEmail, clinicName, subject, body, ct);
         }
 
+        public async Task SendVerificationApprovedAsync(string toEmail, string fullName, string userId, string role, CancellationToken ct = default)
+        {
+            var subject = "ClinicHub - Account Verified";
+            var deepLink = $"clinichub://verification-approved?userId={userId}&role={role}";
+            var body = $@"
+                <html>
+                <body style='font-family: Arial, sans-serif;'>
+                    <h2>Hello {fullName},</h2>
+                    <p>Your ClinicHub account has been verified successfully!</p>
+                    <p>You can now access your account by tapping the link below:</p>
+                    <div style='text-align: center; margin: 25px 0;'>
+                        <a href='{deepLink}' style='background-color: #4CAF50; color: white; padding: 14px 28px; text-decoration: none; border-radius: 5px; font-size: 1.1em; display: inline-block;'>Open ClinicHub</a>
+                    </div>
+                    <p>If the button doesn't work, copy and paste this link in your browser: <br/><strong>{deepLink}</strong></p>
+                    <p>Regards,<br />ClinicHub Team</p>
+                </body>
+                </html>";
+
+            await SendEmailAsync(toEmail, fullName, subject, body, ct);
+        }
+
         public async Task SendVerificationEmailAsync(string toEmail, string fullName, string verificationCode, CancellationToken ct = default)
         {
             var subject = "ClinicHub - Account Verification";

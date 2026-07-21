@@ -54,6 +54,13 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
             if (!user.IsActive)
                 throw new ForbiddenException(_localizer[LocalizationKeys.AuthMessages.AccountPendingApproval.Value]);
 
+            var hasPendingVerification = await _unitOfWork.UserVerificationRepository
+                .GetAllAsync(v => v.UserId == user.Id && !v.IsDeleted && v.Status == Domain.Enums.VerificationStatus.Pending)
+                .AnyAsync(cancellationToken);
+
+            if (hasPendingVerification)
+                throw new ForbiddenException(_localizer[LocalizationKeys.AuthMessages.AccountPendingApproval.Value]);
+
             var roles = await _userManager.GetRolesAsync(user);
             var clinicId = await _unitOfWork.ClinicRepository
                 .GetAllAsync(c => c.ClinicAdminId == user.Id && !c.IsDeleted)

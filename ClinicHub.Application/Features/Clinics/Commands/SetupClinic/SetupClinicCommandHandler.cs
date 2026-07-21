@@ -44,6 +44,10 @@ namespace ClinicHub.Application.Features.Clinics.Commands.SetupClinic
             if (user == null)
                 throw new NotFoundException(_localizer[LocalizationKeys.ExceptionMessages.NotFound.Value]);
 
+            var createdBy = _currentUserService.IsAuthenticated
+                ? _currentUserService.UserId.ToString()
+                : "system";
+
             var clinic = new Clinic
             {
                 Name = dto.Name,
@@ -66,10 +70,6 @@ namespace ClinicHub.Application.Features.Clinics.Commands.SetupClinic
                 Status = ClinicStatus.Active,
                 ClinicAdminId = user.Id
             };
-
-            var createdBy = _currentUserService.IsAuthenticated
-                ? _currentUserService.UserId.ToString()
-                : "system";
             clinic.MarkAsCreated(createdBy);
 
             await _unitOfWork.ClinicRepository.AddAsync(clinic);
@@ -86,14 +86,17 @@ namespace ClinicHub.Application.Features.Clinics.Commands.SetupClinic
                     dto.SpecializationId,
                     string.Empty,
                     0);
-
+                doctor.MarkAsCreated(createdBy);
                 await _unitOfWork.DoctorRepository.AddAsync(doctor);
             }
-
-            await _unitOfWork.SaveChangesAsync();
+            else
+            {
+                existingDoctor.AssignToClinic(clinic.Id);
+            }
 
             user.AssignToClinic(clinic.Id);
-            await _userManager.UpdateAsync(user);
+
+            await _unitOfWork.SaveChangesAsync();
 
             var clinicDto = _mapper.Map<ClinicManagementDto>(clinic);
             return clinicDto;

@@ -16,17 +16,20 @@ namespace ClinicHub.Application.Features.Admin.Commands.ApproveUserVerification
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IEmailService _emailService;
         private readonly IStringLocalizer<Messages> _localizer;
 
         public ApproveUserVerificationCommandHandler(
             IUnitOfWork unitOfWork,
             UserManager<ApplicationUser> userManager,
             ICurrentUserService currentUserService,
+            IEmailService emailService,
             IStringLocalizer<Messages> localizer)
         {
             _unitOfWork = unitOfWork;
             _userManager = userManager;
             _currentUserService = currentUserService;
+            _emailService = emailService;
             _localizer = localizer;
         }
 
@@ -56,7 +59,7 @@ namespace ClinicHub.Application.Features.Admin.Commands.ApproveUserVerification
 
             await _userManager.AddToRoleAsync(user, roleName);
 
-            if (verification.RequestedRole == UserType.Doctor && verification.SpecializationId.HasValue)
+            if (verification is { SpecializationId: not null, RequestedRole: UserType.Doctor or UserType.ClinicOwner })
             {
                 var doctor = new Doctor(
                     user.Id,
@@ -68,6 +71,10 @@ namespace ClinicHub.Application.Features.Admin.Commands.ApproveUserVerification
             }
 
             await _unitOfWork.SaveChangesAsync();
+
+            await _emailService.SendVerificationApprovedAsync(
+                user.Email!, user.FullName, user.Id.ToString(), roleName, cancellationToken);
+
             return true;
         }
     }
