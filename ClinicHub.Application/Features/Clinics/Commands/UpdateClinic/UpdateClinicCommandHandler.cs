@@ -30,40 +30,51 @@ namespace ClinicHub.Application.Features.Clinics.Commands.UpdateClinic
 
         public async Task<ClinicManagementDto> Handle(UpdateClinicCommand request, CancellationToken cancellationToken)
         {
-            var clinic = await _unitOfWork.ClinicRepository.GetByIdAsync(request.Id);
-            if (clinic == null)
+            await _unitOfWork.BeginTransactionAsync();
+
+            try
             {
-                throw new NotFoundException(LocalizationKeys.ClinicMessages.ClinicNotFound.Value);
+                var clinic = await _unitOfWork.ClinicRepository.GetByIdAsync(request.Id);
+                if (clinic == null)
+                {
+                    throw new NotFoundException(LocalizationKeys.ClinicMessages.ClinicNotFound.Value);
+                }
+
+                var updatedBy = _currentUserService.IsAuthenticated
+                    ? _currentUserService.UserId.ToString()
+                    : "system";
+
+                clinic.UpdateDetails(
+                    request.Name,
+                    request.NameAr,
+                    request.Description,
+                    request.ArDescription,
+                    request.Address,
+                    request.AddressAr,
+                    request.Phone,
+                    request.Email,
+                    request.Website,
+                    request.Logo,
+                    request.WorkingHours,
+                    request.SpecializationId,
+                    updatedBy,
+                    request.WorkingHoursStart,
+                    request.WorkingHoursEnd,
+                    request.WorkingDays != null ? string.Join(",", request.WorkingDays) : null);
+
+                _unitOfWork.ClinicRepository.Update(clinic);
+                await _unitOfWork.SaveChangesAsync();
+
+                await _unitOfWork.CommitAsync();
+
+                var clinicDto = _mapper.Map<ClinicManagementDto>(clinic);
+                return clinicDto;
             }
-
-            var dto = request.Dto;
-            var updatedBy = _currentUserService.IsAuthenticated
-                ? _currentUserService.UserId.ToString()
-                : "system";
-
-            clinic.UpdateDetails(
-                dto.Name,
-                dto.NameAr,
-                dto.Description,
-                dto.ArDescription,
-                dto.Address,
-                dto.AddressAr,
-                dto.Phone,
-                dto.Email,
-                dto.Website,
-                dto.Logo,
-                dto.WorkingHours,
-                dto.SpecializationId,
-                updatedBy,
-                dto.WorkingHoursStart,
-                dto.WorkingHoursEnd,
-                dto.WorkingDays != null ? string.Join(",", dto.WorkingDays) : null);
-
-            _unitOfWork.ClinicRepository.Update(clinic);
-            await _unitOfWork.SaveChangesAsync();
-
-            var clinicDto = _mapper.Map<ClinicManagementDto>(clinic);
-            return clinicDto;
+            catch
+            {
+                await _unitOfWork.RollbackAsync();
+                throw;
+            }
         }
     }
 }

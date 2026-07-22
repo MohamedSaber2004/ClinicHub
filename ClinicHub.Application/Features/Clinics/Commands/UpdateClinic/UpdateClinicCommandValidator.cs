@@ -18,60 +18,57 @@ namespace ClinicHub.Application.Features.Clinics.Commands.UpdateClinic
             RuleFor(x => x.Id)
                 .NotEmpty().WithMessage(_localizer[LocalizationKeys.ValidationMessages.Required.Value]);
 
-            RuleFor(x => x.Dto)
-                .NotNull().WithMessage(_localizer[LocalizationKeys.ValidationMessages.Required.Value]);
-
-            RuleFor(x => x.Dto.Name)
+            RuleFor(x => x.Name)
                 .NotEmpty().WithMessage(_localizer[LocalizationKeys.ValidationMessages.Required.Value])
                 .MaximumLength(200).WithMessage(_localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
 
-            RuleFor(x => x.Dto.Email)
+            RuleFor(x => x.Email)
                 .NotEmpty().WithMessage(_localizer[LocalizationKeys.ValidationMessages.Required.Value])
                 .EmailAddress().WithMessage(_localizer[LocalizationKeys.ValidationMessages.InvalidEmail.Value])
                 .MustAsync(BeUniqueEmail).WithMessage(_localizer[LocalizationKeys.ClinicMessages.EmailAlreadyExists.Value]);
 
-            RuleFor(x => x.Dto.SpecializationId)
+            RuleFor(x => x.SpecializationId)
                 .NotEmpty().WithMessage(_localizer[LocalizationKeys.ValidationMessages.Required.Value]);
 
-            RuleFor(x => x.Dto.Phone)
+            RuleFor(x => x.Phone)
                 .MaximumLength(11).WithMessage(_localizer[LocalizationKeys.ValidationMessages.MaxLength.Value])
                 .Matches(@"^01[0125][0-9]{8}$").WithMessage(_localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value])
                 .MustAsync(BeUniquePhone).WithMessage(_localizer[LocalizationKeys.ClinicMessages.PhoneAlreadyExists.Value])
-                .When(x => !string.IsNullOrWhiteSpace(x.Dto.Phone));
+                .When(x => !string.IsNullOrWhiteSpace(x.Phone));
 
-            RuleFor(x => x.Dto.Website)
+            RuleFor(x => x.Website)
                 .MaximumLength(500).WithMessage(_localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
 
-            RuleFor(x => x.Dto.Logo)
+            RuleFor(x => x.Logo)
                 .MaximumLength(500).WithMessage(_localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
 
-            RuleFor(x => x.Dto.NameAr)
+            RuleFor(x => x.NameAr)
                 .MaximumLength(200).WithMessage(_localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
 
-            RuleFor(x => x.Dto.Description)
+            RuleFor(x => x.Description)
                 .MaximumLength(1000).WithMessage(_localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
 
-            RuleFor(x => x.Dto.ArDescription)
+            RuleFor(x => x.ArDescription)
                 .MaximumLength(1000).WithMessage(_localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
 
-            RuleFor(x => x.Dto.Address)
+            RuleFor(x => x.Address)
                 .MaximumLength(500).WithMessage(_localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
 
-            RuleFor(x => x.Dto.AddressAr)
+            RuleFor(x => x.AddressAr)
                 .MaximumLength(500).WithMessage(_localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
 
-            RuleFor(x => x.Dto.WorkingHours)
+            RuleFor(x => x.WorkingHours)
                 .MaximumLength(500).WithMessage(_localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]);
 
-            RuleFor(x => x.Dto.WorkingHoursStart)
-                .LessThan(x => x.Dto.WorkingHoursEnd)
+            RuleFor(x => x.WorkingHoursStart)
+                .LessThan(x => x.WorkingHoursEnd)
                 .WithMessage(_localizer[LocalizationKeys.ValidationMessages.InvalidTimeRange.Value])
-                .When(x => x.Dto.WorkingHoursStart.HasValue && x.Dto.WorkingHoursEnd.HasValue);
+                .When(x => x.WorkingHoursStart.HasValue && x.WorkingHoursEnd.HasValue);
 
-            RuleFor(x => x.Dto.WorkingDays)
+            RuleFor(x => x.WorkingDays)
                 .Must(BeValidDayNames)
                 .WithMessage(_localizer[LocalizationKeys.ValidationMessages.InvalidWorkingDays.Value])
-                .When(x => x.Dto.WorkingDays != null && x.Dto.WorkingDays.Count > 0);
+                .When(x => x.WorkingDays != null && x.WorkingDays.Count > 0);
         }
 
         private static bool BeValidDayNames(List<DayOfWeek>? days)

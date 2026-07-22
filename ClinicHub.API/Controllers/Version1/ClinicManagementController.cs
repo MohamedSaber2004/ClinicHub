@@ -69,9 +69,9 @@ namespace ClinicHub.API.Controllers.Version1
         [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateClinicDto dto)
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateClinicCommand request)
         {
-            var result = await _mediator.Send(new UpdateClinicCommand(id, dto));
+            var result = await _mediator.Send(request with { Id = id });
             return Ok(result);
         }
 
