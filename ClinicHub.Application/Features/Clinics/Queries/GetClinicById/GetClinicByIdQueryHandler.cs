@@ -23,6 +23,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicById
         {
             var clinic = await _unitOfWork.ClinicRepository
                 .GetAllAsync(c => c.Id == request.Id)
+                .IgnoreQueryFilters()
                 .Include(c => c.Specialization)
                 .Include(c => c.ClinicAdmin)
                 .FirstOrDefaultAsync(cancellationToken);
