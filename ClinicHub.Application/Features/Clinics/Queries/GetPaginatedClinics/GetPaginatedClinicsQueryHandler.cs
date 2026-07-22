@@ -24,7 +24,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetPaginatedClinics
             var query = _unitOfWork.ClinicRepository.GetAllWithIncluding(null,
                 c => c.Specialization,
                 c => c.ClinicAdmin!,
-                c => c.Subscriptions);
+                c => c.Subscriptions).IgnoreQueryFilters();
 
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))
             {
