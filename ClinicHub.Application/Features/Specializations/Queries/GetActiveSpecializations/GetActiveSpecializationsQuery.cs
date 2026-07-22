@@ -3,5 +3,5 @@ using MediatR;
 
 namespace ClinicHub.Application.Features.Specializations.Queries.GetActiveSpecializations
 {
-    public record GetActiveSpecializationsQuery : IRequest<List<SpecializationLookupDto>>;
+    public record GetActiveSpecializationsQuery(bool IsFamous = true) : IRequest<List<SpecializationLookupDto>>;
 }

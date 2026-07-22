@@ -1,10 +1,10 @@
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using ClinicHub.Application.Common.Extensions;
+using ClinicHub.Application.Features.Specializations.DTOs;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using ClinicHub.Application.Features.Specializations.DTOs;
-using ClinicHub.Domain.Entities;
 
 namespace ClinicHub.Application.Features.Specializations.Queries.GetActiveSpecializations
 {
@@ -23,6 +23,7 @@ namespace ClinicHub.Application.Features.Specializations.Queries.GetActiveSpecia
         {
             return await _unitOfWork.SpecializationRepository
                 .GetAllAsync(s => s.IsActive)
+                .WhereIf(request.IsFamous, s => s.IsFamous)
                 .Where(s => !s.IsDeleted)
                 .ProjectTo<SpecializationLookupDto>(_mapper.ConfigurationProvider)
                 .ToListAsync(cancellationToken);
