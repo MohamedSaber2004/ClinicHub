@@ -24,6 +24,7 @@ namespace ClinicHub.Application.Features.Specializations.Queries.GetAllSpecializ
             var specializations = await _unitOfWork.SpecializationRepository
                 .GetAllAsync(null)
                 .WhereIf(request.IsFamous.HasValue, s => s.IsFamous == request.IsFamous!.Value)
+                .WhereIf(request.IsActive.HasValue, s => request.IsActive!.Value ? s.IsActive && !s.IsDeleted : !s.IsActive && s.IsDeleted)
                 .ProjectTo<SpecializationDto>(_mapper.ConfigurationProvider)
                 .AsPagginatedListAsync(request.PageNumber, request.PageSize);
 
