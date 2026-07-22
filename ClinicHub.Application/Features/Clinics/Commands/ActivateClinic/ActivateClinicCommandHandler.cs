@@ -7,6 +7,7 @@ using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Clinics.Commands.ActivateClinic
@@ -32,7 +33,11 @@ namespace ClinicHub.Application.Features.Clinics.Commands.ActivateClinic
 
         public async Task<ClinicManagementDto> Handle(ActivateClinicCommand request, CancellationToken cancellationToken)
         {
-            var clinic = await _unitOfWork.ClinicRepository.GetByIdAsync(request.Id);
+            var clinic = await _unitOfWork.ClinicRepository
+                .GetAllAsync(null)
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(c => c.Id == request.Id, cancellationToken);
+
             if (clinic == null)
             {
                 throw new NotFoundException(LocalizationKeys.ClinicMessages.ClinicNotFound.Value);
