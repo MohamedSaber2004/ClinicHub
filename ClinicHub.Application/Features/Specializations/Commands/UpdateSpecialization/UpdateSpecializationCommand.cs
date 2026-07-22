@@ -11,5 +11,6 @@ namespace ClinicHub.Application.Features.Specializations.Commands.UpdateSpeciali
         public string? Description { get; set; }
         public string? Icon { get; set; }
         public bool IsFamous { get; set; }
+        public bool IsActive { get; set; }
     }
 }

@@ -35,6 +35,11 @@ namespace ClinicHub.Application.Features.Specializations.Commands.UpdateSpeciali
 
             _mapper.Map(request, specialization);
 
+            if (request.IsActive)
+                specialization.Active();
+            else
+                specialization.Deactive();
+
             repo.Update(specialization);
             var saveResult = await _unitOfWork.SaveChangesAsync();
 
