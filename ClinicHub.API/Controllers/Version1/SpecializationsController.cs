@@ -38,7 +38,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// Get all specializations with pagination support.
         /// </summary>
         [HttpGet]
-        [RoleAuthorize]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [Route(ApiRoutes.Specializations.GetAll)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll([FromQuery]GetAllSpecializationsQuery query, CancellationToken ct)
