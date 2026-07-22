@@ -1,6 +1,7 @@
 ﻿using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Clinics.Commands.ActivateClinic
@@ -20,7 +21,10 @@ namespace ClinicHub.Application.Features.Clinics.Commands.ActivateClinic
 
         private async Task<bool> ClinicExists(Guid clinicId, CancellationToken cancellationToken)
         {
-            return await _ctx.ClinicRepository.GetByIdAsync(clinicId) != null;
+            return await _ctx.ClinicRepository
+                .GetAllAsync(null)
+                .IgnoreQueryFilters()
+                .AnyAsync(c => c.Id == clinicId, cancellationToken);
         }
     }
 }
