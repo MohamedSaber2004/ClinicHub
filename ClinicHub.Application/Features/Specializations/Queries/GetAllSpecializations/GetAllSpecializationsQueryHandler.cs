@@ -5,6 +5,7 @@ using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Features.Specializations.DTOs;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace ClinicHub.Application.Features.Specializations.Queries.GetAllSpecializations
 {
@@ -23,6 +24,7 @@ namespace ClinicHub.Application.Features.Specializations.Queries.GetAllSpecializ
         {
             var specializations = await _unitOfWork.SpecializationRepository
                 .GetAllAsync(null)
+                .IgnoreQueryFilters()
                 .WhereIf(request.IsFamous.HasValue, s => s.IsFamous == request.IsFamous!.Value)
                 .ProjectTo<SpecializationDto>(_mapper.ConfigurationProvider)
                 .AsPagginatedListAsync(request.PageNumber, request.PageSize);
