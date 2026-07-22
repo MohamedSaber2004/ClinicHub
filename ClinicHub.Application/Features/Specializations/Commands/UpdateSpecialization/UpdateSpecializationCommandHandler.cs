@@ -3,6 +3,7 @@ using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Specializations.Commands.UpdateSpecialization
@@ -26,7 +27,7 @@ namespace ClinicHub.Application.Features.Specializations.Commands.UpdateSpeciali
         public async Task<string> Handle(UpdateSpecializationCommand request, CancellationToken cancellationToken)
         {
             var repo = _unitOfWork.SpecializationRepository;
-            var specialization = await repo.GetByIdAsync(request.Id);
+            var specialization = await repo.GetAllAsync(null).IgnoreQueryFilters().FirstOrDefaultAsync(s => s.Id == request.Id);
 
             if (specialization == null)
             {
