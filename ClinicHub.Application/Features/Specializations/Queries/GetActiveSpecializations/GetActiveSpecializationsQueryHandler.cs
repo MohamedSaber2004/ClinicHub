@@ -22,9 +22,8 @@ namespace ClinicHub.Application.Features.Specializations.Queries.GetActiveSpecia
         public async Task<List<SpecializationLookupDto>> Handle(GetActiveSpecializationsQuery request, CancellationToken cancellationToken)
         {
             return await _unitOfWork.SpecializationRepository
-                .GetAllAsync(null)
-                .IgnoreQueryFilters()
-                .Where(s => s.IsActive && !s.IsDeleted)
+                .GetAllAsync(s => s.IsActive)
+                .Where(s => !s.IsDeleted)
                 .ProjectTo<SpecializationLookupDto>(_mapper.ConfigurationProvider)
                 .ToListAsync(cancellationToken);
         }
