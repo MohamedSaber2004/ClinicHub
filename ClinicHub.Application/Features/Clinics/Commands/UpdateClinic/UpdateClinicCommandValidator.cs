@@ -28,7 +28,9 @@ namespace ClinicHub.Application.Features.Clinics.Commands.UpdateClinic
                 .MustAsync(BeUniqueEmail).WithMessage(_localizer[LocalizationKeys.ClinicMessages.EmailAlreadyExists.Value]);
 
             RuleFor(x => x.SpecializationId)
-                .NotEmpty().WithMessage(_localizer[LocalizationKeys.ValidationMessages.Required.Value]);
+                .MustAsync(BeExistingSpecialization)
+                .WithMessage(_localizer[LocalizationKeys.SpecializationMessages.NotFound.Value])
+                .When(x => x.SpecializationId.HasValue);
 
             RuleFor(x => x.Phone)
                 .MaximumLength(11).WithMessage(_localizer[LocalizationKeys.ValidationMessages.MaxLength.Value])
@@ -75,6 +77,12 @@ namespace ClinicHub.Application.Features.Clinics.Commands.UpdateClinic
         {
             if (days == null || days.Count == 0) return true;
             return days.All(d => Enum.IsDefined(typeof(DayOfWeek), d));
+        }
+
+        private async Task<bool> BeExistingSpecialization(UpdateClinicCommand command, Guid? specializationId, CancellationToken cancellationToken)
+        {
+            return specializationId.HasValue &&
+                   await _unitOfWork.SpecializationRepository.ExistsByKeyAsync(specializationId.Value, cancellationToken);
         }
 
         private async Task<bool> BeUniqueEmail(UpdateClinicCommand command, string email, CancellationToken cancellationToken)

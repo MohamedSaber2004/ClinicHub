@@ -16,7 +16,7 @@ namespace ClinicHub.Application.Features.Clinics.Commands.UpdateClinic
         string? Website,
         string? Logo,
         string? WorkingHours,
-        Guid SpecializationId,
+        Guid? SpecializationId,
         TimeOnly? WorkingHoursStart = null,
         TimeOnly? WorkingHoursEnd = null,
         List<DayOfWeek>? WorkingDays = null) : IRequest<ClinicManagementDto>;

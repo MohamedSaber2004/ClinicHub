@@ -56,7 +56,7 @@ namespace ClinicHub.Application.Features.Clinics.Commands.UpdateClinic
                     request.Website,
                     request.Logo,
                     request.WorkingHours,
-                    request.SpecializationId,
+                    request.SpecializationId ?? clinic.SpecializationId,
                     updatedBy,
                     request.WorkingHoursStart,
                     request.WorkingHoursEnd,
