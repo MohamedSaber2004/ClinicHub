@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
@@ -9,11 +10,13 @@ namespace ClinicHub.Application.Features.Specializations.Commands.DeleteSpeciali
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IStringLocalizer<Messages> _localizer;
+        private readonly ICurrentUserService _currentUserService;
 
-        public DeleteSpecializationCommandHandler(IUnitOfWork unitOfWork, IStringLocalizer<Messages> localizer)
+        public DeleteSpecializationCommandHandler(IUnitOfWork unitOfWork, IStringLocalizer<Messages> localizer, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
             _localizer = localizer;
+            _currentUserService = currentUserService;
         }
 
         public async Task<string> Handle(DeleteSpecializationCommand request, CancellationToken cancellationToken)
@@ -26,7 +29,7 @@ namespace ClinicHub.Application.Features.Specializations.Commands.DeleteSpeciali
                 return JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.SpecializationMessages.NotFound.Value]);
             }
 
-            repo.Delete(specialization);
+            specialization.MarkAsDeleted(_currentUserService.UserId.ToString());
             var result = await _unitOfWork.SaveChangesAsync();
 
             return result > 0 ? 
