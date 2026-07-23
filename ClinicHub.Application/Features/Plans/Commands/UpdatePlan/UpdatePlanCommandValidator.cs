@@ -20,7 +20,7 @@ namespace ClinicHub.Application.Features.Plans.Commands.UpdatePlan
                     await _ctx.GetRepository<Plan, Guid>().ExistsAsync(p => p.Id == id && !p.IsDeleted, ct))
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.PlanMessages.NotFound.Value]));
 
-            RuleFor(v => v.Name)
+            RuleFor(v => v.NameAr)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
                 .MaximumLength(200).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
         }
