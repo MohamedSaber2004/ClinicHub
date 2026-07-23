@@ -166,7 +166,7 @@ namespace ClinicHub.API.Controllers.Version1
         [HttpGet]
         [Route(ApiRoutes.ClinicManagement.Dashboard)]
         [RoleAuthorize(nameof(UserType.ClinicOwner))]
-        [RequireSubscription]
+        [RequirePlanPermission(SubscriptionPermission.BasicReports)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Dashboard()
         {

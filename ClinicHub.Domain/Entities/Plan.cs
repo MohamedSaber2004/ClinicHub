@@ -15,5 +15,6 @@ namespace ClinicHub.Domain.Entities
         public string? Features { get; set; }
         public bool IsActive { get; set; } = true;
         public int SortOrder { get; set; }
+        public ICollection<PlanPermission> Permissions { get; set; } = new List<PlanPermission>();
     }
 }

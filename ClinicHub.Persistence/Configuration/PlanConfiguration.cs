@@ -21,6 +21,11 @@ public class PlanConfiguration : IEntityTypeConfiguration<Plan>
         builder.Property(x => x.Features).HasMaxLength(2000);
         builder.Property(x => x.SortOrder).IsRequired();
 
+        builder.HasMany(x => x.Permissions)
+            .WithOne(x => x.Plan)
+            .HasForeignKey(x => x.PlanId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.HasIndex(x => x.SortOrder);
 
         builder.HasQueryFilter(x => !x.IsDeleted);

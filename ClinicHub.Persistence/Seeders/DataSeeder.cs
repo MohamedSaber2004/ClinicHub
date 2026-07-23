@@ -395,6 +395,59 @@ namespace ClinicHub.Persistence.Seeders
                 await context.SaveChangesAsync();
             }
 
+            // 10.5 Seed PlanPermissions
+            if (!await context.Set<PlanPermission>().AnyAsync())
+            {
+                logger.LogInformation("Seeding plan permissions...");
+                var seededPlans = await context.Set<Plan>().ToListAsync();
+
+                var basic = seededPlans.FirstOrDefault(p => p.Name == "Basic");
+                var standard = seededPlans.FirstOrDefault(p => p.Name == "Standard");
+                var premium = seededPlans.FirstOrDefault(p => p.Name == "Premium");
+
+                if (basic != null)
+                {
+                    context.Set<PlanPermission>().AddRange(
+                        new PlanPermission { PlanId = basic.Id, Permission = SubscriptionPermission.ManageAppointments },
+                        new PlanPermission { PlanId = basic.Id, Permission = SubscriptionPermission.PatientRecords },
+                        new PlanPermission { PlanId = basic.Id, Permission = SubscriptionPermission.BasicReports },
+                        new PlanPermission { PlanId = basic.Id, Permission = SubscriptionPermission.ManageStaff },
+                        new PlanPermission { PlanId = basic.Id, Permission = SubscriptionPermission.ManageDoctors },
+                        new PlanPermission { PlanId = basic.Id, Permission = SubscriptionPermission.OnlineBooking }
+                    );
+                }
+
+                if (standard != null)
+                {
+                    context.Set<PlanPermission>().AddRange(
+                        new PlanPermission { PlanId = standard.Id, Permission = SubscriptionPermission.ManageAppointments },
+                        new PlanPermission { PlanId = standard.Id, Permission = SubscriptionPermission.PatientRecords },
+                        new PlanPermission { PlanId = standard.Id, Permission = SubscriptionPermission.BasicReports },
+                        new PlanPermission { PlanId = standard.Id, Permission = SubscriptionPermission.AdvancedReports },
+                        new PlanPermission { PlanId = standard.Id, Permission = SubscriptionPermission.ManageStaff },
+                        new PlanPermission { PlanId = standard.Id, Permission = SubscriptionPermission.ManageDoctors },
+                        new PlanPermission { PlanId = standard.Id, Permission = SubscriptionPermission.OnlineBooking }
+                    );
+                }
+
+                if (premium != null)
+                {
+                    context.Set<PlanPermission>().AddRange(
+                        new PlanPermission { PlanId = premium.Id, Permission = SubscriptionPermission.ManageAppointments },
+                        new PlanPermission { PlanId = premium.Id, Permission = SubscriptionPermission.PatientRecords },
+                        new PlanPermission { PlanId = premium.Id, Permission = SubscriptionPermission.BasicReports },
+                        new PlanPermission { PlanId = premium.Id, Permission = SubscriptionPermission.AdvancedReports },
+                        new PlanPermission { PlanId = premium.Id, Permission = SubscriptionPermission.MarketingTools },
+                        new PlanPermission { PlanId = premium.Id, Permission = SubscriptionPermission.PrioritySupport },
+                        new PlanPermission { PlanId = premium.Id, Permission = SubscriptionPermission.ManageStaff },
+                        new PlanPermission { PlanId = premium.Id, Permission = SubscriptionPermission.ManageDoctors },
+                        new PlanPermission { PlanId = premium.Id, Permission = SubscriptionPermission.OnlineBooking }
+                    );
+                }
+
+                await context.SaveChangesAsync();
+            }
+
             var allPlans = await context.Set<Plan>().ToListAsync();
 
             // 11. Seed Subscriptions

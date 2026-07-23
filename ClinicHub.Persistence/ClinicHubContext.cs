@@ -46,6 +46,7 @@ namespace ClinicHub.Persistence
         public DbSet<BookingConfiguration> BookingConfigurations { get; set; }
         public DbSet<SupportTicket> SupportTickets { get; set; }
         public DbSet<Plan> Plans { get; set; }
+        public DbSet<PlanPermission> PlanPermissions { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<Advertisement> Advertisements { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
