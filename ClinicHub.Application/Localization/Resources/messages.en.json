@@ -240,6 +240,15 @@
     "Rejected": "Advertisement rejected successfully",
     "NotPending": "Advertisement is not pending approval"
   },
+  "Plans": {
+    "NotFound": "Plan not found",
+    "Created": "Plan created successfully",
+    "Updated": "Plan updated successfully",
+    "Deleted": "Plan deleted successfully",
+    "NotActive": "This plan is not active",
+    "PlanIdRequired": "Plan ID is required",
+    "InvalidPeriod": "Invalid subscription period"
+  },
   "SupportTickets": {
     "NotFound": "Support ticket not found",
     "StatusUpdated": "Support ticket status updated successfully"

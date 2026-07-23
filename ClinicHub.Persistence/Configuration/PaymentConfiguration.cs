@@ -32,5 +32,6 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(p => p.ClinicId);
+        builder.HasIndex(p => p.SubscriptionId).IsUnique().HasFilter("[SubscriptionId] IS NOT NULL");
     }
 }

@@ -8,6 +8,7 @@ namespace ClinicHub.API.Routes
         {
             public const string Signup = Base + "/auth/signup";
             public const string Login = Base + "/auth/login";
+            public const string LoginWeb = Base + "/auth/login-web";
             public const string LoginWithFacebook = Base + "/auth/login-facebook";
             public const string LoginWithGoogle = Base + "/auth/login-google";
             public const string ValidateGoogleToken = Base + "/auth/google/validate-token";
@@ -248,8 +249,32 @@ namespace ClinicHub.API.Routes
         {
             public const string BaseRoute = Base + "/subscriptions";
             public const string Create = BaseRoute;
+            public const string InitiatePayment = BaseRoute + "/initiate-payment";
             public const string MySubscription = BaseRoute + "/my";
             public const string CancelMySubscription = BaseRoute + "/my/cancel";
+        }
+
+        public static class Plans
+        {
+            public const string BaseRoute = Base + "/plans";
+            public const string GetAllActive = BaseRoute;
+            public const string AdminBaseRoute = Base + "/admin/plans";
+            public const string GetAll = AdminBaseRoute;
+            public const string Create = AdminBaseRoute;
+            public const string Update = AdminBaseRoute + "/{id:guid}";
+            public const string Delete = AdminBaseRoute + "/{id:guid}";
+        }
+
+        public static class ClinicRegister
+        {
+            public const string Register = Base + "/clinics/register";
+        }
+
+        public static class AdminClinics
+        {
+            public const string PendingClinics = Base + "/admin/dashboard/clinics/pending";
+            public const string ApproveClinic = Base + "/admin/dashboard/clinics/{id:guid}/approve";
+            public const string RejectClinic = Base + "/admin/dashboard/clinics/{id:guid}/reject";
         }
 
         public static class AdminDashboardExt

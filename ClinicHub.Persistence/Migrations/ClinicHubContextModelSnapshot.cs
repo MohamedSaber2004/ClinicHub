@@ -1268,7 +1268,7 @@ namespace ClinicHub.Persistence.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<Guid>("AppointmentId")
+                    b.Property<Guid?>("AppointmentId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("ClinicId")
@@ -1315,6 +1315,9 @@ namespace ClinicHub.Persistence.Migrations
                     b.Property<string>("PaymobTransactionId")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<Guid?>("PlanId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("RedirectUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -1327,6 +1330,12 @@ namespace ClinicHub.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("SubscriptionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("SubscriptionPeriod")
                         .HasColumnType("int");
 
                     b.Property<string>("TransactionId")
@@ -1353,7 +1362,90 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.HasIndex("ClinicId");
 
+                    b.HasIndex("SubscriptionId")
+                        .IsUnique()
+                        .HasFilter("[SubscriptionId] IS NOT NULL");
+
                     b.ToTable("Payments", "dbo");
+                });
+
+            modelBuilder.Entity("ClinicHub.Domain.Entities.Plan", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("DescriptionAr")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Features")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("MaxDoctors")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("MaxStaff")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("NameAr")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal>("PriceMonthly")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("PriceYearly")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SortOrder");
+
+                    b.ToTable("Plans", "dbo");
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Post", b =>
@@ -1658,9 +1750,6 @@ namespace ClinicHub.Persistence.Migrations
                     b.Property<Guid>("ClinicId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("ClinicId1")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -1683,11 +1772,21 @@ namespace ClinicHub.Persistence.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
                     b.Property<DateTime?>("PaidAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Plan")
+                    b.Property<Guid?>("PaymentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Period")
                         .HasColumnType("int");
+
+                    b.Property<Guid?>("PlanId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -1710,7 +1809,11 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.HasIndex("ClinicId");
 
-                    b.HasIndex("ClinicId1");
+                    b.HasIndex("PaymentId")
+                        .IsUnique()
+                        .HasFilter("[PaymentId] IS NOT NULL");
+
+                    b.HasIndex("PlanId");
 
                     b.ToTable("Subscriptions", "dbo");
                 });
@@ -2382,8 +2485,7 @@ namespace ClinicHub.Persistence.Migrations
                     b.HasOne("ClinicHub.Domain.Entities.Appointment", null)
                         .WithMany()
                         .HasForeignKey("AppointmentId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ClinicHub.Domain.Entities.Clinic", "Clinic")
                         .WithMany()
@@ -2450,16 +2552,26 @@ namespace ClinicHub.Persistence.Migrations
             modelBuilder.Entity("ClinicHub.Domain.Entities.Subscription", b =>
                 {
                     b.HasOne("ClinicHub.Domain.Entities.Clinic", "Clinic")
-                        .WithMany()
+                        .WithMany("Subscriptions")
                         .HasForeignKey("ClinicId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ClinicHub.Domain.Entities.Clinic", null)
-                        .WithMany("Subscriptions")
-                        .HasForeignKey("ClinicId1");
+                    b.HasOne("ClinicHub.Domain.Entities.Payment", "Payment")
+                        .WithOne("Subscription")
+                        .HasForeignKey("ClinicHub.Domain.Entities.Subscription", "PaymentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ClinicHub.Domain.Entities.Plan", "Plan")
+                        .WithMany()
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Clinic");
+
+                    b.Navigation("Payment");
+
+                    b.Navigation("Plan");
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.SupportTicket", b =>
@@ -2613,6 +2725,11 @@ namespace ClinicHub.Persistence.Migrations
                     b.Navigation("Media");
 
                     b.Navigation("Reactions");
+                });
+
+            modelBuilder.Entity("ClinicHub.Domain.Entities.Payment", b =>
+                {
+                    b.Navigation("Subscription");
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Post", b =>

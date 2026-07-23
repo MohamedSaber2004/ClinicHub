@@ -26,21 +26,40 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.CreateSubscripti
             if (clinic == null)
                 throw new NotFoundException(LocalizationKeys.ClinicMessages.ClinicNotFound.Value);
 
+            var plan = await _unitOfWork.GetRepository<Plan, Guid>().FindByKeyAsync(request.PlanId);
+            if (plan == null)
+                throw new NotFoundException(LocalizationKeys.PlanMessages.NotFound.Value);
+
             var subscription = new Subscription
             {
                 ClinicId = request.ClinicId,
-                Plan = request.Plan,
+                PlanId = request.PlanId,
+                Period = request.Period,
                 StartDate = request.StartDate,
                 EndDate = request.EndDate,
                 Amount = request.Amount,
                 Status = SubscriptionStatus.Active,
-                PaidAt = DateTime.UtcNow
+                PaidAt = DateTime.UtcNow,
+                PaymentId = request.PaymentId,
+                Notes = request.Notes
             };
 
             await _unitOfWork.GetRepository<Subscription, Guid>().AddAsync(subscription);
+
+            if (request.PaymentId.HasValue)
+            {
+                var payment = await _unitOfWork.PaymentRepository.GetByIdAsync(request.PaymentId.Value);
+                if (payment != null)
+                {
+                    payment.LinkToSubscription(subscription.Id);
+                }
+            }
+
             await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<SubscriptionDto>(subscription);
+            var dto = _mapper.Map<SubscriptionDto>(subscription);
+            dto.PlanName = plan.Name;
+            return dto;
         }
     }
 }

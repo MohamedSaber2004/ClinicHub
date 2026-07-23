@@ -8,7 +8,7 @@ namespace ClinicHub.Application.Features.Subscriptions.Queries.GetAllSubscriptio
     public class GetAllSubscriptionsQuery : IRequest<PagginatedResult<SubscriptionDto>>
     {
         public SubscriptionStatus? Status { get; set; }
-        public SubscriptionPlan? Plan { get; set; }
+        public Guid? PlanId { get; set; }
         public Guid? ClinicId { get; set; }
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 20;

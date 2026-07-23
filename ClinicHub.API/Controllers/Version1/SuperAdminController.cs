@@ -1,13 +1,16 @@
 using Asp.Versioning;
 using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
+using ClinicHub.Application.Features.Admin.Commands.ApproveClinic;
 using ClinicHub.Application.Features.Admin.Commands.ApproveUserVerification;
+using ClinicHub.Application.Features.Admin.Commands.RejectClinic;
 using ClinicHub.Application.Features.Admin.Commands.RejectUserVerification;
 using ClinicHub.Application.Features.Admin.Commands.UpdateSupportTicketStatus;
 using ClinicHub.Application.Features.Admin.Queries.GetAdminDashboardStats;
 using ClinicHub.Application.Features.Admin.Queries.GetAllSupportTickets;
 using ClinicHub.Application.Features.Admin.Queries.GetClinicAuditLogs;
 using ClinicHub.Application.Features.Admin.Queries.GetClinicsLookup;
+using ClinicHub.Application.Features.Admin.Queries.GetPendingClinics;
 using ClinicHub.Application.Features.Admin.Queries.GetPendingVerifications;
 using ClinicHub.Application.Features.Admin.Queries.GetUrgentSupportTickets;
 using ClinicHub.Application.Features.Advertisements.Commands.ApproveAdvertisement;
@@ -29,6 +32,36 @@ namespace ClinicHub.API.Controllers.Version1
     {
         public SuperAdminController(IMediator mediator) : base(mediator)
         {
+        }
+
+        [HttpGet]
+        [Route(ApiRoutes.AdminClinics.PendingClinics)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetPendingClinics(CancellationToken ct)
+        {
+            var result = await _mediator.Send(new GetPendingClinicsQuery(), ct);
+            return Ok(result);
+        }
+
+        [HttpPost]
+        [Route(ApiRoutes.AdminClinics.ApproveClinic)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ApproveClinic(Guid id, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new ApproveClinicCommand(id), ct);
+            return Ok(result);
+        }
+
+        [HttpPost]
+        [Route(ApiRoutes.AdminClinics.RejectClinic)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> RejectClinic(Guid id, [FromBody] RejectClinicCommand command, CancellationToken ct)
+        {
+            command = command with { ClinicId = id };
+            var result = await _mediator.Send(command, ct);
+            return Ok(result);
         }
 
         [HttpGet]

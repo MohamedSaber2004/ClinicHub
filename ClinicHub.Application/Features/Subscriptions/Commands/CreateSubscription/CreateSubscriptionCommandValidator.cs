@@ -1,4 +1,5 @@
 using ClinicHub.Application.Localization;
+using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
 using Microsoft.Extensions.Localization;
@@ -19,7 +20,13 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.CreateSubscripti
                     await _ctx.ClinicRepository.ExistsAsync(c => c.Id == id && !c.IsDeleted, ct))
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ClinicMessages.ClinicNotFound.Value]));
 
-            RuleFor(v => v.Plan)
+            RuleFor(v => v.PlanId)
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
+                .MustAsync(async (id, ct) =>
+                    await _ctx.GetRepository<Plan, Guid>().ExistsAsync(p => p.Id == id && !p.IsDeleted, ct))
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.PlanMessages.NotFound.Value]));
+
+            RuleFor(v => v.Period)
                 .IsInEnum().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidEnumValue.Value]));
 
             RuleFor(v => v.Amount)
@@ -31,9 +38,6 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.CreateSubscripti
             RuleFor(v => v.EndDate)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
                 .GreaterThan(v => v.StartDate).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidDateRange.Value]));
-
-            RuleFor(v => v.TransactionId)
-                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
         }
     }
 }

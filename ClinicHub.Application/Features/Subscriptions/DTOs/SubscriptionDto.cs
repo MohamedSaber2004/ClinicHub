@@ -7,7 +7,9 @@ namespace ClinicHub.Application.Features.Subscriptions.DTOs
         public Guid Id { get; set; }
         public Guid ClinicId { get; set; }
         public string? ClinicName { get; set; }
-        public SubscriptionPlan Plan { get; set; }
+        public Guid PlanId { get; set; }
+        public string? PlanName { get; set; }
+        public SubscriptionPlan Period { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public SubscriptionStatus Status { get; set; }

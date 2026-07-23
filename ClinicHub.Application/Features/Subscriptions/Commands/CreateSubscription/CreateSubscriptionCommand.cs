@@ -7,10 +7,12 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.CreateSubscripti
     public class CreateSubscriptionCommand : IRequest<SubscriptionDto>
     {
         public Guid ClinicId { get; set; }
-        public SubscriptionPlan Plan { get; set; }
+        public Guid PlanId { get; set; }
+        public SubscriptionPlan Period { get; set; }
         public decimal Amount { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        public string TransactionId { get; set; } = null!;
+        public Guid? PaymentId { get; set; }
+        public string? Notes { get; set; }
     }
 }

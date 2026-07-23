@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using ClinicHub.Application.Features.Auth.Commands.ForgetPassword;
 using ClinicHub.Application.Features.Auth.Commands.Login;
+using ClinicHub.Application.Features.Auth.Commands.LoginWeb;
 using ClinicHub.Application.Features.Auth.Commands.RefreshToken;
 using ClinicHub.Application.Features.Auth.Commands.ResetPassword;
 using ClinicHub.Application.Features.Auth.Commands.Signup;
@@ -62,6 +63,20 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> Login(LoginCommand command, CancellationToken ct)
         {
             var result  = await _mediator.Send(command, ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Logins a user for the web dashboard. Blocks ClinicOwner/Staff/Doctor if clinic has no active subscription.
+        /// </summary>
+        [HttpPost]
+        [Route(ApiRoutes.Auth.LoginWeb)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        public async Task<IActionResult> LoginWeb(LoginWebCommand command, CancellationToken ct)
+        {
+            var result = await _mediator.Send(command, ct);
             return Ok(result);
         }
 

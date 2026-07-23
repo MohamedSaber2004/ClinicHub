@@ -1,4 +1,5 @@
 using ClinicHub.Application.Common.Interfaces;
+using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
@@ -66,15 +67,40 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
         {
             payment.MarkAsPaid(transaction.Id.ToString(), transaction.SourceData?.SubType ?? "Unknown");
 
-            var appointment = await _unitOfWork.AppointmentRepository.GetAllAsync(x => x.Id == payment.AppointmentId).FirstOrDefaultAsync(cancellationToken);
-            appointment?.Confirm(payment.Id);
+            if (payment.AppointmentId.HasValue)
+            {
+                var appointment = await _unitOfWork.AppointmentRepository.GetAllAsync(x => x.Id == payment.AppointmentId.Value).FirstOrDefaultAsync(cancellationToken);
+                appointment?.Confirm(payment.Id);
 
-            if (appointment is not null)
-                await _fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.PaymentConfirmation, new()
+                if (appointment is not null)
+                    await _fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.PaymentConfirmation, new()
+                    {
+                        ["amount"] = $"{payment.Amount:N2} EGP",
+                        ["appointmentId"] = appointment.Id.ToString()
+                    });
+            }
+            else if (payment.PlanId.HasValue && payment.SubscriptionPeriod.HasValue)
+            {
+                var period = payment.SubscriptionPeriod.Value;
+                var now = DateTime.UtcNow;
+                var endDate = period == SubscriptionPlan.Yearly ? now.AddYears(1) : now.AddMonths(1);
+
+                var subscription = new Subscription
                 {
-                    ["amount"] = $"{payment.Amount:N2} EGP",
-                    ["appointmentId"] = appointment.Id.ToString()
-                });
+                    ClinicId = payment.ClinicId,
+                    PlanId = payment.PlanId.Value,
+                    Period = period,
+                    StartDate = now,
+                    EndDate = endDate,
+                    Amount = payment.Amount,
+                    Status = SubscriptionStatus.Active,
+                    PaidAt = now,
+                    PaymentId = payment.Id
+                };
+
+                await _unitOfWork.GetRepository<Subscription, Guid>().AddAsync(subscription);
+                payment.LinkToSubscription(subscription.Id);
+            }
         }
         else
         {

@@ -2,6 +2,7 @@ using Asp.Versioning;
 using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Clinics.Commands.AcceptBooking;
+using ClinicHub.Application.Features.Clinics.Commands.RegisterClinic;
 using ClinicHub.Application.Features.Clinics.Commands.ActivateClinic;
 using ClinicHub.Application.Features.Clinics.Commands.CreateClinic;
 using ClinicHub.Application.Features.Clinics.Commands.DeactivateClinic;
@@ -13,8 +14,10 @@ using ClinicHub.Application.Features.Clinics.Queries.GetClinicDashboardStats;
 using ClinicHub.Application.Features.Clinics.DTOs;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicById;
 using ClinicHub.Application.Features.Clinics.Queries.GetPaginatedClinics;
+using ClinicHub.Application.Features.Auth.DTOs;
 using ClinicHub.Domain.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicHub.API.Controllers.Version1
@@ -24,6 +27,23 @@ namespace ClinicHub.API.Controllers.Version1
     {
         public ClinicManagementController(IMediator mediator): base(mediator)
         {
+        }
+
+        /// <summary>
+        /// Registers a new clinic with owner details for approval.
+        /// </summary>
+        [HttpPost]
+        [AllowAnonymous]
+        [Route(ApiRoutes.ClinicRegister.Register)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status202Accepted)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Register([FromBody] RegisterClinicCommand command, CancellationToken ct)
+        {
+            var result = await _mediator.Send(command, ct);
+            if (result.IsPendingApproval)
+                return Accepted(result.PendingData);
+            return Created(null!, result.AuthData);
         }
 
         /// <summary>

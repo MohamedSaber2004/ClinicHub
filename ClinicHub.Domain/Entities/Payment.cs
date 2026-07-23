@@ -6,11 +6,15 @@ namespace ClinicHub.Domain.Entities;
 
 public class Payment : BaseEntity<Guid>, IClinicScopedEntity
 {
-    public Guid AppointmentId { get; private set; }
+    public Guid? AppointmentId { get; private set; }
     public Guid UserId { get; private set; }
     public Guid ClinicId { get; private set; }
     Guid? IClinicScopedEntity.ClinicId => ClinicId;
     public Clinic Clinic { get; private set; } = null!;
+    public Guid? SubscriptionId { get; private set; }
+    public Subscription? Subscription { get; private set; }
+    public Guid? PlanId { get; set; }
+    public SubscriptionPlan? SubscriptionPeriod { get; set; }
     public decimal Amount { get; private set; }
     public string Currency { get; private set; } = "EGP";
     public string? PaymobOrderId { get; set; }
@@ -27,13 +31,18 @@ public class Payment : BaseEntity<Guid>, IClinicScopedEntity
 
     private Payment() { }
 
-    public Payment(Guid appointmentId, Guid userId, Guid clinicId, decimal amount, string currency = "EGP")
+    public Payment(Guid? appointmentId, Guid userId, Guid clinicId, decimal amount, string currency = "EGP")
     {
         AppointmentId = appointmentId;
         UserId = userId;
         ClinicId = clinicId;
         Amount = amount;
         Currency = currency ?? "EGP";
+    }
+
+    public void LinkToSubscription(Guid subscriptionId)
+    {
+        SubscriptionId = subscriptionId;
     }
 
         public void MarkAsProcessing(string? redirectUrl = null, string? paymentMethod = null)

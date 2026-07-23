@@ -28,7 +28,7 @@ namespace ClinicHub.Application.Features.Subscriptions.Queries.GetMyClinicSubscr
             if (clinicId == null) return null;
 
             var subscription = await _unitOfWork.GetRepository<Subscription, Guid>()
-                .GetAllWithIncluding(s => s.ClinicId == clinicId && s.Status == SubscriptionStatus.Active, s => s.Clinic)
+                .GetAllWithIncluding(s => s.ClinicId == clinicId && s.Status == SubscriptionStatus.Active, s => s.Clinic, s => s.Plan)
                 .FirstOrDefaultAsync(cancellationToken);
 
             return subscription == null ? null : _mapper.Map<SubscriptionDto>(subscription);

@@ -172,6 +172,8 @@ namespace ClinicHub.Infrastructure
 
 
 
+            services.AddHostedService<SubscriptionExpirationService>();
+
             return services;
         }
     }

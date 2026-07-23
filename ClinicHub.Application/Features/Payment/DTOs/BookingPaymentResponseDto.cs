@@ -5,7 +5,7 @@ namespace ClinicHub.Application.Features.Payment.DTOs
     public class BookingPaymentResponseDto
     {
         public Guid PaymentId { get; set; }
-        public Guid ReservationId { get; set; }
+        public Guid? ReservationId { get; set; }
         public decimal Amount { get; set; }
         public string Currency { get; set; } = null!;
         public PaymentStatus Status { get; set; }

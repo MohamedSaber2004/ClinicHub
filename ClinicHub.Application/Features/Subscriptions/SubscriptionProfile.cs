@@ -9,7 +9,8 @@ namespace ClinicHub.Application.Features.Subscriptions
         public SubscriptionProfile()
         {
             CreateMap<Subscription, SubscriptionDto>()
-                .ForMember(dest => dest.ClinicName, opt => opt.MapFrom(src => src.Clinic.Name));
+                .ForMember(dest => dest.ClinicName, opt => opt.MapFrom(src => src.Clinic.Name))
+                .ForMember(dest => dest.PlanName, opt => opt.MapFrom(src => src.Plan.Name));
         }
     }
 }

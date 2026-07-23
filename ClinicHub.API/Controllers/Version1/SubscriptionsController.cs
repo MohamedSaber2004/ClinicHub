@@ -2,11 +2,10 @@ using Asp.Versioning;
 using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Subscriptions.Commands.CancelMySubscription;
-using ClinicHub.Application.Features.Subscriptions.Commands.CreateSubscription;
+using ClinicHub.Application.Features.Subscriptions.Commands.InitiateSubscriptionPayment;
 using ClinicHub.Application.Features.Subscriptions.Queries.GetMyClinicSubscription;
 using ClinicHub.Domain.Enums;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicHub.API.Controllers.Version1
@@ -18,15 +17,15 @@ namespace ClinicHub.API.Controllers.Version1
         {
         }
 
-        [AllowAnonymous]
         [HttpPost]
-        [Route(ApiRoutes.Subscriptions.Create)]
-        [ProducesResponseType(StatusCodes.Status201Created)]
+        [Route(ApiRoutes.Subscriptions.InitiatePayment)]
+        [RoleAuthorize(nameof(UserType.ClinicOwner))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Create([FromBody] CreateSubscriptionCommand command, CancellationToken ct)
+        public async Task<IActionResult> InitiatePayment([FromBody] InitiateSubscriptionPaymentCommand command, CancellationToken ct)
         {
             var result = await _mediator.Send(command, ct);
-            return Created(ApiRoutes.Subscriptions.Create, result);
+            return Ok(result);
         }
 
         [HttpGet]

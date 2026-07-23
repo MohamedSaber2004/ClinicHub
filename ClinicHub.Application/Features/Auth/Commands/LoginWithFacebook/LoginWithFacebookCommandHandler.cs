@@ -85,25 +85,10 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWithFacebook
             }
 
             var roles = await _userManager.GetRolesAsync(user);
-            var clinicId = user.ClinicId;
-            if (!clinicId.HasValue)
-            {
-                clinicId = await _unitOfWork.ClinicRepository
-                    .GetAllAsync(c => c.ClinicAdminId == user.Id && !c.IsDeleted)
-                    .Select(c => (Guid?)c.Id)
-                    .FirstOrDefaultAsync(cancellationToken);
-            }
-
-            var isDashboardUser = roles.Any(r => r == nameof(UserType.ClinicOwner) || r == nameof(UserType.Staff) || r == nameof(UserType.Doctor));
-            if (isDashboardUser && clinicId.HasValue)
-            {
-                var hasActiveSub = await _unitOfWork.GetRepository<Subscription, Guid>()
-                    .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > DateTime.UtcNow, cancellationToken);
-
-                if (!hasActiveSub)
-                    throw new ForbiddenException(_localizer[LocalizationKeys.SubscriptionMessages.LoginRequiresSubscription.Value]);
-            }
-
+            var clinicId = await _unitOfWork.ClinicRepository
+                .GetAllAsync(c => c.ClinicAdminId == user.Id && !c.IsDeleted)
+                .Select(c => (Guid?)c.Id)
+                .FirstOrDefaultAsync(cancellationToken);
             var hasActiveSubscription = clinicId.HasValue
                 && await _unitOfWork.GetRepository<Subscription, Guid>()
                     .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > DateTime.UtcNow, cancellationToken);

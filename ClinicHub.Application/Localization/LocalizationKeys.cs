@@ -263,6 +263,17 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString Deleted = new("Staff.Deleted");
         }
 
+        public static class PlanMessages
+        {
+            public static readonly KeyString NotFound = new("Plans.NotFound");
+            public static readonly KeyString Created = new("Plans.Created");
+            public static readonly KeyString Updated = new("Plans.Updated");
+            public static readonly KeyString Deleted = new("Plans.Deleted");
+            public static readonly KeyString NotActive = new("Plans.NotActive");
+            public static readonly KeyString PlanIdRequired = new("Plans.PlanIdRequired");
+            public static readonly KeyString InvalidPeriod = new("Plans.InvalidPeriod");
+        }
+
         public static class SubscriptionMessages
         {
             public static readonly KeyString NotFound = new("Subscriptions.NotFound");

@@ -24,7 +24,7 @@ namespace ClinicHub.Domain.Entities
         public Point Location { get; set; } = null!;
         public bool IsRegistered { get; set; }
 
-        public ClinicStatus Status { get; set; } = ClinicStatus.Active;
+        public ClinicStatus Status { get; set; } = ClinicStatus.PendingApproval;
 
         public Guid SpecializationId { get; set; }
         public Specialization Specialization { get; set; } = null!;

@@ -342,7 +342,62 @@ namespace ClinicHub.Persistence.Seeders
                 await context.SaveChangesAsync();
             }
 
-            // 10. Seed Subscriptions
+            // 10. Seed Plans
+            if (!await context.Set<Plan>().AnyAsync())
+            {
+                logger.LogInformation("Seeding {Count} plans...", settings.PlanCount);
+                var plans = new List<Plan>
+                {
+                    new()
+                    {
+                        Name = "Basic",
+                        NameAr = "أساسية",
+                        Description = "For small clinics starting out. Up to 2 doctors and 5 staff members.",
+                        DescriptionAr = "للعيادات الصغيرة الجديدة. حتى 2 أطباء و 5 موظفين.",
+                        PriceMonthly = 500,
+                        PriceYearly = 5000,
+                        MaxDoctors = 2,
+                        MaxStaff = 5,
+                        Features = "[\"appointments\", \"patient_records\", \"basic_reports\"]",
+                        IsActive = true,
+                        SortOrder = 1
+                    },
+                    new()
+                    {
+                        Name = "Standard",
+                        NameAr = "قياسية",
+                        Description = "For growing clinics. Up to 5 doctors and 15 staff members.",
+                        DescriptionAr = "للعيادات المتنامية. حتى 5 أطباء و 15 موظفاً.",
+                        PriceMonthly = 1000,
+                        PriceYearly = 10000,
+                        MaxDoctors = 5,
+                        MaxStaff = 15,
+                        Features = "[\"appointments\", \"patient_records\", \"advanced_reports\", \"sms_notifications\"]",
+                        IsActive = true,
+                        SortOrder = 2
+                    },
+                    new()
+                    {
+                        Name = "Premium",
+                        NameAr = "ممتازة",
+                        Description = "Unlimited doctors and staff. All features included.",
+                        DescriptionAr = "أطباء وموظفين غير محدودين. جميع الميزات متضمنة.",
+                        PriceMonthly = 2000,
+                        PriceYearly = 20000,
+                        MaxDoctors = null,
+                        MaxStaff = null,
+                        Features = "[\"appointments\", \"patient_records\", \"advanced_reports\", \"sms_notifications\", \"marketing_tools\", \"priority_support\"]",
+                        IsActive = true,
+                        SortOrder = 3
+                    }
+                };
+                context.Set<Plan>().AddRange(plans);
+                await context.SaveChangesAsync();
+            }
+
+            var allPlans = await context.Set<Plan>().ToListAsync();
+
+            // 11. Seed Subscriptions
             if (!await context.Set<Subscription>().AnyAsync())
             {
                 logger.LogInformation("Seeding {Count} subscriptions...", settings.SubscriptionCount);
@@ -350,16 +405,20 @@ namespace ClinicHub.Persistence.Seeders
                     .CustomInstantiator(f =>
                     {
                         var clinic = f.PickRandom(allClinics);
+                        var plan = f.PickRandom(allPlans);
                         var startDate = f.Date.Past(60);
+                        var isYearly = f.Random.Bool(0.3f);
                         return new Subscription
                         {
                             ClinicId = clinic.Id,
-                            Plan = f.PickRandom<SubscriptionPlan>(),
+                            PlanId = plan.Id,
+                            Period = isYearly ? SubscriptionPlan.Yearly : SubscriptionPlan.Monthly,
                             StartDate = startDate,
-                            EndDate = startDate.AddDays(f.Random.Int(30, 365)),
+                            EndDate = startDate.AddDays(isYearly ? 365 : 30),
                             Status = f.PickRandom(new[] { SubscriptionStatus.Active, SubscriptionStatus.Active, SubscriptionStatus.Expired, SubscriptionStatus.Revoked }),
-                            Amount = f.Random.Decimal(100, 5000),
-                            PaidAt = f.Random.Bool(0.8f) ? f.Date.Recent(30) : null
+                            Amount = isYearly ? plan.PriceYearly : plan.PriceMonthly,
+                            PaidAt = f.Random.Bool(0.8f) ? f.Date.Recent(30) : null,
+                            Notes = "Seeded"
                         };
                     });
 
@@ -368,7 +427,7 @@ namespace ClinicHub.Persistence.Seeders
                 await context.SaveChangesAsync();
             }
 
-            // 11. Seed Advertisements
+            // 12. Seed Advertisements
             if (!await context.Set<Advertisement>().AnyAsync())
             {
                 logger.LogInformation("Seeding {Count} advertisements...", settings.AdvertisementCount);
@@ -390,7 +449,7 @@ namespace ClinicHub.Persistence.Seeders
                 await context.SaveChangesAsync();
             }
 
-            // 12. Seed Audit Logs
+            // 13. Seed Audit Logs
             if (!await context.Set<AuditLog>().AnyAsync())
             {
                 logger.LogInformation("Seeding {Count} audit logs...", settings.AuditLogCount);

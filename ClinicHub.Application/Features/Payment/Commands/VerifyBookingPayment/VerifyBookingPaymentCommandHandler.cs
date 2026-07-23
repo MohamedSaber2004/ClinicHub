@@ -26,7 +26,9 @@ namespace ClinicHub.Application.Features.Payment.Commands.VerifyBookingPayment
 
             if (payment.Status == PaymentStatus.Paid)
             {
-                var apt = await _unitOfWork.AppointmentRepository.GetByIdAsync(payment.AppointmentId);
+                var apt = payment.AppointmentId.HasValue
+                    ? await _unitOfWork.AppointmentRepository.GetByIdAsync(payment.AppointmentId.Value)
+                    : null;
                 return BuildResponse(payment, apt);
             }
 
@@ -34,8 +36,14 @@ namespace ClinicHub.Application.Features.Payment.Commands.VerifyBookingPayment
             {
                 payment.MarkAsPaid(request.TransactionId, payment.PaymentMethod ?? "cash");
 
+                if (!payment.AppointmentId.HasValue)
+                {
+                    await _unitOfWork.SaveChangesAsync();
+                    return BuildResponse(payment, null);
+                }
+
                 var appointment = await _unitOfWork.AppointmentRepository
-                    .GetAllAsync(a => a.Id == payment.AppointmentId)
+                    .GetAllAsync(a => a.Id == payment.AppointmentId.Value)
                     .Include(a => a.Doctor)
                     .FirstOrDefaultAsync(cancellationToken);
 
