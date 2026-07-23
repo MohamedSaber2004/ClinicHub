@@ -255,5 +255,39 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString FeeNotConfigured = new("Booking.FeeNotConfigured");
         }
 
+        public static class StaffMessages
+        {
+            public static readonly KeyString NotFound = new("Staff.NotFound");
+            public static readonly KeyString Created = new("Staff.Created");
+            public static readonly KeyString Updated = new("Staff.Updated");
+            public static readonly KeyString Deleted = new("Staff.Deleted");
+        }
+
+        public static class SubscriptionMessages
+        {
+            public static readonly KeyString NotFound = new("Subscriptions.NotFound");
+            public static readonly KeyString Created = new("Subscriptions.Created");
+            public static readonly KeyString AlreadyActive = new("Subscriptions.AlreadyActive");
+            public static readonly KeyString Cancelled = new("Subscriptions.Cancelled");
+            public static readonly KeyString Revoked = new("Subscriptions.Revoked");
+        }
+
+        public static class AdvertisementMessages
+        {
+            public static readonly KeyString NotFound = new("Advertisements.NotFound");
+            public static readonly KeyString Created = new("Advertisements.Created");
+            public static readonly KeyString Updated = new("Advertisements.Updated");
+            public static readonly KeyString Deleted = new("Advertisements.Deleted");
+            public static readonly KeyString Approved = new("Advertisements.Approved");
+            public static readonly KeyString Rejected = new("Advertisements.Rejected");
+            public static readonly KeyString NotPending = new("Advertisements.NotPending");
+        }
+
+        public static class SupportTicketMessages
+        {
+            public static readonly KeyString NotFound = new("SupportTickets.NotFound");
+            public static readonly KeyString StatusUpdated = new("SupportTickets.StatusUpdated");
+        }
+
     }
 }

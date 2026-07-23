@@ -3,8 +3,19 @@ using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Admin.Commands.ApproveUserVerification;
 using ClinicHub.Application.Features.Admin.Commands.RejectUserVerification;
+using ClinicHub.Application.Features.Admin.Commands.UpdateSupportTicketStatus;
+using ClinicHub.Application.Features.Admin.Queries.GetAdminDashboardStats;
+using ClinicHub.Application.Features.Admin.Queries.GetAllSupportTickets;
+using ClinicHub.Application.Features.Admin.Queries.GetClinicAuditLogs;
 using ClinicHub.Application.Features.Admin.Queries.GetClinicsLookup;
 using ClinicHub.Application.Features.Admin.Queries.GetPendingVerifications;
+using ClinicHub.Application.Features.Admin.Queries.GetUrgentSupportTickets;
+using ClinicHub.Application.Features.Advertisements.Commands.ApproveAdvertisement;
+using ClinicHub.Application.Features.Advertisements.Commands.DeleteAdvertisement;
+using ClinicHub.Application.Features.Advertisements.Commands.RejectAdvertisement;
+using ClinicHub.Application.Features.Advertisements.Queries.GetAllAdvertisements;
+using ClinicHub.Application.Features.Subscriptions.Commands.RevokeSubscription;
+using ClinicHub.Application.Features.Subscriptions.Queries.GetAllSubscriptions;
 using ClinicHub.Application.Features.Users.Queries.GetAllUsers;
 using ClinicHub.Domain.Enums;
 using MediatR;
@@ -18,6 +29,34 @@ namespace ClinicHub.API.Controllers.Version1
     {
         public SuperAdminController(IMediator mediator) : base(mediator)
         {
+        }
+
+        [HttpGet]
+        [Route(ApiRoutes.AdminDashboard.Stats)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetStats(CancellationToken ct)
+        {
+            var result = await _mediator.Send(new GetAdminDashboardStatsQuery(), ct);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Route(ApiRoutes.AdminDashboard.UrgentTickets)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetUrgentTickets(CancellationToken ct)
+        {
+            var result = await _mediator.Send(new GetUrgentSupportTicketsQuery(), ct);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Route(ApiRoutes.AdminDashboard.ClinicLogs)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetClinicLogs([FromRoute] Guid clinicId, [FromQuery] GetClinicAuditLogsQuery query, CancellationToken ct)
+        {
+            query.ClinicId = clinicId;
+            var result = await _mediator.Send(query, ct);
+            return Ok(result);
         }
 
         [HttpGet]
@@ -70,6 +109,84 @@ namespace ClinicHub.API.Controllers.Version1
         {
             command = command with { UserId = id };
             var result = await _mediator.Send(command, ct);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Route(ApiRoutes.AdminDashboardExt.Tickets)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetTickets([FromQuery] GetAllSupportTicketsQuery query, CancellationToken ct)
+        {
+            var result = await _mediator.Send(query, ct);
+            return Ok(result);
+        }
+
+        [HttpPut]
+        [Route(ApiRoutes.AdminDashboardExt.UpdateTicketStatus)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> UpdateTicketStatus(Guid id, [FromBody] UpdateSupportTicketStatusCommand command, CancellationToken ct)
+        {
+            command.TicketId = id;
+            var result = await _mediator.Send(command, ct);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Route(ApiRoutes.AdminDashboardExt.AllSubscriptions)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetSubscriptions([FromQuery] GetAllSubscriptionsQuery query, CancellationToken ct)
+        {
+            var result = await _mediator.Send(query, ct);
+            return Ok(result);
+        }
+
+        [HttpPost]
+        [Route(ApiRoutes.AdminDashboardExt.RevokeSubscription)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> RevokeSubscription(Guid id, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new RevokeSubscriptionCommand { SubscriptionId = id }, ct);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Route(ApiRoutes.AdminDashboardExt.Advertisements)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAdvertisements([FromQuery] GetAllAdvertisementsQuery query, CancellationToken ct)
+        {
+            var result = await _mediator.Send(query, ct);
+            return Ok(result);
+        }
+
+        [HttpPost]
+        [Route(ApiRoutes.AdminDashboardExt.ApproveAdvertisement)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ApproveAdvertisement(Guid id, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new ApproveAdvertisementCommand { AdvertisementId = id }, ct);
+            return Ok(result);
+        }
+
+        [HttpPost]
+        [Route(ApiRoutes.AdminDashboardExt.RejectAdvertisement)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> RejectAdvertisement(Guid id, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new RejectAdvertisementCommand { AdvertisementId = id }, ct);
+            return Ok(result);
+        }
+
+        [HttpDelete]
+        [Route(ApiRoutes.AdminDashboardExt.DeleteAdvertisement)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteAdvertisement(Guid id, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new DeleteAdvertisementCommand { Id = id }, ct);
             return Ok(result);
         }
     }

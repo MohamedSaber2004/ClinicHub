@@ -20,7 +20,7 @@ namespace ClinicHub.Infrastructure.Services
             _settings = settings.Value;
         }
 
-        public string GenerateAccessToken(ApplicationUser user, IList<string> roles, Guid? clinicId = null)
+        public string GenerateAccessToken(ApplicationUser user, IList<string> roles, Guid? clinicId = null, bool hasActiveSubscription = false)
         {
             var claims = new List<Claim>
             {
@@ -34,6 +34,8 @@ namespace ClinicHub.Infrastructure.Services
             {
                 claims.Add(new Claim("ClinicId", clinicId.Value.ToString()));
             }
+
+            claims.Add(new Claim("HasActiveSubscription", hasActiveSubscription.ToString()));
 
             var userTypesMask = roles
                 .Select(r => Enum.TryParse<UserType>(r, ignoreCase: true, out var ut) ? (int)ut : 0)

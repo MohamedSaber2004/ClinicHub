@@ -7,5 +7,6 @@
         string? IpAddress { get; }
         int? UserTypes { get; }
         Guid? CurrentClinicId { get; }
+        bool HasActiveSubscription { get; }
     }
 }

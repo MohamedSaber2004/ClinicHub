@@ -86,7 +86,10 @@ namespace ClinicHub.Application.Features.Auth.Commands.CompleteFacebookRegistrat
                 .GetAllAsync(c => c.ClinicAdminId == user.Id && !c.IsDeleted)
                 .Select(c => (Guid?)c.Id)
                 .FirstOrDefaultAsync(cancellationToken);
-            var accessToken = _jwtTokenService.GenerateAccessToken(user, roles, clinicId);
+            var hasActiveSubscription = clinicId.HasValue
+                && await _unitOfWork.GetRepository<Subscription, Guid>()
+                    .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > DateTime.UtcNow, cancellationToken);
+            var accessToken = _jwtTokenService.GenerateAccessToken(user, roles, clinicId, hasActiveSubscription);
 
             var existingToken = await _unitOfWork.UserRefreshTokenRepository
                 .GetFirstAsync(x => x.UserId == user.Id && !x.IsRevoked && x.ExpiryDate > DateTime.UtcNow, cancellationToken);

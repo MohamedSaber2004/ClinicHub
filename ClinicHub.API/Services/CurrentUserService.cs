@@ -15,6 +15,8 @@ namespace ClinicHub.API.Services
 
         public Guid? CurrentClinicId { get; }
 
+        public bool HasActiveSubscription { get; }
+
         public CurrentUserService(IHttpContextAccessor httpContextAccessor)
         {
             var httpContext = httpContextAccessor.HttpContext;
@@ -43,6 +45,9 @@ namespace ClinicHub.API.Services
             {
                 CurrentClinicId = clinicId;
             }
+
+            var subClaim = httpContext?.User?.FindFirst("HasActiveSubscription")?.Value;
+            HasActiveSubscription = bool.TryParse(subClaim, out var hasSub) && hasSub;
         }
     }
 }

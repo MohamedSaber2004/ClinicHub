@@ -218,5 +218,68 @@ namespace ClinicHub.API.Routes
             public const string Approve = BaseRoute + "/{id:guid}/approve";
             public const string Reject = BaseRoute + "/{id:guid}/reject";
         }
+
+        public static class DoctorDashboard
+        {
+            public const string BaseRoute = Base + "/doctors";
+            public const string Stats = BaseRoute + "/dashboard/stats";
+            public const string Appointments = BaseRoute + "/appointments";
+            public const string AcceptAppointment = BaseRoute + "/appointments/{id:guid}/accept";
+            public const string RejectAppointment = BaseRoute + "/appointments/{id:guid}/reject";
+            public const string CompleteAppointment = BaseRoute + "/appointments/{id:guid}/complete";
+            public const string Patients = BaseRoute + "/patients";
+            public const string PatientHistory = BaseRoute + "/patients/{patientId:guid}/history";
+        }
+
+        public static class StaffDashboard
+        {
+            public const string BaseRoute = Base + "/staff";
+            public const string Stats = BaseRoute + "/dashboard/stats";
+            public const string Appointments = BaseRoute + "/appointments";
+            public const string ApproveAppointment = BaseRoute + "/appointments/{id:guid}/approve";
+            public const string RejectAppointment = BaseRoute + "/appointments/{id:guid}/reject";
+            public const string CheckIn = BaseRoute + "/appointments/{id:guid}/check-in";
+            public const string RegisterPatient = BaseRoute + "/patients/register";
+            public const string DoctorSchedule = BaseRoute + "/doctors/{doctorId:guid}/schedule";
+            public const string Queue = BaseRoute + "/queue";
+        }
+
+        public static class Subscriptions
+        {
+            public const string BaseRoute = Base + "/subscriptions";
+            public const string Create = BaseRoute;
+            public const string MySubscription = BaseRoute + "/my";
+            public const string CancelMySubscription = BaseRoute + "/my/cancel";
+        }
+
+        public static class AdminDashboardExt
+        {
+            public const string Tickets = Base + "/admin/dashboard/tickets";
+            public const string UpdateTicketStatus = Base + "/admin/dashboard/tickets/{id:guid}/status";
+            public const string AllSubscriptions = Base + "/admin/dashboard/subscriptions";
+            public const string RevokeSubscription = Base + "/admin/dashboard/subscriptions/{id:guid}/revoke";
+            public const string Advertisements = Base + "/admin/dashboard/advertisements";
+            public const string ApproveAdvertisement = Base + "/admin/dashboard/advertisements/{id:guid}/approve";
+            public const string RejectAdvertisement = Base + "/admin/dashboard/advertisements/{id:guid}/reject";
+            public const string DeleteAdvertisement = Base + "/admin/dashboard/advertisements/{id:guid}";
+        }
+
+        public static class Advertisements
+        {
+            public const string BaseRoute = Base + "/advertisements";
+            public const string MyAdvertisements = BaseRoute + "/my";
+            public const string Create = BaseRoute;
+            public const string Update = BaseRoute + "/{id:guid}";
+            public const string Delete = BaseRoute + "/{id:guid}";
+        }
+
+        public static class ClinicStaff
+        {
+            public const string BaseRoute = Base + "/admin/clinics/staff";
+            public const string GetAll = BaseRoute;
+            public const string Create = BaseRoute;
+            public const string Update = BaseRoute + "/{id:guid}";
+            public const string Delete = BaseRoute + "/{id:guid}";
+        }
     }
 }

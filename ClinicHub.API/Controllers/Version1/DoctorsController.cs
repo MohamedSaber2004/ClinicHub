@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
+using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Doctors.Commands.CreateDoctor;
 using ClinicHub.Application.Features.Doctors.Commands.UpdateDoctor;
 using ClinicHub.Application.Features.Doctors.Commands.DeleteDoctor;
@@ -16,9 +17,12 @@ namespace ClinicHub.API.Controllers.Version1
     [RoleAuthorize]
     public class DoctorsController : BaseApiController
     {
-        public DoctorsController(IMediator mediator)
+        private readonly ICurrentUserService _currentUserService;
+
+        public DoctorsController(IMediator mediator, ICurrentUserService currentUserService)
             : base(mediator)
         {
+            _currentUserService = currentUserService;
         }
 
         [HttpGet]
@@ -45,6 +49,7 @@ namespace ClinicHub.API.Controllers.Version1
 
         [HttpPost]
         [Route(ApiRoutes.Doctors.Create)]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -54,8 +59,23 @@ namespace ClinicHub.API.Controllers.Version1
             return Created(ApiRoutes.Doctors.GetById, result);
         }
 
+        [HttpPost]
+        [Route(ApiRoutes.ClinicManagement.BaseRoute + "/doctors")]
+        [RoleAuthorize(nameof(UserType.ClinicOwner))]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CreateForMyClinic([FromBody] CreateDoctorCommand command)
+        {
+            var clinicId = _currentUserService.CurrentClinicId
+                ?? throw new InvalidOperationException("ClinicOwner must have a clinic assigned.");
+            command.ClinicId = clinicId;
+            var result = await _mediator.Send(command);
+            return Created(ApiRoutes.Doctors.GetById, result);
+        }
+
         [HttpPut]
         [Route(ApiRoutes.Doctors.Update)]
+        [RoleAuthorize(nameof(UserType.SuperAdmin), nameof(UserType.ClinicOwner))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -68,6 +88,7 @@ namespace ClinicHub.API.Controllers.Version1
 
         [HttpDelete]
         [Route(ApiRoutes.Doctors.Delete)]
+        [RoleAuthorize(nameof(UserType.SuperAdmin), nameof(UserType.ClinicOwner))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(Guid id)

@@ -3,6 +3,7 @@ using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Auth.DTOs;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
+using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -52,7 +53,10 @@ namespace ClinicHub.Application.Features.Auth.Commands.RefreshToken
                 .GetAllAsync(c => c.ClinicAdminId == user.Id && !c.IsDeleted)
                 .Select(c => (Guid?)c.Id)
                 .FirstOrDefaultAsync(cancellationToken);
-            var newAccessToken = _jwtTokenService.GenerateAccessToken(user, roles, clinicId);
+            var hasActiveSubscription = clinicId.HasValue
+                && await _unitOfWork.GetRepository<Subscription, Guid>()
+                    .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > DateTime.UtcNow, cancellationToken);
+            var newAccessToken = _jwtTokenService.GenerateAccessToken(user, roles, clinicId, hasActiveSubscription);
             var newRefreshToken = _jwtTokenService.GenerateRefreshToken(user);
 
             var newTokenEntity = UserRefreshToken.Create(user.Id, newRefreshToken, DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays));

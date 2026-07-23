@@ -216,5 +216,31 @@
     "InvalidValue": "Rating value must be between 1 and 5",
     "AlreadyRated": "You have already rated this item",
     "Created": "Rating submitted successfully"
+  },
+  "Staff": {
+    "NotFound": "Staff member not found",
+    "Created": "Staff member created successfully",
+    "Updated": "Staff member updated successfully",
+    "Deleted": "Staff member deleted successfully"
+  },
+  "Subscriptions": {
+    "NotFound": "Subscription not found",
+    "Created": "Subscription created successfully",
+    "AlreadyActive": "An active subscription already exists for this clinic",
+    "Cancelled": "Subscription cancelled successfully",
+    "Revoked": "Subscription revoked successfully"
+  },
+  "Advertisements": {
+    "NotFound": "Advertisement not found",
+    "Created": "Advertisement created successfully",
+    "Updated": "Advertisement updated successfully",
+    "Deleted": "Advertisement deleted successfully",
+    "Approved": "Advertisement approved successfully",
+    "Rejected": "Advertisement rejected successfully",
+    "NotPending": "Advertisement is not pending approval"
+  },
+  "SupportTickets": {
+    "NotFound": "Support ticket not found",
+    "StatusUpdated": "Support ticket status updated successfully"
   }
 }
