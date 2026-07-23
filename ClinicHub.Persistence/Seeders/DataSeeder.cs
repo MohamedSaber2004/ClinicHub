@@ -358,7 +358,7 @@ namespace ClinicHub.Persistence.Seeders
                         PriceYearly = 5000,
                         MaxDoctors = 2,
                         MaxStaff = 5,
-                        Features = "[\"appointments\", \"patient_records\", \"basic_reports\"]",
+                        Features = "[\"appointments\",\"patient_records\",\"basic_reports\"]",
                         IsActive = true,
                         SortOrder = 1
                     },
@@ -372,7 +372,7 @@ namespace ClinicHub.Persistence.Seeders
                         PriceYearly = 10000,
                         MaxDoctors = 5,
                         MaxStaff = 15,
-                        Features = "[\"appointments\", \"patient_records\", \"advanced_reports\", \"sms_notifications\"]",
+                        Features = "[\"appointments\",\"patient_records\",\"advanced_reports\",\"sms_notifications\"]",
                         IsActive = true,
                         SortOrder = 2
                     },
@@ -386,7 +386,7 @@ namespace ClinicHub.Persistence.Seeders
                         PriceYearly = 20000,
                         MaxDoctors = null,
                         MaxStaff = null,
-                        Features = "[\"appointments\", \"patient_records\", \"advanced_reports\", \"sms_notifications\", \"marketing_tools\", \"priority_support\"]",
+                        Features = "[\"appointments\",\"patient_records\",\"advanced_reports\",\"sms_notifications\",\"marketing_tools\",\"priority_support\"]",
                         IsActive = true,
                         SortOrder = 3
                     }
