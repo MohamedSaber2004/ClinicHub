@@ -364,31 +364,17 @@ namespace ClinicHub.Persistence.Seeders
                     },
                     new()
                     {
-                        Name = "Standard",
-                        NameAr = "قياسية",
-                        Description = "For growing clinics. Up to 5 doctors and 15 staff members.",
-                        DescriptionAr = "للعيادات المتنامية. حتى 5 أطباء و 15 موظفاً.",
-                        PriceMonthly = 1000,
-                        PriceYearly = 10000,
-                        MaxDoctors = 5,
-                        MaxStaff = 15,
-                        Features = "[\"appointments\",\"patient_records\",\"advanced_reports\",\"sms_notifications\"]",
-                        IsActive = true,
-                        SortOrder = 2
-                    },
-                    new()
-                    {
-                        Name = "Premium",
-                        NameAr = "ممتازة",
-                        Description = "Unlimited doctors and staff. All features included.",
-                        DescriptionAr = "أطباء وموظفين غير محدودين. جميع الميزات متضمنة.",
-                        PriceMonthly = 2000,
-                        PriceYearly = 20000,
+                        Name = "Advanced",
+                        NameAr = "متقدمة",
+                        Description = "For established clinics. Unlimited doctors and staff. All features included.",
+                        DescriptionAr = "للعيادات المتطورة. أطباء وموظفين غير محدودين. جميع الميزات متضمنة.",
+                        PriceMonthly = 1500,
+                        PriceYearly = 15000,
                         MaxDoctors = null,
                         MaxStaff = null,
-                        Features = "[\"appointments\",\"patient_records\",\"advanced_reports\",\"sms_notifications\",\"marketing_tools\",\"priority_support\"]",
+                        Features = "[\"appointments\",\"patient_records\",\"advanced_reports\",\"marketing_tools\",\"priority_support\"]",
                         IsActive = true,
-                        SortOrder = 3
+                        SortOrder = 2
                     }
                 };
                 context.Set<Plan>().AddRange(plans);
@@ -402,8 +388,7 @@ namespace ClinicHub.Persistence.Seeders
                 var seededPlans = await context.Set<Plan>().ToListAsync();
 
                 var basic = seededPlans.FirstOrDefault(p => p.Name == "Basic");
-                var standard = seededPlans.FirstOrDefault(p => p.Name == "Standard");
-                var premium = seededPlans.FirstOrDefault(p => p.Name == "Premium");
+                var advanced = seededPlans.FirstOrDefault(p => p.Name == "Advanced");
 
                 if (basic != null)
                 {
@@ -417,31 +402,18 @@ namespace ClinicHub.Persistence.Seeders
                     );
                 }
 
-                if (standard != null)
+                if (advanced != null)
                 {
                     context.Set<PlanPermission>().AddRange(
-                        new PlanPermission { PlanId = standard.Id, Permission = SubscriptionPermission.ManageAppointments },
-                        new PlanPermission { PlanId = standard.Id, Permission = SubscriptionPermission.PatientRecords },
-                        new PlanPermission { PlanId = standard.Id, Permission = SubscriptionPermission.BasicReports },
-                        new PlanPermission { PlanId = standard.Id, Permission = SubscriptionPermission.AdvancedReports },
-                        new PlanPermission { PlanId = standard.Id, Permission = SubscriptionPermission.ManageStaff },
-                        new PlanPermission { PlanId = standard.Id, Permission = SubscriptionPermission.ManageDoctors },
-                        new PlanPermission { PlanId = standard.Id, Permission = SubscriptionPermission.OnlineBooking }
-                    );
-                }
-
-                if (premium != null)
-                {
-                    context.Set<PlanPermission>().AddRange(
-                        new PlanPermission { PlanId = premium.Id, Permission = SubscriptionPermission.ManageAppointments },
-                        new PlanPermission { PlanId = premium.Id, Permission = SubscriptionPermission.PatientRecords },
-                        new PlanPermission { PlanId = premium.Id, Permission = SubscriptionPermission.BasicReports },
-                        new PlanPermission { PlanId = premium.Id, Permission = SubscriptionPermission.AdvancedReports },
-                        new PlanPermission { PlanId = premium.Id, Permission = SubscriptionPermission.MarketingTools },
-                        new PlanPermission { PlanId = premium.Id, Permission = SubscriptionPermission.PrioritySupport },
-                        new PlanPermission { PlanId = premium.Id, Permission = SubscriptionPermission.ManageStaff },
-                        new PlanPermission { PlanId = premium.Id, Permission = SubscriptionPermission.ManageDoctors },
-                        new PlanPermission { PlanId = premium.Id, Permission = SubscriptionPermission.OnlineBooking }
+                        new PlanPermission { PlanId = advanced.Id, Permission = SubscriptionPermission.ManageAppointments },
+                        new PlanPermission { PlanId = advanced.Id, Permission = SubscriptionPermission.PatientRecords },
+                        new PlanPermission { PlanId = advanced.Id, Permission = SubscriptionPermission.BasicReports },
+                        new PlanPermission { PlanId = advanced.Id, Permission = SubscriptionPermission.AdvancedReports },
+                        new PlanPermission { PlanId = advanced.Id, Permission = SubscriptionPermission.MarketingTools },
+                        new PlanPermission { PlanId = advanced.Id, Permission = SubscriptionPermission.PrioritySupport },
+                        new PlanPermission { PlanId = advanced.Id, Permission = SubscriptionPermission.ManageStaff },
+                        new PlanPermission { PlanId = advanced.Id, Permission = SubscriptionPermission.ManageDoctors },
+                        new PlanPermission { PlanId = advanced.Id, Permission = SubscriptionPermission.OnlineBooking }
                     );
                 }
 

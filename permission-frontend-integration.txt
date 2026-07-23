@@ -1,0 +1,328 @@
+================================================================================
+  ClinicHub — Permission-Based Subscription: Frontend Integration Guide
+================================================================================
+
+TABLE OF CONTENTS
+-----------------
+1. OVERVIEW
+2. PLAN PERMISSION MATRIX
+3. API ENDPOINTS
+4. CHECKING USER PERMISSIONS ON THE FRONTEND
+   a. From JWT (Current — HasActiveSubscription only)
+   b. From Dedicated Permissions Endpoint (Recommended)
+5. GATING UI ELEMENTS
+6. UPGRADE FLOW
+7. ERROR HANDLING
+8. QUICK CHECKLIST
+
+================================================================================
+1. OVERVIEW
+================================================================================
+
+Each Plan now has a set of granular permissions stored in a PlanPermissions
+join table. Endpoints are guarded by [RequirePlanPermission] which returns
+403 if the clinic's active plan doesn't include the required permission.
+
+The old [RequireSubscription] (binary on/off) has been replaced with
+[RequirePlanPermission] throughout the API.
+
+================================================================================
+2. PLAN PERMISSION MATRIX
+================================================================================
+
+  Permission Name        Value   Basic   Advanced
+  ─────────────────────  ─────   ─────   ────────
+  ManageAppointments      1      ✓       ✓
+  PatientRecords          2      ✓       ✓
+  BasicReports            4      ✓       ✓
+  AdvancedReports         8      —       ✓
+  MarketingTools         16      —       ✓
+  PrioritySupport        32      —       ✓
+  ManageStaff            64      ✓       ✓
+  ManageDoctors         128      ✓       ✓
+  OnlineBooking         256      ✓       ✓
+
+  Plan price limits (for reference):
+                  Basic      Advanced
+  Monthly         500 EGP    1,500 EGP
+  Yearly         5,000 EGP  15,000 EGP
+  Max Doctors     2          Unlimited
+  Max Staff       5          Unlimited
+
+================================================================================
+3. API ENDPOINTS
+================================================================================
+
+  3a. Current subscription (includes plan + permissions)
+  ──────────────────────────────────────────────────────────────────────
+
+  GET /api/v1/subscriptions/my
+  Authorization: Bearer <jwt>
+
+  Response:
+  {
+    "success": true,
+    "data": {
+      "id": "guid",
+      "clinicId": "guid",
+      "planId": "guid",
+      "planName": "Basic",
+      "period": 0,            // 0=Monthly, 1=Yearly
+      "startDate": "...",
+      "endDate": "...",
+      "status": 0,            // 0=Active, 1=Cancelled, 2=Expired, 3=Revoked
+      "amount": 500,
+      "paidAt": "...",
+      "isActive": true,
+      "permissions": [        // ← NEW: array of permission names
+        "ManageAppointments",
+        "PatientRecords",
+        "BasicReports",
+        "ManageStaff",
+        "ManageDoctors",
+        "OnlineBooking"
+      ]
+    }
+  }
+
+  3b. All plans (public, no auth)
+  ──────────────────────────────────────────────────────────────────────
+
+  GET /api/v1/plans
+
+  Response now includes permissions per plan:
+  {
+    "success": true,
+    "data": [
+      {
+        "id": "guid",
+        "name": "Basic",
+        "nameAr": "أساسية",
+        "priceMonthly": 500,
+        "priceYearly": 5000,
+        "maxDoctors": 2,
+        "maxStaff": 5,
+        "features": "...",
+        "isActive": true,
+        "sortOrder": 1,
+        "permissions": [       // ← NEW: list of permission names
+          "ManageAppointments",
+          "PatientRecords",
+          "BasicReports",
+          "ManageStaff",
+          "ManageDoctors",
+          "OnlineBooking"
+        ]
+      },
+      ...
+    ]
+  }
+
+  (Note: if permissions is not yet in the PlanDto, it will be added after
+   the AutoMapper profile is updated to map Plan.Permissions → PlanDto.Permissions)
+
+================================================================================
+4. CHECKING USER PERMISSIONS ON THE FRONTEND
+================================================================================
+
+  4a. From JWT (Current)
+  ────────────────────────
+
+  The JWT still has only the binary HasActiveSubscription claim.
+  It does NOT contain individual permission claims.
+
+    const decoded = jwtDecode(token);
+    const hasSubscription = decoded.HasActiveSubscription === 'True';
+    // This tells you they have SOME subscription, not WHICH permissions.
+
+  Use this only for the initial app-level gate (show/hide dashboard).
+  For granular feature gating, use option 4b.
+
+  4b. From Dedicated Permissions Endpoint (Recommended)
+  ────────────────────────────────────────────────────
+
+  Fetch the active subscription once on app load / login and cache
+  the permissions array:
+
+  async function fetchMyPermissions() {
+    const token = localStorage.getItem('accessToken');
+    const res = await fetch('/api/v1/subscriptions/my', {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    const body = await res.json();
+    const permissions = body.data?.permissions ?? [];
+    localStorage.setItem('myPermissions', JSON.stringify(permissions));
+    return permissions;
+  }
+
+  Then check permissions anywhere:
+
+  function hasPermission(permissionName) {
+    const perms = JSON.parse(localStorage.getItem('myPermissions') || '[]');
+    return perms.includes(permissionName);
+  }
+
+  // Usage
+  if (hasPermission('AdvancedReports')) {
+    // Show advanced reports button
+  }
+
+  4c. Permission Names Reference
+  ──────────────────────────────
+
+  The API returns permissions as string names (not integer values):
+
+    "ManageAppointments"
+    "PatientRecords"
+    "BasicReports"
+    "AdvancedReports"
+    "MarketingTools"
+    "PrioritySupport"
+    "ManageStaff"
+    "ManageDoctors"
+    "OnlineBooking"
+
+================================================================================
+5. GATING UI ELEMENTS
+================================================================================
+
+  5a. Hide/Show Features by Permission
+  ─────────────────────────────────────
+
+  // React example
+  function AdvancedReportsButton() {
+    const [canAccess, setCanAccess] = useState(false);
+
+    useEffect(() => {
+      const perms = JSON.parse(localStorage.getItem('myPermissions') || '[]');
+      setCanAccess(perms.includes('AdvancedReports'));
+    }, []);
+
+    if (!canAccess) return (
+      <Tooltip title="Upgrade to Standard or Premium to access this feature">
+        <button disabled onClick={() => showUpgradeModal()}>
+          Advanced Reports ⭐
+        </button>
+      </Tooltip>
+    );
+
+    return <button onClick={openReports}>Advanced Reports</button>;
+  }
+
+  5b. Upgrade Modal/Prompt
+  ─────────────────────────
+
+  When a user clicks a feature they don't have, show:
+
+  ┌───────────────────────────────────────────┐
+  │  Feature: Advanced Reports                │
+  │                                           │
+  │  Your current plan (Basic) does not       │
+  │  include this feature.                    │
+  │                                           │
+  │  Required plan: Standard or higher        │
+  │                                           │
+  │  [View Plans & Upgrade]    [Cancel]       │
+  └───────────────────────────────────────────┘
+
+  Map features to required plan tier:
+
+  const featurePlanTier = {
+    ManageAppointments: 'Basic',
+    PatientRecords: 'Basic',
+    BasicReports: 'Basic',
+    ManageStaff: 'Basic',
+    ManageDoctors: 'Basic',
+    OnlineBooking: 'Basic',
+    AdvancedReports: 'Standard',
+    MarketingTools: 'Premium',
+    PrioritySupport: 'Premium'
+  };
+
+  5c. Dashboard Feature Grid Example
+  ────────────────────────────────────
+
+  ┌───────────────────────────────────────────────────────────┐
+  │  Dashboard                                                │
+  │                                                           │
+  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐ │
+  │  │ Appointments  │  │ Patients     │  │ Basic Reports    │ │
+  │  │ ✓            │  │ ✓            │  │ ✓               │ │
+  │  └──────────────┘  └──────────────┘  └──────────────────┘ │
+  │                                                           │
+  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐ │
+  │  │ Adv. Reports │  │ Ad Manager   │  │ Priority Support │ │
+  │  │ 🔒 Upgrade   │  │ 🔒 Upgrade   │  │ 🔒 Upgrade      │ │
+  │  └──────────────┘  └──────────────┘  └──────────────────┘ │
+  └───────────────────────────────────────────────────────────┘
+
+================================================================================
+6. UPGRADE FLOW
+================================================================================
+
+  Current plan is Basic, user wants Advanced Reports:
+
+  1. User clicks locked "Advanced Reports" card
+  2. Show upgrade modal with required plan info
+  3. User clicks "View Plans & Upgrade"
+  4. Navigate to /plans (or /subscriptions/upgrade)
+  5. Show plans with current plan highlighted and "Upgrade" CTA
+  6. User selects new plan → calls backend
+  7. Backend: we need to handle plan change/upgrade endpoint
+
+  (Note: The plan upgrade endpoint is not yet implemented in the backend.
+   Currently, the user would cancel their subscription and subscribe to
+   a new plan. A future enhancement could add a dedicated upgrade endpoint
+   that prorates the remaining balance.)
+
+================================================================================
+7. ERROR HANDLING
+================================================================================
+
+  When [RequirePlanPermission] denies access, the API returns:
+
+  HTTP 403
+  {
+    "success": false,
+    "message": "Your current plan does not include this feature. Please upgrade to access it.",
+    "data": null,
+    "statusCode": 403
+  }
+
+  Frontend handling:
+
+  async function apiCall(url, options) {
+    const res = await fetch(url, options);
+    if (res.status === 403) {
+      const body = await res.json();
+      if (body.message?.includes('plan does not include')) {
+        // Permission denied — show upgrade prompt
+        showUpgradePrompt();
+        return null;
+      }
+      if (body.message?.includes('subscription required')) {
+        // No active subscription at all
+        window.location.href = '/subscription-required';
+        return null;
+      }
+    }
+    return res.json();
+  }
+
+================================================================================
+8. QUICK CHECKLIST
+================================================================================
+
+  [ ] Fetch permissions from GET /api/v1/subscriptions/my on login/app load
+  [ ] Cache permissions in localStorage under key 'myPermissions'
+  [ ] Hide/disable UI features based on cached permissions
+  [ ] Show upgrade prompt with required plan tier for locked features
+  [ ] Handle 403 from any endpoint — check if it's permission denial vs
+      missing subscription
+  [ ] Show plan name and feature list on subscription management page
+  [ ] Handle empty permissions gracefully (no active subscription)
+  [ ] Refresh permissions cache after plan change / payment
+
+================================================================================
+  END OF DOCUMENT
+================================================================================

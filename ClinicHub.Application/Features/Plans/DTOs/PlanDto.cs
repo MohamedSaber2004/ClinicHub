@@ -14,5 +14,6 @@ namespace ClinicHub.Application.Features.Plans.DTOs
         public string? Features { get; set; }
         public bool IsActive { get; set; }
         public int SortOrder { get; set; }
+        public List<string>? Permissions { get; set; }
     }
 }

@@ -8,7 +8,9 @@ namespace ClinicHub.Application.Features.Plans
     {
         public PlanProfile()
         {
-            CreateMap<Plan, PlanDto>();
+            CreateMap<Plan, PlanDto>()
+                .ForMember(dest => dest.Permissions,
+                    opt => opt.MapFrom(src => src.Permissions.Select(p => p.Permission.ToString()).ToList()));
         }
     }
 }

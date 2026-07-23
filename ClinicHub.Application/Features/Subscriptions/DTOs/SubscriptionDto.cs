@@ -16,5 +16,6 @@ namespace ClinicHub.Application.Features.Subscriptions.DTOs
         public decimal Amount { get; set; }
         public DateTime? PaidAt { get; set; }
         public bool IsActive => Status == SubscriptionStatus.Active && EndDate > DateTime.UtcNow;
+        public List<string>? Permissions { get; set; }
     }
 }
