@@ -6,6 +6,7 @@ using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace ClinicHub.Application.Features.Subscriptions.Commands.CreateSubscription
 {
@@ -29,6 +30,16 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.CreateSubscripti
             var plan = await _unitOfWork.GetRepository<Plan, Guid>().FindByKeyAsync(request.PlanId);
             if (plan == null)
                 throw new NotFoundException(LocalizationKeys.PlanMessages.NotFound.Value);
+
+            var existingActiveSubs = await _unitOfWork.GetRepository<Subscription, Guid>()
+                .GetAllAsync(s => s.ClinicId == request.ClinicId && s.Status == SubscriptionStatus.Active)
+                .ToListAsync(cancellationToken);
+
+            foreach (var activeSub in existingActiveSubs)
+            {
+                activeSub.Status = SubscriptionStatus.Revoked;
+                activeSub.Notes = "Revoked due to new manual subscription creation.";
+            }
 
             var subscription = new Subscription
             {

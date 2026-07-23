@@ -47,10 +47,6 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.InitiateSubscrip
             if (clinic == null || clinic.Status != ClinicStatus.Active)
                 throw new BadRequestException("Clinic must be active to subscribe.");
 
-            var hasActive = await _unitOfWork.GetRepository<Subscription, Guid>()
-                .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > DateTime.UtcNow, cancellationToken);
-            if (hasActive)
-                throw new BadRequestException(_localizer[LocalizationKeys.SubscriptionMessages.AlreadyActive.Value]);
 
             var user = await _unitOfWork.GetRepository<ApplicationUser, Guid>().FindByKeyAsync(_currentUser.UserId);
             var names = user?.FullName?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? new[] { clinic.Name ?? "Clinic", "Owner" };

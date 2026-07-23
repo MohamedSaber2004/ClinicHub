@@ -59,6 +59,19 @@ namespace ClinicHub.Application.Features.Admin.Commands.ApproveUserVerification
 
             await _userManager.AddToRoleAsync(user, roleName);
 
+            if (verification.RequestedRole == UserType.ClinicOwner)
+            {
+                var clinic = await _unitOfWork.ClinicRepository
+                    .GetAllAsync(c => (c.ClinicAdminId == user.Id || (user.ClinicId.HasValue && c.Id == user.ClinicId.Value)) && !c.IsDeleted && c.Status == ClinicStatus.PendingApproval)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (clinic != null)
+                {
+                    clinic.Status = ClinicStatus.Active;
+                    clinic.Active();
+                }
+            }
+
             if (verification is { SpecializationId: not null, RequestedRole: UserType.Doctor or UserType.ClinicOwner })
             {
                 var doctor = new Doctor(

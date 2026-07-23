@@ -87,6 +87,16 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
                     return true;
                 }
 
+                var existingActiveSubs = await _unitOfWork.GetRepository<Subscription, Guid>()
+                    .GetAllAsync(s => s.ClinicId == payment.ClinicId && s.Status == SubscriptionStatus.Active)
+                    .ToListAsync(cancellationToken);
+
+                foreach (var activeSub in existingActiveSubs)
+                {
+                    activeSub.Status = SubscriptionStatus.Revoked;
+                    activeSub.Notes = "Revoked due to new subscription payment confirmation.";
+                }
+
                 var period = payment.SubscriptionPeriod.Value;
                 var now = DateTime.UtcNow;
                 var endDate = period == SubscriptionPlan.Yearly ? now.AddYears(1) : now.AddMonths(1);
