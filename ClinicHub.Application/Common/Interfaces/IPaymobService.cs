@@ -9,7 +9,8 @@ public interface IPaymobService
         string currency,
         PaymentBillingData billing,
         string walletPhoneNumber,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken,
+        string? redirectionUrl = null);
 
     Task<bool> ValidateWebhookAsync(string hmac, IDictionary<string, string> transactionData);
 

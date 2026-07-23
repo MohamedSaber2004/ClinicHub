@@ -54,7 +54,7 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
 
         // Single orchestrated Paymob flow: Auth → Order → PaymentKey → WalletPay
         var walletResult = await _paymobService.InitiateWalletPaymentAsync(
-            amount!.Value, "EGP", billing, request.PhoneNumber, cancellationToken);
+            amount!.Value, "EGP", billing, request.PhoneNumber, cancellationToken, request.ReturnUrl);
 
         var payment = await _unitOfWork.PaymentRepository.GetByAppointmentIdAsync(request.AppointmentId);
         

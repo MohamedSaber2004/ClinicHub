@@ -1,19 +1,18 @@
-﻿{
-  "fullName": "Mohamed Saber",
-  "email": "clinicowner@gmail.com",
-  "phoneNumber": "01022812243",
-  "password": "***MASKED***",
-  "gender": 1,
-  "clinicName": "mohamed saber clinic",
-  "clinicAddress": "طناح, المنصورة",
-  "specializationId": "c6891e83-eea9-48b5-b018-1cb53a6e0683",
-  "planId": "a2222222-2222-2222-2222-222222222222",
-  "latitude": 31.036525,
-  "longitude": 31.5531,
-  "logo": "5_dfbfe15e-39fe-48f4-8a81-36e8111c0252.png",
-  "imageUrl": "5_3f017be3-3f8b-4e26-bb73-2ed39c9e9b90.jpg",
-  "professionalPracticeCardImage": "5_5a5749db-c99c-4f12-a9f6-a780161ecb42.jpeg",
-  "taxCardImage": "5_b1e27e6a-600e-404d-b3a1-7040537ec3ef.jpeg",
-  "unionIdCardImage": null,
-  "verificationDocument": null
-}
+﻿
+  To ensure that payment processing dynamically works across Local Dev (localhost), Staging, and Production, changes were implemented
+  in both the frontend initiation flow and the result page.
+  ──────
+  ### What Was Updated:
+
+  1. **InitiatePaymentRequest.cs**:
+  Added ReturnUrl property to InitiatePaymentRequest.
+  2. **ClinicController.cs**:
+  Dynamically generates the frontend return URL based on the current active request host (Request.Scheme://Request.
+  Host/Home/PaymentResult) and sends it to the backend API:
+      • On Local Dev: https://localhost:44339/Home/PaymentResult
+      • On Production: https://your-domain.com/Home/PaymentResult
+  3. **PaymentResult.cshtml**:
+      • Renders the payment outcome.
+      • Runs a 5-second countdown timer.
+      • Uses dynamic browser origin (window.location.origin + '/') to redirect the user back to the base URL of whichever environment
+      they are currently operating in.

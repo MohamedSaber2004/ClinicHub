@@ -38,7 +38,8 @@ public class PaymobService : IPaymobService
         string currency,
         PaymentBillingData billing,
         string walletPhoneNumber,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? redirectionUrl = null)
     {
         var amountCents = (int)Math.Round(amount * 100);
         var walletIntegrationId = int.Parse(
@@ -49,7 +50,7 @@ public class PaymobService : IPaymobService
         // Single API call: Create Intention (new unified flow)
         var (clientSecret, intentionId) = await CreateIntentionAsync(
             amountCents, currency, walletIntegrationId,
-            billing, walletPhoneNumber, cancellationToken);
+            billing, walletPhoneNumber, cancellationToken, redirectionUrl);
 
         // Build redirect URL using Public Key + Client Secret
         var redirectUrl = $"{BaseUrl}/unifiedcheckout/" +
@@ -74,7 +75,8 @@ public class PaymobService : IPaymobService
         int integrationId,
         PaymentBillingData billing,
         string walletPhoneNumber,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? redirectionUrl = null)
     {
         var payload = new
         {
@@ -115,7 +117,7 @@ public class PaymobService : IPaymobService
                 state = string.IsNullOrWhiteSpace(billing.State) ? "Cairo" : billing.State
             },
             notification_url = _settings.WebhookUrl,
-            redirection_url = _settings.RedirectionUrl
+            redirection_url = !string.IsNullOrWhiteSpace(redirectionUrl) ? redirectionUrl : _settings.RedirectionUrl
         };
 
         var request = new HttpRequestMessage(HttpMethod.Post, $"{BaseUrl}/v1/intention/")

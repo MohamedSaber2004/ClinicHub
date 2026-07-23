@@ -72,7 +72,7 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.InitiateSubscrip
                 State = "Egypt"
             };
 
-            var walletResult = await _paymobService.InitiateWalletPaymentAsync(amount, currency, billing, billing.PhoneNumber, cancellationToken);
+            var walletResult = await _paymobService.InitiateWalletPaymentAsync(amount, currency, billing, billing.PhoneNumber, cancellationToken, request.ReturnUrl);
 
             var payment = new Domain.Entities.Payment(null, _currentUser.UserId, clinicId.Value, amount, currency)
             {
