@@ -1,33 +1,53 @@
-﻿Full subscribe/pay flow now:
-1. SubscriptionRequired → click "عرض الباقات والاشتراك"
-2. Subscriptions page → user is authenticated (cookie) → each plan card shows "اشترك الآن" button
-3. User toggles monthly/yearly, clicks "اشترك الآن" on a plan
-4. JS reads data-plan-id + toggle state → navigates to /Clinic/Subscribe?planId=X&period=0|1
-5. ClinicController.Subscribe:
-- BearerTokenHandler reads AccessToken cookie → adds Authorization: Bearer header
-- Calls _subscriptionService.InitiatePaymentAsync() → backend creates Paymob payment
-- Returns PaymobRedirectUrl
-- Redirects browser to Paymob payment page
-6. User pays on Paymob
-7. Backend handles Paymob callback → redirects to /Home/PaymentResult?success=true|false
-8. PaymentResult page shows success/failure with action buttons
-▣  Build · DeepSeek V4 Flash Free · 5m 56s
-after subscribe and sucessfull payment after signin again when show me need to subscribe why that what is wrong ?????
-+ Thought: 42.5s
-The issue is on the backend side, not our frontend code. Here's why:
-The flow after successful payment:
-1. Your browser goes to Paymob (PaymobRedirectUrl)
-2. You pay successfully
-3. Paymob sends a callback/webhook to the backend server
-4. The backend must activate the subscription in the database
-5. Next login: backend checks subscription → should return 200 (not 403)
-If step 3 or 4 fails, the subscription is never activated in the database. So on next login, the backend still sees "no subscription" → returns 403 again → you see SubscriptionRequired.
-Check these backend-side things:
-1. Paymob callback URL — Does the backend have a correct callback endpoint that Paymob can reach? (configured in Paymob dashboard or backend code)
-2. Callback processing — Does the backend properly verify the Paymob transaction and activate the subscription?
-3. Backend logs — Check if the callback was received and if subscription activation succeeded
-Our frontend code correctly:
-- Initiates payment → gets PaymobRedirectUrl → redirects to Paymob ✅
-- Handles 403 with tokens → logs you in → shows SubscriptionRequired ✅
-- After subscription activated → login should return 200 → goes to dashboard ✅
-The missing piece is the backend's Paymob callback handler actually activating the subscription. This is not a frontend issue.
+﻿ The issue is almost certainly on the frontend side. Here are the most common causes:
+  ──────
+  ## 🔍 Why Specializations & Plans Are Not Loading — Diagnosis
+
+  ### 1. ❌ Wrong API URL / Version in Frontend
+
+  The routes require versioning in the URL. The correct URLs are:
+
+    GET /api/v1/specializations/active
+    GET /api/v1/plans
+
+  If the frontend is calling /api/specializations/active or /api/v2/specializations/active (note: default version is v2 — see
+  Program.cs line 71), it will get a 404.
+
+  │ Fix: Make sure your frontend explicitly calls /api/v1/... (not /api/v2/... and not without a version number, since
+  │ AssumeDefaultVersionWhenUnspecified = false).
+  ──────
+  ### 2. ❌  CORS Not Configured on the API Base URL
+
+  The CorsPolicy in the backend allows any origin — but only if the correct domain is being hit. If the frontend is hitting the wrong
+  base URL or the API server is not running, the request will fail silently.
+  ──────
+  ### 3. ❌ A uthorization Header Being Sent Anyway
+
+  Some frontend HTTP clients (e.g. axios interceptors) automatically attach a Bearer token to every request. If an expired or
+  malformed token is being sent, the JWT middleware may reject the request before it even reaches [AllowAnonymous].
+
+  │ Fix: For anonymous endpoints, make sure you do not send the Authorization header (or send no token if it's empty/null).
+  ──────
+  ### 4. ❌ Query Parame ter IsFamous Filtering Out All Results
+
+  The specializations endpoint has a default query parameter:
+
+    GET /api/v1/specializations/active?IsFamous=true   ← default
+
+  If no specializations are seeded with IsFamous = true, the list will be empty, not an error. Try calling:
+
+    GET /api/v1/specializations/active?IsFamous=false
+
+  to see if any come back at all.
+  ──────
+  ## ✅ Chec klist for Frontend Developers
+
+   #                                         │ Check                                     │ Expected Value
+  ───────────────────────────────────────────┼───────────────────────────────────────────┼───────────────────────────────────────────
+   1                                         │ API URL includes version                  │ /api/v1/specializations/active
+   2                                         │ Authorization header on anonymous calls   │ Not sent (or omitted)
+   3                                         │ Try ?IsFamous=false on specializations    │ Returns full list if seeded
+   4                                         │ Plans endpoint URL                        │ GET /api/v1/plans
+   5                                         │ API server is running and reachable       │ Check network tab in browser DevTools
+
+  Can you share the frontend code making these requests (the fetch/axios call) and the error from the browser DevTools Network tab?
+  That will pinpoint the exact issue.

@@ -28,9 +28,9 @@ namespace ClinicHub.API.Controllers.Version1
         [AllowAnonymous]
         [Route(ApiRoutes.Specializations.GetActive)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetActive(CancellationToken ct)
+        public async Task<IActionResult> GetActive([FromQuery] GetActiveSpecializationsQuery query, CancellationToken ct)
         {
-            var result = await _mediator.Send(new GetActiveSpecializationsQuery(), ct);
+            var result = await _mediator.Send(query, ct);
             return Ok(result);
         }
 
