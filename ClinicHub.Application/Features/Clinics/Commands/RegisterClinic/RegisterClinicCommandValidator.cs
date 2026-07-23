@@ -2,6 +2,8 @@ using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Clinics.Commands.RegisterClinic
@@ -10,7 +12,10 @@ namespace ClinicHub.Application.Features.Clinics.Commands.RegisterClinic
     {
         private readonly IUnitOfWork _ctx;
 
-        public RegisterClinicCommandValidator(IStringLocalizer<Messages> localizer, IUnitOfWork ctx)
+        public RegisterClinicCommandValidator(
+            IStringLocalizer<Messages> localizer,
+            IUnitOfWork ctx,
+            UserManager<ApplicationUser> userManager)
         {
             _ctx = ctx;
 
@@ -20,7 +25,12 @@ namespace ClinicHub.Application.Features.Clinics.Commands.RegisterClinic
 
             RuleFor(v => v.Email)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
-                .EmailAddress().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidEmail.Value]));
+                .EmailAddress().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidEmail.Value]))
+                .MustAsync(async (email, ct) =>
+                {
+                    var user = await userManager.FindByEmailAsync(email);
+                    return user is null || user.IsDeleted;
+                }).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.EmailAlreadyExists.Value]));
 
             RuleFor(v => v.Password)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
@@ -37,7 +47,12 @@ namespace ClinicHub.Application.Features.Clinics.Commands.RegisterClinic
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.SpecializationMessages.NotFound.Value]));
 
             RuleFor(v => v.PhoneNumber)
-                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
+                .MustAsync(async (phone, ct) =>
+                {
+                    var user = await userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phone && !u.IsDeleted, ct);
+                    return user is null;
+                }).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.PhoneNumberExistsBefore.Value]));
 
             RuleFor(v => v.Gender)
                 .NotNull().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))

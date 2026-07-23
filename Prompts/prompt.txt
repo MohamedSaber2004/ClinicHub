@@ -1,53 +1,19 @@
-﻿ The issue is almost certainly on the frontend side. Here are the most common causes:
-  ──────
-  ## 🔍 Why Specializations & Plans Are Not Loading — Diagnosis
-
-  ### 1. ❌ Wrong API URL / Version in Frontend
-
-  The routes require versioning in the URL. The correct URLs are:
-
-    GET /api/v1/specializations/active
-    GET /api/v1/plans
-
-  If the frontend is calling /api/specializations/active or /api/v2/specializations/active (note: default version is v2 — see
-  Program.cs line 71), it will get a 404.
-
-  │ Fix: Make sure your frontend explicitly calls /api/v1/... (not /api/v2/... and not without a version number, since
-  │ AssumeDefaultVersionWhenUnspecified = false).
-  ──────
-  ### 2. ❌  CORS Not Configured on the API Base URL
-
-  The CorsPolicy in the backend allows any origin — but only if the correct domain is being hit. If the frontend is hitting the wrong
-  base URL or the API server is not running, the request will fail silently.
-  ──────
-  ### 3. ❌ A uthorization Header Being Sent Anyway
-
-  Some frontend HTTP clients (e.g. axios interceptors) automatically attach a Bearer token to every request. If an expired or
-  malformed token is being sent, the JWT middleware may reject the request before it even reaches [AllowAnonymous].
-
-  │ Fix: For anonymous endpoints, make sure you do not send the Authorization header (or send no token if it's empty/null).
-  ──────
-  ### 4. ❌ Query Parame ter IsFamous Filtering Out All Results
-
-  The specializations endpoint has a default query parameter:
-
-    GET /api/v1/specializations/active?IsFamous=true   ← default
-
-  If no specializations are seeded with IsFamous = true, the list will be empty, not an error. Try calling:
-
-    GET /api/v1/specializations/active?IsFamous=false
-
-  to see if any come back at all.
-  ──────
-  ## ✅ Chec klist for Frontend Developers
-
-   #                                         │ Check                                     │ Expected Value
-  ───────────────────────────────────────────┼───────────────────────────────────────────┼───────────────────────────────────────────
-   1                                         │ API URL includes version                  │ /api/v1/specializations/active
-   2                                         │ Authorization header on anonymous calls   │ Not sent (or omitted)
-   3                                         │ Try ?IsFamous=false on specializations    │ Returns full list if seeded
-   4                                         │ Plans endpoint URL                        │ GET /api/v1/plans
-   5                                         │ API server is running and reachable       │ Check network tab in browser DevTools
-
-  Can you share the frontend code making these requests (the fetch/axios call) and the error from the browser DevTools Network tab?
-  That will pinpoint the exact issue.
+﻿{
+  "fullName": "Mohamed Saber",
+  "email": "clinicowner@gmail.com",
+  "phoneNumber": "01022812243",
+  "password": "***MASKED***",
+  "gender": 1,
+  "clinicName": "mohamed saber clinic",
+  "clinicAddress": "طناح, المنصورة",
+  "specializationId": "c6891e83-eea9-48b5-b018-1cb53a6e0683",
+  "planId": "a2222222-2222-2222-2222-222222222222",
+  "latitude": 31.036525,
+  "longitude": 31.5531,
+  "logo": "5_dfbfe15e-39fe-48f4-8a81-36e8111c0252.png",
+  "imageUrl": "5_3f017be3-3f8b-4e26-bb73-2ed39c9e9b90.jpg",
+  "professionalPracticeCardImage": "5_5a5749db-c99c-4f12-a9f6-a780161ecb42.jpeg",
+  "taxCardImage": "5_b1e27e6a-600e-404d-b3a1-7040537ec3ef.jpeg",
+  "unionIdCardImage": null,
+  "verificationDocument": null
+}
