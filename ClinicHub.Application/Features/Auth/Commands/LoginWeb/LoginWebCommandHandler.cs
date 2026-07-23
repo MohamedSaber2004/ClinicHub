@@ -73,19 +73,10 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWeb
                     .FirstOrDefaultAsync(cancellationToken);
             }
 
-            var isDashboardUser = roles.Any(r => r == nameof(UserType.ClinicOwner) || r == nameof(UserType.Staff) || r == nameof(UserType.Doctor));
-            if (isDashboardUser && clinicId.HasValue)
-            {
-                var hasActiveSub = await _unitOfWork.GetRepository<Subscription, Guid>()
-                    .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > DateTime.UtcNow, cancellationToken);
-
-                if (!hasActiveSub)
-                    throw new ForbiddenException(_localizer[LocalizationKeys.SubscriptionMessages.LoginRequiresSubscription.Value]);
-            }
-
             var hasActiveSubscription = clinicId.HasValue
                 && await _unitOfWork.GetRepository<Subscription, Guid>()
                     .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > DateTime.UtcNow, cancellationToken);
+
             var accessToken = _jwtTokenService.GenerateAccessToken(user, roles, clinicId, hasActiveSubscription);
 
             var existingToken = await _unitOfWork.UserRefreshTokenRepository
@@ -119,7 +110,13 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWeb
                 .Select(d => (bool?)d.IsFreelance)
                 .FirstOrDefaultAsync(cancellationToken) ?? false;
 
-            return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, roles.FirstOrDefault(), user.Id, clinicId, user.ProfilePictureUrl, isFreelanceDoctor);
+            var authData = new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, roles.FirstOrDefault(), user.Id, clinicId, user.ProfilePictureUrl, isFreelanceDoctor);
+
+            var isDashboardUser = roles.Any(r => r == nameof(UserType.ClinicOwner) || r == nameof(UserType.Staff) || r == nameof(UserType.Doctor));
+            if (isDashboardUser && clinicId.HasValue && !hasActiveSubscription)
+                throw new ForbiddenException(_localizer[LocalizationKeys.SubscriptionMessages.LoginRequiresSubscription.Value], authData);
+
+            return authData;
         }
     }
 }

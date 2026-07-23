@@ -140,7 +140,14 @@ namespace ClinicHub.API.Filters
             var exception = context.Exception as ForbiddenException;
             var localizedForbidden = JsonLocalizationProvider.GetLocalizedString(exception?.Message ?? LocalizationKeys.ExceptionMessages.Forbidden.Value);
             string? message = localizedForbidden ?? "Forbidden access";
-            var details = ApiResponse<object>.Error(message, StatusCodes.Status403Forbidden);
+
+            var details = new ApiResponse<object>
+            {
+                Success = false,
+                Data = exception?.AuthData,
+                Message = message,
+                StatusCode = StatusCodes.Status403Forbidden
+            };
 
             context.Result = new ObjectResult(details)
             {

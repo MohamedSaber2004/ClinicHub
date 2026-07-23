@@ -1,13 +1,95 @@
-﻿All changes done. Here's what was fixed and why:
-Root cause
-The backend GetAllUsersQuery (in prompt.txt) has no ClinicId field. It was impossible to filter by clinic. The clinic filter on the Doctors page was essentially a no-op — it excluded ClinicOwner from the user type list but never actually filtered by the selected clinic.
-The IsUnassigned filter was also broken because when isUnassigned=true, DoctorService excluded ClinicOwner from UserTypes. But to find "unassigned users" (users without a doctor record in DoctorRepository), we need both Doctor and ClinicOwner types — a ClinicOwner user naturally has no doctor record.
-Changes made
-File	Change
-Services/RequestModels/GetAllDoctorsRequest.cs	Added UserTypes property
-Services/Services/Implementations/DoctorService.cs	Now includes ClinicOwner unless ClinicId is set; passes ClinicId to GetAllUsersRequest; respects explicit UserTypes from role filter
-Services/Services/Implementations/UserService.cs	Sends ClinicId in the API URL
-Controllers/AdminController.cs	Accepts userTypes param; added ParseUserTypes() helper; passes to view
-Views/Admin/Doctors.cshtml	New role filter dropdown (طبيب / مالك عيادة / موظف)
-Backend limitation
-The clinic filter (ClinicId) is now piped all the way to the API URL, but the Doctory backend GetAllUsersQuery still lacks a ClinicId property. You need to add public Guid? ClinicId { get; set; } to the backend GetAllUsersQuery class and use it in the handler to filter doctors by clinic. Until then, the clinic dropdown only affects which user types are queried (Doctor only vs Doctor+ClinicOwner).
+﻿ok i want to match that with frontend that is only /login-web is speicialized for web only
++ Thought: 1.4s
+✱Grep "Login|login" in ClinicHub.Services\Routes\Api (1 match)
++ Thought: 784ms
+Already done — DoctoryRoutes.Auth.Login points to {BaseRoute}/login-web:
+→Read ClinicHub.Services\Routes\Api\DoctoryRoutes.cs [offset=38, limit=12]
+The endpoint is already {BaseUrl}/auth/login-web — matches what the prompt specified. No change needed.
+▣  Build · DeepSeek V4 Flash Free · 23.1s
+ok explain that flow for me for test it
++ Thought: 603ms
+Here's the full flow with real backend data:
+Precondition: You have a mobile-registered clinic owner account (verified by admin, no web subscription).
+1. User opens login page
+Goes to https://localhost:xxxx/Account/Login → enters email + password → clicks تسجيل الدخول
+2. Browser sends POST /Account/Login
+JS error-service.js handler intercepts the form (due to data-ajax="true") and sends a fetch POST with the form data.
+3. AccountController.Login calls AuthService.LoginAsync
+Which POSTs to https://api.doctory.com/api/v1/auth/login-web with { email, password }.
+4. Backend response
+Since the user is authenticated (valid credentials) but has no web subscription, the backend returns:
+HTTP 403
+{
+  "statusCode": 403,
+  "message": "An active subscription is required to access the dashboard.",
+  "data": {
+    "accessToken": "eyJhbG...",
+    "refreshToken": "dGhpcyB...",
+    "fullName": "عيادة الموبايل",
+    "email": "mobile@clinic.com",
+    "roles": "ClinicOwner",
+    "id": "guid-here",
+    "clinicId": "guid-here"
+  }
+}
+5. AuthService.LoginAsync processes response
+// Line 55-57: Extract data (tokens) from response body EVEN on 403
+var obj = JsonConvert.DeserializeObject<JObject>(responseBody);
+var dataToken = obj?["data"] ?? obj?["Data"];
+
+// Lines 58-67: Deserialize to AuthResponseDto (has AccessToken, RefreshToken, etc.)
+AuthResponseDto? result = ...;
+
+// Lines 69-77: Response is 403 (not success)
+if (!response.IsSuccessStatusCode)
+{
+    // Has tokens → throw AuthenticatedApiException (tokens + message)
+    throw new AuthenticatedApiException(403, "An active subscription is required...", result);
+}
+6. AccountController catches AuthenticatedApiException
+catch (AuthenticatedApiException ex)
+{
+    SetAuthCookies(ex.AuthData);  // ← SETS cookies + TempData
+    var msg = ex.Message.ToLowerInvariant();
+    if (msg.Contains("pending"))
+        return RedirectJson(Url.Action("PendingApproval", "Home"));
+    return RedirectJson(Url.Action("SubscriptionRequired", "Home"));
+}
+SetAuthCookies does:
+- Sets TempData["UserId"], TempData["Role"], TempData["ClinicId"], TempData["AccessToken"], TempData["RefreshToken"]
+- Sets HttpOnly cookies AccessToken + RefreshToken
+- Returns { redirectUrl: "/Home/SubscriptionRequired" }
+7. JS receives response
+// error-service.js lines 181-191
+response.json().then(function (data) {
+    if (response.ok && data.redirectUrl) {
+        window.location.href = data.redirectUrl;
+        // → Browser navigates to /Home/SubscriptionRequired
+    }
+});
+8. _Layout.cshtml renders on SubscriptionRequired
+<script>
+    // Reads TempData and writes to localStorage
+    localStorage.setItem("userId", "...");
+    localStorage.setItem("role", "ClinicOwner");
+    localStorage.setItem("clinicId", "...");
+    localStorage.setItem("accessToken", "eyJhbG...");
+    localStorage.setItem("refreshToken", "dGhpcyB...");
+</script>
+User is now authenticated — both HttpOnly cookies (server-side) AND localStorage tokens (for JS fetch interceptor).
+9. SubscriptionRequired page
+Page shows:
+- "اشتراك مطلوب" heading
+- "عيادتك تحتاج إلى اشتراك نشط..."
+- User.Identity?.IsAuthenticated == true → secondary button shows "العودة للوحة التحكم" (not "تسجيل الدخول")
+User clicks "عرض الباقات والاشتراك" → navigates to /Home/Subscriptions
+10. Subscriptions page
+isAuthenticated == true → each plan card shows "اشترك الآن" (not "ابدأ الآن")
+@if (isAuthenticated) {
+    <a href="/Clinic/MySubscription" class="btn btn-primary btn-lg plan-cta-full">اشترك الآن</a>
+} else {
+    <a href="/Home/ClinicRegister" class="btn btn-primary btn-lg plan-cta-full">ابدأ الآن</a>
+}
+11. User clicks "اشترك الآن" → /Clinic/MySubscription
+_ClinicLayout.cshtml renders → reads localStorage (already set in step 8) → JS interceptor adds Authorization: Bearer eyJhbG... header → all API calls work.
+To test with real backend: just log in with any mobile-registered clinic owner account that has no web subscription. If the backend returns 403 + message + tokens in data, the flow above executes automatically. No code changes needed.

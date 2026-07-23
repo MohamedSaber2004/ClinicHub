@@ -500,11 +500,30 @@ TABLE OF CONTENTS
   COMMON ERROR SCENARIOS
   ──────────────────────
 
-  a. Login-web returns 403:
-       Show "Subscription Required" page with "View Plans" button.
-       Do NOT redirect to dashboard.
+   a. Login-web returns 403 (two possible scenarios):
 
-  b. Initiate payment returns 400:
+       Scenario 1 — Account pending approval (data is null):
+         Show "Pending Approval" screen — admin hasn't verified yet.
+
+       Scenario 2 — No active subscription (data contains tokens):
+         User is authenticated but has no subscription.
+         Save tokens from response.data (accessToken, refreshToken)
+         and redirect to "Subscription Required" / plans page.
+         The user already exists and is approved — skip registration.
+
+       Frontend code:
+         const body = await res.json();
+         if (body.data?.accessToken) {
+           // Authenticated — just needs to subscribe
+           localStorage.setItem('accessToken', body.data.accessToken);
+           localStorage.setItem('refreshToken', body.data.refreshToken);
+           window.location.href = '/subscription-required';
+         } else {
+           // Account pending admin approval
+           showPendingApprovalScreen();
+         }
+
+   b. Initiate payment returns 400:
        Possible reasons:
          - Plan not found or inactive
          - Clinic not active (pending approval)
