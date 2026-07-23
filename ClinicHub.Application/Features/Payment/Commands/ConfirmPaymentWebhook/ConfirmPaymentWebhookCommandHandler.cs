@@ -58,7 +58,7 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
         }
 
 
-        if (payment.Status != PaymentStatus.Pending)
+        if (payment.Status is PaymentStatus.Paid or PaymentStatus.Failed or PaymentStatus.Refunded)
         {
             return true;
         }
@@ -81,6 +81,12 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
             }
             else if (payment.PlanId.HasValue && payment.SubscriptionPeriod.HasValue)
             {
+                if (payment.SubscriptionId.HasValue)
+                {
+                    _logger.LogWarning("Payment {PaymentId} already has subscription {SubscriptionId}. Skipping duplicate.", payment.Id, payment.SubscriptionId);
+                    return true;
+                }
+
                 var period = payment.SubscriptionPeriod.Value;
                 var now = DateTime.UtcNow;
                 var endDate = period == SubscriptionPlan.Yearly ? now.AddYears(1) : now.AddMonths(1);
