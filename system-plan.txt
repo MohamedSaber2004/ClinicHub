@@ -1,0 +1,474 @@
+================================================================================
+                   CLINICHUB — COMPLETE SYSTEM PLAN v2
+================================================================================
+
+TABLE OF CONTENTS
+  1. User Roles
+  2. Registration & Verification Flow
+  3. Subscription Model
+  4. SuperAdmin Dashboard
+  5. ClinicOwner Dashboard
+  6. Doctor Dashboard
+  7. Staff Dashboard
+  8. Supporting Infrastructure
+  9. Implementation Priority
+  10. Decisions Made
+
+================================================================================
+1. USER ROLES (Flags Enum)
+================================================================================
+
+  UserType (Flags)
+  ├── User          (1)  — Patient / end user
+  ├── SuperAdmin    (2)  — System administrator
+  ├── Doctor        (4)  — Medical doctor
+  ├── Staff         (8)  — Clinic staff (receptionist, nurse, assistant)
+  └── ClinicOwner   (16) — Clinic owner/manager (one clinic)
+
+  Users can hold multiple roles via bitmask.
+  Example: Doctor | User = 5
+
+================================================================================
+2. REGISTRATION & VERIFICATION FLOW
+================================================================================
+
+  User signs up (Patient / ClinicOwner / Doctor)
+       │
+       ├── Patient → no verification needed → start browsing
+       │
+       ├── Doctor → freelance or clinic-affiliated
+       │
+       └── ClinicOwner → submits verification docs
+                          (ID, license, specialization, bio,
+                           years of experience, document images)
+                     │
+                     SuperAdmin reviews
+                     │
+                ┌────┴────┐
+                │ Approve │  Reject (with reason)
+                └────┬────┘
+                     │
+              ClinicOwner is approved
+              Can set up ONE clinic
+              Free tier access — all core features work
+                     │
+              (optional) Go to external web portal
+              → subscribe (Monthly/Yearly)
+              → web portal calls API:
+                POST /api/v1/subscriptions
+              → subscription recorded
+              → premium features unlocked
+
+  KEY RULES:
+  - 1 ClinicOwner = 1 Clinic (Clinic.ClinicAdminId)
+  - Staff uses ApplicationUser.ClinicId + UserType.Staff role
+  - No subscription required for core features
+
+================================================================================
+3. SUBSCRIPTION MODEL
+================================================================================
+
+  FREE TIER (default):
+  ───────────────────
+  - All core features work
+  - Manage clinic, doctors, staff, bookings
+  - No subscription required
+  - No API enforcement on free tier
+
+  SUBSCRIBED (optional upgrade):
+  ───────────────────────────
+  - ClinicOwner goes to external web portal
+  - Selects plan (Monthly / Yearly)
+  - Pays on the web portal
+  - Web portal calls back to this API:
+        POST /api/v1/subscriptions
+        { clinicId, plan, amount, startDate, endDate, transactionId }
+  - Subscription is recorded in Subscription table
+  - Premium dashboard features unlocked
+
+  API ENFORCEMENT:
+  ───────────────
+  - YES — API checks Subscription table for active subscription
+  - Returns 403 Forbidden if no active subscription on premium endpoints
+  - Free tier endpoints are not enforced
+
+  PLANS:
+  ─────
+  - TBD (Monthly / Yearly to be defined later)
+
+================================================================================
+4. SUPERADMIN DASHBOARD
+================================================================================
+
+  Role: SuperAdmin (bit 2)
+  Route prefix: /api/v{version}/admin/dashboard
+
+  ┌──────────────────────────────────────────────────────────────────────────┐
+  │ # │ Feature                │ Endpoint              │ Status              │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 1 │ Dashboard Stats        │ GET /stats            │ DTO exists          │
+  │   │                        │                       │ (AdminDashboard-    │
+  │   │                        │                       │  StatsDto)          │
+  │   │                        │                       │ Need query+handler  │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 2 │ Urgent Support Tickets │ GET /urgent-tickets   │ DTO + entity +      │
+  │   │                        │                       │ mapper exist        │
+  │   │                        │                       │ Need query+handler  │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 3 │ Clinic Audit Logs      │ GET /clinics/{id}/logs│ DTO + entity +      │
+  │   │                        │                       │ mapper exist        │
+  │   │                        │                       │ Need query+handler  │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 4 │ User Management        │ GET /users + CRUD     │ ✅ Built            │
+  │   │                        │                       │ Full CRUD + roles   │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 5 │ Verification Center    │ pending / approve /   │ ✅ Built            │
+  │   │                        │ reject                │                     │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 6 │ Clinic Management      │ CRUD + activate /     │ ✅ Built            │
+  │   │                        │ deactivate            │                     │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 7 │ Specializations        │ CRUD                  │ ✅ Built            │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 8 │ Ad Management          │ List, create, approve │ 🔴 Nothing built    │
+  │   │                        │ expire, delete        │ Entity + enum exist │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 9 │ Subscription Mgmt      │ View all, cancel,     │ 🔴 Nothing built    │
+  │   │                        │ revoke                │ Entity + enum exist │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │10 │ Support Tickets        │ List all, update      │ 🔴 Nothing built    │
+  │   │                        │ status                │ Entity + enum exist │
+  └───┴────────────────────────┴───────────────────────┴─────────────────────┘
+
+  NEW QUERIES NEEDED:
+  ──────────────────
+  - GetAdminDashboardStatsQuery
+      → counts: total users, clinics, doctors, verifications,
+        support tickets, urgent tickets, active ads,
+        active subscriptions, specializations
+  - GetUrgentSupportTicketsQuery
+      → filter: Priority = Urgent, Status = Open
+  - GetClinicAuditLogsQuery
+      → filter by clinicId, paginated
+  - GetAllSupportTicketsQuery
+      → paginated, filter by status/priority/clinicId
+  - GetAllSubscriptionsQuery
+      → paginated, filter by status/plan/clinicId
+  - GetAllAdvertisementsQuery
+      → paginated, filter by status/clinicId
+
+  NEW COMMANDS NEEDED:
+  ────────────────────
+  - CreateSubscriptionCommand
+      → web portal callback endpoint
+  - RevokeSubscriptionCommand
+      → SuperAdmin force-cancel
+  - UpdateSupportTicketStatusCommand
+      → resolve/close tickets
+  - ApproveAdvertisementCommand
+  - RejectAdvertisementCommand
+  - Create/Update/DeleteAdvertisementCommand
+
+  NEW CONTROLLER ACTIONS:
+  ──────────────────────
+  - Stats()             → GetAdminDashboardStatsQuery
+  - GetUrgentTickets()  → GetUrgentSupportTicketsQuery
+  - GetClinicLogs()     → GetClinicAuditLogsQuery
+  - GetTickets()        → GetAllSupportTicketsQuery
+  - UpdateTicketStatus() → UpdateSupportTicketStatusCommand
+  - GetSubscriptions()  → GetAllSubscriptionsQuery
+  - RevokeSubscription() → RevokeSubscriptionCommand
+  - Ads CRUD
+
+================================================================================
+5. CLINICOWNER DASHBOARD
+================================================================================
+
+  Role: ClinicOwner (bit 16)
+  Scope: Single clinic (Clinic.ClinicAdminId)
+  Route prefix: /api/v{version}/admin/clinics
+
+  ┌──────────────────────────────────────────────────────────────────────────┐
+  │ # │ Feature                │ Endpoint              │ Status              │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 1 │ Dashboard Stats        │ GET /dashboard/stats  │ ✅ Built            │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 2 │ Booking Management     │ List / accept / reject│ ✅ Built            │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 3 │ Clinic Settings        │ Update clinic details │ ✅ Built            │
+  │   │                        │ + booking config      │                     │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 4 │ Doctor Management      │ Add / remove doctors  │ 🟡 Partial          │
+  │   │                        │ under my clinic       │ Needs ClinicOwner   │
+  │   │                        │                       │ role scoping        │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 5 │ Staff Management       │ Invite / manage staff │ 🔴 Not built        │
+  │   │                        │ under my clinic       │                     │
+  │   │                        │ (ApplicationUser      │                     │
+  │   │                        │  with UserType.Staff) │                     │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 6 │ Subscription Status    │ View my plan + expiry │ 🔴 Not built        │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 7 │ Ad Management          │ Create / manage my    │ 🔴 Not built        │
+  │   │ (my clinic)            │ clinic ads            │                     │
+  └───┴────────────────────────┴───────────────────────┴─────────────────────┘
+
+  NEW QUERIES NEEDED:
+  ──────────────────
+  - GetMyClinicSubscriptionQuery → current active subscription
+  - GetMyClinicAdvertisementsQuery → ads for owner's clinic
+  - GetMyClinicStaffQuery → staff members for owner's clinic
+
+  NEW COMMANDS NEEDED:
+  ────────────────────
+  - CreateStaffCommand
+      → create ApplicationUser with UserType.Staff
+      → assign ClinicId to owner's clinic
+  - UpdateStaffCommand / DeleteStaffCommand
+  - CreateAdvertisementCommand
+      → status = Inactive (pending admin approval)
+  - CancelMySubscriptionCommand
+
+  ROLE SCOPING FIXES NEEDED:
+  ──────────────────────────
+  - DoctorsController: restrict create/delete to ClinicOwner + SuperAdmin
+  - DoctorsController: when ClinicOwner creates doctor, auto-assign
+    to owner's clinic (CurrentClinicId)
+
+================================================================================
+6. DOCTOR DASHBOARD
+================================================================================
+
+  Role: Doctor (bit 4)
+  Scope: Self (own appointments, patients)
+  New controller: DoctorDashboardController
+  Route prefix: /api/v{version}/doctors
+
+  ┌──────────────────────────────────────────────────────────────────────────┐
+  │ # │ Feature                │ Endpoint              │ Status              │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 1 │ Dashboard Stats        │ GET /dashboard/stats  │ 🔴 New              │
+  │   │                        │                       │ Today: pending,     │
+  │   │                        │                       │ accepted, completed,│
+  │   │                        │                       │ cancelled, next appt│
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 2 │ My Appointments        │ GET /appointments     │ 🔴 New (filtered)   │
+  │   │                        │                       │ By doctor identity  │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 3 │ Accept Appointment     │ PUT /appointments/    │ 🔴 New              │
+  │   │                        │ {id}/accept           │ Scoped handler      │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 4 │ Reject Appointment     │ PUT /appointments/    │ 🔴 New              │
+  │   │                        │ {id}/reject           │ Scoped handler      │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 5 │ Complete Appointment   │ PUT /appointments/    │ 🔴 New              │
+  │   │                        │ {id}/complete         │ Mark as completed   │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 6 │ My Patients            │ GET /patients         │ 🔴 New              │
+  │   │                        │                       │ Distinct patients   │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 7 │ Patient History        │ GET /patients/        │ 🔴 New              │
+  │   │                        │ {id}/history          │ Past appointments   │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 8 │ My Availability        │ CRUD                  │ ✅ Built            │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 9 │ Conversations (chat)   │ CRUD                  │ ✅ Built            │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │10 │ View Ratings           │ GET /doctors/{id}/    │ ✅ Built            │
+  │   │                        │ ratings               │                     │
+  └───┴────────────────────────┴───────────────────────┴─────────────────────┘
+
+  NEW QUERIES NEEDED:
+  ──────────────────
+  - GetDoctorDashboardStatsQuery
+      → _currentUserService.UserId → Doctor.UserId
+      → today counts: pending, accepted, completed, cancelled
+      → next upcoming appointment
+      → unique patient count this week
+  - GetDoctorAppointmentsQuery
+      → filtered by doctor identity
+      → optional filters: status, date range, patient name
+      → paginated
+  - GetDoctorPatientsQuery
+      → distinct patients who booked with this doctor
+      → paginated, search by name
+  - GetPatientHistoryQuery
+      → past appointments for patient + doctor combination
+
+  NEW COMMANDS NEEDED:
+  ────────────────────
+  - AcceptAppointmentCommand (doctor-scoped)
+  - RejectAppointmentCommand (doctor-scoped, with reason)
+  - CompleteAppointmentCommand (doctor marks as done)
+
+  NEW DTOs NEEDED:
+  ───────────────
+  - DoctorDashboardStatsDto
+  - DoctorAppointmentDto (extends AppointmentDto with patient info)
+  - DoctorPatientDto (patient summary)
+  - PatientHistoryDto (appointment detail for history)
+
+  VALIDATORS NEEDED:
+  ─────────────────
+  - GetDoctorAppointmentsQueryValidator
+  - DoctorAcceptAppointmentCommandValidator
+  - DoctorRejectAppointmentCommandValidator
+  - DoctorCompleteAppointmentCommandValidator
+  - GetPatientHistoryQueryValidator
+
+================================================================================
+7. STAFF DASHBOARD — ENTIRELY NEW
+================================================================================
+
+  Role: Staff (bit 8)
+  Scope: Their assigned clinic (ApplicationUser.ClinicId)
+  Staff can: manage appointments (approve/reject), register walk-in
+             patients, check-in, view queue
+  New controller: StaffController
+  Route prefix: /api/v{version}/staff
+
+  ┌──────────────────────────────────────────────────────────────────────────┐
+  │ # │ Feature                │ Endpoint              │ Description         │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 1 │ Dashboard Stats        │ GET /dashboard/stats  │ Today's appointments│
+  │   │                        │                       │ by status, queue    │
+  │   │                        │                       │ length, check-ins   │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 2 │ Appointments           │ GET /appointments     │ Filtered by clinic, │
+  │   │                        │                       │ status, date        │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 3 │ Approve Appointment    │ PUT /appointments/    │ Staff can accept    │
+  │   │                        │ {id}/approve          │ pending appointments│
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 4 │ Reject Appointment     │ PUT /appointments/    │ Staff can reject    │
+  │   │                        │ {id}/reject           │ with reason         │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 5 │ Check-in Patient       │ PUT /appointments/    │ Mark patient as     │
+  │   │                        │ {id}/check-in         │ arrived             │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 6 │ Register Patient       │ POST /patients/       │ Create Application- │
+  │   │                        │ register              │ User (if not exist) │
+  │   │                        │                       │ + book appointment  │
+  │   │                        │                       │ in one flow         │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 7 │ Doctor Schedule        │ GET /doctors/{id}/    │ Read-only view of   │
+  │   │                        │ schedule              │ doctor's schedule   │
+  ├───┼────────────────────────┼───────────────────────┼─────────────────────┤
+  │ 8 │ Waiting Queue          │ GET /queue            │ Current queue for   │
+  │   │                        │                       │ the clinic          │
+  └───┴────────────────────────┴───────────────────────┴─────────────────────┘
+
+  NEW QUERIES NEEDED:
+  ──────────────────
+  - GetStaffDashboardStatsQuery
+      → clinic scoped via _currentUserService.CurrentClinicId
+      → today appointments by status, checked-in count, queue
+  - GetStaffAppointmentsQuery
+      → filtered by clinic, status, date, patient name
+      → paginated
+  - GetStaffDoctorScheduleQuery
+      → read-only availability for a doctor in the same clinic
+  - GetStaffQueueQuery
+      → appointments with status = CheckedIn or Accepted
+      → ordered by appointment time
+
+  NEW COMMANDS NEEDED:
+  ────────────────────
+  - StaffApproveAppointmentCommand
+  - StaffRejectAppointmentCommand (with reason)
+  - CheckInPatientCommand
+  - RegisterWalkInPatientCommand
+      → creates ApplicationUser (if new)
+      → creates Appointment with status = Accepted (walk-in)
+
+  NEW DTOs NEEDED:
+  ───────────────
+  - StaffDashboardStatsDto
+  - StaffAppointmentDto
+  - StaffQueueItemDto
+  - RegisterPatientRequestDto / RegisterPatientResponseDto
+
+================================================================================
+8. SUPPORTING INFRASTRUCTURE
+================================================================================
+
+  SUBSCRIPTION WEB PORTAL CALLBACK:
+  ────────────────────────────────
+  Endpoint: POST /api/v1/subscriptions
+  Request: { clinicId, plan, amount, startDate, endDate, transactionId }
+  Creates/updates Subscription record
+
+  PREMIUM ENDPOINT PROTECTION:
+  ───────────────────────────
+  Custom attribute or middleware that:
+  - Checks if endpoint requires subscription
+  - Looks up active subscription in Subscription table for the clinic
+  - Returns 403 if no active subscription
+
+  AUDIT LOGGING:
+  ──────────────
+  - Already built in ClinicHubContext.SaveChangesAsync
+  - Auto-logs changes to all entities
+
+  GLOBAL QUERY FILTERS:
+  ─────────────────────
+  - All IClinicScopedEntity entities have automatic
+    !IsDeleted + clinic scoping filter
+  - When _currentClinicId is null (SuperAdmin), pass through all
+
+================================================================================
+9. IMPLEMENTATION PRIORITY
+================================================================================
+
+  ┌──────────────────────────────────────────────────────────────────────────┐
+  │ Priority │ Area                         │ Why                           │
+  ├──────────┼──────────────────────────────┼───────────────────────────────┤
+  │  P0      │ Doctor dashboard             │ Core medical workflow         │
+  │          │ (stats, appointments,        │ is missing; doctors need      │
+  │          │  patients)                   │ their own filtered views      │
+  ├──────────┼──────────────────────────────┼───────────────────────────────┤
+  │  P1      │ Staff dashboard + endpoints  │ Clinic ops workflow needed    │
+  │          │                              │ (reception, check-in, queue)  │
+  ├──────────┼──────────────────────────────┼───────────────────────────────┤
+  │  P2      │ ClinicOwner role scoping     │ Security — doctors, staff,    │
+  │          │                              │ bookings scoped to owner's    │
+  │          │                              │ clinic                        │
+  ├──────────┼──────────────────────────────┼───────────────────────────────┤
+  │  P3      │ Subscription model +         │ Monetization — web portal     │
+  │          │ web portal callback API      │ needs API to record subs      │
+  ├──────────┼──────────────────────────────┼───────────────────────────────┤
+  │  P4      │ Ad management                │ Revenue stream                │
+  │          │ (SuperAdmin + ClinicOwner)    │                               │
+  ├──────────┼──────────────────────────────┼───────────────────────────────┤
+  │  P5      │ SuperAdmin dashboard         │ Admin visibility — stats,     │
+  │          │ stats, tickets, logs         │ tickets, audit logs           │
+  ├──────────┼──────────────────────────────┼───────────────────────────────┤
+  │  P6      │ Support tickets full CRUD    │ User support workflow         │
+  └──────────────────────────────────────────┴───────────────────────────────┘
+
+================================================================================
+10. DECISIONS MADE
+================================================================================
+
+  1. Subscription API enforcement
+     YES — API returns 403 for premium endpoints when no active
+     subscription. Free tier endpoints are not enforced.
+
+  2. Staff scoping
+     Staff uses ApplicationUser.ClinicId with UserType.Staff role.
+     No separate Staff entity needed.
+
+  3. Subscription web portal callback
+     POST /api/v1/subscriptions
+     Format TBD with web portal team.
+
+  4. Subscription plans
+     TBD — Monthly/Yearly, tiers to be defined later.
+
+  5. Doctor appointment flow
+     Doctor accepts → Staff can also manage (approve/reject/check-in).
+     Staff can register walk-in patients (non-users) and book appointments.
+
+================================================================================
+END OF SYSTEM PLAN v2
+================================================================================
