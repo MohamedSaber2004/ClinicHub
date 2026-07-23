@@ -49,6 +49,19 @@ namespace ClinicHub.Application.Features.Admin.Commands.RejectUserVerification
             verification.Reject(_currentUserService.UserId, request.Notes);
             user.IsActive = false;
 
+            if (verification.RequestedRole == UserType.ClinicOwner)
+            {
+                var clinic = await _unitOfWork.ClinicRepository
+                    .GetAllAsync(c => (c.ClinicAdminId == user.Id || (user.ClinicId.HasValue && c.Id == user.ClinicId.Value)) && !c.IsDeleted && c.Status == ClinicStatus.PendingApproval)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (clinic != null)
+                {
+                    clinic.Status = ClinicStatus.Inactive;
+                    clinic.Deactive();
+                }
+            }
+
             await _unitOfWork.SaveChangesAsync();
             return true;
         }
