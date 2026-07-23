@@ -16,6 +16,7 @@ namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
     [RoleAuthorize(nameof(UserType.Doctor))]
+    [RequireSubscription]
     public class DoctorDashboardController : BaseApiController
     {
         public DoctorDashboardController(IMediator mediator) : base(mediator)
