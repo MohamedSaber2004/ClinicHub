@@ -270,6 +270,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString AlreadyActive = new("Subscriptions.AlreadyActive");
             public static readonly KeyString Cancelled = new("Subscriptions.Cancelled");
             public static readonly KeyString Revoked = new("Subscriptions.Revoked");
+            public static readonly KeyString LoginRequiresSubscription = new("Subscriptions.LoginRequiresSubscription");
         }
 
         public static class AdvertisementMessages

@@ -228,7 +228,8 @@
     "Created": "Subscription created successfully",
     "AlreadyActive": "An active subscription already exists for this clinic",
     "Cancelled": "Subscription cancelled successfully",
-    "Revoked": "Subscription revoked successfully"
+    "Revoked": "Subscription revoked successfully",
+    "LoginRequiresSubscription": "An active subscription is required to access the dashboard. Please subscribe to continue."
   },
   "Advertisements": {
     "NotFound": "Advertisement not found",
