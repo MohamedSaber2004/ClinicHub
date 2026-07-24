@@ -30,7 +30,7 @@ namespace ClinicHub.Application.Features.ClinicStaff.Queries.GetClinicStaff
 
             var staffInRole = await _userManager.GetUsersInRoleAsync(nameof(UserType.Staff));
             var clinicStaff = staffInRole
-                .Where(u => u.ClinicId == clinicId && !u.IsDeleted)
+                .Where(u => u.ClinicId == clinicId)
                 .AsEnumerable();
 
             if (!string.IsNullOrWhiteSpace(request.SearchTerm))

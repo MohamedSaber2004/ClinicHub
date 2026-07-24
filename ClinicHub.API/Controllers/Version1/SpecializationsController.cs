@@ -35,10 +35,10 @@ namespace ClinicHub.API.Controllers.Version1
         }
 
         /// <summary>
-        /// Get all specializations with pagination support.
+        /// Get all specializations with pagination support (public-friendly).
         /// </summary>
         [HttpGet]
-        [RoleAuthorize(nameof(UserType.SuperAdmin))]
+        [AllowAnonymous]
         [Route(ApiRoutes.Specializations.GetAll)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll([FromQuery]GetAllSpecializationsQuery query, CancellationToken ct)

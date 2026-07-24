@@ -40,6 +40,9 @@ namespace ClinicHub.Application.Features.ClinicStaff.Commands.UpdateStaff
             if (!string.IsNullOrWhiteSpace(request.PhoneNumber))
                 user.UpdatePhoneNumber(request.PhoneNumber);
 
+            if (request.IsActive.HasValue)
+                user.IsActive = request.IsActive.Value;
+
             await _userManager.UpdateAsync(user);
             return true;
         }

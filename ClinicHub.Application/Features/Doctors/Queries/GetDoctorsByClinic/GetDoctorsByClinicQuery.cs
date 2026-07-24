@@ -11,5 +11,6 @@ namespace ClinicHub.Application.Features.Doctors.Queries.GetDoctorsByClinic
         public int PageSize { get; set; } = 20;
         public string? SearchTerm { get; set; }
         public Guid? SpecializationId { get; set; }
+        public bool? IsActive { get; set; }
     }
 }

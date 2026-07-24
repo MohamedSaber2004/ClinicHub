@@ -45,6 +45,9 @@ namespace ClinicHub.Application.Features.Doctors.Queries.GetDoctorsByClinic
             if (request.SpecializationId.HasValue)
                 query = query.Where(d => d.SpecializationId == request.SpecializationId.Value);
 
+            if (request.IsActive.HasValue)
+                query = query.Where(d => d.IsActive == request.IsActive.Value);
+
             var totalCount = await query.CountAsync(cancellationToken);
 
             var doctors = await query

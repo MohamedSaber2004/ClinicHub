@@ -27,6 +27,7 @@ namespace ClinicHub.API.Controllers.Version1
 
         [HttpGet]
         [Route(ApiRoutes.Doctors.GetAllByClinic)]
+        [RequirePlanPermission(SubscriptionPermission.ManageDoctors)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetByClinic([FromRoute] Guid clinicId, [FromQuery] GetDoctorsByClinicQuery query)
@@ -77,6 +78,7 @@ namespace ClinicHub.API.Controllers.Version1
         [HttpPut]
         [Route(ApiRoutes.Doctors.Update)]
         [RoleAuthorize(nameof(UserType.SuperAdmin), nameof(UserType.ClinicOwner))]
+        [RequirePlanPermission(SubscriptionPermission.ManageDoctors)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -90,6 +92,7 @@ namespace ClinicHub.API.Controllers.Version1
         [HttpDelete]
         [Route(ApiRoutes.Doctors.Delete)]
         [RoleAuthorize(nameof(UserType.SuperAdmin), nameof(UserType.ClinicOwner))]
+        [RequirePlanPermission(SubscriptionPermission.ManageDoctors)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(Guid id)

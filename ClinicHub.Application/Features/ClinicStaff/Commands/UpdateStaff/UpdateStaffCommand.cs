@@ -7,5 +7,6 @@ namespace ClinicHub.Application.Features.ClinicStaff.Commands.UpdateStaff
         public Guid StaffId { get; set; }
         public string? FullName { get; set; }
         public string? PhoneNumber { get; set; }
+        public bool? IsActive { get; set; }
     }
 }

@@ -26,7 +26,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// Gets a paginated list of all users.
         /// </summary>
         [HttpGet]
-        [RoleAuthorize(nameof(UserType.SuperAdmin))]
+        [RoleAuthorize(nameof(UserType.SuperAdmin), nameof(UserType.ClinicOwner))]
         [Route(ApiRoutes.Users.GetAll)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -57,7 +57,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// Creates a new user and optionally assigns a role.
         /// </summary>
         [HttpPost]
-        [RoleAuthorize(nameof(UserType.SuperAdmin))]
+        [RoleAuthorize(nameof(UserType.SuperAdmin), nameof(UserType.ClinicOwner))]
         [Route(ApiRoutes.Users.Add)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
