@@ -1,16 +1,10 @@
-﻿Build succeeded.
-Loading localization resources from: E:\ClinicHub\ClinicHub.API\bin\Release\net10.0\Localization\Resources
-Successfully loaded 208 keys for culture: en
-Successfully loaded 208 keys for culture: ar
-[13:48:46 INF] ClinicHub API is starting up and connecting to Seq at 07/23/2026 13:48:46
-System.InvalidOperationException: An error was generated for warning 'Microsoft.EntityFrameworkCore.Migrations.PendingModelChangesWarning': The model for context 'ClinicHubContext' has pending changes. Add a new migration before updating the database. See https://aka.ms/efcore-docs-pending-changes. This exception can be suppressed or logged by passing event ID 'RelationalEventId.PendingModelChangesWarning' to the 'ConfigureWarnings' method in 'DbContext.OnConfiguring' or 'AddDbContext'.
-   at Microsoft.EntityFrameworkCore.Diagnostics.EventDefinition`1.Log[TLoggerCategory](IDiagnosticsLogger`1 logger, TParam arg)
-   at Microsoft.EntityFrameworkCore.Diagnostics.RelationalLoggerExtensions.PendingModelChangesWarning(IDiagnosticsLogger`1 diagnostics, Type contextType)
-   at Microsoft.EntityFrameworkCore.Migrations.Internal.Migrator.ValidateMigrations(Boolean useTransaction, String targetMigration)
-   at Microsoft.EntityFrameworkCore.Migrations.Internal.Migrator.Migrate(String targetMigration)
-   at Microsoft.EntityFrameworkCore.Design.Internal.MigrationsOperations.UpdateDatabase(String targetMigration, String connectionString, String contextType)
-   at Microsoft.EntityFrameworkCore.Design.OperationExecutor.UpdateDatabaseImpl(String targetMigration, String connectionString, String contextType)
-   at Microsoft.EntityFrameworkCore.Design.OperationExecutor.UpdateDatabase.<>c__DisplayClass0_0.<.ctor>b__0()
-   at Microsoft.EntityFrameworkCore.Design.OperationExecutor.OperationBase.Execute(Action action)
-An error was generated for warning 'Microsoft.EntityFrameworkCore.Migrations.PendingModelChangesWarning': The model for context 'ClinicHubContext' has pending changes. Add a new migration before updating the database. See https://aka.ms/efcore-docs-pending-changes. This exception can be suppressed or logged by passing event ID 'RelationalEventId.PendingModelChangesWarning' to the 'ConfigureWarnings' method in 'DbContext.OnConfiguring' or 'AddDbContext'.
-PM> 
+﻿Done. The sidebar now correctly shows items based on subscription plan permissions. Here's what I changed in _ClinicLayout.cshtml:
+1. Pre-computed visibility booleans for each item, combining permission + plan feature + active plan checks consistently
+2. Section header "الخدمات التشغيلية" now only renders when at least one child item is actually visible (was showing empty headers before)
+3. Marketing & Priority Support now also require HasActivePlan == true (were checking plan feature only)
+The controller still calls the real backend as you requested. Where no PlanFeature exists for an item (Billing, Inventory, Settings, Dashboard), they remain permission-only (base features). Items with PlanFeature counterparts (Appointments, Medical Records, Staff, Marketing, Priority Support) gate on both.
+▣  Build · DeepSeek V4 Flash Free · 6m 28s
+why plans is null ???????????
++ Thought: 16.8s
+plans is the result of _planService.GetAllAsync(), which calls the backend API. If the backend is unreachable, returns a non-2xx status, or the JSON structure doesn't match (expects data/Data property at line 46 of PlanService.cs), it throws → the generic catch block in ClinicController.cs:53 runs → CurrentUser gets PlanFeatures = None and HasActivePlan = false → all plan-feature-gated sidebar items are hidden.
+You can verify by checking the catch block swallows ALL exceptions with no logging. The backend endpoint URL is DoctoryRoutes.Plans.List — is that endpoint returning a 200 with a data array containing PlanDto objects?

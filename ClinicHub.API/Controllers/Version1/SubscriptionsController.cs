@@ -2,6 +2,7 @@ using Asp.Versioning;
 using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Subscriptions.Commands.CancelMySubscription;
+using ClinicHub.Application.Features.Subscriptions.Commands.CreateSubscription;
 using ClinicHub.Application.Features.Subscriptions.Commands.InitiateSubscriptionPayment;
 using ClinicHub.Application.Features.Subscriptions.Queries.GetMyClinicSubscription;
 using ClinicHub.Domain.Enums;
@@ -47,6 +48,18 @@ namespace ClinicHub.API.Controllers.Version1
         {
             var result = await _mediator.Send(new CancelMySubscriptionCommand(), ct);
             return Ok(result);
+        }
+
+        [HttpPost]
+        [Route(ApiRoutes.Subscriptions.Create)]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Create([FromBody] CreateSubscriptionCommand command, CancellationToken ct)
+        {
+            var result = await _mediator.Send(command, ct);
+            return Created(ApiRoutes.Subscriptions.Create, result);
         }
     }
 }

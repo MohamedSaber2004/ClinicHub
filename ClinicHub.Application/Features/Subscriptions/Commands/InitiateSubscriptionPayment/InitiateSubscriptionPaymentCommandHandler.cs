@@ -89,6 +89,9 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.InitiateSubscrip
             {
                 PaymentId = payment.Id,
                 PaymobRedirectUrl = walletResult.RedirectUrl,
+                RedirectUrl = walletResult.RedirectUrl,
+                PaymentUrl = walletResult.RedirectUrl,
+                Url = walletResult.RedirectUrl,
                 PaymobPaymentKey = walletResult.PaymentKey,
                 PlanId = plan.Id,
                 PlanName = plan.Name,
