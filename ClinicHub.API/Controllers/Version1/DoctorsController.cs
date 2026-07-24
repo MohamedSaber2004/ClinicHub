@@ -29,9 +29,9 @@ namespace ClinicHub.API.Controllers.Version1
         [Route(ApiRoutes.Doctors.GetAllByClinic)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetByClinic([FromRoute] Guid clinicId)
+        public async Task<IActionResult> GetByClinic([FromRoute] Guid clinicId, [FromQuery] GetDoctorsByClinicQuery query)
         {
-            var query = new GetDoctorsByClinicQuery { ClinicId = clinicId };
+            query.ClinicId = clinicId;
             var result = await _mediator.Send(query);
             return Ok(result);
         }
@@ -62,6 +62,7 @@ namespace ClinicHub.API.Controllers.Version1
         [HttpPost]
         [Route(ApiRoutes.ClinicManagement.BaseRoute + "/doctors")]
         [RoleAuthorize(nameof(UserType.ClinicOwner))]
+        [RequirePlanPermission(SubscriptionPermission.ManageDoctors)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateForMyClinic([FromBody] CreateDoctorCommand command)

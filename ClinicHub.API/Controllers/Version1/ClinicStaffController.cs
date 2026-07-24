@@ -13,6 +13,7 @@ namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
     [RoleAuthorize(nameof(UserType.ClinicOwner))]
+    [RequirePlanPermission(SubscriptionPermission.ManageStaff)]
     public class ClinicStaffController : BaseApiController
     {
         public ClinicStaffController(IMediator mediator) : base(mediator)

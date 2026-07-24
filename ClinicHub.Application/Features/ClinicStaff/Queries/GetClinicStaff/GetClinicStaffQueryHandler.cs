@@ -31,10 +31,22 @@ namespace ClinicHub.Application.Features.ClinicStaff.Queries.GetClinicStaff
             var staffInRole = await _userManager.GetUsersInRoleAsync(nameof(UserType.Staff));
             var clinicStaff = staffInRole
                 .Where(u => u.ClinicId == clinicId && !u.IsDeleted)
-                .OrderByDescending(u => u.CreatedAt)
-                .ToList();
+                .AsEnumerable();
 
-            var totalCount = clinicStaff.Count;
+            if (!string.IsNullOrWhiteSpace(request.SearchTerm))
+            {
+                var term = request.SearchTerm.ToLower();
+                clinicStaff = clinicStaff.Where(u =>
+                    (u.FullName != null && u.FullName.ToLower().Contains(term)) ||
+                    (u.Email != null && u.Email.ToLower().Contains(term)));
+            }
+
+            if (request.IsActive.HasValue)
+                clinicStaff = clinicStaff.Where(u => u.IsActive == request.IsActive.Value);
+
+            clinicStaff = clinicStaff.OrderByDescending(u => u.CreatedAt).ToList();
+
+            var totalCount = clinicStaff.Count();
             var items = clinicStaff
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
