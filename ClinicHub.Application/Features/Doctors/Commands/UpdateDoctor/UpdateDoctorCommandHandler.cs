@@ -6,6 +6,7 @@ using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace ClinicHub.Application.Features.Doctors.Commands.UpdateDoctor
 {
@@ -28,7 +29,11 @@ namespace ClinicHub.Application.Features.Doctors.Commands.UpdateDoctor
             if (clinicId == null)
                 throw new BadRequestException(LocalizationKeys.ExceptionMessages.BadRequest.Value);
 
-            var doctor = await _unitOfWork.DoctorRepository.GetByIdAsync(request.DoctorId);
+            var doctor = await _unitOfWork.DoctorRepository
+                .GetAllAsync(null)
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(d => d.Id == request.DoctorId, cancellationToken);
+
             if (doctor == null || doctor.ClinicId != clinicId)
                 throw new NotFoundException(LocalizationKeys.DoctorMessages.NotFound.Value);
 

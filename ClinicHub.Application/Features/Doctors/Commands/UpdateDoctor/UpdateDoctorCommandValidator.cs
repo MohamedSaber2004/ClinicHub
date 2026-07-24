@@ -2,6 +2,7 @@ using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Doctors.Commands.UpdateDoctor
@@ -24,7 +25,7 @@ namespace ClinicHub.Application.Features.Doctors.Commands.UpdateDoctor
 
         private async Task<bool> DoctorExists(Guid doctorId, CancellationToken cancellationToken)
         {
-            return await _ctx.DoctorRepository.ExistsAsync(d => d.Id == doctorId, cancellationToken);
+            return await _ctx.DoctorRepository.GetAllAsync(null).IgnoreQueryFilters().AnyAsync(d => d.Id == doctorId, cancellationToken);
         }
     }
 }
