@@ -35,7 +35,7 @@ namespace ClinicHub.Application.Features.Users.Commands.AddUser
                 request.FullName, 
                 request.Email, 
                 request.PhoneNumber, 
-                request.BirthDate,
+                request.BirthDate.HasValue ? request.BirthDate.Value : null,
                 request.Gender);
 
             if (request.ClinicId.HasValue)
