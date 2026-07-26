@@ -31,7 +31,7 @@ namespace ClinicHub.Application.Features.DoctorDashboard.Commands.DoctorComplete
             if (appointment.DoctorId != doctor.Id)
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.NotAuthorizedToRespond.Value);
 
-            if (appointment.Status != AppointmentStatus.Accepted)
+            if (appointment.Status != AppointmentStatus.Accepted && appointment.Status != AppointmentStatus.Confirmed)
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.CannotRespondAppointment.Value);
 
             appointment.Complete();

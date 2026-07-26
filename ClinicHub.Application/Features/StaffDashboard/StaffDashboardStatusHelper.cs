@@ -56,9 +56,7 @@ namespace ClinicHub.Application.Features.StaffDashboard
         {
             return status switch
             {
-                AppointmentStatus.Reserved => "registered",
-                AppointmentStatus.Accepted => "waiting",
-                AppointmentStatus.Confirmed => "in-progress",
+                AppointmentStatus.Confirmed => "waiting",
                 AppointmentStatus.Completed => "completed",
                 _ => "waiting"
             };
@@ -68,9 +66,7 @@ namespace ClinicHub.Application.Features.StaffDashboard
         {
             return status switch
             {
-                AppointmentStatus.Reserved => "\u062A\u0645 \u0627\u0644\u062A\u0633\u062C\u064A\u0644",
-                AppointmentStatus.Accepted => "\u0641\u064A \u0627\u0644\u0627\u0646\u062A\u0638\u0627\u0631",
-                AppointmentStatus.Confirmed => "\u0642\u064A\u062F \u0627\u0644\u0643\u0634\u0641",
+                AppointmentStatus.Confirmed => "\u0641\u064A \u0627\u0644\u0627\u0646\u062A\u0638\u0627\u0631",
                 AppointmentStatus.Completed => "\u0645\u0643\u062A\u0645\u0644",
                 _ => "\u0641\u064A \u0627\u0644\u0627\u0646\u062A\u0638\u0627\u0631"
             };
@@ -80,9 +76,7 @@ namespace ClinicHub.Application.Features.StaffDashboard
         {
             return status switch
             {
-                AppointmentStatus.Reserved => "badge-info",
-                AppointmentStatus.Accepted => "badge-warning",
-                AppointmentStatus.Confirmed => "badge-primary",
+                AppointmentStatus.Confirmed => "badge-warning",
                 AppointmentStatus.Completed => "badge-success",
                 _ => "badge-warning"
             };

@@ -32,9 +32,7 @@ namespace ClinicHub.Application.Features.StaffDashboard.Queries.GetStaffQueue
                 .GetAllWithIncluding(
                     a => a.ClinicId == clinicId && !a.IsDeleted
                         && a.AppointmentDate >= todayStart && a.AppointmentDate < todayEnd
-                        && (a.Status == AppointmentStatus.Reserved
-                            || a.Status == AppointmentStatus.Accepted
-                            || a.Status == AppointmentStatus.Confirmed
+                        && (a.Status == AppointmentStatus.Confirmed
                             || a.Status == AppointmentStatus.Completed),
                     a => a.Doctor,
                     a => a.Doctor.User,

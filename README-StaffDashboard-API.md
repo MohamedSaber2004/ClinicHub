@@ -17,6 +17,22 @@ All endpoints require `Authorization: Bearer {token}` header with a **Staff** us
 
 ---
 
+## Patient Journey — Status Flow
+
+```
+Appointment: pending  ──[Approve]──▶  confirmed  ──[Check-in]──▶  confirmed  ──[Complete]──▶  completed
+Queue:       —                        — (not in queue)            waiting                        completed
+```
+
+| Step | Backend Status | Appointments View | Queue View |
+|------|---------------|-------------------|------------|
+| Patient books | `Pending` | pending (قيد الانتظار) | — |
+| Staff approves | `Accepted` | confirmed (مؤكد) | — (not checked in yet) |
+| Patient checks in | `Confirmed` | confirmed (مؤكد) | waiting (في الانتظار) |
+| Doctor completes | `Completed` | completed (منتهي) | completed (مكتمل) |
+
+---
+
 ## Paginated Endpoints — Common Contract
 
 Two endpoints return paginated data using query parameters. The response shape is identical:
@@ -316,12 +332,14 @@ Example: Page 2 will have `queueNumber: 11, 12, 13, …`
 
 ### Queue Status Mapping
 
-| `status` | `statusLabel` | `statusClass` | Action |
-|---|---|---|---|
-| `"registered"` | تم التسجيل | `badge-info` | Check-in |
-| `"waiting"` | في الانتظار | `badge-warning` | Check-in |
-| `"in-progress"` | قيد الكشف | `badge-primary` | Complete |
-| `"completed"` | مكتمل | `badge-success` | — (read-only) |
+| `status` | `statusLabel` | `statusClass` | Meaning | Action |
+|---|---|---|---|---|---|
+| `"waiting"` | في الانتظار | `badge-warning` | Checked in, waiting for doctor | Complete |
+| `"completed"` | مكتمل | `badge-success` | Done | — (read-only) |
+
+> **Note:** The queue shows only patients who have physically **checked into the clinic** (`Confirmed` status).  
+> Approved appointments (`Accepted`) do not appear here until the patient checks in.  
+> The `"in-progress"` state is not yet represented in the queue (requires a future DB migration to add an `InProgress` appointment status).
 
 ---
 

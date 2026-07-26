@@ -10,5 +10,7 @@ namespace ClinicHub.Application.Common.Options
         public string Password { get; set; } = null!;
         public int ForgetPasswordExpiryMinutes { get; set; }
         public int VerificationCodeExpiryMinutes { get; set; }
+        public string FrontendUrl { get; set; } = null!;
+        public string DeepLinkSecret { get; set; } = null!;
     }
 }

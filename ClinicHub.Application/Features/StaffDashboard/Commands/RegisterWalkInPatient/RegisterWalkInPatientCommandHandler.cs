@@ -80,7 +80,7 @@ namespace ClinicHub.Application.Features.StaffDashboard.Commands.RegisterWalkInP
                 request.Complaint,
                 request.ChronicDiseases);
 
-            appointment.Accept();
+            appointment.CheckIn();
 
             await _unitOfWork.AppointmentRepository.AddAsync(appointment);
             await _unitOfWork.SaveChangesAsync();
@@ -90,10 +90,7 @@ namespace ClinicHub.Application.Features.StaffDashboard.Commands.RegisterWalkInP
             var queueNumber = await _unitOfWork.AppointmentRepository
                 .GetAllAsync(a => a.ClinicId == clinicId && !a.IsDeleted
                     && a.AppointmentDate >= todayStart && a.AppointmentDate < todayEnd
-                    && (a.Status == AppointmentStatus.Pending
-                        || a.Status == AppointmentStatus.Reserved
-                        || a.Status == AppointmentStatus.Accepted
-                        || a.Status == AppointmentStatus.Confirmed
+                    && (a.Status == AppointmentStatus.Confirmed
                         || a.Status == AppointmentStatus.Completed))
                 .CountAsync(cancellationToken);
 
