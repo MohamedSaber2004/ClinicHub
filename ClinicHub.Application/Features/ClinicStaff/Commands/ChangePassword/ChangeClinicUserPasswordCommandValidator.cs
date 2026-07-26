@@ -28,16 +28,16 @@ namespace ClinicHub.Application.Features.ClinicStaff.Commands.ChangePassword
                 .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required.Value])
                 .MinimumLength(identityConfig.RequiredLength)
                     .WithMessage(localizer[LocalizationKeys.ValidationMessages.MinLength.Value])
-                .Must(password => password.Any(char.IsUpper))
-                    .WithMessage(localizer[LocalizationKeys.AuthMessages.WeakPassword.Value])
-                .Must(password => password.Any(char.IsDigit))
-                    .WithMessage(localizer[LocalizationKeys.AuthMessages.WeakPassword.Value])
                 .MustAsync(async (command, newPassword, ct) =>
                 {
                     var user = await _userManager.FindByIdAsync(command.UserId.ToString());
                     if (user == null) return true;
                     return !await _userManager.CheckPasswordAsync(user, newPassword);
-                }).WithMessage(localizer[LocalizationKeys.AuthMessages.PasswordSameAsOld.Value]);
+                }).WithMessage(localizer[LocalizationKeys.AuthMessages.PasswordSameAsOld.Value])
+                .Must(password => password.Any(char.IsUpper))
+                    .WithMessage(localizer[LocalizationKeys.AuthMessages.WeakPassword.Value])
+                .Must(password => password.Any(char.IsDigit))
+                    .WithMessage(localizer[LocalizationKeys.AuthMessages.WeakPassword.Value]);
 
             RuleFor(x => x.ConfirmPassword)
                 .Equal(x => x.NewPassword)
