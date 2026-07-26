@@ -53,5 +53,6 @@ namespace ClinicHub.Application.Features.Clinics.DTOs
         public DateTime? UpdatedAt { get; set; }
         public string CreatedBy { get; set; } = string.Empty;
         public string? UpdatedBy { get; set; }
+        public List<ClinicDoctorDto>? Doctors { get; set; }
     }
 }

@@ -30,7 +30,26 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicByIdForUser
             if (clinic == null)
                 throw new NotFoundException(LocalizationKeys.ClinicMessages.ClinicNotFound.Value);
 
-            return _mapper.Map<ClinicManagementDto>(clinic);
+            var dto = _mapper.Map<ClinicManagementDto>(clinic);
+
+            var doctors = await _unitOfWork.DoctorRepository
+                .GetAllAsync(d => d.ClinicId == request.Id && !d.IsDeleted)
+                .Include(d => d.User)
+                .Include(d => d.Specialization)
+                .ToListAsync(cancellationToken);
+
+            dto.Doctors = doctors.Select(d => new ClinicDoctorDto
+            {
+                Id = d.Id,
+                Name = d.User.FullName,
+                Image = d.User.ProfilePictureUrl,
+                SpecializationArName = d.Specialization.ArName,
+                SpecializationEnName = d.Specialization.Name,
+                Bio = d.Bio,
+                YearsOfExperience = d.YearsOfExperience
+            }).ToList();
+
+            return dto;
         }
     }
 }
