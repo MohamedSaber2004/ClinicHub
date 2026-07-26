@@ -307,6 +307,7 @@ namespace ClinicHub.API.Routes
         {
             public const string GetAllByClinic = Base + "/admin/clinics/{clinicId:guid}/doctors";
             public const string GetById = Base + "/doctors/{id:guid}";
+            public const string GetDetailsForMobile = Base + "/doctors/{doctorId:guid}/details";
             public const string Create = Base + "/admin/clinics/{clinicId:guid}/doctors";
             public const string Update = Base + "/doctors/{id:guid}";
             public const string Delete = Base + "/doctors/{id:guid}";

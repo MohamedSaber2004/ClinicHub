@@ -7,6 +7,7 @@ using ClinicHub.Application.Features.Doctors.Commands.CreateDoctor;
 using ClinicHub.Application.Features.Doctors.Commands.UpdateDoctor;
 using ClinicHub.Application.Features.Doctors.Commands.DeleteDoctor;
 using ClinicHub.Application.Features.Doctors.Queries.GetDoctorById;
+using ClinicHub.Application.Features.Doctors.Queries.GetDoctorDetailsForMobile;
 using ClinicHub.Application.Features.Doctors.Queries.GetDoctorsByClinic;
 using ClinicHub.Domain.Enums;
 using MediatR;
@@ -46,6 +47,18 @@ namespace ClinicHub.API.Controllers.Version1
         {
             var query = new GetDoctorByIdQuery { Id = id };
             var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Route(ApiRoutes.Doctors.GetDetailsForMobile)]
+        [RoleAuthorize(nameof(UserType.User))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetDetailsForMobile([FromRoute] Guid doctorId, CancellationToken ct)
+        {
+            var query = new GetDoctorDetailsForMobileQuery { DoctorId = doctorId };
+            var result = await _mediator.Send(query, ct);
             return Ok(result);
         }
 
