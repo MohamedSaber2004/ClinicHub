@@ -32,25 +32,19 @@ namespace ClinicHub.Application.Features.StaffDashboard.Queries.GetStaffDashboar
                     && a.AppointmentDate >= todayStart && a.AppointmentDate < todayEnd);
 
             var total = await todayAppointments.CountAsync(cancellationToken);
-            var pending = await todayAppointments.CountAsync(a => a.Status == AppointmentStatus.Pending, cancellationToken);
-            var accepted = await todayAppointments.CountAsync(a => a.Status == AppointmentStatus.Accepted, cancellationToken);
-            var completed = await todayAppointments.CountAsync(a => a.Status == AppointmentStatus.Completed, cancellationToken);
-            var checkedIn = await todayAppointments.CountAsync(a => a.Status == AppointmentStatus.Confirmed, cancellationToken);
-
-            var queueLength = await _unitOfWork.AppointmentRepository
-                .GetAllAsync(a => a.ClinicId == clinicId && !a.IsDeleted
-                    && a.AppointmentDate >= todayStart && a.AppointmentDate < todayEnd
-                    && (a.Status == AppointmentStatus.Confirmed || a.Status == AppointmentStatus.Accepted))
-                .CountAsync(cancellationToken);
+            var checkedIn = await todayAppointments.CountAsync(a =>
+                a.Status == AppointmentStatus.Confirmed || a.Status == AppointmentStatus.Accepted, cancellationToken);
+            var waiting = await todayAppointments.CountAsync(a =>
+                a.Status == AppointmentStatus.Pending || a.Status == AppointmentStatus.Reserved, cancellationToken);
+            var completed = await todayAppointments.CountAsync(a =>
+                a.Status == AppointmentStatus.Completed, cancellationToken);
 
             return new StaffDashboardStatsDto
             {
-                TodayAppointments = total,
-                PendingAppointments = pending,
-                AcceptedAppointments = accepted,
-                CompletedAppointments = completed,
-                CheckedInCount = checkedIn,
-                QueueLength = queueLength
+                TotalAppointments = total,
+                CheckedIn = checkedIn,
+                Waiting = waiting,
+                Completed = completed
             };
         }
     }

@@ -164,7 +164,10 @@
     "NotAuthorizedToRespond": "You are not authorized to respond to this appointment request",
     "CannotRespondAppointment": "This appointment cannot be responded to in its current status",
     "Accepted": "Appointment accepted successfully",
-    "Rejected": "Appointment rejected successfully"
+    "Rejected": "Appointment rejected successfully",
+    "Completed": "Appointment completed successfully",
+    "CheckedIn": "Patient checked in successfully",
+    "Registered": "Patient registered successfully"
   },
   "Payments": {
     "NotFound": "Payment not found",

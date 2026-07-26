@@ -2,8 +2,9 @@ namespace ClinicHub.Application.Features.StaffDashboard.DTOs
 {
     public class RegisterPatientResponseDto
     {
-        public Guid UserId { get; set; }
         public Guid AppointmentId { get; set; }
-        public bool IsNewUser { get; set; }
+        public Guid PatientId { get; set; }
+        public int QueueNumber { get; set; }
+        public string Message { get; set; } = null!;
     }
 }

@@ -5,20 +5,20 @@ using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 
-namespace ClinicHub.Application.Features.StaffDashboard.Commands.CheckInPatient
+namespace ClinicHub.Application.Features.StaffDashboard.Commands.StaffCompleteAppointment
 {
-    public class CheckInPatientCommandHandler : IRequestHandler<CheckInPatientCommand, bool>
+    public class StaffCompleteAppointmentCommandHandler : IRequestHandler<StaffCompleteAppointmentCommand, bool>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
 
-        public CheckInPatientCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+        public StaffCompleteAppointmentCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
         }
 
-        public async Task<bool> Handle(CheckInPatientCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(StaffCompleteAppointmentCommand request, CancellationToken cancellationToken)
         {
             var clinicId = _currentUserService.CurrentClinicId;
             if (clinicId == null)
@@ -29,11 +29,10 @@ namespace ClinicHub.Application.Features.StaffDashboard.Commands.CheckInPatient
             if (appointment.ClinicId != clinicId.Value)
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.NotAuthorizedToRespond.Value);
 
-            if (appointment.Status != AppointmentStatus.Accepted
-                && appointment.Status != AppointmentStatus.Reserved)
+            if (appointment.Status != AppointmentStatus.Accepted && appointment.Status != AppointmentStatus.Confirmed)
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.CannotRespondAppointment.Value);
 
-            appointment.CheckIn();
+            appointment.Complete();
             await _unitOfWork.SaveChangesAsync();
 
             return true;

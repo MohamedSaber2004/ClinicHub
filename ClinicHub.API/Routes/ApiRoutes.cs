@@ -231,7 +231,9 @@ namespace ClinicHub.API.Routes
             public const string ApproveAppointment = BaseRoute + "/appointments/{id:guid}/approve";
             public const string RejectAppointment = BaseRoute + "/appointments/{id:guid}/reject";
             public const string CheckIn = BaseRoute + "/appointments/{id:guid}/check-in";
+            public const string CompleteAppointment = BaseRoute + "/appointments/{id:guid}/complete";
             public const string RegisterPatient = BaseRoute + "/patients/register";
+            public const string Doctors = BaseRoute + "/doctors";
             public const string DoctorSchedule = BaseRoute + "/doctors/{doctorId:guid}/schedule";
             public const string Queue = BaseRoute + "/queue";
         }

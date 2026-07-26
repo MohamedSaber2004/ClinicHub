@@ -31,26 +31,44 @@ namespace ClinicHub.Application.Features.StaffDashboard.Queries.GetStaffQueue
                 .GetAllWithIncluding(
                     a => a.ClinicId == clinicId && !a.IsDeleted
                         && a.AppointmentDate >= todayStart && a.AppointmentDate < todayEnd
-                        && (a.Status == AppointmentStatus.Confirmed || a.Status == AppointmentStatus.Accepted),
+                        && (a.Status == AppointmentStatus.Reserved
+                            || a.Status == AppointmentStatus.Accepted
+                            || a.Status == AppointmentStatus.Confirmed
+                            || a.Status == AppointmentStatus.Completed),
                     a => a.Doctor,
-                    a => a.Doctor.User)
+                    a => a.Doctor.User,
+                    a => a.Doctor.Specialization)
                 .OrderBy(a => a.StartTime)
+                .ThenBy(a => a.CreatedAt)
                 .ToListAsync(cancellationToken);
 
-            var now = DateTime.Now;
+            var queueNumber = 1;
             return queueItems.Select(a =>
             {
-                var appointmentDateTime = a.AppointmentDate.Date + a.StartTime;
-                var waitMinutes = appointmentDateTime > now ? (int)(appointmentDateTime - now).TotalMinutes : 0;
+                var status = a.Status;
+                var statusValue = StaffDashboardStatusHelper.GetQueueStatusValue(status);
+                var statusLabel = StaffDashboardStatusHelper.GetQueueStatusLabel(status);
+                var statusClass = StaffDashboardStatusHelper.GetQueueStatusClass(status);
 
                 return new StaffQueueItemDto
                 {
-                    AppointmentId = a.Id,
-                    PatientFullName = a.PatientFullName,
-                    DoctorName = a.Doctor?.User?.FullName,
-                    StartTime = a.StartTime.ToString(@"hh\:mm"),
-                    Status = a.Status,
-                    WaitTimeMinutes = waitMinutes
+                    QueueNumber = queueNumber++,
+                    Patient = new PatientBriefDto
+                    {
+                        Id = a.BookedByUserId,
+                        Name = a.PatientFullName,
+                        Initial = StaffDashboardStatusHelper.GetInitial(a.PatientFullName)
+                    },
+                    Doctor = new DoctorBriefDto
+                    {
+                        Id = a.Doctor.Id,
+                        Name = "د. " + (a.Doctor.User?.FullName ?? ""),
+                        Specialty = a.Doctor.Specialization?.ArName ?? a.Doctor.Specialization?.Name ?? ""
+                    },
+                    Time = a.StartTime.ToString(@"hh\:mm"),
+                    Status = statusValue,
+                    StatusLabel = statusLabel,
+                    StatusClass = statusClass
                 };
             }).ToList();
         }

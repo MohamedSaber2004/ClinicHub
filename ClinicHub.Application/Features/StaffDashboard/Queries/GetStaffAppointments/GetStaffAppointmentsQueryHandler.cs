@@ -1,4 +1,3 @@
-using AutoMapper;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Features.StaffDashboard.DTOs;
@@ -30,6 +29,7 @@ namespace ClinicHub.Application.Features.StaffDashboard.Queries.GetStaffAppointm
                     a => a.ClinicId == clinicId && !a.IsDeleted,
                     a => a.Doctor,
                     a => a.Doctor.User,
+                    a => a.Doctor.Specialization,
                     a => a.BookedByUser)
                 .AsQueryable();
 
@@ -51,23 +51,32 @@ namespace ClinicHub.Application.Features.StaffDashboard.Queries.GetStaffAppointm
                 .Take(request.PageSize)
                 .ToListAsync(cancellationToken);
 
-            var dtos = items.Select(a => new StaffAppointmentDto
+            var dtos = items.Select(a =>
             {
-                Id = a.Id,
-                DoctorName = a.Doctor?.User?.FullName,
-                BookedByUserName = a.BookedByUser.FullName,
-                AppointmentDate = a.AppointmentDate.ToString("yyyy-MM-dd"),
-                StartTime = a.StartTime.ToString(@"hh\:mm"),
-                EndTime = a.EndTime.ToString(@"hh\:mm"),
-                AppointmentType = a.AppointmentType,
-                Status = a.Status,
-                PatientFullName = a.PatientFullName,
-                PatientPhoneNumber = a.PatientPhoneNumber,
-                PatientAge = a.PatientAge,
-                PatientGender = a.PatientGender,
-                Complaint = a.Complaint,
-                CancellationReason = a.CancellationReason,
-                CreatedAt = a.CreatedAt
+                var status = a.Status;
+                return new StaffAppointmentDto
+                {
+                    Id = a.Id,
+                    Patient = new PatientBriefDto
+                    {
+                        Id = a.BookedByUserId,
+                        Name = a.PatientFullName,
+                        Initial = StaffDashboardStatusHelper.GetInitial(a.PatientFullName)
+                    },
+                    Doctor = new DoctorBriefDto
+                    {
+                        Id = a.Doctor.Id,
+                        Name = "د. " + (a.Doctor.User?.FullName ?? ""),
+                        Specialty = a.Doctor.Specialization?.ArName ?? a.Doctor.Specialization?.Name ?? ""
+                    },
+                    Specialty = a.Doctor.Specialization?.ArName ?? a.Doctor.Specialization?.Name ?? "",
+                    Date = a.AppointmentDate.ToString("yyyy-MM-dd"),
+                    Time = a.StartTime.ToString(@"hh\:mm"),
+                    Status = StaffDashboardStatusHelper.GetStatusValue(status),
+                    StatusLabel = StaffDashboardStatusHelper.GetStatusLabel(status),
+                    StatusClass = StaffDashboardStatusHelper.GetStatusClass(status),
+                    Phone = a.PatientPhoneNumber
+                };
             }).ToList();
 
             return new PagginatedResult<StaffAppointmentDto>(dtos, totalCount, request.PageNumber, request.PageSize);

@@ -114,6 +114,12 @@ namespace ClinicHub.Domain.Entities
 
         public void Complete() => Status = AppointmentStatus.Completed;
 
+        public void CheckIn()
+        {
+            Status = AppointmentStatus.Confirmed;
+            ExpiresAt = null;
+        }
+
         public void MarkNoShow() => Status = AppointmentStatus.NoShow;
 
         public void Update(

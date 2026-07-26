@@ -4,10 +4,12 @@ using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.StaffDashboard.Commands.CheckInPatient;
 using ClinicHub.Application.Features.StaffDashboard.Commands.RegisterWalkInPatient;
 using ClinicHub.Application.Features.StaffDashboard.Commands.StaffApproveAppointment;
+using ClinicHub.Application.Features.StaffDashboard.Commands.StaffCompleteAppointment;
 using ClinicHub.Application.Features.StaffDashboard.Commands.StaffRejectAppointment;
 using ClinicHub.Application.Features.StaffDashboard.Queries.GetStaffAppointments;
 using ClinicHub.Application.Features.StaffDashboard.Queries.GetStaffDashboardStats;
 using ClinicHub.Application.Features.StaffDashboard.Queries.GetStaffDoctorSchedule;
+using ClinicHub.Application.Features.StaffDashboard.Queries.GetStaffDoctors;
 using ClinicHub.Application.Features.StaffDashboard.Queries.GetStaffQueue;
 using ClinicHub.Domain.Enums;
 using MediatR;
@@ -76,6 +78,17 @@ namespace ClinicHub.API.Controllers.Version1
             return Ok(result);
         }
 
+        [HttpPut]
+        [Route(ApiRoutes.StaffDashboard.CompleteAppointment)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> CompleteAppointment(Guid id, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new StaffCompleteAppointmentCommand { AppointmentId = id }, ct);
+            return Ok(result);
+        }
+
         [HttpPost]
         [Route(ApiRoutes.StaffDashboard.RegisterPatient)]
         [ProducesResponseType(StatusCodes.Status201Created)]
@@ -87,11 +100,21 @@ namespace ClinicHub.API.Controllers.Version1
         }
 
         [HttpGet]
+        [Route(ApiRoutes.StaffDashboard.Doctors)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetDoctors(CancellationToken ct)
+        {
+            var result = await _mediator.Send(new GetStaffDoctorsQuery(), ct);
+            return Ok(result);
+        }
+
+        [HttpGet]
         [Route(ApiRoutes.StaffDashboard.DoctorSchedule)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetDoctorSchedule(Guid doctorId, CancellationToken ct)
+        public async Task<IActionResult> GetDoctorSchedule([FromRoute] Guid doctorId, [FromQuery] GetStaffDoctorScheduleQuery query, CancellationToken ct)
         {
-            var result = await _mediator.Send(new GetStaffDoctorScheduleQuery { DoctorId = doctorId }, ct);
+            query.DoctorId = doctorId;
+            var result = await _mediator.Send(query, ct);
             return Ok(result);
         }
 

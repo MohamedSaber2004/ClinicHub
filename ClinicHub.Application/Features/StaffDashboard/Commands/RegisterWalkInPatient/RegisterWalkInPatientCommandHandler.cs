@@ -27,7 +27,6 @@ namespace ClinicHub.Application.Features.StaffDashboard.Commands.RegisterWalkInP
             var clinicId = _currentUserService.CurrentClinicId ?? request.ClinicId;
 
             var existingUser = await _userManager.FindByEmailAsync(request.Email ?? "");
-            var isNewUser = false;
 
             if (existingUser == null && !string.IsNullOrWhiteSpace(request.PhoneNumber))
             {
@@ -54,7 +53,6 @@ namespace ClinicHub.Application.Features.StaffDashboard.Commands.RegisterWalkInP
                     throw new Exception("Failed to create walk-in patient user.");
 
                 await _userManager.AddToRoleAsync(user, nameof(UserType.User));
-                isNewUser = true;
             }
             else
             {
@@ -87,11 +85,24 @@ namespace ClinicHub.Application.Features.StaffDashboard.Commands.RegisterWalkInP
             await _unitOfWork.AppointmentRepository.AddAsync(appointment);
             await _unitOfWork.SaveChangesAsync();
 
+            var todayStart = DateTime.Today;
+            var todayEnd = todayStart.AddDays(1);
+            var queueNumber = await _unitOfWork.AppointmentRepository
+                .GetAllAsync(a => a.ClinicId == clinicId && !a.IsDeleted
+                    && a.AppointmentDate >= todayStart && a.AppointmentDate < todayEnd
+                    && (a.Status == AppointmentStatus.Pending
+                        || a.Status == AppointmentStatus.Reserved
+                        || a.Status == AppointmentStatus.Accepted
+                        || a.Status == AppointmentStatus.Confirmed
+                        || a.Status == AppointmentStatus.Completed))
+                .CountAsync(cancellationToken);
+
             return new RegisterPatientResponseDto
             {
-                UserId = user.Id,
                 AppointmentId = appointment.Id,
-                IsNewUser = isNewUser
+                PatientId = user.Id,
+                QueueNumber = queueNumber,
+                Message = "\u062A\u0645 \u062A\u0633\u062C\u064A\u0644 \u0627\u0644\u0645\u0631\u064A\u0636 \u0628\u0646\u062C\u0627\u062D"
             };
         }
     }
