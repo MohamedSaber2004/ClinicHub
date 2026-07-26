@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace ClinicHub.Application.Features.ClinicStaff.Commands.ChangePassword
 {
-    public class ChangeClinicUserPasswordCommandHandler : IRequestHandler<ChangeClinicUserPasswordCommand, Unit>
+    public class ChangeClinicUserPasswordCommandHandler : IRequestHandler<ChangeClinicUserPasswordCommand, bool>
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ICurrentUserService _currentUserService;
@@ -21,7 +21,7 @@ namespace ClinicHub.Application.Features.ClinicStaff.Commands.ChangePassword
             _currentUserService = currentUserService;
         }
 
-        public async Task<Unit> Handle(ChangeClinicUserPasswordCommand request, CancellationToken cancellationToken)
+        public async Task<bool> Handle(ChangeClinicUserPasswordCommand request, CancellationToken cancellationToken)
         {
             var clinicId = _currentUserService.CurrentClinicId;
             if (clinicId == null)
@@ -43,7 +43,7 @@ namespace ClinicHub.Application.Features.ClinicStaff.Commands.ChangePassword
             if (!addResult.Succeeded)
                 throw new BadRequestException(LocalizationKeys.AuthMessages.WeakPassword.Value);
 
-            return Unit.Value;
+            return true;
         }
     }
 }
