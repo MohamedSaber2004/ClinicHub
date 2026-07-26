@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
+using ClinicHub.Application.Features.ClinicStaff.Commands.ChangePassword;
 using ClinicHub.Application.Features.ClinicStaff.Commands.CreateStaff;
 using ClinicHub.Application.Features.ClinicStaff.Commands.DeleteStaff;
 using ClinicHub.Application.Features.ClinicStaff.Commands.UpdateStaff;
@@ -58,6 +59,18 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateStaffCommand command, CancellationToken ct)
         {
             command.StaffId = id;
+            var result = await _mediator.Send(command, ct);
+            return Ok(result);
+        }
+
+        [HttpPut]
+        [Route(ApiRoutes.ClinicStaff.ChangePassword)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ChangePassword(Guid id, [FromBody] ChangeClinicUserPasswordCommand command, CancellationToken ct)
+        {
+            command = command with { UserId = id };
             var result = await _mediator.Send(command, ct);
             return Ok(result);
         }

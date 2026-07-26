@@ -140,6 +140,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString RoleAssignmentFailed = new("Auth.RoleAssignmentFailed");
             public static readonly KeyString PasswordChanged = new("Auth.PasswordChanged");
             public static readonly KeyString IncorrectOldPassword = new("Auth.IncorrectOldPassword");
+            public static readonly KeyString PasswordSameAsOld = new("Auth.PasswordSameAsOld");
         }
 
         public static class ClinicMessages

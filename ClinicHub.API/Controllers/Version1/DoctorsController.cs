@@ -2,6 +2,7 @@ using Asp.Versioning;
 using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Common.Interfaces;
+using ClinicHub.Application.Features.ClinicStaff.Commands.ChangePassword;
 using ClinicHub.Application.Features.Doctors.Commands.CreateDoctor;
 using ClinicHub.Application.Features.Doctors.Commands.UpdateDoctor;
 using ClinicHub.Application.Features.Doctors.Commands.DeleteDoctor;
@@ -86,6 +87,20 @@ namespace ClinicHub.API.Controllers.Version1
         {
             command.DoctorId = id;
             var result = await _mediator.Send(command);
+            return Ok(result);
+        }
+
+        [HttpPut]
+        [Route(ApiRoutes.Doctors.ChangePassword)]
+        [RoleAuthorize(nameof(UserType.ClinicOwner))]
+        [RequirePlanPermission(SubscriptionPermission.ManageDoctors)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ChangePassword(Guid id, [FromBody] ChangeClinicUserPasswordCommand command, CancellationToken ct)
+        {
+            command = command with { UserId = id };
+            var result = await _mediator.Send(command, ct);
             return Ok(result);
         }
 

@@ -110,6 +110,7 @@
     "RoleAssignmentFailed": "Failed to assign user role",
     "PasswordChanged": "Password changed successfully",
     "IncorrectOldPassword": "Old password is incorrect",
+    "PasswordSameAsOld": "New password cannot be the same as the current password",
     "InvalidUserType": "Invalid user type specified",
     "SignupPendingApproval": "Your registration has been submitted for review by an administrator. You will be notified once your account is approved.",
     "AccountPendingApproval": "Your account is pending approval. Please wait for an administrator to activate your account.",

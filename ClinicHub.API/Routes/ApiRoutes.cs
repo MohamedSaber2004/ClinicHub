@@ -181,15 +181,6 @@ namespace ClinicHub.API.Routes
             public const string GetClinicRatings = Base + "/clinics/{clinicId:guid}/ratings";
         }
 
-        public static class Doctors
-        {
-            public const string GetAllByClinic = Base + "/admin/clinics/{clinicId:guid}/doctors";
-            public const string GetById = Base + "/doctors/{id:guid}";
-            public const string Create = Base + "/admin/clinics/{clinicId:guid}/doctors";
-            public const string Update = Base + "/doctors/{id:guid}";
-            public const string Delete = Base + "/doctors/{id:guid}";
-        }
-
         public static class Users
         {
             public const string GetAll = Base + "/users";
@@ -306,6 +297,17 @@ namespace ClinicHub.API.Routes
             public const string Create = BaseRoute;
             public const string Update = BaseRoute + "/{id:guid}";
             public const string Delete = BaseRoute + "/{id:guid}";
+            public const string ChangePassword = BaseRoute + "/{id:guid}/change-password";
+        }
+
+        public static class Doctors
+        {
+            public const string GetAllByClinic = Base + "/admin/clinics/{clinicId:guid}/doctors";
+            public const string GetById = Base + "/doctors/{id:guid}";
+            public const string Create = Base + "/admin/clinics/{clinicId:guid}/doctors";
+            public const string Update = Base + "/doctors/{id:guid}";
+            public const string Delete = Base + "/doctors/{id:guid}";
+            public const string ChangePassword = Base + "/admin/clinics/doctors/{id:guid}/change-password";
         }
     }
 }
