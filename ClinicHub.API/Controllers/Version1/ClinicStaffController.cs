@@ -5,6 +5,7 @@ using ClinicHub.Application.Features.ClinicStaff.Commands.CreateStaff;
 using ClinicHub.Application.Features.ClinicStaff.Commands.DeleteStaff;
 using ClinicHub.Application.Features.ClinicStaff.Commands.UpdateStaff;
 using ClinicHub.Application.Features.ClinicStaff.Queries.GetClinicStaff;
+using ClinicHub.Application.Features.ClinicStaff.Queries.GetClinicStaffById;
 using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -26,6 +27,16 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> GetAll([FromQuery] GetClinicStaffQuery query, CancellationToken ct)
         {
             var result = await _mediator.Send(query, ct);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Route(ApiRoutes.ClinicStaff.GetById)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetById(Guid id, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new GetClinicStaffByIdQuery(id), ct);
             return Ok(result);
         }
 
