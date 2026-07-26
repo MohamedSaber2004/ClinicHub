@@ -121,9 +121,9 @@ namespace ClinicHub.API.Controllers.Version1
         [HttpGet]
         [Route(ApiRoutes.StaffDashboard.Queue)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetQueue(CancellationToken ct)
+        public async Task<IActionResult> GetQueue([FromQuery] GetStaffQueueQuery query, CancellationToken ct)
         {
-            var result = await _mediator.Send(new GetStaffQueueQuery(), ct);
+            var result = await _mediator.Send(query, ct);
             return Ok(result);
         }
     }
