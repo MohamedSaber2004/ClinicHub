@@ -5,8 +5,6 @@ using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using MimeKit.Text;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace ClinicHub.Infrastructure.Services
 {
@@ -65,8 +63,7 @@ namespace ClinicHub.Infrastructure.Services
         public async Task SendVerificationApprovedAsync(string toEmail, string fullName, string userId, string role, CancellationToken ct = default)
         {
             var status = "accepted";
-            var token = GenerateDeepLinkToken(userId, status);
-            var deepLink = $"{_settings.FrontendUrl.TrimEnd('/')}/auth/verification-approved?userId={userId}&role={role}&status={status}&token={token}";
+            var deepLink = _deepLinkService.GenerateVerificationApprovedLink(userId, role, status);
 
             var subject = "ClinicHub - Account Verified";
             var body = $@"
@@ -140,15 +137,6 @@ namespace ClinicHub.Infrastructure.Services
             await smtp.AuthenticateAsync(_settings.Username, _settings.Password, ct);
             await smtp.SendAsync(email, ct);
             await smtp.DisconnectAsync(true, ct);
-        }
-
-        private string GenerateDeepLinkToken(string userId, string status)
-        {
-            var data = $"{userId}:{status}";
-            var keyBytes = Encoding.UTF8.GetBytes(_settings.DeepLinkSecret);
-            using var hmac = new HMACSHA256(keyBytes);
-            var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(data));
-            return Convert.ToHexStringLower(hash);
         }
     }
 }

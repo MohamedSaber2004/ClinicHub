@@ -80,6 +80,10 @@ namespace ClinicHub.Infrastructure.Services
 
         public async Task SendToDeviceAsync(string deviceToken, NotificationPayload payload, DevicePlatform platform)
         {
+            var hasValidLink = !string.IsNullOrWhiteSpace(payload.Link) &&
+                               Uri.TryCreate(payload.Link, UriKind.Absolute, out var linkUri) &&
+                               linkUri.Scheme is "https" or "http";
+
             var message = new FirebaseAdmin.Messaging.Message
             {
                 Token = deviceToken,
@@ -111,20 +115,26 @@ namespace ClinicHub.Infrastructure.Services
                         ImageUrl = _settings.Android?.ImageUrl
                     }
                 },
-                Webpush = new WebpushConfig
-                {
-                    Notification = new WebpushNotification
+                Webpush = hasValidLink
+                    ? new WebpushConfig
                     {
-                        Title = payload.Title,
-                        Body = payload.Body,
-                        Icon = _settings.Web?.Icon ?? "/notification_logo.png"
-                    },
-                    FcmOptions = (!string.IsNullOrWhiteSpace(_settings.Web?.Link) && 
-                                  Uri.TryCreate(_settings.Web.Link, UriKind.Absolute, out var uri) && 
-                                  uri.Scheme == Uri.UriSchemeHttps)
-                        ? new WebpushFcmOptions { Link = _settings.Web.Link }
-                        : null
-                }
+                        Notification = new WebpushNotification
+                        {
+                            Title = payload.Title,
+                            Body = payload.Body,
+                            Icon = _settings.Web?.Icon ?? "/notification_logo.png"
+                        },
+                        FcmOptions = new WebpushFcmOptions { Link = payload.Link! }
+                    }
+                    : new WebpushConfig
+                    {
+                        Notification = new WebpushNotification
+                        {
+                            Title = payload.Title,
+                            Body = payload.Body,
+                            Icon = _settings.Web?.Icon ?? "/notification_logo.png"
+                        }
+                    }
             };
 
             await FirebaseMessaging.DefaultInstance.SendAsync(message);

@@ -1,0 +1,2474 @@
+# Deep link readiness in project
+
+**Session ID:** ses_06082bbf1ffe0ChMipDUcBQs1Q
+**Created:** 7/26/2026, 8:33:34 PM
+**Updated:** 7/26/2026, 10:38:12 PM
+
+---
+
+## User
+
+are deeplink is ready in this projcet ?
+
+---
+
+## Assistant (Plan · DeepSeek V4 Flash Free · 72.9s)
+
+_Thinking:_
+
+The user is asking about deep links in this Flutter project. I need to explore the codebase to understand the current state of deep linking — specifically GoRouter configuration, deep link handling, and whether it's properly set up. 
+
+Let me search for relevant files and patterns.
+
+**Tool: task**
+
+**Input:**
+```json
+{
+  "description": "Explore deep link setup",
+  "prompt": "Search the Flutter project at D:\\Programing\\Projects\\doctory\\doctory for deep linking configuration. I need to understand:\n\n1. Check the main GoRouter setup in lib/core/Router/app_router.dart — how is GoRouter configured? Does it use `initialLocation`, `redirect`, or any deep link related parameters?\n2. Check if there's any platform-specific deep link configuration:\n   - Android: android/app/src/main/AndroidManifest.xml (look for intent-filters with \"android.intent.action.VIEW\" and \"Browsable\")\n   - iOS: ios/Runner/Info.plist or ios/Runner/Runner.entitlements (look for associated domains, universal links)\n   - iOS: ios/Runner/AppDelegate.swift for FlutterDeepLinkHandler\n3. Search for any mention of \"deepLink\", \"deeplink\", \"deep_link\", \"go_router\" in the project (main.dart, app_router.dart, AppDelegate, etc.)\n4. Check lib/core/config/ for any deep link related config (app schemes, host, etc.)\n5. Check if there's any `getInitialLink`, `getInitialUri`, or similar deep link handling code\n\nReturn ALL findings in detail — file paths, relevant code snippets, and whether deep linking appears to be set up or not.",
+  "subagent_type": "explore"
+}
+```
+
+**Output:**
+```
+<task id="ses_06082951cffedX2iX7J63OqEHl" state="completed">
+<task_result>
+Here is the complete deep linking analysis for the project.
+
+---
+
+## Deep Linking Configuration Report for `doctory`
+
+### 1. GoRouter Setup (`lib/core/router/app_router.dart`)
+
+**File:** `D:\Programing\Projects\doctory\doctory\lib\core\router\app_router.dart`
+
+The `GoRouter` is configured with:
+- `initialLocation: initialRoute` (defaults to `'/'` — the splash screen)
+- `refreshListenable: UserSession.userNotifier` (for auth state changes)
+- `redirect` — an async callback that handles role-based access control (patient/freelance doctor cannot access `/clinic*`, non-superAdmin cannot access `/admin*`)
+- `debugLogDiagnostics: true`
+- `observers` for BotToast and FlutterSmartDialog
+
+**No deep-link-specific GoRouter parameters are set:**
+- No `initialLocation` pointing to a deep link path (it's hardcoded to splash).
+- No `linkProvider` or `urlPathStrategy` — these are not needed with the `app_links` package approach used.
+- The `redirect` callback is purely for role-based access, not deep link resolution.
+
+The router does **not** use `GoRouter`'s built-in deep link handling (which would parse incoming URIs automatically). Instead, deep links are intercepted externally via `app_links` (see point 3).
+
+---
+
+### 2. Platform-Specific Configuration
+
+#### Android — Intent Filter
+
+**File:** `D:\Programing\Projects\doctory\doctory\android\app\src\main\AndroidManifest.xml` (lines 44-49)
+
+```xml
+<intent-filter>
+    <action android:name="android.intent.action.VIEW" />
+    <category android:name="android.intent.category.DEFAULT" />
+    <category android:name="android.intent.category.BROWSABLE" />
+    <data android:scheme="doctory" android:host="post" />
+</intent-filter>
+```
+
+**Status:** Present. The app registers a custom URL scheme `doctory://post/*`.
+
+Notes:
+- Only the `main` AndroidManifest has this intent-filter. The `debug` and `profile` variants (for dev builds) do **not** include it — they only declare the INTERNET permission. This means deep links only work in release/profile builds, not debug.
+- The scheme is `doctory` and the host is `post`, so it matches URIs like `doctory://post/123`.
+- There is **no** `android:pathPrefix` or `android:path` attribute, so any path under `doctory://post/` will trigger the intent.
+- There is no HTTPS/HTTP web-based intent filter (no universal/app links for Android).
+
+#### iOS — Info.plist (Custom URL Scheme)
+
+**File:** `D:\Programing\Projects\doctory\doctory\ios\Runner\Info.plist` (lines 48-56)
+
+```xml
+<key>CFBundleURLTypes</key>
+<array>
+    <dict>
+        <key>CFBundleURLSchemes</key>
+        <array>
+            <string>doctory</string>
+        </array>
+    </dict>
+</array>
+```
+
+**Status:** Present. The custom URL scheme `doctory://` is registered for iOS, matching the Android configuration.
+
+#### iOS — Entitlements (Universal Links / Associated Domains)
+
+**File:** `D:\Programing\Projects\doctory\doctory\ios\Runner\Runner.entitlements`
+
+```xml
+<key>aps-environment</key>
+<string>development</string>
+```
+
+**Status:** **NOT set up for universal links.** There is no `com.apple.developer.associated-domains` key. This means iOS Universal Links (`https://yourdomain.com/post/*`) are not configured. Only custom scheme deep links work on iOS.
+
+#### iOS — AppDelegate.swift
+
+**File:** `D:\Programing\Projects\doctory\doctory\ios\Runner\AppDelegate.swift`
+
+```swift
+import Flutter
+import UIKit
+import GoogleMaps
+import UserNotifications
+
+@main
+@objc class AppDelegate: FlutterAppDelegate {
+  override func application(
+    _ application: UIApplication,
+    didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
+  ) -> Bool {
+    GMSServices.provideAPIKey("AIzaSyCVBhh3JgfNPyjXfDbGyouGQ9GP7u_25kY")
+    GeneratedPluginRegistrant.register(with: self)
+    // ... notification setup ...
+    return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+}
+```
+
+**Status:** **No custom deep link handling in AppDelegate.** There is no override of `application(_:open:options:)` or `application(_:continue:restorationHandler:)` (for universal links). The project relies entirely on the `app_links` Flutter package (via `GeneratedPluginRegistrant`) to handle incoming URIs.
+
+---
+
+### 3. Deep Link Handling in Dart Code
+
+#### 3a. Initialization in `main.dart`
+
+**File:** `D:\Programing\Projects\doctory\doctory\lib\main.dart` (lines 55-84)
+
+Deferred to after the first frame via `addPostFrameCallback`:
+```dart
+WidgetsBinding.instance.addPostFrameCallback((_) {
+    FirebaseAnalytics.instance.logAppOpen();
+    RemoteConfigService.init();
+    FBMessaging.initialize();
+    _initDeepLinks();  // <--- deep link init
+});
+```
+
+The `_initDeepLinks` function:
+```dart
+void _initDeepLinks() {
+  try {
+    final appLinks = AppLinks();
+    appLinks.uriLinkStream.listen(_handleDeepLink);
+    appLinks.getInitialLink().then((uri) {
+      if (uri != null) _handleDeepLink(uri);
+    });
+  } catch (e) {
+    debugPrint('Deep links not available on this platform: $e');
+  }
+}
+```
+
+**Usage of `app_links` package:**
+- **`getInitialLink()`** — checks if the app was launched via a deep link. This handles the cold-start scenario.
+- **`uriLinkStream`** — listens for incoming deep links while the app is already running (warm start).
+- Both paths call `_handleDeepLink(uri)`.
+
+The `_handleDeepLink` function:
+```dart
+void _handleDeepLink(Uri uri) {
+  if (uri.scheme == 'doctory' && uri.host == 'post') {
+    final postId = uri.pathSegments.isNotEmpty ? uri.pathSegments.first : '';
+    if (postId.isNotEmpty) {
+      AppRouter.navigatorKey.currentContext!.go('/post/$postId');
+    }
+  }
+}
+```
+
+**Supported deep link format:** `doctory://post/<postId>`  
+**Action:** Navigates to `/post/<postId>` via GoRouter.
+
+#### 3b. The Deep Link Target Route
+
+**File:** `D:\Programing\Projects\doctory\doctory\lib\features\community\router\community_router.dart` (lines 31-37)
+
+```dart
+GoRoute(
+  path: '${AppRoutes.postDeepLink}/:id',  // AppRoutes.postDeepLink = '/post'
+  builder: (context, state) {
+    final postId = state.pathParameters['id'] ?? '';
+    return PostDeepLinkView(postId: postId);
+  },
+),
+```
+
+This is registered in `globalRoutes`, which are spread into the main GoRouter at the top level (not inside the `StatefulShellRoute`), so deep links can navigate to it without a bottom-nav shell.
+
+#### 3c. The Deep Link View
+
+**File:** `D:\Programing\Projects\doctory\doctory\lib\features\community\presentation\views\post_deep_link_view.dart`
+
+This view:
+- Receives a `postId` string.
+- Fetches the full post data from `CommunityRepo.getPostById(postId)`.
+- On success, navigates to `AppRoutes.postDetails` (`/post-details`) with the `PostModel` as extra.
+- On failure, shows an error UI with a "Back to Home" button.
+
+#### 3d. Commented Out Share Deep Link Code
+
+**File:** `D:\Programing\Projects\doctory\doctory\lib\features\community\presentation\widgets\post_options_bottom_sheet.dart` (lines 47-56)
+
+```dart
+// ListTile(
+//   leading: const Icon(Icons.copy),
+//   title: Text('copy_link'.tr()),
+//   onTap: () {
+//     final url = 'doctory://post/${post.id}';
+//     Clipboard.setData(ClipboardData(text: url));
+//     Navigator.pop(context);
+//     Alerts.showToast('copy_link'.tr());
+//   },
+// ),
+```
+
+This shows that deep link sharing was planned but is currently **commented out**. The deep link format matches what `_handleDeepLink` expects: `doctory://post/<postId>`.
+
+---
+
+### 4. Config Files — Deep Link Related
+
+**Files checked:**
+| File | Relevant Content |
+|------|-----------------|
+| `lib/core/config/config.dart` | No deep link config — only `MyCustomScrollBehavior` |
+| `lib/core/config/key.dart` | No deep link config — only base URL and payment keys |
+| `lib/core/config/pusher_config.dart` | No deep link config — only Pusher/WebSocket config |
+
+**No dedicated deep link config file exists.** The scheme (`doctory`) and host (`post`) are hardcoded in:
+- `main.dart` (`_handleDeepLink`)
+- `AndroidManifest.xml` (intent-filter data)
+- `Info.plist` (CFBundleURLSchemes)
+
+---
+
+### 5. Package Dependency
+
+**File:** `D:\Programing\Projects\doctory\doctory\pubspec.yaml` (line 48)
+
+```yaml
+app_links: ^6.3.3
+```
+
+The `app_links` package is the sole mechanism for deep link handling. It is a community-maintained package (not the deprecated `uni_links`).
+
+---
+
+## Summary Table
+
+| Aspect | Status | Details |
+|--------|--------|---------|
+| **Custom URL Scheme** | **Set up** | `doctory://post/*` on both Android and iOS |
+| **Android Intent Filter** | **Present** (main only) | `android:scheme="doctory"` + `android:host="post"` in release profile only |
+| **iOS Custom Scheme** | **Present** | `CFBundleURLSchemes` includes `doctory` |
+| **iOS Universal Links** | **Not set up** | No `associated-domains` entitlement; no `applinks:` declaration |
+| **Android App Links** | **Not set up** | No HTTPS-based intent filter with `android:autoVerify="true"` |
+| **GoRouter deep link config** | **Not used** | No `initialLocation` handling of deep links; no `linkProvider` |
+| **`app_links` package** | **Used** | `getInitialLink()` + `uriLinkStream` listening in `main.dart` |
+| **Deep link handler** | **Present** | `_handleDeepLink()` parses `doctory://post/<id>` and navigates to `/post/<id>` |
+| **Target route** | **Present** | `PostDeepLinkView` at `/post/:id`, fetches data and redirects to post details |
+| **Deep link share feature** | **Commented out** | In `post_options_bottom_sheet.dart`, the share/copy link tile is disabled |
+| **Debug builds** | **Deep links disabled** | Debug AndroidManifest lacks the intent-filter |
+
+### Verdict
+
+Deep linking is **partially set up**. The foundation exists:
+- A custom URL scheme (`doctory://post/<id>`) works on both platforms.
+- The `app_links` package correctly intercepts both cold-start and warm-start links.
+- There is a dedicated route and view to handle incoming post deep links.
+
+**What's missing / incomplete:**
+1. **No HTTPS-based universal/app links** — users cannot be directed via a standard web URL like `https://doctory.app/post/123`.
+2. **Debug builds on Android** do not have the intent-filter, making development/testing of deep links harder.
+3. **Deep link sharing is commented out** — users cannot currently share post links from within the app.
+4. **No centralized deep link configuration** — the scheme/host is hardcoded in three separate places.
+</task_result>
+</task>
+```
+
+---
+
+## Assistant (Plan · DeepSeek V4 Flash Free · 5.2s)
+
+_Thinking:_
+
+The user asked "are deeplink is ready in this projcet?" — they want to know if deep linking is ready/complete in this project. The exploration agent has done a thorough analysis.
+
+Let me summarize the answer for the user concisely.
+
+Partially ready. Foundation exists but incomplete.
+
+**What works:**
+- Custom URL scheme `doctory://post/<id>` registered on Android & iOS
+- `app_links` package intercepts cold-start + warm-start links in `main.dart`
+- `_handleDeepLink()` parses and navigates to `/post/:id`
+- `PostDeepLinkView` fetches post data and redirects to details page
+
+**What's missing:**
+1. No HTTPS universal/app links (only custom scheme)
+2. Android debug builds lack the intent-filter — untestable in debug
+3. Share/copy deep link in UI is **commented out** (`post_options_bottom_sheet.dart:47-56`)
+4. Scheme/host hardcoded in 3 places with no central config
+
+Want me to plan adding the missing pieces?
+
+---
+
+## User
+
+ok make it as core to use other features
+
+---
+
+## Assistant (Plan · DeepSeek V4 Flash Free · 5.3s)
+
+_Thinking:_
+
+The user wants me to make deep linking a core feature so it can be reused across different features (not just posts). Currently, deep link handling is scattered across `main.dart` (hardcoded logic) and only supports one route (`doctory://post/<id>`).
+
+Let me think about what needs to be done:
+
+1. **Create a centralized deep link service/manager** in `lib/core/` that:
+   - Defines a deep link route registry (features can register their deep link handlers)
+   - Handles parsing of incoming URIs
+   - Dispatches to registered handlers
+   - Centralizes scheme/host configuration
+
+2. **Extract hardcoded logic from `main.dart`** into the service
+
+3. **Clean up platform configs** to reference a central config
+
+4. **Expose a simple API** for features to register deep link routes
+
+Let me explore the current structure more deeply to understand the codebase patterns before making a plan.
+
+**Tool: read**
+
+**Input:**
+```json
+{
+  "filePath": "D:\\Programing\\Projects\\doctory\\doctory\\lib\\main.dart"
+}
+```
+
+**Output:**
+```
+<path>D:\Programing\Projects\doctory\doctory\lib\main.dart</path>
+<type>file</type>
+<content>
+1: import 'package:app_links/app_links.dart';
+2: import 'package:doctory/core/cache/cache_helper.dart';
+3: import 'package:doctory/core/locator/service_locator.dart';
+4: import 'package:doctory/core/router/app_router.dart';
+5: import 'package:doctory/core/services/notifications/fcm_service.dart';
+6: import 'package:doctory/core/theme/theme_manager.dart';
+7: import 'package:doctory/src/app.dart';
+8: import 'package:easy_localization/easy_localization.dart';
+9: import 'package:firebase_analytics/firebase_analytics.dart';
+10: import 'package:firebase_core/firebase_core.dart';
+11: import 'package:firebase_messaging/firebase_messaging.dart';
+12: import 'package:flutter/material.dart';
+13: import 'package:go_router/go_router.dart';
+14: 
+15: import 'package:doctory/core/network/util/auth_listener.dart';
+16: import 'package:doctory/core/services/remote_config_service.dart';
+17: import 'package:doctory/core/session/user_session.dart';
+18: import 'package:doctory/features/auth/data/repo/auth_repo.dart';
+19: 
+20: import 'firebase_options.dart';
+21: 
+22: void main() async {
+23:   WidgetsFlutterBinding.ensureInitialized();
+24: 
+25:   // Initialize SharedPreferences early so AppThemeManager & others reuse it
+26:   await CacheHelper.init();
+27: 
+28:   await Future.wait([
+29:     _initFirebase(),
+30:     EasyLocalization.ensureInitialized(),
+31:     AppThemeManager.instance.initialize(),
+32:   ]);
+33: 
+34:   await ServiceLocator.init();
+35:   setupAuthListener();
+36: 
+37:   FBMessaging.onTokenUpdated = (token) async {
+38:     if (UserSession.token.isNotEmpty) {
+39:       try {
+40:         sl<AuthRepo>();
+41:       } catch (_) {}
+42:     }
+43:   };
+44: 
+45:   runApp(
+46:     EasyLocalization(
+47:       supportedLocales: const [Locale('ar'), Locale('en')],
+48:       path: 'assets/translation',
+49:       fallbackLocale: const Locale('ar'),
+50:       startLocale: const Locale('ar'),
+51:       child: const Doctory(),
+52:     ),
+53:   );
+54: 
+55:   // Defer non-essential startup work to after the first frame
+56:   WidgetsBinding.instance.addPostFrameCallback((_) {
+57:     FirebaseAnalytics.instance.logAppOpen();
+58:     RemoteConfigService.init();
+59:     FBMessaging.initialize();
+60:     _initDeepLinks();
+61:   });
+62: }
+63: 
+64: void _initDeepLinks() {
+65:   try {
+66:     final appLinks = AppLinks();
+67: 
+68:     appLinks.uriLinkStream.listen(_handleDeepLink);
+69:     appLinks.getInitialLink().then((uri) {
+70:       if (uri != null) _handleDeepLink(uri);
+71:     });
+72:   } catch (e) {
+73:     debugPrint('Deep links not available on this platform: $e');
+74:   }
+75: }
+76: 
+77: void _handleDeepLink(Uri uri) {
+78:   if (uri.scheme == 'doctory' && uri.host == 'post') {
+79:     final postId = uri.pathSegments.isNotEmpty ? uri.pathSegments.first : '';
+80:     if (postId.isNotEmpty) {
+81:       AppRouter.navigatorKey.currentContext!.go('/post/$postId');
+82:     }
+83:   }
+84: }
+85: 
+86: Future<void> _initFirebase() async {
+87:   try {
+88:     if (Firebase.apps.isEmpty) {
+89:       try {
+90:         await Firebase.initializeApp(
+91:           options: DefaultFirebaseOptions.currentPlatform,
+92:         );
+93:       } catch (e) {
+94:         if (e.toString().contains('duplicate-app')) {
+95:           await Firebase.initializeApp();
+96:         } else {
+97:           rethrow;
+98:         }
+99:       }
+100:     }
+101: 
+102:     FirebaseMessaging.onBackgroundMessage(
+103:       FBMessaging.firebaseMessagingBackgroundHandler,
+104:     );
+105:   } catch (e) {
+106:     debugPrint("Firebase initialization failed: $e");
+107:   }
+108: }
+
+(End of file - total 108 lines)
+</content>
+```
+
+**Tool: read**
+
+**Input:**
+```json
+{
+  "filePath": "D:\\Programing\\Projects\\doctory\\doctory\\lib\\core"
+}
+```
+
+**Output:**
+```
+<path>D:\Programing\Projects\doctory\doctory\lib\core</path>
+<type>directory</type>
+<entries>
+app_strings/
+cache/
+common/
+config/
+enums/
+error/
+extensions/
+general/
+locator/
+network/
+router/
+services/
+session/
+theme/
+utils/
+validation/
+
+(16 entries)
+</entries>
+```
+
+---
+
+## Assistant (Plan · DeepSeek V4 Flash Free · 3.6s)
+
+_Thinking:_
+
+Let me explore more of the core structure to understand patterns used (services, etc.)
+
+**Tool: read**
+
+**Input:**
+```json
+{
+  "filePath": "D:\\Programing\\Projects\\doctory\\doctory\\lib\\core\\services"
+}
+```
+
+**Output:**
+```
+<path>D:\Programing\Projects\doctory\doctory\lib\core\services</path>
+<type>directory</type>
+<entries>
+alerts.dart
+chat/
+file_upload_service.dart
+media/
+navigation_service.dart
+notifications/
+post_upload_service.dart
+remote_config_service.dart
+social_auth_service.dart
+
+(9 entries)
+</entries>
+```
+
+**Tool: read**
+
+**Input:**
+```json
+{
+  "filePath": "D:\\Programing\\Projects\\doctory\\doctory\\lib\\core\\router\\app_router.dart"
+}
+```
+
+**Output:**
+```
+<path>D:\Programing\Projects\doctory\doctory\lib\core\router\app_router.dart</path>
+<type>file</type>
+<content>
+1: import 'package:doctory/core/common/models/role.dart';
+2: import 'package:doctory/core/router/router_names.dart';
+3: import 'package:doctory/core/utils/extensions.dart';
+4: import 'package:flutter/material.dart';
+5: import 'package:go_router/go_router.dart';
+6: import 'package:bot_toast/bot_toast.dart';
+7: import 'package:flutter_smart_dialog/flutter_smart_dialog.dart';
+8: import 'package:easy_localization/easy_localization.dart';
+9: import 'package:doctory/features/intro/router/intro_router.dart';
+10: import 'package:doctory/features/auth/router/auth_router.dart';
+11: import 'package:doctory/features/home/router/home_router.dart';
+12: import 'package:doctory/features/map_home/router/map_home_router.dart';
+13: import 'package:doctory/features/clinic_details/router/clinic_details_router.dart';
+14: import 'package:doctory/features/doctor_details/router/doctor_details_router.dart';
+15: import 'package:doctory/features/booking/router/booking_router.dart';
+16: import 'package:doctory/features/patient_reviews/router/patient_reviews_router.dart';
+17: import 'package:doctory/features/community/router/community_router.dart';
+18: import 'package:doctory/features/create_post/router/create_post_router.dart';
+19: import 'package:doctory/features/chat/router/chat_router.dart';
+20: import 'package:doctory/features/specializations/router/specializations_router.dart';
+21: import 'package:doctory/features/my_appointments/router/my_appointments_router.dart';
+22: import 'package:doctory/features/clinic/router/clinic_router.dart';
+23: import 'package:doctory/features/notifications/router/notifications_router.dart';
+24: import 'package:doctory/features/layout/presentation/views/layout_view.dart';
+25: import 'package:doctory/features/more/router/more_router.dart';
+26: import 'package:doctory/features/admin/router/admin_router.dart';
+27: 
+28: import 'package:doctory/core/session/user_session.dart';
+29: 
+30: /// GoRouter configuration
+31: class AppRouter {
+32:   // Changed temporarily for testing the new clinic locator feature
+33:   // static String initialRoute = AppRoutes.clinicRequests;
+34:   static String initialRoute = AppRoutes.splash;
+35: 
+36:   static final GlobalKey<NavigatorState> navigatorKey =
+37:       GlobalKey<NavigatorState>();
+38: 
+39:   static final GoRouter router = GoRouter(
+40:     navigatorKey: navigatorKey,
+41:     initialLocation: initialRoute,
+42:     refreshListenable: UserSession.userNotifier,
+43:     debugLogDiagnostics: true,
+44:     observers: [BotToastNavigatorObserver(), FlutterSmartDialog.observer],
+45:     redirect: (context, state) async {
+46:       final mobileRole = UserSession.mobileRole;
+47:       if (mobileRole == null) return null;
+48: 
+49:       final location = state.matchedLocation;
+50: 
+51:       if (mobileRole == MobileRole.patient &&
+52:           location.startsWith('/clinic')) {
+53:         return '/';
+54:       }
+55: 
+56:       if (mobileRole == MobileRole.freelanceDoctor &&
+57:           location.startsWith('/clinic')) {
+58:         return '/';
+59:       }
+60: 
+61:       if (location.startsWith('/admin') &&
+62:           UserSession.currentRole != UserRole.superAdmin) {
+63:         return '/';
+64:       }
+65: 
+66:       return null;
+67:     },
+68: 
+69:     routes: [
+70:       ...IntroRouter.routes,
+71:       ...AuthRouter.routes,
+72:       StatefulShellRoute.indexedStack(
+73:         builder: (context, state, navigationShell) {
+74:           return LayoutView(navigationShell: navigationShell);
+75:         },
+76:         branches: [
+77:           StatefulShellBranch(routes: HomeRouter.routes),
+78:           StatefulShellBranch(routes: MapHomeRouter.routes, preload: true),
+79:           StatefulShellBranch(routes: MyAppointmentsRouter.routes),
+80:           StatefulShellBranch(routes: MoreRouter.routes),
+81:         ],
+82:       ),
+83:       ...ClinicDetailsRouter.routes,
+84:       ...DoctorDetailsRouter.routes,
+85:       ...BookingRouter.routes,
+86:       ...PatientReviewsRouter.routes,
+87:       ...CommunityRouter.globalRoutes,
+88:       CreatePostRouter.route,
+89:       ...ChatRouter.routes,
+90:       ...SpecializationsRouter.routes,
+91:       ...NotificationsRouter.routes,
+92:       ...ClinicRouter.routes,
+93:       ...AdminRouter.routes,
+94:     ],
+95: 
+96:     // Error page
+97:     errorPageBuilder: (context, state) {
+98:       final ThemeData theme = Theme.of(context);
+99:       return MaterialPage(
+100:         key: state.pageKey,
+101:         child: Scaffold(
+102:           appBar: AppBar(title: Text('error'.tr())),
+103:           body: Center(
+104:             child: Column(
+105:               mainAxisAlignment: MainAxisAlignment.center,
+106:               children: [
+107:                 const Icon(Icons.error_outline, size: 80, color: Colors.red),
+108:                 16.ph,
+109:                 Text(
+110:                   'page_not_found'.tr(),
+111:                   style: theme.textTheme.headlineSmall,
+112:                 ),
+113:                 8.ph,
+114:                 Text(state.uri.toString(), style: theme.textTheme.bodySmall),
+115:                 24.ph,
+116:                 ElevatedButton(
+117:                   onPressed: () => context.go(AppRoutes.splash),
+118:                   child: Text('back_to_home'.tr()),
+119:                 ),
+120:               ],
+121:             ),
+122:           ),
+123:         ),
+124:       );
+125:     },
+126:   );
+127: }
+
+(End of file - total 127 lines)
+</content>
+```
+
+**Tool: read**
+
+**Input:**
+```json
+{
+  "filePath": "D:\\Programing\\Projects\\doctory\\doctory\\lib\\core\\locator"
+}
+```
+
+**Output:**
+```
+<path>D:\Programing\Projects\doctory\doctory\lib\core\locator</path>
+<type>directory</type>
+<entries>
+locator_setup.dart
+service_locator.dart
+
+(2 entries)
+</entries>
+```
+
+---
+
+## Assistant (Plan · DeepSeek V4 Flash Free · 4.0s)
+
+_Thinking:_
+
+Let me look at more files to understand the patterns, especially the navigation service and community router for deep link route registration.
+
+**Tool: read**
+
+**Input:**
+```json
+{
+  "filePath": "D:\\Programing\\Projects\\doctory\\doctory\\lib\\core\\services\\navigation_service.dart"
+}
+```
+
+**Output:**
+```
+<path>D:\Programing\Projects\doctory\doctory\lib\core\services\navigation_service.dart</path>
+<type>file</type>
+<content>
+1: import 'dart:async';
+2: import 'package:flutter/material.dart';
+3: import 'package:go_router/go_router.dart';
+4: import 'package:doctory/core/router/app_router.dart';
+5: 
+6: /// NavigationService is a global wrapper around GoRouter.
+7: /// It uses the singleton instance of GoRouter defined in AppRouter.
+8: class NavigationService {
+9:   static GoRouter get route => AppRouter.router;
+10: 
+11:   static BuildContext get context =>
+12:       AppRouter.navigatorKey.currentState!.context;
+13: 
+14:   /// Navigate to a new route by path (e.g., AppRoutes.login)
+15:   static void go(String path, {Object? extra}) {
+16:     route.go(path, extra: extra);
+17:   }
+18: 
+19:   /// Push a new route by path (e.g., AppRoutes.login)
+20:   static Future<T?> push<T>(String path, {Object? extra}) async {
+21:     return route.push<T>(path, extra: extra);
+22:   }
+23: 
+24:   /// Navigate to a named route (ensure your routes have 'name' defined)
+25:   static void goNamed(
+26:     String name, {
+27:     Map<String, String> pathParameters = const <String, String>{},
+28:     Map<String, dynamic> queryParameters = const <String, dynamic>{},
+29:     Object? extra,
+30:   }) {
+31:     route.goNamed(
+32:       name,
+33:       pathParameters: pathParameters,
+34:       queryParameters: queryParameters,
+35:       extra: extra,
+36:     );
+37:   }
+38: 
+39:   /// Push a named route (ensure your routes have 'name' defined)
+40:   static Future<T?> pushNamed<T>(
+41:     String name, {
+42:     Map<String, String> pathParameters = const <String, String>{},
+43:     Map<String, dynamic> queryParameters = const <String, dynamic>{},
+44:     Object? extra,
+45:   }) async {
+46:     return route.pushNamed<T>(
+47:       name,
+48:       pathParameters: pathParameters,
+49:       queryParameters: queryParameters,
+50:       extra: extra,
+51:     );
+52:   }
+53: 
+54:   /// Pop the current route
+55:   static void pop<T>([T? result]) {
+56:     if (route.canPop()) {
+57:       route.pop(result);
+58:     }
+59:   }
+60: 
+61:   /// Get the current path location
+62:   static String currentRoute() {
+63:     return route.routerDelegate.currentConfiguration.uri.toString();
+64:   }
+65: 
+66:   /// Check if the current route matches a specific path
+67:   static bool isRouteContain(String path) {
+68:     return currentRoute() == path;
+69:   }
+70: }
+
+(End of file - total 70 lines)
+</content>
+```
+
+**Tool: read**
+
+**Input:**
+```json
+{
+  "filePath": "D:\\Programing\\Projects\\doctory\\doctory\\lib\\features\\community\\router\\community_router.dart"
+}
+```
+
+**Output:**
+```
+<path>D:\Programing\Projects\doctory\doctory\lib\features\community\router\community_router.dart</path>
+<type>file</type>
+<content>
+1: import 'package:doctory/core/router/router_names.dart';
+2: import 'package:doctory/features/community/data/model/community_models.dart';
+3: import 'package:doctory/features/community/presentation/views/community_view.dart';
+4: import 'package:doctory/features/community/presentation/views/post_deep_link_view.dart';
+5: import 'package:doctory/features/community/presentation/views/post_details_view.dart';
+6: import 'package:doctory/features/community/presentation/widgets/post_image_full_screen_view.dart';
+7: import 'package:go_router/go_router.dart';
+8: 
+9: class CommunityRouter {
+10:   static final List<RouteBase> routes = [
+11:     GoRoute(
+12:       path: AppRoutes.community,
+13:       builder: (context, state) => const CommunityView(),
+14:     ),
+15:   ];
+16: 
+17:   static final List<RouteBase> globalRoutes = [
+18:     GoRoute(
+19:       path: AppRoutes.postDetails,
+20:       builder: (context, state) {
+21:         if (state.extra is Map<String, dynamic>) {
+22:           final data = state.extra as Map<String, dynamic>;
+23:           final post = data['post'] as PostModel;
+24:           final focusComment = data['focusComment'] as bool? ?? false;
+25:           return PostDetailsView(post: post, focusComment: focusComment);
+26:         }
+27:         final post = state.extra as PostModel;
+28:         return PostDetailsView(post: post);
+29:       },
+30:     ),
+31:     GoRoute(
+32:       path: '${AppRoutes.postDeepLink}/:id',
+33:       builder: (context, state) {
+34:         final postId = state.pathParameters['id'] ?? '';
+35:         return PostDeepLinkView(postId: postId);
+36:       },
+37:     ),
+38:     GoRoute(
+39:       path: AppRoutes.postImageView,
+40:       builder: (context, state) {
+41:         final data = state.extra as Map<String, dynamic>;
+42:         return PostImageFullScreenView(
+43:           imageUrl: data['imageUrl'] as String,
+44:           heroTag: data['heroTag'] as String,
+45:         );
+46:       },
+47:     ),
+48:   ];
+49: }
+
+(End of file - total 49 lines)
+</content>
+```
+
+**Tool: read**
+
+**Input:**
+```json
+{
+  "filePath": "D:\\Programing\\Projects\\doctory\\doctory\\lib\\core\\locator\\locator_setup.dart"
+}
+```
+
+**Output:**
+```
+<path>D:\Programing\Projects\doctory\doctory\lib\core\locator\locator_setup.dart</path>
+<type>file</type>
+<content>
+1: import 'service_locator.dart';
+2: import '../../features/admin/di/admin_di.dart';
+3: 
+4: /// Easy setup function for service locator
+5: /// Call this in main.dart before running the app
+6: Future<void> setupLocator() async {
+7:   await ServiceLocator.init();
+8:   setupAdminLocator();
+9: }
+10: 
+11: /// Quick access to service locator
+12: /// Use this instead of importing GetIt directly
+13: const locator = ServiceLocator;
+
+(End of file - total 13 lines)
+</content>
+```
+
+**Tool: read**
+
+**Input:**
+```json
+{
+  "filePath": "D:\\Programing\\Projects\\doctory\\doctory\\lib\\core\\config\\config.dart"
+}
+```
+
+**Output:**
+```
+<path>D:\Programing\Projects\doctory\doctory\lib\core\config\config.dart</path>
+<type>file</type>
+<content>
+1: import 'dart:ui';
+2: 
+3: import 'package:flutter/material.dart';
+4: 
+5: class MyCustomScrollBehavior extends MaterialScrollBehavior {
+6:   // Override behavior methods and getters like dragDevices
+7:   @override
+8:   Set<PointerDeviceKind> get dragDevices => {
+9:     PointerDeviceKind.touch,
+10:     PointerDeviceKind.mouse,
+11:     PointerDeviceKind.trackpad,
+12:     PointerDeviceKind.stylus,
+13:     PointerDeviceKind.unknown,
+14:   };
+15: }
+
+(End of file - total 15 lines)
+</content>
+```
+
+---
+
+## Assistant (Plan · DeepSeek V4 Flash Free · 3.7s)
+
+_Thinking:_
+
+Now let me check the router names to see how routes are defined, and the existing service patterns (like how services handle initialization).
+
+**Tool: read**
+
+**Input:**
+```json
+{
+  "filePath": "D:\\Programing\\Projects\\doctory\\doctory\\lib\\core\\router\\router_names.dart"
+}
+```
+
+**Output:**
+```
+<path>D:\Programing\Projects\doctory\doctory\lib\core\router\router_names.dart</path>
+<type>file</type>
+<content>
+1: /// Global app route paths for Doctory Application
+2: abstract class AppRoutes {
+3:   static const String splash = '/';
+4:   static const String chooseLanguage = '/choose-language';
+5:   static const String intro = '/intro';
+6:   static const String welcome = '/welcome';
+7:   static const String login = '/login';
+8:   static const String register = '/register';
+9:   static const String otpVerification = '/otp-verification';
+10:   static const String completeProfile = '/complete-profile';
+11:   static const String clinicCompleteProfile = '/clinic-complete-profile';
+12:   static const String forgotPassword = '/forgot-password';
+13:   static const String resetPassword = '/reset-password';
+14:   static const String locationPermission = '/location-permission';
+15:   static const String mainLayout = '/main';
+16:   static const String home = '/home';
+17:   static const String more = '/more';
+18:   static const String profile = '/profile';
+19:   static const String specializations = '/specializations';
+20: 
+21:   // Clinic Locator Features
+22:   static const String mapHome = '/map-home';
+23:   static const String clinicDetails = '/clinic-details';
+24:   static const String doctorDetails = '/doctor-details';
+25:   static const String bookingSelectDate = '/booking/select-date';
+26:   static const String bookingSelectTime = '/booking/select-time';
+27:   static const String bookingConfirm = '/booking/confirm';
+28:   static const String bookingSuccess = '/booking/success';
+29:   static const String patientReviews = '/patient-reviews';
+30:   static const String community = '/community';
+31:   static const String mapPickLocation = '/mapPickLocation';
+32:   static const String createPost = '/createPost';
+33:   static const String galleryPicker = '/galleryPicker';
+34:   static const String postDetails = '/post-details';
+35:   static const String postImageView = '/post-image-view';
+36:   static const String postDeepLink = '/post';
+37: 
+38:   // My Appointments
+39:   static const String myAppointments = '/my-appointments';
+40:   static const String appointmentDetails = '/my-appointments/details';
+41: 
+42:   // Clinic Dashboard
+43:   static const String clinicDashboard = '/clinic-dashboard';
+44: 
+45:   // Clinic Requests (mobile)
+46:   static const String clinicRequests = '/clinic/requests';
+47: 
+48:   // Notifications
+49:   static const String notifications = '/notifications';
+50: }
+
+(End of file - total 50 lines)
+</content>
+```
+
+**Tool: read**
+
+**Input:**
+```json
+{
+  "filePath": "D:\\Programing\\Projects\\doctory\\doctory\\lib\\core\\services\\remote_config_service.dart"
+}
+```
+
+**Output:**
+```
+<path>D:\Programing\Projects\doctory\doctory\lib\core\services\remote_config_service.dart</path>
+<type>file</type>
+<content>
+1: import 'dart:io';
+2: import 'package:firebase_remote_config/firebase_remote_config.dart';
+3: import 'package:flutter/foundation.dart';
+4: import 'package:package_info_plus/package_info_plus.dart';
+5: 
+6: class RemoteConfigService {
+7:   static final FirebaseRemoteConfig _remoteConfig =
+8:       FirebaseRemoteConfig.instance;
+9:   static String _localAppVersion = "";
+10: 
+11:   static Future<void> init() async {
+12:     try {
+13:       final PackageInfo info = await PackageInfo.fromPlatform();
+14:       _localAppVersion = '${info.version}+${info.buildNumber}';
+15: 
+16:       await _remoteConfig.setDefaults({
+17:         "BASE_URL": "https://doctory-icare.runasp.net/api/v1/",
+18:         "android_version": "1.0.0+1",
+19:         "ios_version": "1.0.0+1",
+20:         "android_store_link": "",
+21:         "ios_store_link": "",
+22:         "force_update": false,
+23:         "SHOW_FACEBOOK_AUTH": false,
+24:         "SHOW_GOOGLE_AUTH": false,
+25:         "SHOW_MAP_DIRECTIONS_FAB": false,
+26:       });
+27: 
+28:       await _remoteConfig.setConfigSettings(
+29:         RemoteConfigSettings(
+30:           fetchTimeout: const Duration(seconds: 5),
+31:           minimumFetchInterval: kDebugMode
+32:               ? const Duration(seconds: 1)
+33:               : const Duration(hours: 1),
+34:         ),
+35:       );
+36: 
+37:       // Add a fallback timeout so it doesn't block the app indefinitely
+38:       await _remoteConfig.fetchAndActivate().timeout(
+39:         const Duration(seconds: 5),
+40:         onTimeout: () {
+41:           debugPrint("⚠️ Remote Config fetch timed out, using defaults.");
+42:           return false;
+43:         },
+44:       );
+45:       debugPrint("✅ Remote Config Fetched Successfully!");
+46:     } catch (e) {
+47:       debugPrint("❌ Remote Config Error: $e");
+48:     }
+49:   }
+50: 
+51:   static String get baseUrl => _remoteConfig.getString("BASE_URL");
+52:   static String get androidVersion =>
+53:       _remoteConfig.getString("android_version");
+54:   static String get iosVersion => _remoteConfig.getString("ios_version");
+55:   static bool get isForceUpdate => _remoteConfig.getBool("force_update");
+56:   static String get androidStoreLink =>
+57:       _remoteConfig.getString("android_store_link");
+58:   static String get iosStoreLink => _remoteConfig.getString("ios_store_link");
+59: 
+60:   // Social Auth Toggles
+61:   static bool get showFacebookAuth =>
+62:       _remoteConfig.getBool("SHOW_FACEBOOK_AUTH");
+63:   static bool get showGoogleAuth => _remoteConfig.getBool("SHOW_GOOGLE_AUTH");
+64:   static bool get showMapDirectionsFab =>
+65:       _remoteConfig.getBool("SHOW_MAP_DIRECTIONS_FAB");
+66: 
+67:   // For Force Update
+68:   static bool get needsForceUpdate {
+69:     if (!isForceUpdate) return false;
+70: 
+71:     final String remoteVersion = Platform.isIOS ? iosVersion : androidVersion;
+72: 
+73:     return _isLower(_localAppVersion, remoteVersion);
+74:   }
+75: 
+76:   static bool _isLower(String local, String remote) {
+77:     try {
+78:       List<String> localParts = local.split('+')[0].split('.');
+79:       List<String> remoteParts = remote.split('+')[0].split('.');
+80:       int minLength = localParts.length < remoteParts.length
+81:           ? localParts.length
+82:           : remoteParts.length;
+83: 
+84:       for (int i = 0; i < minLength; i++) {
+85:         int l = int.parse(localParts[i]);
+86:         int r = int.parse(remoteParts[i]);
+87: 
+88:         if (l < r) return true;
+89:         if (l > r) return false;
+90:       }
+91: 
+92:       int localBuild = int.parse(
+93:         local.contains('+') ? local.split('+')[1] : '0',
+94:       );
+95:       int remoteBuild = int.parse(
+96:         remote.contains('+') ? remote.split('+')[1] : '0',
+97:       );
+98: 
+99:       return localBuild < remoteBuild;
+100:     } catch (e) {
+101:       debugPrint("Error parsing version in _isLower: $e");
+102:       return local != remote;
+103:     }
+104:   }
+105: }
+
+(End of file - total 105 lines)
+</content>
+```
+
+**Tool: read**
+
+**Input:**
+```json
+{
+  "filePath": "D:\\Programing\\Projects\\doctory\\doctory\\lib\\core\\locator\\service_locator.dart"
+}
+```
+
+**Output:**
+```
+<path>D:\Programing\Projects\doctory\doctory\lib\core\locator\service_locator.dart</path>
+<type>file</type>
+<content>
+1: import 'package:doctory/core/services/media/my_media.dart';
+2: import 'package:doctory/core/services/media/audio_service.dart';
+3: import 'package:doctory/core/services/file_upload_service.dart';
+4: import 'package:doctory/shared/cubit/specializations_cubit.dart';
+5: import 'package:flutter/foundation.dart';
+6: import 'package:firebase_analytics/firebase_analytics.dart';
+7: import 'package:doctory/core/cache/cache_helper.dart';
+8: import 'package:doctory/core/services/remote_config_service.dart';
+9: import 'package:doctory/core/cache/hive_service.dart';
+10: import 'package:doctory/core/cache/init_hive.dart';
+11: import 'package:doctory/core/network/config/network_config.dart';
+12: import 'package:doctory/core/network/impl/dio_consumer.dart';
+13: import 'package:doctory/core/network/interceptors/auth_interceptor.dart';
+14: import 'package:doctory/core/network/interfaces/api_consumer.dart';
+15: import 'package:doctory/core/network/interfaces/network_info.dart';
+16: import 'package:doctory/core/network/services/pusher_service.dart';
+17: import 'package:doctory/features/intro/di/intro_di.dart';
+18: import 'package:doctory/features/auth/di/auth_di.dart';
+19: import 'package:doctory/features/home/di/home_di.dart';
+20: import 'package:doctory/features/more/di/more_di.dart';
+21: import 'package:doctory/features/map_home/di/map_home_di.dart';
+22: import 'package:doctory/features/community/di/community_di.dart';
+23: import 'package:doctory/features/create_post/di/create_post_di.dart';
+24: import 'package:doctory/features/chat/di/chat_di.dart';
+25: import 'package:doctory/features/booking/di/booking_di.dart';
+26: import 'package:doctory/features/specializations/di/specializations_di.dart';
+27: import 'package:doctory/features/clinic_details/di/clinic_details_di.dart';
+28: import 'package:doctory/features/my_appointments/di/my_appointments_di.dart';
+29: import 'package:doctory/features/clinic/di/clinic_di.dart';
+30: import 'package:doctory/features/notifications/di/notifications_di.dart';
+31: import 'package:doctory/features/admin/di/admin_di.dart';
+32: import 'package:get_it/get_it.dart';
+33: import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+34: 
+35: /// Global service locator instance
+36: final GetIt sl = GetIt.instance;
+37: 
+38: /// Service locator setup class
+39: class ServiceLocator {
+40:   /// Initialize all core services
+41:   static Future<void> init() async {
+42:     // Initialize Hive and Cache first
+43:     await HiveInit.init();
+44:     await CacheHelper.init();
+45: 
+46:     // Register core services
+47:     sl.registerLazySingleton<HiveService>(() => HiveService());
+48: 
+49:     // Register Firebase Analytics (logAppOpen deferred to post-first-frame)
+50:     sl.registerLazySingleton<FirebaseAnalytics>(() => FirebaseAnalytics.instance);
+51: 
+52:     // Register network services
+53:     sl.registerLazySingleton<NetworkConfig>(() {
+54:       final config = NetworkConfig.development.copyWith(
+55:         baseUrl: RemoteConfigService.baseUrl,
+56:       );
+57:       debugPrint('NetworkConfig initialized with baseUrl: ${config.baseUrl}');
+58:       return config;
+59:     });
+60: 
+61:     sl.registerLazySingleton<AuthInterceptor>(() => AuthInterceptor());
+62: 
+63:     // Register NetworkInfo
+64:     sl.registerLazySingleton<InternetConnection>(() => InternetConnection());
+65:     sl.registerLazySingleton<NetworkInfo>(
+66:       () => NetworkInfoImpl(sl<InternetConnection>()),
+67:     );
+68: 
+69:     sl.registerLazySingleton<DioConsumer>(
+70:       () => DioConsumer(
+71:         config: sl<NetworkConfig>(),
+72:         authInterceptor: sl<AuthInterceptor>(),
+73:         networkInfo: sl<NetworkInfo>(),
+74:       ),
+75:     );
+76: 
+77:     sl.registerLazySingleton<ApiConsumer>(() => sl<DioConsumer>());
+78:     sl.registerLazySingleton<FileUploadService>(
+79:       () => FileUploadService(sl<ApiConsumer>()),
+80:     );
+81: 
+82:     // Register shared services
+83:     sl.registerLazySingleton<PusherService>(() => PusherService());
+84:     sl.registerLazySingleton<AudioService>(() => AudioService());
+85:     sl.registerLazySingleton<MediaService>(() => MediaService());
+86: 
+87:     // Register shared cubits
+88:     sl.registerLazySingleton<SharedSpecializationsCubit>(
+89:       () => SharedSpecializationsCubit(sl<ApiConsumer>()),
+90:     );
+91: 
+92:     // Register feature services
+93:     IntroDI.setup();
+94:     AuthDI.setup();
+95:     HomeDI.setup();
+96:     MapHomeDI.setup();
+97:     MoreDI.setup();
+98:     CommunityDI.setup();
+99:     setupCreatePostDI();
+100:     setupChatDI(sl);
+101:     setupBookingDI(sl);
+102:     setupSpecializationsLocator();
+103:     setupMyAppointmentsDI(sl);
+104:     setupClinicDetailsDI(sl);
+105:     setupClinicDI(sl);
+106:     setupNotificationsDI();
+107:     setupAdminLocator();
+108:   }
+109: }
+
+(End of file - total 109 lines)
+</content>
+```
+
+---
+
+## Assistant (Plan · DeepSeek V4 Flash Free · 3.5s)
+
+_Thinking:_
+
+Now let me look at the PostDeepLinkView and how it handles the navigation, and also check how the community DI is set up.
+
+**Tool: read**
+
+**Input:**
+```json
+{
+  "filePath": "D:\\Programing\\Projects\\doctory\\doctory\\lib\\features\\community\\presentation\\views\\post_deep_link_view.dart"
+}
+```
+
+**Output:**
+```
+<path>D:\Programing\Projects\doctory\doctory\lib\features\community\presentation\views\post_deep_link_view.dart</path>
+<type>file</type>
+<content>
+1: import 'package:doctory/core/locator/service_locator.dart';
+2: import 'package:doctory/core/router/router_names.dart';
+3: import 'package:doctory/core/theme/app_colors.dart';
+4: import 'package:doctory/features/community/data/repo/community_repo.dart';
+5: import 'package:flutter/material.dart';
+6: import 'package:go_router/go_router.dart';
+7: 
+8: class PostDeepLinkView extends StatefulWidget {
+9:   final String postId;
+10: 
+11:   const PostDeepLinkView({super.key, required this.postId});
+12: 
+13:   @override
+14:   State<PostDeepLinkView> createState() => _PostDeepLinkViewState();
+15: }
+16: 
+17: class _PostDeepLinkViewState extends State<PostDeepLinkView> {
+18:   String? _error;
+19: 
+20:   @override
+21:   void initState() {
+22:     super.initState();
+23:     _loadPost();
+24:   }
+25: 
+26:   Future<void> _loadPost() async {
+27:     final repo = sl<CommunityRepo>();
+28:     final result = await repo.getPostById(widget.postId);
+29: 
+30:     if (!mounted) return;
+31: 
+32:     result.fold(
+33:       onSuccess: (post) {
+34:         context.go(AppRoutes.postDetails, extra: post);
+35:       },
+36:       onFailure: (failure) {
+37:         setState(() => _error = failure.message);
+38:       },
+39:     );
+40:   }
+41: 
+42:   @override
+43:   Widget build(BuildContext context) {
+44:     return Scaffold(
+45:       body: Center(
+46:         child: _error != null
+47:             ? Column(
+48:                 mainAxisSize: MainAxisSize.min,
+49:                 children: [
+50:                   Icon(Icons.error_outline, size: 64, color: AppColors.error),
+51:                   const SizedBox(height: 16),
+52:                   Text(_error!, textAlign: TextAlign.center),
+53:                   const SizedBox(height: 24),
+54:                   ElevatedButton(
+55:                     onPressed: () => context.go(AppRoutes.home),
+56:                     child: const Text('Back to Home'),
+57:                   ),
+58:                 ],
+59:               )
+60:             : const CircularProgressIndicator(),
+61:       ),
+62:     );
+63:   }
+64: }
+
+(End of file - total 64 lines)
+</content>
+```
+
+**Tool: read**
+
+**Input:**
+```json
+{
+  "filePath": "D:\\Programing\\Projects\\doctory\\doctory\\lib\\features\\community\\di\\community_di.dart"
+}
+```
+
+**Output:**
+```
+<path>D:\Programing\Projects\doctory\doctory\lib\features\community\di\community_di.dart</path>
+<type>file</type>
+<content>
+1: import 'package:doctory/core/locator/service_locator.dart';
+2: import 'package:doctory/core/network/interfaces/api_consumer.dart';
+3: import 'package:doctory/features/community/cubit/community_cubit.dart';
+4: import 'package:doctory/features/community/cubit/post_details_cubit.dart';
+5: import 'package:doctory/features/community/data/data_source/community_remote_data_source.dart';
+6: import 'package:doctory/features/community/data/repo/community_repo.dart';
+7: 
+8: class CommunityDI {
+9:   static void setup() {
+10:     // Data Sources
+11:     sl.registerLazySingleton<CommunityRemoteDataSource>(
+12:       () => CommunityRemoteDataSourceImpl(apiConsumer: sl<ApiConsumer>()),
+13:     );
+14: 
+15:     // Repositories
+16:     sl.registerLazySingleton<CommunityRepo>(
+17:       () =>
+18:           CommunityRepoImpl(remoteDataSource: sl<CommunityRemoteDataSource>()),
+19:     );
+20: 
+21:     // Cubits
+22:     sl.registerFactory<CommunityCubit>(
+23:       () => CommunityCubit(sl<CommunityRepo>()),
+24:     );
+25:     sl.registerFactory<PostDetailsCubit>(
+26:       () => PostDetailsCubit(sl<CommunityRepo>()),
+27:     );
+28:   }
+29: }
+
+(End of file - total 29 lines)
+</content>
+```
+
+---
+
+## Assistant (Plan · DeepSeek V4 Flash Free · 23.3s)
+
+_Thinking:_
+
+Now I have a thorough understanding of the codebase. Let me design the plan.
+
+The user wants to make deep linking a **core service** so other features can easily register their own deep link handlers. Here's what I'm thinking:
+
+### Design
+
+1. **Create `DeepLinkService`** in `lib/core/services/deep_link_service.dart`
+   - Singleton with `AppLinks` management
+   - A registry of `DeepLinkHandler` functions (keyed by path pattern)
+   - Each handler gets `(Uri uri, GoRouter router)` and returns `bool` (whether it handled it)
+   - `registerHandler(pattern, handler)` — features call this in their DI setup
+   - `init()` — sets up the stream + initial link listener
+
+2. **Create `DeepLinkConfig`** in `lib/core/config/deep_link_config.dart`
+   - Centralize scheme, host, and any other deep-link constants
+   - Currently: scheme = `doctory`, host = `post`
+   - Can be expanded later
+
+3. **Modify `main.dart`** — replace `_initDeepLinks()` / `_handleDeepLink()` with `DeepLinkService.instance.init()`
+
+4. **Modify `CommunityDI`** — register the post deep link handler via `DeepLinkService.instance.registerHandler(...)`
+
+5. **Add Android debug intent-filter** — optional, but recommended
+
+Let me think about the exact API design:
+
+```dart
+// Core service
+class DeepLinkService {
+  static final DeepLinkService instance = DeepLinkService._();
+  DeepLinkService._();
+  
+  final _handlers = <DeepLinkHandler>[];
+  AppLinks? _appLinks;
+  
+  void registerHandler(DeepLinkHandler handler) {
+    _handlers.add(handler);
+  }
+  
+  void init() {
+    // setup AppLinks, listen to stream, handle initial link
+  }
+  
+  void _handleUri(Uri uri) {
+    for (final handler in _handlers) {
+      if (handler(uri)) break;
+    }
+  }
+}
+
+typedef DeepLinkHandler = bool Function(Uri uri);
+```
+
+Actually, looking at the GoRouter pattern, deep links essentially map to route paths. Since GoRouter already handles routing by URI, maybe a simpler approach is:
+
+The deep link service just:
+1. Listens for incoming URIs
+2. Converts the custom scheme URI to a GoRouter path
+3. Navigates using GoRouter
+
+Features register "URI to GoRouter path" mappings:
+
+```dart
+DeepLinkService.instance.registerRoute(
+  scheme: 'doctory',
+  host: 'post',
+  pathBuilder: (uri) => '/post/${uri.pathSegments.first}',
+);
+```
+
+Or even simpler — just register a handler that gets the full URI:
+
+```dart
+DeepLinkService.instance.registerHandler(
+  scheme: 'doctory',
+  host: 'post',
+  handler: (uri) {
+    final postId = uri.pathSegments.first;
+    AppRouter.navigatorKey.currentContext?.go('/post/$postId');
+    return true;
+  },
+);
+```
+
+Hmm, but the actual URL scheme is the same (`doctory://`) for all deep links, just the host and path vary. Let me think about what's most extensible.
+
+I think the most reusable approach is:
+
+```dart
+class DeepLinkService {
+  static final DeepLinkService instance = DeepLinkService._();
+  
+  final List<DeepLinkHandler> _handlers = [];
+  AppLinks? _appLinks;
+  
+  /// Register a handler that returns true if it handled the URI
+  void registerHandler(DeepLinkHandler handler) {
+    _handlers.add(handler);
+  }
+  
+  /// Register a simple route mapping
+  void registerRoute({
+    required String host,
+    String? pathPrefix,
+    required String Function(Uri uri) routePath,
+  }) {
+    registerHandler((uri) {
+      if (uri.scheme != _scheme) return false;
+      if (uri.host != host) return false;
+      if (pathPrefix != null && !uri.path.startsWith('/$pathPrefix')) return false;
+      
+      final path = routePath(uri);
+      AppRouter.navigatorKey.currentContext?.go(path);
+      return true;
+    });
+  }
+  
+  void init() { ... }
+}
+
+typedef DeepLinkHandler = bool Function(Uri uri);
+```
+
+Actually, to keep it simpler and more aligned with the patterns in this project, let me think about what's really needed:
+
+The key insight is:
+1. `app_links` setup and lifecycle is the same for all deep links
+2. Only the URI-to-route mapping differs per feature
+3. The service should be registered in GetIt for DI (but the current pattern uses `sl.registerLazySingleton`)
+
+Looking at how other services work in this project (like `RemoteConfigService` with static methods), I think a mix of singleton pattern with both static and instance methods is fine.
+
+Let me draft the plan:
+
+---
+
+### Plan
+
+#### 1. Create `lib/core/config/deep_link_config.dart`
+```dart
+abstract class DeepLinkConfig {
+  static const String scheme = 'doctory';
+  // Future: add universal link domains, etc.
+}
+```
+
+#### 2. Create `lib/core/services/deep_link_service.dart`
+- Centralizes all `app_links` logic (init, stream, initial link)
+- Features register handlers in their DI setup
+- Handlers are checked in order until one handles the URI
+
+#### 3. Update `main.dart`
+- Replace `_initDeepLinks()` and `_handleDeepLink()` with single call to `DeepLinkService.instance.init()`
+
+#### 4. Update `CommunityDI.setup()` (or `community_router.dart`)
+- Register the post deep link handler via `DeepLinkService.instance.registerRoute(...)` or `registerHandler(...)`
+
+#### 5. Android debug manifest (optional improvement)
+- Add the same intent-filter to `android/app/src/debug/AndroidManifest.xml`
+
+#### 6. Router Names update (optional)
+- Review if `postDeepLink` path needs to stay in router or become dynamic
+
+Let me think about whether `registerRoute` or `registerHandler` is better...
+
+I think the cleanest API is:
+
+```dart
+typedef DeepLinkHandler = bool Function(Uri uri);
+
+class DeepLinkService {
+  static final DeepLinkService instance = DeepLinkService._();
+  DeepLinkService._();
+  
+  final List<DeepLinkHandler> _handlers = [];
+  AppLinks? _appLinks;
+  
+  void init() {
+    _appLinks = AppLinks();
+    _appLinks!.uriLinkStream.listen(_dispatch);
+    _appLinks!.getInitialLink().then((uri) {
+      if (uri != null) _dispatch(uri);
+    });
+  }
+  
+  void register(DeepLinkHandler handler) {
+    _handlers.add(handler);
+  }
+  
+  void _dispatch(Uri uri) {
+    for (final handler in _handlers) {
+      if (handler(uri)) return;
+    }
+  }
+}
+```
+
+Then community registers:
+
+```dart
+// In CommunityDI.setup() or community_router.dart
+DeepLinkService.instance.register((uri) {
+  if (uri.scheme != 'doctory' || uri.host != 'post') return false;
+  final postId = uri.pathSegments.isNotEmpty ? uri.pathSegments.first : '';
+  if (postId.isEmpty) return false;
+  AppRouter.navigatorKey.currentContext?.go('/post/$postId');
+  return true;
+});
+```
+
+This is simple, flexible, and follows the existing patterns.
+
+Let me also check if there's a convenience method I should add for simple route mapping:
+
+Actually, I'll keep it simple. Just `register(handler)` is sufficient and most flexible. Features can build their own matching logic.
+
+Let me refine the full plan now.
+
+Good, I have a thorough understanding. Here's the plan.
+
+---
+
+## Plan: Core Deep Link Service
+
+### 1. Create `lib/core/config/deep_link_config.dart`
+
+Centralizes scheme/host constants currently hardcoded in 3 places.
+
+```dart
+abstract class DeepLinkConfig {
+  static const String scheme = 'doctory';
+}
+```
+
+### 2. Create `lib/core/services/deep_link_service.dart`
+
+Extracts all `app_links` lifecycle + dispatching out of `main.dart`. Features register handlers via a simple API.
+
+```dart
+typedef DeepLinkHandler = bool Function(Uri uri);
+
+class DeepLinkService {
+  static final DeepLinkService instance = DeepLinkService._();
+  DeepLinkService._();
+
+  final List<DeepLinkHandler> _handlers = [];
+
+  void init(Uri? initialUri) {
+    // setup AppLinks, listen to stream, call _dispatch for each URI
+  }
+
+  void register(DeepLinkHandler handler) {
+    _handlers.add(handler);
+  }
+
+  void _dispatch(Uri uri) {
+    for (final h in _handlers) {
+      if (h(uri)) return;
+    }
+  }
+}
+```
+
+- `init()` sets up `AppLinks` (stream + `getInitialLink`)
+- `register()` is called by features during their DI setup
+- Returns `void` — handlers return `true` if they consumed the URI
+
+### 3. Update `main.dart`
+
+Replace:
+```dart
+_initDeepLinks();   // whole block + _handleDeepLink function
+```
+With:
+```dart
+DeepLinkService.instance.init();
+```
+
+Delete the `_initDeepLinks()` and `_handleDeepLink()` top-level functions entirely.
+
+### 4. Update `CommunityDI.setup()` (or `community_router.dart`)
+
+Register the post handler:
+```dart
+DeepLinkService.instance.register((uri) {
+  if (uri.scheme != DeepLinkConfig.scheme || uri.host != 'post') return false;
+  final postId = uri.pathSegments.isNotEmpty ? uri.pathSegments.first : '';
+  if (postId.isEmpty) return false;
+  AppRouter.navigatorKey.currentContext?.go('/post/$postId');
+  return true;
+});
+```
+
+### 5. Android debug manifest (optional but recommended)
+
+Add the same intent-filter to `android/app/src/debug/AndroidManifest.xml` so deep links work in debug builds.
+
+---
+
+**Future features** just call `DeepLinkService.instance.register(...)` in their DI with whatever URI matching logic they need — no core changes required.
+
+Want me to proceed with implementation?
+
+---
+
+## User
+
+are this will be ready to listen on link in exa. email of verification to open the app and start from login
+
+---
+
+## Assistant (Plan · DeepSeek V4 Flash Free · 14.1s)
+
+_Thinking:_
+
+The user is asking about an email verification deep link flow — where a user clicks a link in a verification email, which opens the app and navigates to the login (or a specific verification) screen.
+
+Let me think about what this would involve:
+
+1. The email would contain a link like `https://doctory.app/verify-email?token=xxx` (universal link) or `doctory://verify-email?token=xxx` (custom scheme)
+2. Clicking it opens the app
+3. The deep link is intercepted
+4. The app navigates to a verification route with the token
+5. The token is sent to the backend to verify the email
+6. On success, navigate to login
+
+Let me think about what's needed beyond the core service I proposed:
+
+**What the core service already provides:**
+- Centralized `app_links` lifecycle (stream + initial link)
+- Register/dispatch system for URI handlers
+- Already handles navigation
+
+**What's needed additionally for this flow:**
+
+1. **HTTPS/universal links** — verification emails typically use HTTPS links, not custom schemes. Custom schemes (`doctory://`) are less trusted and may not work in all email clients. So we need:
+   - Android App Links (`https://doctory.app/.well-known/assetlinks.json`)
+   - iOS Universal Links (`https://doctory.app/.well-known/apple-app-site-association`)
+   - Associated domains in entitlements
+   
+2. **A new deep link route + handler** — e.g., `doctory://verify-email?token=xxx` or `https://doctory.app/verify-email?token=xxx`
+
+3. **A verification feature** — call API to verify email, then navigate to login
+
+So my proposed core service is sufficient as a foundation. The `DeepLinkService.register()` API allows any feature to register its handler. The additional work would be:
+- Set up HTTPS universal links platform-side (requires server config too)
+- Create the email verification route and handler
+
+But wait — the user asked "are this will be ready to listen on link in exa. email of verification to open the app and start from login". They're asking if the proposed core deep link service will be ready/capable of handling email verification links.
+
+Let me answer directly: Yes, the proposed `DeepLinkService` architecture supports this. A feature (like auth) would register a handler for the verification URI:
+
+```dart
+// In AuthDI
+DeepLinkService.instance.register((uri) {
+  if (uri.scheme != DeepLinkConfig.scheme || uri.host != 'verify-email') return false;
+  final token = uri.queryParameters['token'];
+  if (token == null || token.isEmpty) return false;
+  AppRouter.navigatorKey.currentContext?.go('/verify-email', extra: token);
+  return true;
+});
+```
+
+However, there are caveats:
+1. **Custom scheme vs universal link**: `doctory://verify-email?token=xxx` works but is less reliable from email clients than an HTTPS universal link
+2. **Universal links require server + domain setup** — beyond app code
+3. **The core service is agnostic** — it just listens for URIs, no matter the scheme
+
+The user seems to be confirming that the design will support this use case. Let me confirm and explain what else would be needed beyond the core service for verification emails specifically.
+
+Yes, the proposed `DeepLinkService` supports this directly. A feature (auth) would register a handler:
+
+```dart
+// In AuthDI.setup()
+DeepLinkService.instance.register((uri) {
+  if (uri.scheme != DeepLinkConfig.scheme) return false;
+
+  if (uri.host == 'verify-email') {
+    final token = uri.queryParameters['token'];
+    if (token != null && token.isNotEmpty) {
+      AppRouter.navigatorKey.currentContext?.go('/verify-email', extra: token);
+      return true;
+    }
+  }
+
+  return false;
+});
+```
+
+The core service handles the **listen + dispatch** — features just register what to match and where to navigate.
+
+**However**, verification emails typically use **HTTPS links** (`https://doctory.app/verify-email?token=xxx`), not custom schemes. Custom schemes are less reliable from email clients. For HTTPS to work the app needs:
+
+| Platform | Requires |
+|----------|----------|
+| Android | `AndroidManifest.xml` with HTTPS intent-filter + `assetlinks.json` on server |
+| iOS | `Associated Domains` entitlement + `apple-app-site-association` on server |
+
+That's **server-side setup** outside this Flutter project. The core service handles the incoming URI the same way regardless of scheme — the platform config is the missing piece.
+
+**Bottom line:** The core service is ready for this. Adding HTTPS universal links is a separate infra task. Want the core service implemented first?
+
+---
+
+## User
+
+the flow will make user when tap make user go to login direct
+
+---
+
+## Assistant (Plan · DeepSeek V4 Flash Free · 135.0s)
+
+_Thinking:_
+
+The user is clarifying the flow for email verification deep links. They want:
+
+1. User taps a verification link in their email
+2. The app opens (or is brought to foreground)
+3. The user is taken to the login screen (not auto-verified, not auto-logged-in)
+4. The verification token is used during the login process
+
+This makes sense for a typical email verification flow:
+- After registration, user gets an email with a verification link
+- They tap it, app opens
+- They see login screen (either with the token pre-filled for auto-verification, or just a message that their email is verified)
+- They log in normally
+
+But wait — the user said "make user go to login direct". So the deep link flow would be:
+1. Deep link arrives with a verification token
+2. App navigates to login screen (with the token as extra data)
+3. Login screen/process uses the token to verify the email (calls API to verify)
+4. User proceeds to normal login flow
+
+Actually, let me re-read: "the flow will make user when tap make user go to login direct" — meaning when they tap the verification link, they go directly to the login screen.
+
+So the auth deep link handler would:
+1. Detect `doctory://verify-email?token=xxx`
+2. Navigate to `/login` with the token as extra
+3. The login screen (or a dedicated VerifyEmailSection) calls the verify API with the token
+4. After verification, user sees login form ready to sign in
+
+This is straightforward with the proposed `DeepLinkService` design. Let me confirm with the user what the exact flow should look like and whether the core service design supports it.
+
+Actually, the user seems to be confirming that the design works, not asking a question. They said "the flow will make user when tap make user go to login direct" — this sounds like they're stating the requirement/flow. Let me confirm and make the plan more specific.
+
+Wait, I'm in plan mode. I should not make edits. Let me think about whether my plan already supports this flow.
+
+Looking at my plan again:
+- `DeepLinkService` handles dispatching
+- Features register handlers
+- Auth can register a handler for `verify-email` that navigates to login with the token
+
+This works. But I should also think about:
+1. The verification API call — where does it happen? In LoginCubit? Or in a separate verify step?
+2. Should the deep link handler call the API directly, or just navigate to a view that does it?
+
+For a clean flow:
+1. Deep link `doctory://verify-email?token=xxx` arrives
+2. `AuthDI` registers handler that navigates to `/verify-email` with token
+3. A `VerifyEmailView`/`VerifyEmailBodySection` shows a loading state, calls the verify API
+4. On success, navigates to `/login` with a success message
+5. User logs in normally
+
+Or simpler:
+1. Deep link navigates to `/login?verified=true` 
+2. Login screen shows a success banner "Email verified! Please log in."
+
+But the user said "make user go to login direct" — so maybe the flow is:
+1. Deep link → directly to login screen
+2. Login screen has the token and verifies automatically in the background
+3. Or login screen just shows a message
+
+I think I need to clarify the expected flow with the user. But first, I should confirm that the core deep link service supports this pattern, which it does.
+
+Let me ask the user to clarify the exact flow they want after the deep link opens the app.
+
+That works. The core service design handles it — auth registers a handler in its DI setup that navigates to login with the token.
+
+But I need to clarify the exact flow before implementing:
+
+**Tool: question**
+
+**Input:**
+```json
+{
+  "questions": [
+    {
+      "question": "When the user taps the email verification link and the app opens, what should happen exactly?",
+      "header": "Verification flow",
+      "options": [
+        {
+          "label": "Verify then go to login",
+          "description": "Show a loading/verifying screen, call verify API with token, then navigate to login with success message"
+        },
+        {
+          "label": "Go straight to login",
+          "description": "Navigate directly to login screen; token passed as extra; login screen handles the verify call"
+        },
+        {
+          "label": "Auto-login after verify",
+          "description": "Verify token silently, then auto-login the user (no login screen shown)"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Output:**
+```
+User has answered your questions: "When the user taps the email verification link and the app opens, what should happen exactly?"="no token will revice from backend it just make user(clinic owner) go to login the email just notifi to state of account". You can now continue with the user's answers in mind.
+```
+
+---
+
+## Assistant (Plan · DeepSeek V4 Flash Free · 10.7s)
+
+_Thinking:_
+
+So the email verification link for a clinic owner just notifies them about their account status — no token involved. The deep link just opens the app and navigates to the login screen. This is even simpler.
+
+So the flow is:
+1. Backend sends email to clinic owner saying "your account is approved/rejected/etc."
+2. Email contains a deep link like `doctory://clinic-status`
+3. User taps it → app opens → navigates to login
+4. User logs in
+
+This is even simpler — no data needed, just navigate to a route. The deep link handler just navigates to `/login` or maybe to a specific status view.
+
+Given this clarification, let me refine the plan to be clear about:
+- The core `DeepLinkService` design (unchanged — still works for this)
+- The auth side: register a handler for any `doctory://*` URI (or specific ones) that just navigates to login
+
+Actually, thinking more broadly — the deep link might not be just for email verification. The user said "to use other features" — so they want a generic core service. The specific example of email verification just navigates to login. Other features will register their own handlers.
+
+Let me present the final plan for approval.
+
+Got it — no token, just a notification link that opens the app to login. Makes it even simpler.
+
+Here's the final plan:
+
+---
+
+## Final Plan
+
+### 1. Create `lib/core/config/deep_link_config.dart`
+Central const for scheme (`doctory`), easy to find/change.
+
+### 2. Create `lib/core/services/deep_link_service.dart`
+- Singleton, owns `AppLinks` lifecycle (stream + initial link)
+- `register(DeepLinkHandler)` — features add handlers during DI setup
+- Dispatches incoming URIs to first matching handler
+- `init()` — called once in `main.dart`
+
+### 3. Update `main.dart`
+- Remove `_initDeepLinks()` and `_handleDeepLink()` functions
+- Replace with `DeepLinkService.instance.init()` inside the post-frame callback
+
+### 4. Update `CommunityDI.setup()`
+Migrate existing post deep link from `main.dart` into a registered handler:
+```dart
+DeepLinkService.instance.register((uri) {
+  if (uri.scheme != DeepLinkConfig.scheme || uri.host != 'post') return false;
+  final postId = uri.pathSegments.isNotEmpty ? uri.pathSegments.first : '';
+  if (postId.isEmpty) return false;
+  AppRouter.navigatorKey.currentContext?.go('/post/$postId');
+  return true;
+});
+```
+
+### 5. Future: Auth email deep link
+When Auth needs it, just add in `AuthDI.setup()`:
+```dart
+DeepLinkService.instance.register((uri) {
+  if (uri.scheme != DeepLinkConfig.scheme) return false;
+  // Any doctory:// link → login screen
+  AppRouter.navigatorKey.currentContext?.go(AppRoutes.login);
+  return true;
+});
+```
+
+### 6. Android debug manifest (nice-to-have)
+Add the same intent-filter to `android/app/src/debug/AndroidManifest.xml` for testability.
+
+---
+
+**The design is generic.** Any future feature (notifications, clinic status, etc.) just calls `DeepLinkService.instance.register(...)` with their own matching/navigation logic — no core changes needed.
+
+Shall I implement?
+
+---
+
+## User
+
+what about deep link securt
+
+---
+
+## Assistant (Plan · DeepSeek V4 Flash Free · 22.1s)
+
+_Thinking:_
+
+The user is asking about deep link security. This is a good concern — custom URL schemes like `doctory://` can be intercepted by any malicious app on both Android and iOS. Let me think about what security concerns exist and how to address them.
+
+## Security concerns with custom URL schemes:
+
+1. **Scheme collision**: Any app can register the same custom scheme `doctory://`. On Android, if multiple apps register the same intent-filter, the OS shows a chooser dialog — but the user might pick the wrong/malicious one. On iOS, the first app to register wins, and subsequent apps are blocked.
+
+2. **No verification**: Custom URL schemes have no built-in mechanism to verify the sender. A malicious app could trigger `doctory://post/123` and the app would handle it without question.
+
+3. **Token/parameter leakage**: If we pass sensitive data via deep links (tokens, etc.), it could be read by other apps (e.g., the Android `QUERY_ALL_PACKAGES` permission or accessibility services).
+
+## Solutions:
+
+### 1. Android App Links (HTTPS with auto-verify) — the gold standard
+Instead of `doctory://`, use `https://yourdomain.com/post/123` with:
+- `android:autoVerify="true"` on the intent-filter
+- `assetlinks.json` file hosted at `https://yourdomain.com/.well-known/assetlinks.json`
+- This ensures ONLY your app handles these URLs
+
+### 2. iOS Universal Links (HTTPS with AASA)
+- Associated domains entitlement
+- `apple-app-site-association` file at `https://yourdomain.com/.well-known/apple-app-site-association`
+
+### 3. Defense-in-depth even with custom scheme
+- Verify the source (not really possible with custom schemes)
+- Don't pass sensitive data (tokens, passwords) in deep links
+- Use deep links only for navigation, not for authentication
+- Validate all parameters before use
+- Show a confirmation dialog before destructive actions
+
+### 4. For the current custom scheme approach:
+- The deepest concern is **scheme hijacking** — another app could register `doctory://` 
+- On Android, this is mitigated if you use App Links with HTTPS
+- On iOS, you can use Universal Links
+
+Let me think about what the user is really asking. They're asking about security of the deep link approach. I should explain the concerns and offer mitigations.
+
+Since we're in plan mode, I should outline the security considerations in the plan and let the user decide how to proceed.
+
+For the current state of this project:
+- They use custom scheme `doctory://` 
+- This is susceptible to scheme hijacking
+- They don't pass sensitive data through deep links currently (post ID only)
+- For email verification, they said no token is passed — just notification to go to login
+
+So the security risk is relatively low for the current use cases, but it's worth raising awareness and planning for App Links / Universal Links as a future improvement.
+
+Good catch. Custom URL schemes like `doctory://` have security risks.
+
+## Security Risks
+
+| Risk | Description |
+|------|-------------|
+| **Scheme hijacking** | Any malicious app can register the same `doctory://` scheme. On Android, OS shows a chooser dialog — user could pick the wrong app. On iOS, first-to-register wins and blocks legitimate app. |
+| **No sender verification** | Custom schemes have no way to verify the caller. Any app on the device can trigger `doctory://post/123` and your app handles it blindly. |
+| **Parameter tampering** | URI params can be forged (e.g., `doctory://post/../admin` if path isn't validated). |
+
+## Mitigations
+
+### Recommended: HTTPS App Links / Universal Links (production-grade)
+
+Use `https://doctory.app/post/123` instead of `doctory://`:
+
+| Platform | Setup Required |
+|----------|---------------|
+| **Android App Links** | Intent-filter with `android:autoVerify="true"` + host `assetlinks.json` on server |
+| **iOS Universal Links** | Associated Domains entitlement + `apple-app-site-association` on server |
+
+This **eliminates scheme hijacking** — only your verified app can handle those URLs.
+
+### Defense-in-depth for the custom scheme (current approach)
+
+Even with the custom scheme, you should add:
+
+1. **Path validation** — reject suspicious paths (`../`, `//`, etc.)
+2. **No sensitive data** in URIs — tokens, passwords, etc. never go in the link
+3. **Rate limiting** on the server side for any actions triggered via deep links
+4. **Second confirmation** before destructive actions (payments, account changes)
+
+### For your current use cases
+
+- **Post deep link** (`doctory://post/123`) — low risk, just navigation
+- **Email notification** (to login) — low risk, just navigation
+- **No tokens in links** — good practice already (you confirmed no token)
+
+**Bottom line:** For a production app, migrate to HTTPS App Links/Universal Links. For now with the custom scheme, the current risk is low since you're only doing navigation (no sensitive data passed). Want me to add a note in the config about upgrading to App Links later, or proceed with the custom scheme approach and add basic path validation?
+
+---
+
+## User
+
+i want to send this data to backend show me what backend need to make
+
+---
+
+## Assistant (Plan · DeepSeek V4 Flash Free · 13.6s)
+
+_Thinking:_
+
+The user is asking what the backend needs to do to support deep linking. Let me think about this from both platform perspectives (Android App Links, iOS Universal Links) and from the backend perspective.
+
+For the app to open when a user taps a link (like `https://doctory.app/post/123` or the custom scheme), the backend needs:
+
+1. **For HTTPS App Links / Universal Links (recommended for production):**
+   - Have the domain (`doctory.app` or whatever domain is used)
+   - Serve a verification file at specific URLs
+   - Configure the web server properly
+
+2. **For the current custom scheme approach:**
+   - Just embed `doctory://<route>` links in emails/notifications
+   - No backend changes needed (it's purely client-side)
+
+Let me detail what the backend needs for the HTTPS approach since the user asked "what backend need to make":
+
+For Android App Links:
+- Host a `/.well-known/assetlinks.json` file at `https://doctory.app/.well-known/assetlinks.json`
+- This file contains the app's package name and SHA-256 certificate fingerprint
+
+For iOS Universal Links:
+- Host a `/.well-known/apple-app-site-association` file at `https://doctory.app/.well-known/apple-app-site-association`
+- This file contains the app's Team ID and Bundle ID
+
+Both files verify that the domain is allowed to open the app.
+
+Also, the backend needs to:
+- Send emails with the correct deep link URLs
+- Handle any API endpoints that the deep link redirects to (e.g., if verifying email status)
+
+Let me provide a comprehensive answer.
+
+For the deep link to work properly (opening the app from a web URL), the backend needs to host **two verification files** at your domain root.
+
+## Required Backend Setup
+
+### 1. Host verification files at `https://<your-domain>/.well-known/`
+
+**Android — `assetlinks.json`**
+```json
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.doctory.app",
+    "sha256_cert_fingerprints": [
+      "AA:BB:CC:..."
+    ]
+  }
+}]
+```
+- `package_name` — matches your app's `android/app/build.gradle` → `applicationId`
+- `sha256_cert_fingerprints` — from your signing keystore (run `keytool -list -v -keystore <file>`)
+
+**iOS — `apple-app-site-association`** (no extension, raw JSON)
+```json
+{
+  "applinks": {
+    "details": [
+      {
+        "appID": "TEAM_ID.com.doctory.app",
+        "paths": ["*"]
+      }
+    ]
+  }
+}
+```
+- `appID` = Team ID (Apple Developer) + "." + Bundle ID
+
+### 2. Generate the cert fingerprint
+
+Your Android team needs to run:
+```bash
+keytool -list -v -keystore android/app/upload-keystore.jks -alias upload  2>/dev/null | grep "SHA256:" | awk '{print $2}'
+```
+
+### 3. Email links format
+
+After the above is set, emails should use HTTPS links (not custom scheme):
+```
+https://doctory.app/post/123
+https://doctory.app/login?verified=true
+```
+
+### 4. (Optional) API endpoint for verification status
+
+If the deep link needs to check account status (clinic owner approval), the backend should have a public endpoint:
+```
+GET /api/v1/auth/status
+Response: { "status": "approved" | "pending" | "rejected", "message": "..." }
+```
+
+### 5. MIME type config
+
+Ensure your web server serves the verification files with correct MIME types:
+- `assetlinks.json` → `application/json`
+- `apple-app-site-association` → `application/pkix-cert` (yes, this specific type)
+
+---
+
+**TL;DR:** Your backend team needs to host 2 files at `/.well-known/` and provide the SHA-256 cert. That's it for deep links to work.
+
+Want me to add a secure config class with the domain/endpoints for the app side?
+
+---
+
+## User
+
+this from back end is there is missed or confilict # Deep Link Integration — Mobile App
+
+## Overview
+
+Deep links are **web URLs** based on `EmailSettings.FrontendUrl` (e.g. `https://clinicHub.app/...`).  
+The mobile app intercepts them via **universal links** (Android App Links / iOS Universal Links).
+
+---
+
+## URL Formats
+
+| Scenario | URL Pattern |
+|----------|-------------|
+| Clinic approval | `{FrontendUrl}/clinic/setup?clinicId={guid}&userId={guid}&token={hmac}` |
+| Post sharing | `{FrontendUrl}/post/{postId}` |
+
+---
+
+## 1. Platform Configuration
+
+Register the `FrontendUrl` domain for universal links on both platforms:
+
+- **Android**: `AndroidManifest.xml` with HTTPS intent-filter + `assetlinks.json` on your server
+- **iOS**: `Associated Domains` entitlement (`applinks:yourdomain.com`) + `apple-app-site-association` on your server
+
+---
+
+## 2. Intercept the URL
+
+When the app receives an incoming URL, parse the path and query parameters:
+
+| Path | Purpose |
+|------|---------|
+| `/clinic/setup` | Clinic owner approval — navigate to clinic setup form |
+| `/post/{postId}` | Shared post — navigate to post details |
+
+---
+
+## 3. Verify HMAC Token (Clinic Approval)
+
+The `token` parameter is an HMAC-SHA256 hex string. **The mobile must verify the token before trusting the link.**
+
+```
+HMAC-SHA256(key: DeepLinkSecret, data: "clinic-approval:{clinicId}:{userId}")
+```
+
+Compare the computed HMAC hex string with the `token` query param. If they match, the link is authentic.
+
+> **Important**: The `DeepLinkSecret` must be shared securely between the backend and mobile app (e.g. injected via CI/CD, not hardcoded).
+
+---
+
+## 4. Routing Logic
+
+- **Clinic approval**: route to clinic setup/registration form, pass `clinicId` and `userId`
+- **Post share**: route to post details view using `postId` — fetch full post data via `GET /api/v1/posts/{postId}` if needed
+
+---
+
+## 5. Sharing Posts (Mobile → External)
+
+When a user shares a post, construct the link locally:
+
+```
+{FrontendUrl}/post/{postId}
+```
+
+Or fetch it from the API:
+
+```
+GET {FrontendUrl}/api/v1/posts/{postId}/share-link
+
+Response: { "link": "https://clinicHub.app/post/..." }
+```
+
+---
+
+## Environment Configuration
+
+The `FrontendUrl` and `DeepLinkSecret` values differ per environment (Development / Test / Production). Ensure the mobile app uses the correct matching values for each environment. 
+
+---
+
+## Assistant (Plan · DeepSeek V4 Flash Free · 22.7s)
+
+_Thinking:_
+
+The user is sharing the backend team's deep link integration spec. They want me to review it for conflicts/missing pieces compared to what we planned. Let me analyze it.
+
+Key observations:
+
+1. **HTTPS instead of custom scheme** — The backend spec uses `{FrontendUrl}` (HTTPS links like `https://clinicHub.app/...`), not the custom `doctory://` scheme we currently have. This is actually better (more secure as we discussed).
+
+2. **Clinic approval flow with HMAC verification** — The backend requires HMAC verification before trusting the link. This means the DeepLinkService needs to:
+   - Parse the URL
+   - Compute HMAC-SHA256 with a shared secret
+   - Compare with the `token` param
+   - Only navigate if valid
+
+3. **Post sharing uses HTTPS too** — Same as above but no HMAC (just navigation).
+
+4. **`DeepLinkSecret` needed** — We need a secure way to store/get the HMAC secret in the app. This should be in config, injected via CI/CD.
+
+Let me analyze conflicts/missing items:
+
+### Conflicts
+
+1. **Scheme mismatch** — Our current code uses `doctory://` custom scheme. Backend spec uses `https://clinicHub.app/`. We need to migrate to HTTPS universal links. This means:
+   - AndroidManifest.xml needs HTTPS intent-filter (not just custom scheme)
+   - iOS needs Associated Domains entitlement
+   - Remove or keep custom scheme as fallback
+
+2. **Path patterns differ** — Backend uses `/clinic/setup?clinicId=...&userId=...&token=...`, not just `/post/{postId}` for posts.
+
+### Missing pieces (from mobile side)
+
+1. **HMAC verification** — The DeepLinkService needs an HMAC verification step. We need to either:
+   - Add a `verifyHmac(Uri uri)` method
+   - Or let handlers verify themselves
+   - Need a shared secret (how to store it securely?)
+
+2. **DeepLinkSecret storage** — Can't hardcode. Should be in environment config or injected via CI/CD. Could use:
+   - `flutter_dotenv`
+   - Firebase Remote Config
+   - CI/CD build args → Dart defines
+
+3. **FrontendUrl config** — Need to add `FrontendUrl` to config, varying by environment.
+
+4. **Post share link generation** — Either construct locally or use API endpoint.
+
+### Alignment with our DeepLinkService design
+
+Our generic `DeepLinkService.register(handler)` design actually handles this well:
+- Each scenario (clinic approval, post share) becomes a registered handler
+- HMAC verification can be a shared utility method
+- The service just dispatches — handlers do the domain/path matching + verification
+
+But we should also add:
+- A `DeepLinkConfig` that centralizes the secret, the frontend URL
+- An HMAC utility
+- The `verifyHmac` check in the clinic approval handler
+
+Let me also think about the HMAC secret - the backend says "not hardcoded, injected via CI/CD". For Flutter, common approaches:
+1. `--dart-define=DEEP_LINK_SECRET=xxx` at build time
+2. Firebase Remote Config (but secret would be exposed)
+3. Encrypted storage (but key still in app)
+4. Android Native (BuildConfig) / iOS (Info.plist) — passed via CI/CD
+
+The most practical: pass via `--dart-define` so it's compiled in but not in source code. Or use the backend to verify instead — have the app send the full URL to an API endpoint that verifies and returns the parsed data. This is actually more secure because:
+- Secret stays server-side only
+- No risk of extracting it from the APK/IPA
+- Backend can rate-limit, log, etc.
+
+But the backend spec says "mobile must verify". Let me flag this as a security recommendation.
+
+Actually, let me re-read: "The mobile must verify the token before trusting the link." and "The DeepLinkSecret must be shared securely between the backend and mobile app (e.g. injected via CI/CD, not hardcoded)."
+
+This is a design choice. Having the secret in the mobile app (even via CI/CD) means it can be extracted. Better approach: have the app call the backend to verify instead. But the backend team designed it with mobile-side verification, so I should flag the concern but respect their design.
+
+Let me present my analysis to the user.
+
+Good spec. Here's my analysis of **conflicts** and **missing pieces** from the mobile side.
+
+---
+
+## ✅ What aligns with our plan
+
+| Item | Status |
+|------|--------|
+| HTTPS links (not custom scheme) | Better — we should migrate. Backend is already set for this. |
+| `register(handler)` pattern | Fits perfectly — each path is a separate handler |
+| Post sharing path `/post/{postId}` | Trivial — same as current but HTTPS |
+
+---
+
+## ❌ Conflicts with current mobile setup
+
+| Conflict | Current (mobile) | Backend expects |
+|----------|-----------------|-----------------|
+| **Scheme** | `doctory://post/123` | `https://clinicHub.app/post/123` |
+| **Android** | Custom scheme intent-filter only | HTTPS intent-filter + `assetlinks.json` |
+| **iOS** | Custom scheme only | Associated Domains + `apple-app-site-association` |
+| **Post path** | `/post/:id` | `/post/{postId}` — same, just HTTPS |
+
+**Action needed:** Replace custom scheme with HTTPS universal links. Your team already handles the server files, so it's just platform config changes on mobile.
+
+---
+
+## 🔴 Missing pieces (mobile must add)
+
+### 1. HMAC verification on clinic approval
+
+The `token` param must be verified before navigation. I recommend **two approaches:**
+
+**Option A: Verify on mobile** (per backend spec)
+- Need `DeepLinkSecret` injected at build time via `--dart-define`
+- Add HMAC-SHA256 utility in the app
+- Handler computes HMAC, compares with `token`, rejects if mismatch
+
+**Option B: Verify via API** (more secure — secret stays server-side)  
+- App sends the full URL to a public API endpoint
+- Backend verifies HMAC and returns `{clinicId, userId}`
+- No secret in mobile app at all
+
+Both work with our handler design. **Option B is more secure** — secrets in mobile apps can always be extracted.
+
+### 2. Missing config
+
+| What | Where |
+|------|-------|
+| `FrontendUrl` (varies by env) | Config class, from `--dart-define` or Remote Config |
+| `DeepLinkSecret` (if Option A) | Injected via CI/CD `--dart-define`, never hardcoded |
+| `api/v1/posts/{id}/share-link` | API endpoint for share link generation |
+
+### 3. Share post link generation
+
+Backend offers two options:
+- **Local construction:** `{FrontendUrl}/post/{postId}` — simple, no API call
+- **API fetch:** `GET /api/v1/posts/{id}/share-link` — allows backend to track shares
+
+---
+
+## 📋 Updated plan summary
+
+| Step | What |
+|------|------|
+| 1 | Create `DeepLinkConfig` with `FrontendUrl`, `scheme` = `https` |
+| 2 | Create `DeepLinkService` with `register(handler)` + `verifyHmac()` utility |
+| 3 | Update Android `AndroidManifest.xml` — HTTPS intent-filter + keep custom scheme as fallback |
+| 4 | Update iOS entitlements — add `applinks:clinicHub.app` |
+| 5 | Migrate `main.dart` — replace `_initDeepLinks()` with `DeepLinkService.instance.init()` |
+| 6 | Register **post handler** in CommunityDI — match `https://{domain}/post/{postId}` |
+| 7 | Register **clinic approval handler** — match `/clinic/setup`, verify HMAC, navigate |
+| 8 | Uncomment share link in `post_options_bottom_sheet.dart` |
+| 9 | Add debug AndroidManifest for testability |
+
+Want to decide **Option A (mobile HMAC)** vs **Option B (API verify)** before I implement?
+
+---
+

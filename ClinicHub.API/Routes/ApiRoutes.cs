@@ -312,5 +312,11 @@ namespace ClinicHub.API.Routes
             public const string Delete = Base + "/doctors/{id:guid}";
             public const string ChangePassword = Base + "/admin/clinics/doctors/{id:guid}/change-password";
         }
+
+        public static class DeepLinks
+        {
+            public const string BaseRoute = Base + "/deep-links";
+            public const string Verify = BaseRoute + "/verify";
+        }
     }
 }

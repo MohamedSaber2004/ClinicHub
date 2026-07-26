@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Extensions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Domain.Entities;
@@ -9,15 +10,20 @@ namespace ClinicHub.Infrastructure.Services
     public class NotificationBuilderService : INotificationBuilder
     {
         private readonly INotificationRepository _notificationRepository;
+        private readonly IDeepLinkService _deepLinkService;
 
-        public NotificationBuilderService(INotificationRepository notificationRepository)
+        public NotificationBuilderService(
+            INotificationRepository notificationRepository,
+            IDeepLinkService deepLinkService)
         {
             _notificationRepository = notificationRepository;
+            _deepLinkService = deepLinkService;
         }
 
         public async Task<NotificationPayload> BuildAsync(NotificationType type, Guid userId, Dictionary<string, object>? parameters = null)
         {
             string title, body;
+            string? link = null;
             var data = new Dictionary<string, string> { ["type"] = type.ToString() };
 
             var clinicName = GetParam(parameters, "clinicName");
@@ -38,6 +44,10 @@ namespace ClinicHub.Infrastructure.Services
                     body = $"لديك موعد في {clinicName} الساعة {time}";
                     data["clinicName"] = clinicName;
                     data["time"] = time;
+                    if (!string.IsNullOrEmpty(appointmentId))
+                        link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.AppointmentDetails, appointmentId));
+                    else
+                        link = _deepLinkService.GenerateLink(DeepLinkRoutes.Appointments);
                     break;
 
                 case NotificationType.NewMessage:
@@ -45,6 +55,8 @@ namespace ClinicHub.Infrastructure.Services
                     body = $"رسالة جديدة من {senderName}";
                     data["senderName"] = senderName;
                     data["conversationId"] = conversationId;
+                    if (!string.IsNullOrEmpty(conversationId))
+                        link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.Chat, conversationId));
                     break;
 
                 case NotificationType.PaymentConfirmation:
@@ -52,6 +64,10 @@ namespace ClinicHub.Infrastructure.Services
                     body = $"تم تأكيد دفعتك بقيمة {amount}";
                     data["amount"] = amount;
                     data["appointmentId"] = appointmentId;
+                    if (!string.IsNullOrEmpty(appointmentId))
+                        link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.AppointmentDetails, appointmentId));
+                    else
+                        link = _deepLinkService.GenerateLink(DeepLinkRoutes.Appointments);
                     break;
 
                 case NotificationType.AppointmentConfirmation:
@@ -59,6 +75,10 @@ namespace ClinicHub.Infrastructure.Services
                     body = $"تم تأكيد موعدك في {clinicName} بتاريخ {date}";
                     data["clinicName"] = clinicName;
                     data["date"] = date;
+                    if (!string.IsNullOrEmpty(appointmentId))
+                        link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.AppointmentDetails, appointmentId));
+                    else
+                        link = _deepLinkService.GenerateLink(DeepLinkRoutes.Appointments);
                     break;
 
                 case NotificationType.AppointmentCancellation:
@@ -66,12 +86,14 @@ namespace ClinicHub.Infrastructure.Services
                     body = $"تم إلغاء موعدك في {clinicName}: {reason}";
                     data["clinicName"] = clinicName;
                     data["reason"] = reason;
+                    link = _deepLinkService.GenerateLink(DeepLinkRoutes.Appointments);
                     break;
 
                 case NotificationType.SystemAnnouncement:
                     title = "إشعار";
                     body = message;
                     data["message"] = message;
+                    link = _deepLinkService.GenerateLink(DeepLinkRoutes.Notifications);
                     break;
 
                 default:
@@ -79,6 +101,8 @@ namespace ClinicHub.Infrastructure.Services
                     body = "لديك إشعار جديد";
                     break;
             }
+
+            data["link"] = link ?? string.Empty;
 
             var notification = Notification.Create(userId, senderUserIdParam.ToGuid(), "", title, "", body, type);
             await _notificationRepository.AddAsync(notification);
@@ -88,7 +112,8 @@ namespace ClinicHub.Infrastructure.Services
                 Title = title,
                 Body = body,
                 Data = data,
-                Type = type
+                Type = type,
+                Link = link
             };
         }
 

@@ -4,5 +4,8 @@ namespace ClinicHub.Application.Common.Interfaces
     {
         string GenerateClinicApprovalLink(Guid clinicId, Guid userId);
         string GeneratePostLink(Guid postId);
+        string GenerateVerificationApprovedLink(string userId, string role, string status);
+        string GenerateLink(string path);
+        bool VerifyToken(string data, string token);
     }
 }

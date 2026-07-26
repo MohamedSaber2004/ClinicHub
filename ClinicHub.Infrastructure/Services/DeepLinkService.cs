@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Common.Options;
 using Microsoft.Extensions.Options;
@@ -18,7 +19,7 @@ namespace ClinicHub.Infrastructure.Services
         public string GenerateClinicApprovalLink(Guid clinicId, Guid userId)
         {
             var token = GenerateToken($"clinic-approval:{clinicId}:{userId}");
-            return $"{_settings.FrontendUrl.TrimEnd('/')}/clinic/setup?clinicId={clinicId}&userId={userId}&token={token}";
+            return $"{_settings.FrontendUrl.TrimEnd('/')}{DeepLinkRoutes.ClinicSetup}?clinicId={clinicId}&userId={userId}&token={token}";
         }
 
         public string GeneratePostLink(Guid postId)
@@ -26,7 +27,24 @@ namespace ClinicHub.Infrastructure.Services
             return $"{_settings.FrontendUrl.TrimEnd('/')}/post/{postId}";
         }
 
-        private string GenerateToken(string data)
+        public string GenerateVerificationApprovedLink(string userId, string role, string status)
+        {
+            var token = GenerateToken($"{userId}:{status}");
+            return $"{_settings.FrontendUrl.TrimEnd('/')}{DeepLinkRoutes.VerificationApproved}?userId={userId}&role={role}&status={status}&token={token}";
+        }
+
+        public string GenerateLink(string path)
+        {
+            return $"{_settings.FrontendUrl.TrimEnd('/')}/{path.TrimStart('/')}";
+        }
+
+        public bool VerifyToken(string data, string token)
+        {
+            var expected = GenerateToken(data);
+            return string.Equals(expected, token, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public string GenerateToken(string data)
         {
             var keyBytes = Encoding.UTF8.GetBytes(_settings.DeepLinkSecret);
             using var hmac = new HMACSHA256(keyBytes);

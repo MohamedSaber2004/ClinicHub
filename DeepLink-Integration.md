@@ -13,6 +13,9 @@ The mobile app intercepts them via **universal links** (Android App Links / iOS 
 |----------|-------------|
 | Clinic approval | `{FrontendUrl}/clinic/setup?clinicId={guid}&userId={guid}&token={hmac}` |
 | Post sharing | `{FrontendUrl}/post/{postId}` |
+| Verification approved | `{FrontendUrl}/auth/verification-approved?userId={id}&role={role}&status={status}&token={hmac}` |
+
+> **Note**: Push notifications also carry a `link` field in the notification `Data` payload (key: `"link"`) for navigation. The mobile app should read this field on notification tap.
 
 ---
 
@@ -21,7 +24,11 @@ The mobile app intercepts them via **universal links** (Android App Links / iOS 
 Register the `FrontendUrl` domain for universal links on both platforms:
 
 - **Android**: `AndroidManifest.xml` with HTTPS intent-filter + `assetlinks.json` on your server
+  - Template: `{FrontendUrl}/.well-known/assetlinks.json`
 - **iOS**: `Associated Domains` entitlement (`applinks:yourdomain.com`) + `apple-app-site-association` on your server
+  - Template: `{FrontendUrl}/.well-known/apple-app-site-association`
+
+> The `.well-known` files are served statically from `wwwroot/.well-known/`. Update the placeholder values in these files with your actual app package name, SHA256 fingerprint, and Team ID.
 
 ---
 
@@ -38,7 +45,17 @@ When the app receives an incoming URL, parse the path and query parameters:
 
 ## 3. Verify HMAC Token (Clinic Approval)
 
-The `token` parameter is an HMAC-SHA256 hex string. **The mobile must verify the token before trusting the link.**
+The `token` parameter is an HMAC-SHA256 hex string. **The mobile should verify the token before trusting the link.**
+
+### Option A: Server-side verification (recommended)
+
+```
+POST {FrontendUrl}/api/v1/deep-links/verify
+Body: { "data": "clinic-approval:{clinicId}:{userId}", "token": "{hmac}" }
+Response: { "valid": true }
+```
+
+### Option B: Client-side verification
 
 ```
 HMAC-SHA256(key: DeepLinkSecret, data: "clinic-approval:{clinicId}:{userId}")
@@ -46,7 +63,7 @@ HMAC-SHA256(key: DeepLinkSecret, data: "clinic-approval:{clinicId}:{userId}")
 
 Compare the computed HMAC hex string with the `token` query param. If they match, the link is authentic.
 
-> **Important**: The `DeepLinkSecret` must be shared securely between the backend and mobile app (e.g. injected via CI/CD, not hardcoded).
+> **Important**: The `DeepLinkSecret` must be shared securely between the backend and mobile app (e.g. injected via CI/CD, not hardcoded). Prefer server-side verification to avoid exposing the secret in the client.
 
 ---
 
