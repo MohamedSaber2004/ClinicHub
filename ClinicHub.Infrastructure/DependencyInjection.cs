@@ -58,6 +58,7 @@ namespace ClinicHub.Infrastructure
             services.AddScoped<INotificationRepository, NotificationRepository>();
             services.AddScoped<IJwtTokenService, JwtTokenService>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IDeepLinkService, DeepLinkService>();
             services.AddScoped<IFacebookAuth, FacebookAuth>();
             services.AddScoped<IGoogleAuth, GoogleAuth>();
             services.AddScoped<IPusherService, PusherService>();

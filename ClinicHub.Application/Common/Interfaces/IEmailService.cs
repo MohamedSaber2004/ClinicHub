@@ -34,5 +34,10 @@ namespace ClinicHub.Application.Common.Interfaces
         /// Sends a verification approved notification with a deep link to open the app.
         /// </summary>
         Task SendVerificationApprovedAsync(string toEmail, string fullName, string userId, string role, CancellationToken ct = default);
+
+        /// <summary>
+        /// Sends a clinic approval email with a deep link for the clinic owner to complete clinic setup.
+        /// </summary>
+        Task SendClinicApprovedEmailAsync(string toEmail, string fullName, Guid clinicId, Guid userId, CancellationToken ct = default);
     }
 }

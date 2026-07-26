@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Posts.Commands.CreatePost;
 using ClinicHub.Application.Features.Posts.Commands.DeletePost;
 using ClinicHub.Application.Features.Posts.Commands.TogglePostReaction;
@@ -19,8 +20,11 @@ namespace ClinicHub.API.Controllers.Version1
     [RoleAuthorize]
     public class PostsController : BaseApiController
     {
-        public PostsController(IMediator mediator) : base(mediator)
+        private readonly IDeepLinkService _deepLinkService;
+
+        public PostsController(IMediator mediator, IDeepLinkService deepLinkService) : base(mediator)
         {
+            _deepLinkService = deepLinkService;
         }
 
         /// <summary>
@@ -135,6 +139,20 @@ namespace ClinicHub.API.Controllers.Version1
         {
             var result = await _mediator.Send(query with { PostId = id }, ct);
             return Ok(result);
+        }
+
+        /// <summary>
+        /// Get shareable deep link for a post.
+        /// </summary>
+        [HttpGet]
+        [Route(ApiRoutes.Posts.ShareLink)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetShareLink(Guid id, CancellationToken ct)
+        {
+            var post = await _mediator.Send(new GetPostByIdQuery(id), ct);
+            var deepLink = _deepLinkService.GeneratePostLink(post.Id);
+            return Ok(new { link = deepLink });
         }
     }
 }

@@ -13,10 +13,12 @@ namespace ClinicHub.Infrastructure.Services
     public class EmailService : IEmailService
     {
         private readonly EmailSettings _settings;
+        private readonly IDeepLinkService _deepLinkService;
 
-        public EmailService(IOptions<EmailSettings> settings)
+        public EmailService(IOptions<EmailSettings> settings, IDeepLinkService deepLinkService)
         {
             _settings = settings.Value;
+            _deepLinkService = deepLinkService;
         }
 
         public async Task SendPasswordResetEmailAsync(string toEmail, string fullName, string resetToken, CancellationToken ct = default)
@@ -96,6 +98,28 @@ namespace ClinicHub.Infrastructure.Services
                         {verificationCode}
                     </div>
                     <p>This code will expire shortly.</p>
+                    <p>Regards,<br />ClinicHub Team</p>
+                </body>
+                </html>";
+
+            await SendEmailAsync(toEmail, fullName, subject, body, ct);
+        }
+
+        public async Task SendClinicApprovedEmailAsync(string toEmail, string fullName, Guid clinicId, Guid userId, CancellationToken ct = default)
+        {
+            var deepLink = _deepLinkService.GenerateClinicApprovalLink(clinicId, userId);
+
+            var subject = "ClinicHub - Clinic Approved";
+            var body = $@"
+                <html>
+                <body style='font-family: Arial, sans-serif;'>
+                    <h2>Hello {fullName},</h2>
+                    <p>Congratulations! Your clinic registration has been approved.</p>
+                    <p>Click the button below to complete your clinic setup and start using ClinicHub.</p>
+                    <div style='text-align: center; margin: 25px 0;'>
+                        <a href='{deepLink}' style='background-color: #4CAF50; color: white; padding: 14px 28px; text-decoration: none; border-radius: 5px; font-size: 1.1em; display: inline-block;'>Complete Clinic Setup</a>
+                    </div>
+                    <p>If the button doesn't work, copy and paste this link in your browser: <br/><strong>{deepLink}</strong></p>
                     <p>Regards,<br />ClinicHub Team</p>
                 </body>
                 </html>";

@@ -41,6 +41,7 @@ namespace ClinicHub.API.Routes
             public const string Update = Base + "/posts/update";
             public const string Delete = Base + "/posts/delete";
             public const string ToggleReaction = Base + "/posts/{id:guid}/reactions";
+            public const string ShareLink = Base + "/posts/{id:guid}/share-link";
         }
 
         public static class Comments
