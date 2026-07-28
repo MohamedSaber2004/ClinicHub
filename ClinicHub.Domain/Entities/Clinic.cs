@@ -23,6 +23,7 @@ namespace ClinicHub.Domain.Entities
 
         public Point Location { get; set; } = null!;
         public bool IsRegistered { get; set; }
+        public bool IsSetupComplete { get; set; }
 
         public ClinicStatus Status { get; set; } = ClinicStatus.PendingApproval;
 

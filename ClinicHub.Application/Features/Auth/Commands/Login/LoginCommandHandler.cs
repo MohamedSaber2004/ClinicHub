@@ -103,7 +103,43 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
                 .Select(d => (bool?)d.IsFreelance)
                 .FirstOrDefaultAsync(cancellationToken) ?? false;
 
-            return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, roles.FirstOrDefault(), user.Id, clinicId, user.ProfilePictureUrl, isFreelanceDoctor);
+            ClinicStatus? clinicStatus = null;
+            VerificationStatus? verificationStatus = null;
+            var isClinicSetupComplete = false;
+
+            if (roles.Contains(UserType.ClinicOwner.ToString()) && clinicId.HasValue)
+            {
+                var clinic = await _unitOfWork.ClinicRepository
+                    .GetAllAsync(c => c.Id == clinicId.Value && !c.IsDeleted)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (clinic != null)
+                {
+                    clinicStatus = clinic.Status;
+                    isClinicSetupComplete = clinic.IsSetupComplete;
+                }
+
+                var verification = await _unitOfWork.UserVerificationRepository
+                    .GetAllAsync(v => v.UserId == user.Id && !v.IsDeleted)
+                    .OrderByDescending(v => v.RequestedAt)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                verificationStatus = verification?.Status;
+            }
+
+            return new AuthResponseDto(
+                accessToken,
+                refreshToken,
+                user.FullName,
+                user.Email!,
+                roles.FirstOrDefault(),
+                user.Id,
+                clinicId,
+                user.ProfilePictureUrl,
+                isFreelanceDoctor,
+                clinicStatus,
+                verificationStatus,
+                isClinicSetupComplete);
         }
     }
 }

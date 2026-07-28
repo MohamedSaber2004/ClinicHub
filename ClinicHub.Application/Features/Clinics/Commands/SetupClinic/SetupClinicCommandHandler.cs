@@ -94,6 +94,8 @@ namespace ClinicHub.Application.Features.Clinics.Commands.SetupClinic
                 existingDoctor.AssignToClinic(clinic.Id);
             }
 
+            clinic.IsSetupComplete = true;
+
             user.AssignToClinic(clinic.Id);
 
             await _unitOfWork.SaveChangesAsync();

@@ -9,9 +9,12 @@ namespace ClinicHub.Application.Features.Auth.DTOs
         string Email,
         string Roles,
         Guid id,
-        Guid? ClinicId, 
+        Guid? ClinicId,
         string? ProfilePictureUrl,
-        bool IsFreelanceDoctor = false);
+        bool IsFreelanceDoctor = false,
+        ClinicStatus? ClinicStatus = null,
+        VerificationStatus? VerificationStatus = null,
+        bool IsClinicSetupComplete = false);
 
     public record RefreshTokenResponseDto(
         string AccessToken,
