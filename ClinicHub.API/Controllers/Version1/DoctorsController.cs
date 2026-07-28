@@ -3,7 +3,7 @@ using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.ClinicStaff.Commands.ChangePassword;
-using ClinicHub.Application.Features.Doctors.Commands.CreateDoctor;
+using ClinicHub.Application.Features.Doctors.Commands.CreateDoctorWithAvailability;
 using ClinicHub.Application.Features.Doctors.Commands.UpdateDoctor;
 using ClinicHub.Application.Features.Doctors.Commands.DeleteDoctor;
 using ClinicHub.Application.Features.Doctors.Queries.GetDoctorById;
@@ -68,7 +68,7 @@ namespace ClinicHub.API.Controllers.Version1
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Create([FromBody] CreateDoctorCommand command)
+        public async Task<IActionResult> Create([FromBody] CreateDoctorWithAvailabilityCommand command)
         {
             var result = await _mediator.Send(command);
             return Created(ApiRoutes.Doctors.GetById, result);
@@ -80,7 +80,7 @@ namespace ClinicHub.API.Controllers.Version1
         [RequirePlanPermission(SubscriptionPermission.ManageDoctors)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> CreateForMyClinic([FromBody] CreateDoctorCommand command)
+        public async Task<IActionResult> CreateForMyClinic([FromBody] CreateDoctorWithAvailabilityCommand command)
         {
             var clinicId = _currentUserService.CurrentClinicId
                 ?? throw new InvalidOperationException("ClinicOwner must have a clinic assigned.");

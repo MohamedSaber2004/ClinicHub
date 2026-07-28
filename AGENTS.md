@@ -52,6 +52,11 @@ dotnet ef database update --project ClinicHub.Persistence --startup-project Clin
 dotnet ef migrations list --project ClinicHub.Persistence --startup-project ClinicHub.API
 ```
 
+## Project Skills
+
+- **`clinichub-execution`** (`.agents/skills/clinichub-execution/SKILL.md`) — Execute code systematically following Clean Architecture layers, CQRS patterns, and project conventions. Use when implementing features, writing code, or executing plans.
+- **`clinichub-sync`** (`.agents/skills/clinichub-sync/SKILL.md`) — Scan the project for new entities, features, or pattern changes and auto-update `clinichub-execution` to keep it in sync with the current codebase.
+
 ## Notable
 
 - `appsettings.json` is gitignored and stores `PaymobSettings` template — copy before editing

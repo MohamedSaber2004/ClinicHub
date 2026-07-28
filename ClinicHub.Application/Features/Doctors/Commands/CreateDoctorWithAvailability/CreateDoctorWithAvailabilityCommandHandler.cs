@@ -8,22 +8,22 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
-namespace ClinicHub.Application.Features.Doctors.Commands.CreateDoctor
+namespace ClinicHub.Application.Features.Doctors.Commands.CreateDoctorWithAvailability
 {
-    public class CreateDoctorCommandHandler : IRequestHandler<CreateDoctorCommand, DoctorDto>
+    public class CreateDoctorWithAvailabilityCommandHandler : IRequestHandler<CreateDoctorWithAvailabilityCommand, DoctorDto>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public CreateDoctorCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, UserManager<ApplicationUser> userManager)
+        public CreateDoctorWithAvailabilityCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, UserManager<ApplicationUser> userManager)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _userManager = userManager;
         }
 
-        public async Task<DoctorDto> Handle(CreateDoctorCommand request, CancellationToken cancellationToken)
+        public async Task<DoctorDto> Handle(CreateDoctorWithAvailabilityCommand request, CancellationToken cancellationToken)
         {
             var clinic = await _unitOfWork.ClinicRepository.GetByIdAsync(request.ClinicId);
             if (clinic == null)
@@ -51,6 +51,21 @@ namespace ClinicHub.Application.Features.Doctors.Commands.CreateDoctor
                 request.YearsOfExperience);
 
             await _unitOfWork.DoctorRepository.AddAsync(doctor);
+            await _unitOfWork.SaveChangesAsync();
+
+            foreach (var av in request.Availabilities)
+            {
+                var availability = new DoctorAvailability(
+                    doctor.Id,
+                    request.ClinicId,
+                    av.DayOfWeek,
+                    av.StartTime,
+                    av.EndTime,
+                    av.SlotDurationMinutes);
+
+                await _unitOfWork.DoctorAvailabilityRepository.AddAsync(availability);
+            }
+
             await _unitOfWork.SaveChangesAsync();
 
             return _mapper.Map<DoctorDto>(doctor);
