@@ -87,6 +87,18 @@ namespace ClinicHub.Application.Features.Clinics.Commands.RegisterClinic
                 request.YearsOfExperience);
 
             await _unitOfWork.UserVerificationRepository.AddAsync(verification);
+
+            var doctor = new Doctor(
+                user.Id,
+                clinic.Id,
+                request.SpecializationId,
+                request.Bio ?? string.Empty,
+                request.YearsOfExperience ?? 0);
+
+            await _unitOfWork.DoctorRepository.AddAsync(doctor);
+
+            user.UpdateProfilePicture(request.DoctorImage);
+
             await _unitOfWork.SaveChangesAsync();
 
             return SignupResult.Pending(new SignupResponseDto(
