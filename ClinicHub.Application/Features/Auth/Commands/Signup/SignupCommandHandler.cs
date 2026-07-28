@@ -106,6 +106,8 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
                     request.YearsOfExperience);
 
                 await _unitOfWork.UserVerificationRepository.AddAsync(verification);
+                user.UpdateProfilePicture(request.DoctorImage);
+
                 await _unitOfWork.SaveChangesAsync();
 
                 return SignupResult.Pending(new SignupResponseDto(
