@@ -6,6 +6,8 @@ namespace ClinicHub.Application.Features.Doctors.DTOs
         public Guid UserId { get; set; }
         public string? UserName { get; set; }
         public string? UserEmail { get; set; }
+        public string? UserPhoneNumber { get; set; }
+        public string? ProfilePictureUrl { get; set; }
         public Guid ClinicId { get; set; }
         public string? ClinicName { get; set; }
         public Guid SpecializationId { get; set; }
@@ -14,5 +16,6 @@ namespace ClinicHub.Application.Features.Doctors.DTOs
         public int YearsOfExperience { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
+        public List<DoctorAvailabilityDto> Availabilities { get; set; } = new();
     }
 }

@@ -27,12 +27,19 @@ namespace ClinicHub.Application.Features.Doctors.Queries.GetDoctorById
                 .Include(d => d.User)
                 .Include(d => d.Clinic)
                 .Include(d => d.Specialization)
+                .Include(d => d.Availabilities)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (doctor == null)
                 throw new NotFoundException(LocalizationKeys.DoctorMessages.NotFound.Value);
 
-            return _mapper.Map<DoctorDto>(doctor);
+            var dto = _mapper.Map<DoctorDto>(doctor);
+            dto.Availabilities = doctor.Availabilities
+                .Where(a => !a.IsDeleted)
+                .Select(_mapper.Map<DoctorAvailabilityDto>)
+                .ToList();
+
+            return dto;
         }
     }
 }

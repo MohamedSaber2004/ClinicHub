@@ -30,6 +30,7 @@ namespace ClinicHub.Domain.Entities
 
         public static ApplicationUser Create(string fullName, string email, string phoneNumber, DateTime? birthDate, Gender? gender) => new()
         {
+            Id = Guid.NewGuid(),
             FullName = fullName,
             Email = email,
             UserName = email,
