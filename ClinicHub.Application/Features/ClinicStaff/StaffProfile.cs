@@ -8,7 +8,8 @@ namespace ClinicHub.Application.Features.ClinicStaff
     {
         public StaffProfile()
         {
-            CreateMap<ApplicationUser, StaffDto>();
+            CreateMap<ApplicationUser, StaffDto>()
+                .ForMember(dest => dest.Image, opt => opt.MapFrom(src => src.ProfilePictureUrl));
         }
     }
 }
