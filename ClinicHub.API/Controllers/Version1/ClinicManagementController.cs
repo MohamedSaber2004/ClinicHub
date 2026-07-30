@@ -150,7 +150,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// </summary>
         [HttpGet]
         [Route(ApiRoutes.ClinicManagement.GetDetails)]
-        [RoleAuthorize(nameof(UserType.SuperAdmin), nameof(UserType.ClinicOwner))]
+        [RoleAuthorize(nameof(UserType.SuperAdmin))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetDetails(Guid id)
