@@ -53,7 +53,7 @@ namespace ClinicHub.Application.Features.ClinicStaff.Queries.GetClinicStaff
                 .Select(u => new StaffDto
                 {
                     Id = u.Id,
-                    ImageName = u.ProfilePictureUrl,
+                    Image = u.ProfilePictureUrl,
                     FullName = u.FullName,
                     Email = u.Email ?? "",
                     PhoneNumber = u.PhoneNumber,
