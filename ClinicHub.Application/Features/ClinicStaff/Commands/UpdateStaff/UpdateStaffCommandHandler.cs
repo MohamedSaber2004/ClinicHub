@@ -43,6 +43,9 @@ namespace ClinicHub.Application.Features.ClinicStaff.Commands.UpdateStaff
             if (request.IsActive.HasValue)
                 user.IsActive = request.IsActive.Value;
 
+            if (!string.IsNullOrWhiteSpace(request.Image))
+                user.UpdateProfilePicture(request.Image);
+
             await _userManager.UpdateAsync(user);
             return true;
         }

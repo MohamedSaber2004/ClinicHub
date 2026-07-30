@@ -36,6 +36,11 @@ namespace ClinicHub.Application.Features.ClinicStaff.Commands.UpdateStaff
                 RuleFor(v => v.PhoneNumber)
                     .MaximumLength(20).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
             });
+
+            RuleFor(v => v.Image)
+                .Must(uri => Uri.TryCreate(uri, UriKind.Absolute, out _))
+                .When(v => !string.IsNullOrWhiteSpace(v.Image))
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value]));
         }
     }
 }
