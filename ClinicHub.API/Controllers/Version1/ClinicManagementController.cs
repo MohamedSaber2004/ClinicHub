@@ -13,6 +13,7 @@ using ClinicHub.Application.Features.Clinics.Queries.GetClinicBookings;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicDashboardStats;
 using ClinicHub.Application.Features.Clinics.DTOs;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicById;
+using ClinicHub.Application.Features.Clinics.Queries.GetClinicDetails;
 using ClinicHub.Application.Features.Clinics.Queries.GetPaginatedClinics;
 using ClinicHub.Application.Features.Auth.DTOs;
 using ClinicHub.Domain.Enums;
@@ -143,6 +144,20 @@ namespace ClinicHub.API.Controllers.Version1
             return Ok(result);
         }
 
+
+        /// <summary>
+        /// Retrieves clinic details including doctors, staff, and ratings.
+        /// </summary>
+        [HttpGet]
+        [Route(ApiRoutes.ClinicManagement.GetDetails)]
+        [RoleAuthorize(nameof(UserType.SuperAdmin), nameof(UserType.ClinicOwner))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetDetails(Guid id)
+        {
+            var result = await _mediator.Send(new GetClinicDetailsQuery(id));
+            return Ok(result);
+        }
 
         /// <summary>
         /// Retrieves a paginated list of clinics based on the provided query parameters.
