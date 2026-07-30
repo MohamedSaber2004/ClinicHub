@@ -29,6 +29,11 @@ namespace ClinicHub.Application.Features.ClinicStaff.Commands.CreateStaff
             RuleFor(v => v.Password)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
                 .MinimumLength(6).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MinLength.Value]));
+
+            RuleFor(v => v.Image)
+                .Must(uri => Uri.TryCreate(uri, UriKind.Absolute, out _))
+                .When(v => !string.IsNullOrWhiteSpace(v.Image))
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value]));
         }
     }
 }

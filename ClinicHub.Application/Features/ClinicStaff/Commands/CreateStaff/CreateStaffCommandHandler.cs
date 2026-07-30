@@ -33,6 +33,9 @@ namespace ClinicHub.Application.Features.ClinicStaff.Commands.CreateStaff
             if (!result.Succeeded)
                 throw new InvalidOperationException(string.Join(", ", result.Errors.Select(e => e.Description)));
 
+            if (!string.IsNullOrWhiteSpace(request.Image))
+                user.UpdateProfilePicture(request.Image);
+
             user.AssignToClinic(clinicId);
             await _userManager.UpdateAsync(user);
 
