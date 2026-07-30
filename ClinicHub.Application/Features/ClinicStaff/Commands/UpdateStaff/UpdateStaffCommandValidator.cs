@@ -3,6 +3,7 @@ using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.ClinicStaff.Commands.UpdateStaff
@@ -34,7 +35,12 @@ namespace ClinicHub.Application.Features.ClinicStaff.Commands.UpdateStaff
             When(v => !string.IsNullOrWhiteSpace(v.PhoneNumber), () =>
             {
                 RuleFor(v => v.PhoneNumber)
-                    .MaximumLength(20).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
+                    .MaximumLength(20).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]))
+                    .MustAsync(async (command, phone, ct) =>
+                    {
+                        var user = await _userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phone && u.Id != command.StaffId && !u.IsDeleted, ct);
+                        return user is null;
+                    }).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.PhoneNumberExistsBefore.Value]));
             });
 
             RuleFor(v => v.Image)

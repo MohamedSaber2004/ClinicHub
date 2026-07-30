@@ -2,6 +2,7 @@ using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.ClinicStaff.Commands.CreateStaff
@@ -24,16 +25,16 @@ namespace ClinicHub.Application.Features.ClinicStaff.Commands.CreateStaff
                 }).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.EmailAlreadyExists.Value]));
 
             RuleFor(v => v.PhoneNumber)
-                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
+                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
+                .MustAsync(async (phone, ct) =>
+                {
+                    var user = await userManager.Users.FirstOrDefaultAsync(u => u.PhoneNumber == phone && !u.IsDeleted, ct);
+                    return user is null;
+                }).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.PhoneNumberExistsBefore.Value]));
 
             RuleFor(v => v.Password)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
                 .MinimumLength(6).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MinLength.Value]));
-
-            RuleFor(v => v.Image)
-                .Must(uri => Uri.TryCreate(uri, UriKind.Absolute, out _))
-                .When(v => !string.IsNullOrWhiteSpace(v.Image))
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value]));
         }
     }
 }
