@@ -4,6 +4,7 @@ using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 
 namespace ClinicHub.Application.Features.Doctors.Commands.DeleteDoctor
 {
@@ -11,11 +12,16 @@ namespace ClinicHub.Application.Features.Doctors.Commands.DeleteDoctor
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public DeleteDoctorCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+        public DeleteDoctorCommandHandler(
+            IUnitOfWork unitOfWork,
+            ICurrentUserService currentUserService,
+            UserManager<ApplicationUser> userManager)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
+            _userManager = userManager;
         }
 
         public async Task<bool> Handle(DeleteDoctorCommand request, CancellationToken cancellationToken)
@@ -27,6 +33,15 @@ namespace ClinicHub.Application.Features.Doctors.Commands.DeleteDoctor
             var doctor = await _unitOfWork.DoctorRepository.GetByIdAsync(request.DoctorId);
             if (doctor == null || doctor.ClinicId != clinicId)
                 throw new NotFoundException(LocalizationKeys.DoctorMessages.NotFound.Value);
+
+            var user = await _userManager.FindByIdAsync(doctor.UserId.ToString());
+            if (user != null && !user.IsDeleted)
+            {
+                user.IsDeleted = true;
+                user.IsActive = false;
+                user.DeletedAt = DateTime.UtcNow;
+                await _userManager.UpdateAsync(user);
+            }
 
             _unitOfWork.DoctorRepository.Delete(doctor);
             var result = await _unitOfWork.SaveChangesAsync();

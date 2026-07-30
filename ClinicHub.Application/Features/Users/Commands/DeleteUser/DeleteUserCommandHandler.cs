@@ -31,6 +31,7 @@ namespace ClinicHub.Application.Features.Users.Commands.DeleteUser
             }
 
             user.IsDeleted = true;
+            user.IsActive = false;
             user.DeletedAt = DateTime.UtcNow;
 
             var result = await _userManager.UpdateAsync(user);

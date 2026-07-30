@@ -52,6 +52,9 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
             if (user is null || !await _userManager.CheckPasswordAsync(user, request.Password))
                 throw new UnAuthorizedException(_localizer[LocalizationKeys.AuthMessages.InvalidCredentials.Value]);
 
+            if (user.IsDeleted)
+                throw new ForbiddenException(_localizer[LocalizationKeys.AuthMessages.AccountDeleted.Value]);
+
             if (!user.IsActive)
                 throw new ForbiddenException(_localizer[LocalizationKeys.AuthMessages.AccountPendingApproval.Value]);
 

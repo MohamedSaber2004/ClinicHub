@@ -79,10 +79,16 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWithFacebook
                 }
                 else
                 {
+                    if (user.IsDeleted)
+                        throw new ForbiddenException(_localizer[LocalizationKeys.AuthMessages.AccountDeleted.Value]);
+
                     user.SetFacebookUserId(fbUserInfo.Id);
                     await _userManager.UpdateAsync(user);
                 }
             }
+
+            if (user.IsDeleted)
+                throw new ForbiddenException(_localizer[LocalizationKeys.AuthMessages.AccountDeleted.Value]);
 
             var roles = await _userManager.GetRolesAsync(user);
             var clinicId = await _unitOfWork.ClinicRepository

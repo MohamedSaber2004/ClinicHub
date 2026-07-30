@@ -129,6 +129,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString InvalidUserType = new("Auth.InvalidUserType");
             public static readonly KeyString SignupPendingApproval = new("Auth.SignupPendingApproval");
             public static readonly KeyString AccountPendingApproval = new("Auth.AccountPendingApproval");
+            public static readonly KeyString AccountDeleted = new("Auth.AccountDeleted");
             public static readonly KeyString UserApproved = new("Auth.UserApproved");
             public static readonly KeyString UserRejected = new("Auth.UserRejected");
             public static readonly KeyString AlreadyReviewed = new("Auth.AlreadyReviewed");

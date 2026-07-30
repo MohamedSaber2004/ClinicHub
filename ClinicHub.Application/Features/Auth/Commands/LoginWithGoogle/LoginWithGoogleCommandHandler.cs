@@ -76,10 +76,16 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWithGoogle
                 }
                 else
                 {
+                    if (user.IsDeleted)
+                        throw new ForbiddenException(_localizer[LocalizationKeys.AuthMessages.AccountDeleted.Value]);
+
                     user.SetGoogleUserId(payload.Subject);
                     await _userManager.UpdateAsync(user);
                 }
             }
+
+            if (user.IsDeleted)
+                throw new ForbiddenException(_localizer[LocalizationKeys.AuthMessages.AccountDeleted.Value]);
 
             var roles = await _userManager.GetRolesAsync(user);
             var clinicId = await _unitOfWork.ClinicRepository
