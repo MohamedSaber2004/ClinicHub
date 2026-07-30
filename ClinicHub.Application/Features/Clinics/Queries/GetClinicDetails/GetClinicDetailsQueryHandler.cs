@@ -40,6 +40,13 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicDetails
 
             var dto = _mapper.Map<ClinicDetailsDto>(clinic);
 
+            if (clinic.ClinicAdmin != null)
+            {
+                dto.OwnerName = clinic.ClinicAdmin.FullName;
+                dto.OwnerEmail = clinic.ClinicAdmin.Email;
+                dto.OwnerPhone = clinic.ClinicAdmin.PhoneNumber;
+            }
+
             var doctors = await _unitOfWork.DoctorRepository
                 .GetAllAsync(d => d.ClinicId == request.Id && !d.IsDeleted)
                 .Include(d => d.User)
