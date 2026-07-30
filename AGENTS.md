@@ -24,11 +24,11 @@ Domain  ←  Application  ←  Persistence  →  Infrastructure  →  API
 
 DI registration files: `ClinicHub.*/DependencyInjection.cs` (4 files). Called in order from Program.cs: `AddApplicationServices` → `AddPersistenceServices` → `AddInfrastructureServices`.
 
-## .agents (built-in instruction files)
+## .opencode/agents (built-in instruction files)
 
-- `.agents/rules/clinichubrole.md` — coding conventions, always-on
-- `.agents/workflows/clinichubworkflow.md` — 12-phase feature implementation workflow
-- `.agents/prompts/extract-last-message.prompt.md` — conversation analysis prompt
+- `.opencode/agents/rules/clinichubrole.md` — coding conventions, always-on
+- `.opencode/agents/workflows/clinichubworkflow.md` — 12-phase feature implementation workflow
+- `.opencode/agents/prompts/extract-last-message.prompt.md` — conversation analysis prompt
 
 ## Key conventions
 
@@ -54,8 +54,8 @@ dotnet ef migrations list --project ClinicHub.Persistence --startup-project Clin
 
 ## Project Skills
 
-- **`clinichub-execution`** (`.agents/skills/clinichub-execution/SKILL.md`) — Execute code systematically following Clean Architecture layers, CQRS patterns, and project conventions. Use when implementing features, writing code, or executing plans.
-- **`clinichub-sync`** (`.agents/skills/clinichub-sync/SKILL.md`) — Scan the project for new entities, features, or pattern changes and auto-update `clinichub-execution` to keep it in sync with the current codebase.
+- **`clinichub-execution`** (`.opencode/skills/clinichub-execution/SKILL.md`) — Execute code systematically following Clean Architecture layers, CQRS patterns, and project conventions. Use when implementing features, writing code, or executing plans.
+- **`clinichub-sync`** (`.opencode/skills/clinichub-sync/SKILL.md`) — Scan the project for new entities, features, or pattern changes and auto-update `clinichub-execution` to keep it in sync with the current codebase.
 
 ## Notable
 
