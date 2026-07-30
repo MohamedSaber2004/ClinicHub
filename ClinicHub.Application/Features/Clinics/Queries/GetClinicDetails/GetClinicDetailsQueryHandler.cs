@@ -51,6 +51,8 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicDetails
                 Id = d.Id,
                 Name = d.User.FullName,
                 Image = d.User.ProfilePictureUrl,
+                Phone = d.User.PhoneNumber,
+                Email = d.User.Email,
                 SpecializationArName = d.Specialization.ArName,
                 SpecializationEnName = d.Specialization.Name,
                 Bio = d.Bio,

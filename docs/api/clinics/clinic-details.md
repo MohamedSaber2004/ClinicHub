@@ -63,6 +63,8 @@ Authorization: Bearer <token>
         "id": "guid",
         "name": "Dr. Sara Mohamed",
         "image": "https://cdn.example.com/doctor.jpg",
+        "phone": "01012345678",
+        "email": "sara@clinic.com",
         "specializationArName": "طب الأسنان",
         "specializationEnName": "Dentistry",
         "bio": "Specialist in cosmetic dentistry",
