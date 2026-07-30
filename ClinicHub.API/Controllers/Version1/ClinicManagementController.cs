@@ -71,9 +71,9 @@ namespace ClinicHub.API.Controllers.Version1
         [RoleAuthorize(nameof(UserType.ClinicOwner))]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Setup([FromBody] SetupClinicDto dto)
+        public async Task<IActionResult> Setup([FromBody] SetupClinicCommand command)
         {
-            var result = await _mediator.Send(new SetupClinicCommand(dto));
+            var result = await _mediator.Send(command);
             return Created(nameof(SetupClinicCommand), result);
         }
 

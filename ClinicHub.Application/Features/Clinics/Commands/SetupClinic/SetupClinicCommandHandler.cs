@@ -38,7 +38,6 @@ namespace ClinicHub.Application.Features.Clinics.Commands.SetupClinic
 
         public async Task<ClinicManagementDto> Handle(SetupClinicCommand request, CancellationToken cancellationToken)
         {
-            var dto = request.Dto;
 
             var user = await _userManager.FindByIdAsync(_currentUserService.UserId.ToString());
             if (user == null)
@@ -50,22 +49,22 @@ namespace ClinicHub.Application.Features.Clinics.Commands.SetupClinic
 
             var clinic = new Clinic
             {
-                Name = dto.Name,
-                NameAr = dto.Name,
-                Description = dto.Description,
-                ArDescription = dto.Description,
-                Address = dto.Address,
-                AddressAr = dto.Address,
-                Phone = dto.Phone,
-                Email = dto.Email,
-                Website = dto.Website,
-                Logo = dto.Logo,
-                WorkingHours = dto.WorkingHours,
-                WorkingHoursStart = dto.WorkingHoursStart,
-                WorkingHoursEnd = dto.WorkingHoursEnd,
-                WorkingDays = dto.WorkingDays != null ? string.Join(",", dto.WorkingDays) : null,
-                SpecializationId = dto.SpecializationId,
-                Location = new Point(dto.Lng, dto.Lat) { SRID = 4326 },
+                Name = request.Name,
+                NameAr = request.Name,
+                Description = request.Description,
+                ArDescription = request.Description,
+                Address = request.Address,
+                AddressAr = request.Address,
+                Phone = request.Phone,
+                Email = request.Email,
+                Website = request.Website,
+                Logo = request.Logo,
+                WorkingHours = request.WorkingHours,
+                WorkingHoursStart = request.WorkingHoursStart,
+                WorkingHoursEnd = request.WorkingHoursEnd,
+                WorkingDays = request.WorkingDays != null ? string.Join(",", request.WorkingDays) : null,
+                SpecializationId = request.SpecializationId,
+                Location = new Point(request.Lng, request.Lat) { SRID = 4326 },
                 IsRegistered = true,
                 Status = ClinicStatus.Active,
                 ClinicAdminId = user.Id
@@ -83,7 +82,7 @@ namespace ClinicHub.Application.Features.Clinics.Commands.SetupClinic
                 var doctor = new Doctor(
                     user.Id,
                     clinic.Id,
-                    dto.SpecializationId,
+                    request.SpecializationId,
                     string.Empty,
                     0);
                 doctor.MarkAsCreated(createdBy);
