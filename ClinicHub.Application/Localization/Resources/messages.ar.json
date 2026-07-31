@@ -122,8 +122,10 @@
   "Clinics": {
     "InvalidLatitude": "يجب أن يكون خط العرض بين -90 و 90",
     "InvalidLongitude": "يجب أن يكون خط الطول بين -180 و 180",
+    "InvalidCoordinates": "يجب إدخال خط العرض وخط الطول معًا",
     "InvalidRadius": "يجب أن يكون نصف قطر البحث بين 0.1 و 5 كم",
     "NotFound": "العيادة غير موجودة",
+    "SettingsUpdated": "تم تحديث إعدادات العيادة بنجاح",
     "DoctorNotFound": "الطبيب غير موجود",
     "EmailAlreadyExists": "البريد الإلكتروني مستخدم بالفعل من قبل عيادة أخرى",
     "PhoneAlreadyExists": "رقم الهاتف مستخدم بالفعل من قبل عيادة أخرى",

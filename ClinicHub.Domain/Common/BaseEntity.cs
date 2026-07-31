@@ -28,6 +28,12 @@ namespace ClinicHub.Domain.Common
             IsDeleted = false;
         }
 
+        public void SetActiveState(bool isActive, string updatedBy)
+        {
+            IsActive = isActive;
+            MarkAsUpdated(updatedBy);
+        }
+
         public virtual void MarkAsDeleted(string deletedBy)
         {
             IsDeleted = true;

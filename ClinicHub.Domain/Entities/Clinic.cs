@@ -16,6 +16,8 @@ namespace ClinicHub.Domain.Entities
         public string? Email { get; set; }
         public string? Website { get; set; }
         public string? Logo { get; set; }
+        public string? ResponsibleDoctor { get; set; }
+        public string? ManagerName { get; set; }
         public string? WorkingHours { get; set; }
         public TimeOnly? WorkingHoursStart { get; set; }
         public TimeOnly? WorkingHoursEnd { get; set; }
@@ -64,6 +66,24 @@ namespace ClinicHub.Domain.Entities
             WorkingDays = workingDays;
             SpecializationId = specializationId;
             MarkAsUpdated(updatedBy);
+        }
+
+        public void UpdateSettings(string name, string? responsibleDoctor, string? description, string? phone,
+            string? managerName, string? location, Guid specializationId, Point? locationPoint, bool isActive, string updatedBy)
+        {
+            Name = name;
+            ResponsibleDoctor = responsibleDoctor;
+            Description = description;
+            Phone = phone;
+            ManagerName = managerName;
+            Address = location;
+            AddressAr = location;
+            SpecializationId = specializationId;
+            if (locationPoint != null)
+            {
+                Location = locationPoint;
+            }
+            SetActiveState(isActive, updatedBy);
         }
     }
 }

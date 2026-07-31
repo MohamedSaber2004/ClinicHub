@@ -122,8 +122,10 @@
   "Clinics": {
     "InvalidLatitude": "Latitude must be between -90 and 90",
     "InvalidLongitude": "Longitude must be between -180 and 180",
+    "InvalidCoordinates": "Both latitude and longitude must be provided together",
     "InvalidRadius": "Search radius must be between 0.1 and 5 km",
     "NotFound": "Clinic not found",
+    "SettingsUpdated": "Clinic settings updated successfully",
     "DoctorNotFound": "Doctor not found",
     "EmailAlreadyExists": "This email is already used by another clinic",
     "PhoneAlreadyExists": "This phone number is already used by another clinic",

@@ -151,8 +151,10 @@ namespace ClinicHub.Application.Localization
         {
             public static readonly KeyString InvalidLatitude = new("Clinics.InvalidLatitude");
             public static readonly KeyString InvalidLongitude = new("Clinics.InvalidLongitude");
+            public static readonly KeyString InvalidCoordinates = new("Clinics.InvalidCoordinates");
             public static readonly KeyString InvalidRadius = new("Clinics.InvalidRadius");
             public static readonly KeyString ClinicNotFound = new("Clinics.NotFound");
+            public static readonly KeyString SettingsUpdated = new("Clinics.SettingsUpdated");
             public static readonly KeyString EmailAlreadyExists = new("Clinics.EmailAlreadyExists");
             public static readonly KeyString PhoneAlreadyExists = new("Clinics.PhoneAlreadyExists");
             public static readonly KeyString EmailNotFound = new("Clinics.EmailNotFound");

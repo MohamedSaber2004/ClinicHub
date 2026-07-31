@@ -9,11 +9,13 @@ using ClinicHub.Application.Features.Clinics.Commands.DeactivateClinic;
 using ClinicHub.Application.Features.Clinics.Commands.RejectBooking;
 using ClinicHub.Application.Features.Clinics.Commands.SetupClinic;
 using ClinicHub.Application.Features.Clinics.Commands.UpdateClinic;
+using ClinicHub.Application.Features.Clinics.Commands.UpdateClinicSettings;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicBookings;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicDashboardStats;
 using ClinicHub.Application.Features.Clinics.DTOs;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicById;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicDetails;
+using ClinicHub.Application.Features.Clinics.Queries.GetClinicSettings;
 using ClinicHub.Application.Features.Clinics.Queries.GetPaginatedClinics;
 using ClinicHub.Application.Features.Auth.DTOs;
 using ClinicHub.Domain.Enums;
@@ -172,6 +174,35 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> GetPaginated([FromQuery] GetPaginatedClinicsQuery query)
         {
             var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Retrieves the clinic settings of the currently authenticated clinic owner.
+        /// </summary>
+        [HttpGet]
+        [Route(ApiRoutes.ClinicManagement.Settings)]
+        [RoleAuthorize(nameof(UserType.ClinicOwner))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetSettings()
+        {
+            var result = await _mediator.Send(new GetClinicSettingsQuery());
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Updates the clinic settings of the currently authenticated clinic owner.
+        /// </summary>
+        [HttpPut]
+        [Route(ApiRoutes.ClinicManagement.Settings)]
+        [RoleAuthorize(nameof(UserType.ClinicOwner))]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdateSettings([FromBody] UpdateClinicSettingsCommand command)
+        {
+            var result = await _mediator.Send(command);
             return Ok(result);
         }
 

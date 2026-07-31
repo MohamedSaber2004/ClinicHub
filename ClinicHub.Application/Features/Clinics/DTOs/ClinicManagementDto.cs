@@ -19,6 +19,27 @@ namespace ClinicHub.Application.Features.Clinics.DTOs
         TimeOnly? WorkingHoursEnd = null,
         List<DayOfWeek>? WorkingDays = null);
 
+    public class ClinicSettingsDto
+    {
+        public string Name { get; set; } = null!;
+        public string? ResponsibleDoctor { get; set; }
+        public string? Description { get; set; }
+        public string? Phone { get; set; }
+        public string? ManagerName { get; set; }
+        public string? Location { get; set; }
+        public Guid SpecializationId { get; set; }
+        public string? SpecializationName { get; set; }
+        public string? SpecializationNameAr { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+        public bool IsActive { get; set; }
+        public decimal ConsultationFee { get; set; }
+        public string Currency { get; set; } = "EGP";
+        public int MaxAdvanceBookingDays { get; set; } = 30;
+        public int ReservationTtlMinutes { get; set; } = 10;
+        public int SlotDurationMinutes { get; set; } = 30;
+    }
+
     public class ClinicManagementDto
     {
         public Guid Id { get; set; }

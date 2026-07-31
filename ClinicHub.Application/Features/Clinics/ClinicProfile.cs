@@ -8,6 +8,13 @@ namespace ClinicHub.Application.Features.Clinics
     {
         public ClinicProfile()
         {
+            CreateMap<Clinic, ClinicSettingsDto>()
+                .ForMember(dest => dest.Location, opt => opt.MapFrom(src => src.Address))
+                .ForMember(dest => dest.Latitude, opt => opt.MapFrom(src => src.Location.Y))
+                .ForMember(dest => dest.Longitude, opt => opt.MapFrom(src => src.Location.X))
+                .ForMember(dest => dest.SpecializationName, opt => opt.MapFrom(src => src.Specialization.Name))
+                .ForMember(dest => dest.SpecializationNameAr, opt => opt.MapFrom(src => src.Specialization.ArName));
+
             CreateMap<Clinic, ClinicDto>()
                 .ForMember(dest => dest.Lat, opt => opt.MapFrom(src => src.Location.Y))
                 .ForMember(dest => dest.Lng, opt => opt.MapFrom(src => src.Location.X))
