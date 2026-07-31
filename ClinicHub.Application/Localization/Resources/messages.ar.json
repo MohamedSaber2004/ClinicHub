@@ -254,34 +254,6 @@
     "PlanIdRequired": "معرف الباقة مطلوب",
     "InvalidPeriod": "فترة الاشتراك غير صالحة"
   },
-  "Invoices": {
-    "NotFound": "الفاتورة غير موجودة",
-    "Created": "تم إنشاء الفاتورة بنجاح",
-    "Updated": "تم تحديث الفاتورة بنجاح",
-    "Deleted": "تم حذف الفاتورة بنجاح",
-    "AlreadyIssued": "تم إصدار هذه الفاتورة مسبقاً",
-    "CannotModifyIssued": "لا يمكن تعديل فاتورة تم إصدارها",
-    "InvalidStatus": "حالة الفاتورة لا تسمح بهذه العملية",
-    "Issued": "تم إصدار الفاتورة بنجاح",
-    "Cancelled": "تم إلغاء الفاتورة بنجاح",
-    "CancelledWithRefund": "تم إلغاء الفاتورة واسترداد المدفوعات بنجاح",
-    "StatsFetched": "تم استرداد إحصائيات الفواتير بنجاح",
-    "LineItemAdded": "تم إضافة البند بنجاح",
-    "LineItemUpdated": "تم تحديث البند بنجاح",
-    "LineItemRemoved": "تم حذف البند بنجاح",
-    "TaxOutOfRange": "نسبة الضريبة يجب أن تكون بين 0 و 100",
-    "AlreadyCancelled": "تم إلغاء هذه الفاتورة مسبقاً",
-    "CannotPayNotIssued": "يمكن دفع الفواتير الصادرة فقط",
-    "DiscountOutOfRange": "نسبة الخصم يجب أن تكون بين 0 و 100",
-    "AmountExceedsTotal": "المبلغ المدفوع يتجاوز إجمالي الفاتورة"
-  },
-  "InsuranceClaims": {
-    "NotFound": "مطالبة التأمين غير موجودة",
-    "Created": "تم تقديم مطالبة التأمين بنجاح",
-    "Approved": "تم اعتماد مطالبة التأمين",
-    "Rejected": "تم رفض مطالبة التأمين",
-    "PendingReview": "مطالبة التأمين قيد المراجعة"
-  },
   "SupportTickets": {
     "NotFound": "تذكرة الدعم غير موجودة",
     "StatusUpdated": "تم تحديث حالة تذكرة الدعم بنجاح"

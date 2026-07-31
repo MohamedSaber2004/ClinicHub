@@ -1,8 +1,2 @@
-﻿The error chain:
-1. Frontend loads specializations via _specializationService.GetAllAsync() → returns list with IDs
-2. User selects a specialization, submits the form
-3. Frontend sends SpecializationId (GUID) to the backend CreateUser API
-4. Backend API validates it → cannot find that specialization in its database → returns { message: "فشل التحقق", errors: { SpecializationId: ["التخصص غير موجود"] } }
-5. Error is now properly propagated to the UI
-Root cause: The specialization IDs in the frontend's dropdown (from GetAllAsync) don't match what the backend API's CreateUser endpoint has in its database. This is a data sync issue — the specialization data source used for the dropdown differs from the data source used for user creation validation.
-Check the backend API: ensure the specializations returned by the listing endpoint exist in the same database the CreateUser endpoint validates against
+﻿خطأ
+"خطتك الحالية لا تتضمن ميزة الفواتير والمالية. يرجى ترقية الاشتراك للوصول إليها."
