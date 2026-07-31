@@ -22,6 +22,7 @@ namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
     {
         public string DayOfWeek { get; set; } = null!;
         public WorkingHoursInfo? WorkingHours { get; set; }
+        public int SlotDurationMinutes { get; set; }
         public List<TimeSlotDto> Slots { get; set; } = new();
     }
 

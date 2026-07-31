@@ -1,6 +1,7 @@
 using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.Appointments.Commands.UpdateAppointment
@@ -46,11 +47,24 @@ namespace ClinicHub.Application.Features.Appointments.Commands.UpdateAppointment
             if (appointment == null) return false;
 
             var dayOfWeek = command.Dto.AppointmentDate.Value.DayOfWeek;
-            return await _ctx.DoctorAvailabilityRepository.ExistsAsync(a =>
-                a.DoctorId == appointment.DoctorId &&
-                a.DayOfWeek == dayOfWeek &&
-                a.StartTime <= command.Dto.StartTime.Value &&
-                a.EndTime >= command.Dto.EndTime.Value, cancellationToken);
+            var startTime = command.Dto.StartTime.Value;
+            var endTime = command.Dto.EndTime.Value;
+
+            var availabilities = await _ctx.DoctorAvailabilityRepository
+                .GetAllAsync(a => a.DoctorId == appointment.DoctorId && a.DayOfWeek == dayOfWeek)
+                .ToListAsync(cancellationToken);
+
+            return availabilities.Any(a =>
+                a.StartTime <= startTime &&
+                a.EndTime >= endTime &&
+                (endTime - startTime).TotalMinutes == a.SlotDurationMinutes &&
+                IsAlignedToSlot(a.StartTime, startTime, a.SlotDurationMinutes));
+        }
+
+        private static bool IsAlignedToSlot(TimeSpan availabilityStart, TimeSpan slotStart, int slotDurationMinutes)
+        {
+            var minutesSinceStart = (slotStart - availabilityStart).TotalMinutes;
+            return minutesSinceStart >= 0 && minutesSinceStart % slotDurationMinutes == 0;
         }
 
         private async Task<bool> HasOverlappingAppointment(UpdateAppointmentCommand command, CancellationToken cancellationToken)

@@ -92,9 +92,11 @@ ClinicHub.API/             # Controllers, routes, middleware
 
 **Step 11: Validator** (embedded in Command/Query file or separate)
 - Extend `AbstractValidator<T>` 
-- Inject `IStringLocalizer<Messages>` for error messages
+- Inject `IStringLocalizer<Messages>` for error messages; inject `IUnitOfWork` when rules need DB lookups (async)
 - Use `RuleFor(x => x.Property).NotEmpty().WithMessage(localizer[LocalizationKeys.SomeKey])` (no `JsonLocalizationProvider` wrapper needed in newer validators)
 - For list properties: `RuleForEach(x => x.List).ChildRules(item => { item.RuleFor(...)... })` to validate each item
+- For cross-property / DB-backed rules: `RuleFor(x => x).MustAsync(async (v, ct) => await SomeCheck(v..., ct)).WithName("Property").WithMessage(localizer[...]).When(x => x.Condition)` — async repo calls go through `IUnitOfWork` (e.g. `BookingConfigurationRepository`, `DoctorAvailabilityRepository`)
+- Mirror consistent domain constraints across all paths touching the same entity (e.g. the appointment slot-grid alignment check `(end - start).TotalMinutes == a.SlotDurationMinutes && IsAlignedToSlot(...)` exists in BOTH `CreateAppointmentCommandValidator` and `UpdateAppointmentCommandValidator`)
 - Validators auto-run via `ValidationBehaviour` pipeline — no manual invocation needed
 
 ### Phase 3: API Layer

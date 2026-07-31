@@ -17,7 +17,7 @@ namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
         public async Task<GetAvailableSlotsResponse> Handle(GetAvailableSlotsQuery request, CancellationToken cancellationToken)
         {
             var allAvailabilities = await _unitOfWork.DoctorAvailabilityRepository
-                .GetAllAsync(a => a.DoctorId == request.DoctorId)
+                .GetAllAsync(a => a.DoctorId == request.DoctorId && a.ClinicId == request.ClinicId)
                 .ToListAsync(cancellationToken);
 
             var response = new GetAvailableSlotsResponse
@@ -94,6 +94,7 @@ namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
                     From = availability.StartTime.ToString(@"hh\:mm"),
                     To = availability.EndTime.ToString(@"hh\:mm")
                 },
+                SlotDurationMinutes = slotDurationMinutes,
                 Slots = slots.OrderBy(s => s.StartTime).ToList()
             };
         }
