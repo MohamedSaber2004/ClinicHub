@@ -76,6 +76,14 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWeb
                     .FirstOrDefaultAsync(cancellationToken);
             }
 
+            if (!clinicId.HasValue)
+            {
+                clinicId = await _unitOfWork.DoctorRepository
+                    .GetAllAsync(d => d.UserId == user.Id && d.ClinicId != null && !d.IsDeleted)
+                    .Select(d => (Guid?)d.ClinicId)
+                    .FirstOrDefaultAsync(cancellationToken);
+            }
+
             var hasActiveSubscription = clinicId.HasValue
                 && await _unitOfWork.GetRepository<Subscription, Guid>()
                     .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > DateTime.UtcNow, cancellationToken);

@@ -66,10 +66,22 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
                 throw new ForbiddenException(_localizer[LocalizationKeys.AuthMessages.AccountPendingApproval.Value]);
 
             var roles = await _userManager.GetRolesAsync(user);
-            var clinicId = await _unitOfWork.ClinicRepository
-                .GetAllAsync(c => c.ClinicAdminId == user.Id && !c.IsDeleted)
-                .Select(c => (Guid?)c.Id)
-                .FirstOrDefaultAsync(cancellationToken);
+            var clinicId = user.ClinicId;
+            if (!clinicId.HasValue)
+            {
+                clinicId = await _unitOfWork.ClinicRepository
+                    .GetAllAsync(c => c.ClinicAdminId == user.Id && !c.IsDeleted)
+                    .Select(c => (Guid?)c.Id)
+                    .FirstOrDefaultAsync(cancellationToken);
+            }
+
+            if (!clinicId.HasValue)
+            {
+                clinicId = await _unitOfWork.DoctorRepository
+                    .GetAllAsync(d => d.UserId == user.Id && d.ClinicId != null && !d.IsDeleted)
+                    .Select(d => (Guid?)d.ClinicId)
+                    .FirstOrDefaultAsync(cancellationToken);
+            }
             var hasActiveSubscription = clinicId.HasValue
                 && await _unitOfWork.GetRepository<Subscription, Guid>()
                     .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > DateTime.UtcNow, cancellationToken);

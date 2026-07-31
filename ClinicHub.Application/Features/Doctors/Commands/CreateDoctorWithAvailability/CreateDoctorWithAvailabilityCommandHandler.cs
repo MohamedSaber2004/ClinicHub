@@ -57,6 +57,8 @@ namespace ClinicHub.Application.Features.Doctors.Commands.CreateDoctorWithAvaila
 
                 await _userManager.AddToRoleAsync(user, UserType.Doctor.ToString());
 
+                user.AssignToClinic(request.ClinicId);
+
                 var existingDoctor = await _unitOfWork.DoctorRepository
                     .GetAllAsync(d => d.UserId == user.Id && d.ClinicId == request.ClinicId)
                     .FirstOrDefaultAsync(cancellationToken);
