@@ -50,11 +50,20 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicSettings
 
         private async Task<int> GetReservationDurationAsync(Guid clinicId, CancellationToken cancellationToken)
         {
-            var availability = await _unitOfWork.DoctorAvailabilityRepository
+            var durations = await _unitOfWork.DoctorAvailabilityRepository
                 .GetAllAsync(a => a.ClinicId == clinicId && a.SlotDurationMinutes > 0)
-                .FirstOrDefaultAsync(cancellationToken);
+                .Select(a => a.SlotDurationMinutes)
+                .ToListAsync(cancellationToken);
 
-            return availability?.SlotDurationMinutes ?? 30;
+            if (durations.Count == 0)
+                return 30;
+
+            return durations
+                .GroupBy(d => d)
+                .OrderByDescending(g => g.Count())
+                .ThenBy(g => g.Key)
+                .First()
+                .Key;
         }
     }
 }
