@@ -145,7 +145,9 @@
     "Created": "Availability created successfully",
     "Updated": "Availability updated successfully",
     "Deleted": "Availability deleted successfully",
-    "Restored": "Availability restored successfully"
+    "Restored": "Availability restored successfully",
+    "DoctorNotAssignedToClinic": "Doctor must be assigned to a clinic to manage availability",
+    "NotOwnedByDoctor": "This availability slot does not belong to you"
   },
   "RealTime": {
     "MissingSocketInfo": "Missing socket_id or channel_name",

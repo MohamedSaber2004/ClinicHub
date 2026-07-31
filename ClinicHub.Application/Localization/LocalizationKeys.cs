@@ -178,6 +178,8 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString Updated = new("Availability.Updated");
             public static readonly KeyString Deleted = new("Availability.Deleted");
             public static readonly KeyString Restored = new("Availability.Restored");
+            public static readonly KeyString DoctorNotAssignedToClinic = new("Availability.DoctorNotAssignedToClinic");
+            public static readonly KeyString NotOwnedByDoctor = new("Availability.NotOwnedByDoctor");
         }
 
         public static class RatingMessages

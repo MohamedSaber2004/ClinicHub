@@ -1,6 +1,11 @@
 using Asp.Versioning;
 using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
+using ClinicHub.Application.Features.DoctorDashboard.Availability.Commands.CreateMyAvailability;
+using ClinicHub.Application.Features.DoctorDashboard.Availability.Commands.DeleteMyAvailability;
+using ClinicHub.Application.Features.DoctorDashboard.Availability.Commands.ReplaceWeeklyAvailability;
+using ClinicHub.Application.Features.DoctorDashboard.Availability.Commands.UpdateMyAvailability;
+using ClinicHub.Application.Features.DoctorDashboard.Availability.Queries.GetMyAvailability;
 using ClinicHub.Application.Features.DoctorDashboard.Commands.DoctorAcceptAppointment;
 using ClinicHub.Application.Features.DoctorDashboard.Commands.DoctorCompleteAppointment;
 using ClinicHub.Application.Features.DoctorDashboard.Commands.DoctorRejectAppointment;
@@ -92,6 +97,77 @@ namespace ClinicHub.API.Controllers.Version1
         {
             query.PatientUserId = patientId;
             var result = await _mediator.Send(query, ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Gets the logged-in doctor's full weekly schedule (raw availability rows).
+        /// </summary>
+        [HttpGet]
+        [Route(ApiRoutes.DoctorDashboard.Availability)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetMyAvailability(CancellationToken ct)
+        {
+            var result = await _mediator.Send(new GetMyAvailabilityQuery(), ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Creates a new availability slot for the logged-in doctor.
+        /// </summary>
+        [HttpPost]
+        [Route(ApiRoutes.DoctorDashboard.Availability)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CreateMyAvailability([FromBody] CreateMyAvailabilityCommand command, CancellationToken ct)
+        {
+            var result = await _mediator.Send(command, ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Updates one of the logged-in doctor's availability slots.
+        /// </summary>
+        [HttpPut]
+        [Route(ApiRoutes.DoctorDashboard.UpdateAvailability)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdateMyAvailability(Guid id, [FromBody] UpdateMyAvailabilityCommand command, CancellationToken ct)
+        {
+            command.Id = id;
+            var result = await _mediator.Send(command, ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Deletes one of the logged-in doctor's availability slots (soft delete).
+        /// </summary>
+        [HttpDelete]
+        [Route(ApiRoutes.DoctorDashboard.DeleteAvailability)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteMyAvailability(Guid id, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new DeleteMyAvailabilityCommand { Id = id }, ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Replaces the logged-in doctor's whole weekly schedule in one call
+        /// (creates new rows, updates existing ones, deletes rows not sent).
+        /// </summary>
+        [HttpPut]
+        [Route(ApiRoutes.DoctorDashboard.ReplaceWeeklyAvailability)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> ReplaceWeeklyAvailability([FromBody] ReplaceWeeklyAvailabilityCommand command, CancellationToken ct)
+        {
+            var result = await _mediator.Send(command, ct);
             return Ok(result);
         }
     }
