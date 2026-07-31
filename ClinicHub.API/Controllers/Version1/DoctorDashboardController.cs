@@ -9,10 +9,12 @@ using ClinicHub.Application.Features.DoctorDashboard.Availability.Queries.GetMyA
 using ClinicHub.Application.Features.DoctorDashboard.Commands.DoctorAcceptAppointment;
 using ClinicHub.Application.Features.DoctorDashboard.Commands.DoctorCompleteAppointment;
 using ClinicHub.Application.Features.DoctorDashboard.Commands.DoctorRejectAppointment;
+using ClinicHub.Application.Features.DoctorDashboard.Commands.UpdateAppointmentStatus;
 using ClinicHub.Application.Features.DoctorDashboard.Queries.GetDoctorAppointments;
 using ClinicHub.Application.Features.DoctorDashboard.Queries.GetDoctorDashboardStats;
 using ClinicHub.Application.Features.DoctorDashboard.Queries.GetDoctorPatients;
 using ClinicHub.Application.Features.DoctorDashboard.Queries.GetPatientHistory;
+using ClinicHub.Application.Features.DoctorDashboard.Queries.GetRecentAppointments;
 using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -34,6 +36,15 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> GetStats(CancellationToken ct)
         {
             var result = await _mediator.Send(new GetDoctorDashboardStatsQuery(), ct);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Route(ApiRoutes.DoctorDashboard.RecentAppointments)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetRecentAppointments([FromQuery] int limit = 5, CancellationToken ct = default)
+        {
+            var result = await _mediator.Send(new GetRecentAppointmentsQuery { Limit = limit }, ct);
             return Ok(result);
         }
 
@@ -77,6 +88,21 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> CompleteAppointment(Guid id, CancellationToken ct)
         {
             var result = await _mediator.Send(new DoctorCompleteAppointmentCommand { AppointmentId = id }, ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Unified status update: 1=Accept, 2=Reject/Cancel, 3=Complete.
+        /// </summary>
+        [HttpPut]
+        [Route(ApiRoutes.DoctorDashboard.UpdateAppointmentStatus)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> UpdateAppointmentStatus(Guid id, [FromBody] UpdateAppointmentStatusCommand command, CancellationToken ct)
+        {
+            command.AppointmentId = id;
+            var result = await _mediator.Send(command, ct);
             return Ok(result);
         }
 

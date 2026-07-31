@@ -220,7 +220,9 @@ namespace ClinicHub.API.Routes
         {
             public const string BaseRoute = Base + "/doctors";
             public const string Stats = BaseRoute + "/dashboard/stats";
+            public const string RecentAppointments = BaseRoute + "/dashboard/recent-appointments";
             public const string Appointments = BaseRoute + "/appointments";
+            public const string UpdateAppointmentStatus = BaseRoute + "/appointments/{id:guid}/status";
             public const string AcceptAppointment = BaseRoute + "/appointments/{id:guid}/accept";
             public const string RejectAppointment = BaseRoute + "/appointments/{id:guid}/reject";
             public const string CompleteAppointment = BaseRoute + "/appointments/{id:guid}/complete";

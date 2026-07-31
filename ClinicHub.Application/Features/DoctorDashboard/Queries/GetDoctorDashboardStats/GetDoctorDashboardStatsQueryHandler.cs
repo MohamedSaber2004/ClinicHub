@@ -39,11 +39,23 @@ namespace ClinicHub.Application.Features.DoctorDashboard.Queries.GetDoctorDashbo
                 .GetAllAsync(a => a.DoctorId == doctor.Id && !a.IsDeleted
                     && a.AppointmentDate >= todayStart && a.AppointmentDate < todayEnd);
 
+            var todayTotal = await todayAppointments.CountAsync(cancellationToken);
             var pending = await todayAppointments.CountAsync(a => a.Status == AppointmentStatus.Pending, cancellationToken);
             var accepted = await todayAppointments.CountAsync(a => a.Status == AppointmentStatus.Accepted, cancellationToken);
             var completed = await todayAppointments.CountAsync(a => a.Status == AppointmentStatus.Completed, cancellationToken);
             var cancelled = await todayAppointments.CountAsync(a => a.Status == AppointmentStatus.Cancelled
                 || a.Status == AppointmentStatus.Rejected, cancellationToken);
+
+            // All-time stats
+            var allAppointments = _unitOfWork.AppointmentRepository
+                .GetAllAsync(a => a.DoctorId == doctor.Id && !a.IsDeleted);
+
+            var allTimeCompleted = await allAppointments.CountAsync(a => a.Status == AppointmentStatus.Completed, cancellationToken);
+            var totalPatients = await allAppointments
+                .Where(a => a.Status == AppointmentStatus.Completed)
+                .Select(a => a.BookedByUserId)
+                .Distinct()
+                .CountAsync(cancellationToken);
 
             var weekPatients = await _unitOfWork.AppointmentRepository
                 .GetAllAsync(a => a.DoctorId == doctor.Id && !a.IsDeleted
@@ -68,9 +80,11 @@ namespace ClinicHub.Application.Features.DoctorDashboard.Queries.GetDoctorDashbo
 
             return new DoctorDashboardStatsDto
             {
-                PendingAppointments = pending,
+                TodayAppointmentsCount = todayTotal,
+                TotalPatientsCount = totalPatients,
+                PendingAppointmentsCount = pending,
+                CompletedAppointmentsCount = allTimeCompleted,
                 AcceptedAppointments = accepted,
-                CompletedAppointments = completed,
                 CancelledAppointments = cancelled,
                 TotalPatientsThisWeek = weekPatients,
                 NextAppointment = nextDto
