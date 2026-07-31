@@ -254,6 +254,34 @@
     "PlanIdRequired": "Plan ID is required",
     "InvalidPeriod": "Invalid subscription period"
   },
+  "Invoices": {
+    "NotFound": "Invoice not found",
+    "Created": "Invoice created successfully",
+    "Updated": "Invoice updated successfully",
+    "Deleted": "Invoice deleted successfully",
+    "AlreadyIssued": "This invoice has already been issued",
+    "CannotModifyIssued": "Cannot modify an issued invoice",
+    "InvalidStatus": "Invoice status does not allow this operation",
+    "Issued": "Invoice issued successfully",
+    "Cancelled": "Invoice cancelled successfully",
+    "CancelledWithRefund": "Invoice cancelled and payments refunded successfully",
+    "StatsFetched": "Invoice statistics retrieved successfully",
+    "LineItemAdded": "Line item added successfully",
+    "LineItemUpdated": "Line item updated successfully",
+    "LineItemRemoved": "Line item removed successfully",
+    "TaxOutOfRange": "Tax rate must be between 0 and 100",
+    "AlreadyCancelled": "This invoice has already been cancelled",
+    "CannotPayNotIssued": "Only issued invoices can be paid",
+    "DiscountOutOfRange": "Percentage discount must be between 0 and 100",
+    "AmountExceedsTotal": "Payment amount exceeds the invoice total"
+  },
+  "InsuranceClaims": {
+    "NotFound": "Insurance claim not found",
+    "Created": "Insurance claim submitted successfully",
+    "Approved": "Insurance claim approved",
+    "Rejected": "Insurance claim rejected",
+    "PendingReview": "Insurance claim is pending review"
+  },
   "SupportTickets": {
     "NotFound": "Support ticket not found",
     "StatusUpdated": "Support ticket status updated successfully"

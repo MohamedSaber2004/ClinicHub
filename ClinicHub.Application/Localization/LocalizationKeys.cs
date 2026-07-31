@@ -300,6 +300,38 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString NotPending = new("Advertisements.NotPending");
         }
 
+        public static class InvoiceMessages
+        {
+            public static readonly KeyString NotFound = new("Invoices.NotFound");
+            public static readonly KeyString Created = new("Invoices.Created");
+            public static readonly KeyString Updated = new("Invoices.Updated");
+            public static readonly KeyString Deleted = new("Invoices.Deleted");
+            public static readonly KeyString AlreadyIssued = new("Invoices.AlreadyIssued");
+            public static readonly KeyString CannotModifyIssued = new("Invoices.CannotModifyIssued");
+            public static readonly KeyString InvalidStatus = new("Invoices.InvalidStatus");
+            public static readonly KeyString Issued = new("Invoices.Issued");
+            public static readonly KeyString Cancelled = new("Invoices.Cancelled");
+            public static readonly KeyString CancelledWithRefund = new("Invoices.CancelledWithRefund");
+            public static readonly KeyString StatsFetched = new("Invoices.StatsFetched");
+            public static readonly KeyString LineItemAdded = new("Invoices.LineItemAdded");
+            public static readonly KeyString LineItemUpdated = new("Invoices.LineItemUpdated");
+            public static readonly KeyString LineItemRemoved = new("Invoices.LineItemRemoved");
+            public static readonly KeyString TaxOutOfRange = new("Invoices.TaxOutOfRange");
+            public static readonly KeyString AlreadyCancelled = new("Invoices.AlreadyCancelled");
+            public static readonly KeyString CannotPayNotIssued = new("Invoices.CannotPayNotIssued");
+            public static readonly KeyString DiscountOutOfRange = new("Invoices.DiscountOutOfRange");
+            public static readonly KeyString AmountExceedsTotal = new("Invoices.AmountExceedsTotal");
+        }
+
+        public static class InsuranceClaimMessages
+        {
+            public static readonly KeyString NotFound = new("InsuranceClaims.NotFound");
+            public static readonly KeyString Created = new("InsuranceClaims.Created");
+            public static readonly KeyString Approved = new("InsuranceClaims.Approved");
+            public static readonly KeyString Rejected = new("InsuranceClaims.Rejected");
+            public static readonly KeyString PendingReview = new("InsuranceClaims.PendingReview");
+        }
+
         public static class SupportTicketMessages
         {
             public static readonly KeyString NotFound = new("SupportTickets.NotFound");

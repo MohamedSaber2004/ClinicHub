@@ -13,6 +13,7 @@ namespace ClinicHub.Domain.Enums
         ManageStaff = 64,
         ManageDoctors = 128,
         OnlineBooking = 256,
+        ManageBilling = 512,
         All = ~0
     }
 }

@@ -315,6 +315,27 @@ namespace ClinicHub.API.Routes
             public const string ChangePassword = Base + "/admin/clinics/doctors/{id:guid}/change-password";
         }
 
+        public static class Invoices
+        {
+            public const string BaseRoute = Base + "/clinics/{clinicId:guid}/invoices";
+            public const string GetAll = BaseRoute;
+            public const string GetById = BaseRoute + "/{invoiceId:guid}";
+            public const string Create = BaseRoute;
+            public const string Update = BaseRoute + "/{invoiceId:guid}";
+            public const string Issue = BaseRoute + "/{invoiceId:guid}/issue";
+            public const string Cancel = BaseRoute + "/{invoiceId:guid}/cancel";
+            public const string Stats = BaseRoute + "/stats";
+        }
+
+        public static class InvoicePayments
+        {
+            public const string BaseRoute = Base + "/clinics/{clinicId:guid}/payments";
+            public const string Record = BaseRoute;
+            public const string GetAll = BaseRoute;
+            public const string GetById = BaseRoute + "/{paymentId:guid}";
+            public const string Refund = BaseRoute + "/{paymentId:guid}/refund";
+        }
+
         public static class DeepLinks
         {
             public const string BaseRoute = Base + "/deep-links";
