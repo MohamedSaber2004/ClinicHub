@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common.Services;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
@@ -12,6 +13,7 @@ namespace ClinicHub.Application.Features.Doctors.Commands.CreateDoctorWithAvaila
     public class CreateDoctorWithAvailabilityCommandValidator : AbstractValidator<CreateDoctorWithAvailabilityCommand>
     {
         private readonly IUnitOfWork _ctx;
+        private readonly IStringLocalizer<Messages> _localizer;
 
         public CreateDoctorWithAvailabilityCommandValidator(
             IStringLocalizer<Messages> localizer,
@@ -19,6 +21,8 @@ namespace ClinicHub.Application.Features.Doctors.Commands.CreateDoctorWithAvaila
             UserManager<ApplicationUser> userManager)
         {
             _ctx = ctx;
+            _localizer = localizer;
+            PlanLimitResult? doctorLimit = null;
 
             RuleFor(v => v.FullName)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
@@ -51,6 +55,15 @@ namespace ClinicHub.Application.Features.Doctors.Commands.CreateDoctorWithAvaila
             RuleFor(v => v.ClinicId)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
                 .MustAsync(ClinicExists).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ClinicMessages.ClinicNotFound.Value]));
+
+            RuleFor(v => v.ClinicId)
+                .MustAsync(async (clinicId, ct) =>
+                {
+                    doctorLimit = await PlanLimitService.CanAddDoctorAsync(_ctx, clinicId, ct);
+                    return doctorLimit.Allowed;
+                })
+                .WithMessage(v => JsonLocalizationProvider.GetLocalizedString(
+                    _localizer[LocalizationKeys.SubscriptionMessages.DoctorLimitReached.Value, doctorLimit!.Limit ?? 0]));
 
             RuleFor(v => v.SpecializationId)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))

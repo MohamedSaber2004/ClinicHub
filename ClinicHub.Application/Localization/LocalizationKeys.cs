@@ -289,6 +289,8 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString Cancelled = new("Subscriptions.Cancelled");
             public static readonly KeyString Revoked = new("Subscriptions.Revoked");
             public static readonly KeyString LoginRequiresSubscription = new("Subscriptions.LoginRequiresSubscription");
+            public static readonly KeyString DoctorLimitReached = new("Subscriptions.DoctorLimitReached");
+            public static readonly KeyString StaffLimitReached = new("Subscriptions.StaffLimitReached");
         }
 
         public static class AdvertisementMessages

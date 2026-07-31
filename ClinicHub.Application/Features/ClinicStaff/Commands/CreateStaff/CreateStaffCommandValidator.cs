@@ -1,5 +1,8 @@
+using ClinicHub.Application.Common.Interfaces;
+using ClinicHub.Application.Common.Services;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
+using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -9,8 +12,20 @@ namespace ClinicHub.Application.Features.ClinicStaff.Commands.CreateStaff
 {
     public class CreateStaffCommandValidator : AbstractValidator<CreateStaffCommand>
     {
-        public CreateStaffCommandValidator(IStringLocalizer<Messages> localizer, UserManager<ApplicationUser> userManager)
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUserService;
+        private readonly IStringLocalizer<Messages> _localizer;
+
+        public CreateStaffCommandValidator(
+            IStringLocalizer<Messages> localizer,
+            UserManager<ApplicationUser> userManager,
+            IUnitOfWork unitOfWork,
+            ICurrentUserService currentUserService)
         {
+            _unitOfWork = unitOfWork;
+            _currentUserService = currentUserService;
+            _localizer = localizer;
+            PlanLimitResult? staffLimit = null;
             RuleFor(v => v.FullName)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
                 .MaximumLength(200).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
@@ -35,6 +50,19 @@ namespace ClinicHub.Application.Features.ClinicStaff.Commands.CreateStaff
             RuleFor(v => v.Password)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
                 .MinimumLength(6).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MinLength.Value]));
+
+            RuleFor(v => v)
+                .MustAsync(async (_, ct) =>
+                {
+                    var clinicId = _currentUserService.CurrentClinicId;
+                    if (clinicId == null)
+                        return true;
+
+                    staffLimit = await PlanLimitService.CanAddStaffAsync(_unitOfWork, userManager, clinicId.Value, ct);
+                    return staffLimit.Allowed;
+                })
+                .WithMessage(_ => JsonLocalizationProvider.GetLocalizedString(
+                    _localizer[LocalizationKeys.SubscriptionMessages.StaffLimitReached.Value, staffLimit!.Limit ?? 0]));
         }
     }
 }
