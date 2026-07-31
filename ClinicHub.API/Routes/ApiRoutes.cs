@@ -131,6 +131,7 @@ namespace ClinicHub.API.Routes
         public static class Appointments
         {
             public const string Create = Base + "/appointments";
+            public const string CreateAdminDashboard = Base + "/admin/dashboard/appointments";
             public const string GetAll = Base + "/appointments";
             public const string GetById = Base + "/appointments/{id:guid}";
             public const string Update = Base + "/appointments/{id:guid}";
@@ -151,6 +152,7 @@ namespace ClinicHub.API.Routes
         public static class Slots
         {
             public const string GetByDoctor = Base + "/clinics/{clinicId:guid}/doctors/{doctorId:guid}/slots";
+            public const string GetByDoctorAdminDashboard = Base + "/admin/dashboard/clinics/{clinicId:guid}/doctors/{doctorId:guid}/slots";
         }
 
         public static class Reservations
@@ -224,10 +226,10 @@ namespace ClinicHub.API.Routes
             public const string CompleteAppointment = BaseRoute + "/appointments/{id:guid}/complete";
             public const string Patients = BaseRoute + "/patients";
             public const string PatientHistory = BaseRoute + "/patients/{patientId:guid}/history";
-            public const string Availability = BaseRoute + "/availability";
-            public const string UpdateAvailability = BaseRoute + "/availability/{id:guid}";
-            public const string DeleteAvailability = BaseRoute + "/availability/{id:guid}";
-            public const string ReplaceWeeklyAvailability = BaseRoute + "/availability/week";
+            public const string Availability = BaseRoute + "/doctors/availability";
+            public const string UpdateAvailability = BaseRoute + "/doctors/availability/{id:guid}";
+            public const string DeleteAvailability = BaseRoute + "/doctors/availability/{id:guid}";
+            public const string ReplaceWeeklyAvailability = BaseRoute + "/doctors/availability/week";
         }
 
         public static class StaffDashboard

@@ -114,7 +114,26 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
                 .ToListAsync(cancellationToken))
                 .ToLookup(ur => ur.UserId, ur => ur.RoleId);
 
-            var dtos = users.Select(user => new UserDto
+            var pagedUserIds = users.Select(u => u.Id).ToList();
+
+            var appointmentsLookup = (await _unitOfWork.AppointmentRepository
+                .GetAllAsync(a => pagedUserIds.Contains(a.BookedByUserId) && !a.IsDeleted)
+                .GroupBy(a => a.BookedByUserId)
+                .Select(g => new { UserId = g.Key, TotalVisits = g.Count(a => a.Status == AppointmentStatus.Completed), TotalSpent = g.Count() * 100m })
+                .ToListAsync(cancellationToken))
+                .ToDictionary(a => a.UserId);
+
+            var ratingsLookup = (await _unitOfWork.GetRepository<Rating, Guid>()
+                .GetAllAsync(r => pagedUserIds.Contains(r.UserId) && !r.IsDeleted)
+                .GroupBy(r => r.UserId)
+                .Select(g => new { UserId = g.Key, AvgRating = g.Average(r => (double)r.Value) })
+                .ToListAsync(cancellationToken))
+                .ToDictionary(r => r.UserId);
+
+            var dtos = users.Select(user => {
+                var stats = appointmentsLookup.GetValueOrDefault(user.Id);
+                var rating = ratingsLookup.GetValueOrDefault(user.Id);
+                return new UserDto
                 {
                     Id = user.Id,
                     FullName = user.FullName,
@@ -124,12 +143,16 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
                     Gender = user.Gender,
                     IsActive = user.IsActive && !user.IsDeleted,
                     CreatedAt = user.CreatedAt,
+                    TotalVisits = stats?.TotalVisits ?? 0,
+                    TotalSpent = stats?.TotalSpent ?? 0m,
+                    AvgRating = rating?.AvgRating ?? 0.0,
                     Roles = (userRoleLookup[user.Id]
                         .Select(roleId => roleIdToName.GetValueOrDefault(roleId, string.Empty))
                         .Select(r => Enum.TryParse<UserType>(r, ignoreCase: true, out var ut) ? ut : UserType.None)
                         .Where(ut => ut != UserType.None)
                         .ToList() as IList<UserType>) ?? []
-                }).ToList();
+                };
+            }).ToList();
 
             return new PagginatedResult<UserDto>(dtos.AsReadOnly(), totalCount, request.PageNumber, request.PageSize);
         }

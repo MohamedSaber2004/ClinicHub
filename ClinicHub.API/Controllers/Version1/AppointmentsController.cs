@@ -57,6 +57,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// </summary>
         [HttpPost]
         [Route(ApiRoutes.Appointments.Create)]
+        [Route(ApiRoutes.Appointments.CreateAdminDashboard)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Create([FromBody] CreateAppointmentCommand command)

@@ -13,5 +13,8 @@ namespace ClinicHub.Application.Features.Users.DTOs
         public bool IsActive { get; set; }
         public IList<UserType> Roles { get; set; } = new List<UserType>();
         public DateTime CreatedAt { get; set; }
+        public int TotalVisits { get; set; }
+        public double AvgRating { get; set; }
+        public decimal TotalSpent { get; set; }
     }
 }

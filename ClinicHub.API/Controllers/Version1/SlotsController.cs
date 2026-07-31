@@ -15,6 +15,7 @@ namespace ClinicHub.API.Controllers.Version1
 
         [HttpGet]
         [Route(ApiRoutes.Slots.GetByDoctor)]
+        [Route(ApiRoutes.Slots.GetByDoctorAdminDashboard)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetByDoctor(
