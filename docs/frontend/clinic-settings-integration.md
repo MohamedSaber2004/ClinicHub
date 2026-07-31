@@ -58,10 +58,16 @@ public string Settings => $"{AdminBaseRoute}/settings";
 | `maxAdvanceBookingDays` | ✅ | Must be > 0 |
 | `reservationTtlMinutes` | ✅ | Must be > 0 |
 | `currency` | ❌ | Max 3 chars; omitted/empty → `"EGP"` |
-| `responsibleDoctor` / `description` / `managerName` / `location` | ❌ | Max 200 / 1000 / 200 / 500 chars |
+| `responsibleDoctor` | ❌ | **Read-only, ignored on save** — always the clinic admin's name (see below) |
+| `description` / `managerName` / `location` | ❌ | Max 1000 / 200 / 500 chars |
 | `phone` | ❌ | Pattern `^01[0125][0-9]{8}$` (Egyptian mobile), max 11 |
 | `latitude` / `longitude` | ❌ | Must be sent **together**; ranges `-90..90` / `-180..180`; 6-decimal precision |
 | `isActive` | ❌ | Default `true` |
+
+**`responsibleDoctor` (الطبيب المسؤول):** the responsible doctor is **always the clinic admin**
+(the logged-in Clinic Owner) — there is no free-text input. The backend loads it from the clinic
+admin account's full name on GET, and ignores any value sent on PUT. The frontend should render it
+as a **disabled/read-only field** (e.g. display the logged-in owner's name).
 
 ---
 
@@ -149,10 +155,11 @@ Based on a review of `Views/Clinic/Settings.cshtml` + `Data/MockClinic`:
 | 1 | Form field ids (`settingsName`, `settingsDoctor`, `settingsDesc`, `settingsPhone`, `settingsManager`, `settingsLocation`, `settingsLat`, `settingsLng`, `settingsActive`) map 1:1 to the payload | ✅ already correct |
 | 2 | `settingsSpecialty` must send **`specializationId`** (Guid), not the Arabic name | ❌ fix — replace `MockClinic.Specialty` with `specializationId` + localized name from the GET response |
 | 3 | Specialty dropdown options from `GET /api/v1/specializations/active` (id → name), not the hardcoded 5 items | ❌ fix |
-| 4 | Add inputs: `consultationFee`, `currency`, `maxAdvanceBookingDays`, `reservationTtlMinutes` (booking section) | ❌ add |
-| 5 | Show `slotDurationMinutes` as read-only info (e.g. "مدة الحجز: 30 دقيقة") | ❌ add |
-| 6 | Replace `MockClinic` with the real GET response (`IClinicService` pattern: request model + response DTO + route in `DoctoryRoutes`) | ❌ add |
-| 7 | Wire `#saveSettingsBtn` to `PUT /api/v1/admin/clinics/settings` and show backend errors (`ApiErrorExtractor`) | ❌ add — currently alert-only |
+| 4 | `settingsDoctor` is **read-only** — pre-fill from GET `responsibleDoctor` (clinic admin's name), do not submit a different value | ❌ fix — render disabled |
+| 5 | Add inputs: `consultationFee`, `currency`, `maxAdvanceBookingDays`, `reservationTtlMinutes` (booking section) | ❌ add |
+| 6 | Show `slotDurationMinutes` as read-only info (e.g. "مدة الحجز: 30 دقيقة") | ❌ add |
+| 7 | Replace `MockClinic` with the real GET response (`IClinicService` pattern: request model + response DTO + route in `DoctoryRoutes`) | ❌ add |
+| 8 | Wire `#saveSettingsBtn` to `PUT /api/v1/admin/clinics/settings` and show backend errors (`ApiErrorExtractor`) | ❌ add — currently alert-only |
 
 Recommended service contract (mirrors existing `IClinicService` methods):
 

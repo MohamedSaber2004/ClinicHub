@@ -32,10 +32,13 @@ namespace ClinicHub.Application.Features.Clinics.Commands.UpdateClinicSettings
             var clinic = await _unitOfWork.ClinicRepository
                 .GetAllAsync(c => c.Id == clinicId)
                 .Include(c => c.Specialization)
+                .Include(c => c.ClinicAdmin)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (clinic == null)
                 throw new NotFoundException(LocalizationKeys.ClinicMessages.ClinicNotFound.Value);
+
+            var responsibleDoctor = clinic.ClinicAdmin?.FullName ?? request.ResponsibleDoctor;
 
             var locationPoint = request.Latitude.HasValue && request.Longitude.HasValue
                 ? new Point(request.Longitude.Value, request.Latitude.Value) { SRID = 4326 }
@@ -47,7 +50,7 @@ namespace ClinicHub.Application.Features.Clinics.Commands.UpdateClinicSettings
 
             clinic.UpdateSettings(
                 request.Name,
-                request.ResponsibleDoctor,
+                responsibleDoctor,
                 request.Description,
                 request.Phone,
                 request.ManagerName,

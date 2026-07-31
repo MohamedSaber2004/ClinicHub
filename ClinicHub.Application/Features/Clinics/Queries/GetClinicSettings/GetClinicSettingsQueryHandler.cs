@@ -30,6 +30,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicSettings
             var clinic = await _unitOfWork.ClinicRepository
                 .GetAllAsync(c => c.Id == clinicId)
                 .Include(c => c.Specialization)
+                .Include(c => c.ClinicAdmin)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (clinic == null)
@@ -38,6 +39,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicSettings
             var bookingConfig = await _unitOfWork.BookingConfigurationRepository.GetByClinicIdAsync(clinicId);
 
             var dto = _mapper.Map<ClinicSettingsDto>(clinic);
+            dto.ResponsibleDoctor = clinic.ClinicAdmin?.FullName ?? dto.ResponsibleDoctor;
             dto.ConsultationFee = bookingConfig?.ConsultationFee ?? 0;
             dto.Currency = bookingConfig?.Currency ?? "EGP";
             dto.MaxAdvanceBookingDays = bookingConfig?.MaxAdvanceBookingDays ?? 30;
