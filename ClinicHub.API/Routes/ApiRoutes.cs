@@ -228,10 +228,10 @@ namespace ClinicHub.API.Routes
             public const string CompleteAppointment = BaseRoute + "/appointments/{id:guid}/complete";
             public const string Patients = BaseRoute + "/patients";
             public const string PatientHistory = BaseRoute + "/patients/{patientId:guid}/history";
-            public const string Availability = BaseRoute + "/doctors/availability";
-            public const string UpdateAvailability = BaseRoute + "/doctors/availability/{id:guid}";
-            public const string DeleteAvailability = BaseRoute + "/doctors/availability/{id:guid}";
-            public const string ReplaceWeeklyAvailability = BaseRoute + "/doctors/availability/week";
+            public const string Availability = BaseRoute + "/availability";
+            public const string UpdateAvailability = BaseRoute + "/availability/{id:guid}";
+            public const string DeleteAvailability = BaseRoute + "/availability/{id:guid}";
+            public const string ReplaceWeeklyAvailability = BaseRoute + "/availability/week";
         }
 
         public static class StaffDashboard
