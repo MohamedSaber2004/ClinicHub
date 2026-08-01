@@ -10,6 +10,7 @@ namespace ClinicHub.Application.Features.Users.DTOs
         public string PhoneNumber { get; set; } = null!;
         public DateTime? BirthDate { get; set; }
         public Gender? Gender { get; set; }
+        public string? Image { get; set; }
         public bool IsActive { get; set; }
         public IList<UserType> Roles { get; set; } = new List<UserType>();
         public DateTime CreatedAt { get; set; }

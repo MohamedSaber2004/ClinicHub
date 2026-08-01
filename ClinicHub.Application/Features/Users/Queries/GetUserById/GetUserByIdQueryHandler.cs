@@ -32,6 +32,7 @@ namespace ClinicHub.Application.Features.Users.Queries.GetUserById
                 PhoneNumber = user.PhoneNumber ?? string.Empty,
                 BirthDate = user.BirthDate,
                 Gender = user.Gender,
+                Image = user.ProfilePictureUrl,
                 IsActive = user.IsActive,
                 CreatedAt = user.CreatedAt,
                 Roles = roles

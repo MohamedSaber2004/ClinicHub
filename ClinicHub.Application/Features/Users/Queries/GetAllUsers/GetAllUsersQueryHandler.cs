@@ -141,6 +141,7 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
                     PhoneNumber = user.PhoneNumber ?? string.Empty,
                     BirthDate = user.BirthDate,
                     Gender = user.Gender,
+                    Image = user.ProfilePictureUrl,
                     IsActive = user.IsActive && !user.IsDeleted,
                     CreatedAt = user.CreatedAt,
                     TotalVisits = stats?.TotalVisits ?? 0,
