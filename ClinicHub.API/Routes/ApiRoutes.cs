@@ -288,10 +288,6 @@ namespace ClinicHub.API.Routes
             public const string AllSubscriptions = Base + "/admin/dashboard/subscriptions";
             public const string CreateSubscription = Base + "/admin/dashboard/subscriptions";
             public const string RevokeSubscription = Base + "/admin/dashboard/subscriptions/{id:guid}/revoke";
-            public const string Advertisements = Base + "/admin/dashboard/advertisements";
-            public const string ApproveAdvertisement = Base + "/admin/dashboard/advertisements/{id:guid}/approve";
-            public const string RejectAdvertisement = Base + "/admin/dashboard/advertisements/{id:guid}/reject";
-            public const string DeleteAdvertisement = Base + "/admin/dashboard/advertisements/{id:guid}";
         }
 
         public static class AdminPayments
@@ -306,18 +302,24 @@ namespace ClinicHub.API.Routes
 
         public static class AdminAds
         {
+            public const string GetAll = Base + "/admin/ads";
+            public const string Deactivate = Base + "/admin/ads/{id:guid}/deactivate";
             public const string EligibleClinics = Base + "/admin/ads/eligible-clinics";
             public const string Packages = Base + "/admin/ads/packages";
+            public const string PackageById = Packages + "/{id:guid}";
             public const string Orders = Base + "/admin/ads/orders";
         }
 
-        public static class Advertisements
+        public static class Ads
         {
-            public const string BaseRoute = Base + "/advertisements";
-            public const string MyAdvertisements = BaseRoute + "/my";
-            public const string Create = BaseRoute;
-            public const string Update = BaseRoute + "/{id:guid}";
-            public const string Delete = BaseRoute + "/{id:guid}";
+            public const string MyAds = Base + "/clinics/{clinicId:guid}/ads";
+            public const string CreateOrder = Base + "/clinics/{clinicId:guid}/ads/orders";
+            public const string Packages = Base + "/ads/packages";
+        }
+
+        public static class PublicAds
+        {
+            public const string Active = Base + "/public/ads/active";
         }
 
         public static class ClinicStaff

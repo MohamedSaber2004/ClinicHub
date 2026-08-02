@@ -52,7 +52,7 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
                 .MustAsync(async (v, ct) => await IsWithinBookingWindow(v.ClinicId, v.AppointmentDate, ct))
                 .WithName("AppointmentDate")
                 .WithMessage(localizer[LocalizationKeys.BookingMessages.InvalidDate])
-                .MustAsync(async (v, ct) => await DoctorIsAvailable(v.DoctorId, v.AppointmentDate, v.StartTime, v.EndTime, ct))
+                .MustAsync(async (v, ct) => await DoctorIsAvailable(v.DoctorId, v.ClinicId, v.AppointmentDate, v.StartTime, v.EndTime, ct))
                 .WithName("Appointment")
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AppointmentMessages.DoctorNotAvailableAtThisTime.Value]))
                 .MustAsync(async (v, ct) => !await HasOverlappingAppointment(v.DoctorId, v.AppointmentDate, v.StartTime, v.EndTime, ct))
@@ -81,18 +81,20 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
             return config == null || appointmentDate.Date <= DateTime.UtcNow.Date.AddDays(config.MaxAdvanceBookingDays);
         }
 
-        private async Task<bool> DoctorIsAvailable(Guid doctorId, DateTime appointmentDate, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken)
+        private async Task<bool> DoctorIsAvailable(Guid doctorId, Guid clinicId, DateTime appointmentDate, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken)
         {
             var dayOfWeek = appointmentDate.DayOfWeek;
+            var durationMinutes = (endTime - startTime).TotalMinutes;
 
             var availabilities = await _ctx.DoctorAvailabilityRepository
-                .GetAllAsync(a => a.DoctorId == doctorId && a.DayOfWeek == dayOfWeek)
+                .GetAllAsync(a => a.DoctorId == doctorId && a.ClinicId == clinicId && a.DayOfWeek == dayOfWeek)
                 .ToListAsync(cancellationToken);
 
             return availabilities.Any(a =>
                 a.StartTime <= startTime &&
                 a.EndTime >= endTime &&
-                (endTime - startTime).TotalMinutes == a.SlotDurationMinutes &&
+                durationMinutes >= a.SlotDurationMinutes &&
+                durationMinutes % a.SlotDurationMinutes == 0 &&
                 IsAlignedToSlot(a.StartTime, startTime, a.SlotDurationMinutes));
         }
 

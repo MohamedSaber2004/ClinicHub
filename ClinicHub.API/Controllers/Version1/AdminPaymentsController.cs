@@ -7,7 +7,6 @@ using ClinicHub.Application.Features.AdminPayments.Commands.RefundPayment;
 using ClinicHub.Application.Features.AdminPayments.Queries.GetAdminPaymentDetail;
 using ClinicHub.Application.Features.AdminPayments.Queries.GetAdminPayments;
 using ClinicHub.Application.Features.AdminPayments.Queries.GetAdminPaymentStats;
-using ClinicHub.Application.Features.AdminPayments.Queries.GetAdPackages;
 using ClinicHub.Application.Features.AdminPayments.Queries.GetEligibleAdsClinics;
 using ClinicHub.Domain.Enums;
 using MediatR;
@@ -80,15 +79,6 @@ public class AdminPaymentsController : BaseApiController
     public async Task<IActionResult> GetEligibleAdsClinics(CancellationToken ct)
     {
         var result = await _mediator.Send(new GetEligibleAdsClinicsQuery(), ct);
-        return Ok(result);
-    }
-
-    [HttpGet]
-    [Route(ApiRoutes.AdminAds.Packages)]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAdPackages(CancellationToken ct)
-    {
-        var result = await _mediator.Send(new GetAdPackagesQuery(), ct);
         return Ok(result);
     }
 

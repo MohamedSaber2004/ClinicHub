@@ -1,2 +1,62 @@
-﻿خطأ
-"خطتك الحالية لا تتضمن ميزة الفواتير والمالية. يرجى ترقية الاشتراك للوصول إليها."
+﻿I/flutter (12559): onChange -- BookingCubit -- Change { currentState: Instance of 'BookingData', nextState: Instance of 'BookingData' }
+I/flutter (12559): 🚀 [DioConsumer] Executing request...
+I/flutter (12559): 
+I/flutter (12559): ╔╣ Request ║ POST 
+I/flutter (12559): ║  https://doctory-icare.runasp.net/api/v1/reservations
+I/flutter (12559): ╚══════════════════════════════════════════════════════════════════════════════════════════╝
+I/flutter (12559): ╔ Headers 
+I/flutter (12559): ╟ Accept: application/json
+I/flutter (12559): ╟ Accept-Language: ar
+I/flutter (12559): ╟ Content-Type: application/json
+I/flutter (12559): ╟ Authorization: 
+I/flutter (12559): ║ Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI1YWFmZDJhMS1iNjE3LTQ3MTktYWI2ZS0wOG
+I/flutter (12559): ║ RlYmI1MmQxZWQiLCJlbWFpbCI6Im1hbjEyMDc0NjhAZ21haWwuY29tIiwianRpIjoiM2UzMjNiYWUtNTZlOC00ODgz
+I/flutter (12559): ║ LWFmZTAtYTNmN2JmNzg2M2E4IiwiRnVsbE5hbWUiOiJNYW4gQXRlZiIsIkhhc0FjdGl2ZVN1YnNjcmlwdGlvbiI6Ik
+I/flutter (12559): ║ ZhbHNlIiwiVXNlclR5cGVzIjoiMSIsInJvbGUiOiJVc2VyIiwiZXhwIjoxNzg4Mjc4NDAzLCJpc3MiOiJodHRwczov
+I/flutter (12559): ║ L2xvY2FsaG9zdDo0NDMxMi8iLCJhdWQiOiJodHRwczovL2xvY2FsaG9zdDo0NDMxMi8ifQ.UkXf8NcGA35KdbAK0Ex
+I/flutter (12559): ║ BxT68K6odjI_0PY6W0UW9F-4
+I/flutter (12559): ╟ contentType: application/json
+I/flutter (12559): ╟ responseType: ResponseType.json
+I/flutter (12559): ╟ followRedirects: true
+I/flutter (12559): ╟ connectTimeout: 0:00:15.000000
+I/flutter (12559): ╟ receiveTimeout: 0:00:15.000000
+I/flutter (12559): ╚══════════════════════════════════════════════════════════════════════════════════════════╝
+I/flutter (12559): ╔ Body 
+I/flutter (12559): ╟ doctorId: C2235FDE-3D6D-4C60-98DE-58C7A8F6FA5B
+I/flutter (12559): ╟ clinicId: 716CE65D-B063-4787-95F9-3F98BDF8B34B
+I/flutter (12559): ╟ appointmentDate: 2026-08-05T00:00:00.000
+I/flutter (12559): ╟ startTime: 09:00
+I/flutter (12559): ╟ endTime: 09:30
+I/flutter (12559): ╟ appointmentType: 0
+I/flutter (12559): ╟ patientFullName: man atef
+I/flutter (12559): ╟ patientPhoneNumber: 01022322742
+I/flutter (12559): ╟ patientAge: 80
+I/flutter (12559): ╟ patientGender: 1
+I/flutter (12559): ╟ complaint: asddd
+I/flutter (12559): ╟ chronicDiseases: ggg
+I/flutter (12559): ╚══════════════════════════════════════════════════════════════════════════════════════════╝
+I/flutter (12559): ║ {doctorId: C2235FDE-3D6D-4C60-98DE-58C7A8F6FA5B, clinicId: 716CE65D-B063-4787-95F9-3F98BDF
+I/flutter (12559): ║ 8B34B, appointmentDate: 2026-08-05T00:00:00.000, startTime: 09:00, endTime: 09:30, appoint
+I/flutter (12559): ║ mentType: 0, patientFullName: man atef, patientPhoneNumber: 01022322742, patientAge: 80, p
+I/flutter (12559): ║ atientGender: 1, complaint: asddd, chronicDiseases: ggg}
+I/flutter (12559): 
+I/flutter (12559): ╔╣ DioError ║ Status: 400 Bad Request ║ Time: 523 ms
+I/flutter (12559): ║  https://doctory-icare.runasp.net/api/v1/reservations
+I/flutter (12559): ╚══════════════════════════════════════════════════════════════════════════════════════════╝
+I/flutter (12559): ╔ DioExceptionType.badResponse
+I/flutter (12559): ║    {
+I/flutter (12559): ║         "success": false,
+I/flutter (12559): ║         "errors": {
+I/flutter (12559): ║             "Appointment": [الطبيب غير متاح في هذا الوقت.]
+I/flutter (12559): ║        }
+I/flutter (12559): ║         "data": null,
+I/flutter (12559): ║         "message": "فشل التحقق",
+I/flutter (12559): ║         "statusCode": 400
+I/flutter (12559): ║    }
+I/flutter (12559): ╚══════════════════════════════════════════════════════════════════════════════════════════╝
+I/flutter (12559): 
+I/flutter (12559): ❌ [DioConsumer] Request error: DioException [bad response]: This exception was thrown because the response has a status code of 400 and RequestOptions.validateStatus was configured to throw for this status code.
+I/flutter (12559): The status code of 400 has the following meaning: "Client error - the request contains bad syntax or cannot be fulfilled"
+I/flutter (12559): Read more about status codes at https://developer.mozilla.org/en-US/docs/Web/HTTP/Status
+I/flutter (12559): In order to resolve this exception you typically have either to verify and fix your request code or you have to fix the server code.
+I/flutter (12559): 

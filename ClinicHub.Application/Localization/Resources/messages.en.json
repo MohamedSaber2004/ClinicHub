@@ -258,14 +258,18 @@
     "DoctorLimitReached": "Doctor limit reached for your current plan. Your plan allows up to {0} doctors.",
     "StaffLimitReached": "Staff limit reached for your current plan. Your plan allows up to {0} staff members."
   },
-  "Advertisements": {
+  "Ads": {
     "NotFound": "Advertisement not found",
-    "Created": "Advertisement created successfully",
-    "Updated": "Advertisement updated successfully",
-    "Deleted": "Advertisement deleted successfully",
-    "Approved": "Advertisement approved successfully",
-    "Rejected": "Advertisement rejected successfully",
-    "NotPending": "Advertisement is not pending approval"
+    "Deactivated": "Advertisement deactivated successfully",
+    "AlreadyInactive": "This advertisement is already deactivated or expired",
+    "InvalidDuration": "Duration must be a whole multiple of the package duration"
+  },
+  "AdPackages": {
+    "NotFound": "Ads package not found",
+    "InUse": "This package is used by existing ads. Set it to inactive instead of deleting",
+    "Created": "Ads package created successfully",
+    "Updated": "Ads package updated successfully",
+    "Deleted": "Ads package deleted successfully"
   },
   "Plans": {
     "NotFound": "Plan not found",

@@ -79,6 +79,18 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
                         ["appointmentId"] = appointment.Id.ToString()
                     });
             }
+            else if (payment.Type == PaymentType.Ads)
+            {
+                var advertisement = await _unitOfWork.GetRepository<Advertisement, Guid>()
+                    .GetAllAsync(a => a.PaymentId == payment.Id)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (advertisement != null && advertisement.Status == AdvertisementStatus.PendingPayment)
+                {
+                    advertisement.Activate(DateTime.UtcNow, advertisement.DurationDays);
+                    _unitOfWork.GetRepository<Advertisement, Guid>().Update(advertisement);
+                }
+            }
             else if (payment.Type == PaymentType.Subscription && payment.PlanId.HasValue && payment.SubscriptionPeriod.HasValue)
             {
                 if (payment.SubscriptionId.HasValue)

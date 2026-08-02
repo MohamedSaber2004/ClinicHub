@@ -452,21 +452,47 @@ namespace ClinicHub.Persistence.Seeders
                 await context.SaveChangesAsync();
             }
 
-            // 12. Seed Advertisements
+            // 12. Seed AdPackages
+            if (!await context.Set<AdPackage>().AnyAsync())
+            {
+                logger.LogInformation("Seeding {Count} ad packages...", 3);
+                var packages = new List<AdPackage>
+                {
+                    new() { Name = "Main Banner", NameAr = "بانر رئيسي", Description = "Homepage main banner", DescriptionAr = "بانر رئيسي في الصفحة الرئيسية", Price = 500, DurationDays = 30, SortOrder = 1 },
+                    new() { Name = "Side Banner", NameAr = "بانر جانبي", Description = "Sidebar banner", DescriptionAr = "بانر جانبي", Price = 300, DurationDays = 30, SortOrder = 2 },
+                    new() { Name = "Featured", NameAr = "إعلان مميز", Description = "Featured clinic ad", DescriptionAr = "إعلان مميز للعيادة", Price = 800, DurationDays = 60, SortOrder = 3 }
+                };
+                context.Set<AdPackage>().AddRange(packages);
+                await context.SaveChangesAsync();
+            }
+
+            var allAdPackages = await context.Set<AdPackage>().ToListAsync();
+
+            // 13. Seed Advertisements
             if (!await context.Set<Advertisement>().AnyAsync())
             {
                 logger.LogInformation("Seeding {Count} advertisements...", settings.AdvertisementCount);
                 var adFaker = new Faker<Advertisement>()
-                    .CustomInstantiator(f => new Advertisement
+                    .CustomInstantiator(f =>
                     {
-                        ClinicId = f.Random.Bool(0.7f) ? f.PickRandom(allClinics).Id : null,
-                        Title = f.Commerce.ProductName(),
-                        ImageUrl = f.Image.PicsumUrl(),
-                        TargetUrl = f.Internet.Url(),
-                        StartDate = f.Date.Past(10),
-                        EndDate = f.Date.Future(30),
-                        Status = f.PickRandom<AdvertisementStatus>(),
-                        AmountPaid = f.Random.Decimal(50, 2000)
+                        var package = f.PickRandom(allAdPackages);
+                        var durationDays = package.DurationDays * f.Random.Int(1, 3);
+                        var status = f.PickRandom<AdvertisementStatus>();
+                        var startDate = status == AdvertisementStatus.Active ? f.Date.Recent(10) : f.Date.Past(10);
+                        return new Advertisement
+                        {
+                            ClinicId = f.Random.Bool(0.7f) ? f.PickRandom(allClinics).Id : null,
+                            AdPackageId = package.Id,
+                            DurationDays = durationDays,
+                            AmountPaid = package.Price * (durationDays / package.DurationDays),
+                            Currency = "EGP",
+                            Title = f.Commerce.ProductName(),
+                            ImageUrl = f.Image.PicsumUrl(),
+                            TargetUrl = f.Internet.Url(),
+                            StartDate = startDate,
+                            EndDate = status == AdvertisementStatus.Active ? startDate.AddDays(durationDays) : f.Date.Future(30),
+                            Status = status
+                        };
                     });
 
                 var ads = adFaker.Generate(settings.AdvertisementCount ?? 5);
@@ -474,7 +500,7 @@ namespace ClinicHub.Persistence.Seeders
                 await context.SaveChangesAsync();
             }
 
-            // 13. Seed Audit Logs
+            // 14. Seed Audit Logs
             if (!await context.Set<AuditLog>().AnyAsync())
             {
                 logger.LogInformation("Seeding {Count} audit logs...", settings.AuditLogCount);

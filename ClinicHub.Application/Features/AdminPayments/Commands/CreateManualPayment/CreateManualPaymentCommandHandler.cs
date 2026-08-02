@@ -1,5 +1,6 @@
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Features.AdminPayments.DTOs;
+using ClinicHub.Application.Features.Ads;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
@@ -30,7 +31,7 @@ public class CreateManualPaymentCommandHandler : IRequestHandler<CreateManualPay
         if (clinic == null)
             throw new NotFoundException(LocalizationKeys.ClinicMessages.ClinicNotFound.Value);
 
-        if (request.Type == PaymentType.Ads && !await IsEligibleForAdsAsync(clinic.Id, cancellationToken))
+        if (request.Type == PaymentType.Ads && !await AdsOrderProcessor.IsEligibleForAdsAsync(_unitOfWork, clinic.Id, cancellationToken))
             throw new ForbiddenException(_localizer[LocalizationKeys.PaymentMessages.AdsNotEligible.Value]);
 
         var userId = await ResolveClinicUserAsync(clinic, cancellationToken);
@@ -38,6 +39,21 @@ public class CreateManualPaymentCommandHandler : IRequestHandler<CreateManualPay
         var payment = new ClinicHub.Domain.Entities.Payment(request.Type, userId, clinic.Id, request.Amount);
         payment.SetManualReference(request.RefNumber, request.Notes);
         payment.MarkAsManuallyPaid(PaymentMethodMapper.ToDbString(request.Method), request.RefNumber);
+
+        if (request.Type == PaymentType.Ads)
+        {
+            var pendingAd = await _unitOfWork.GetRepository<Advertisement, Guid>()
+                .GetAllAsync(a => a.ClinicId == clinic.Id && a.Status == AdvertisementStatus.PendingPayment)
+                .OrderByDescending(a => a.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (pendingAd != null)
+            {
+                pendingAd.Activate(DateTime.UtcNow, pendingAd.DurationDays);
+                pendingAd.PaymentId = payment.Id;
+                _unitOfWork.GetRepository<Advertisement, Guid>().Update(pendingAd);
+            }
+        }
 
         await _unitOfWork.PaymentRepository.AddAsync(payment);
         await _unitOfWork.SaveChangesAsync();
@@ -70,19 +86,5 @@ public class CreateManualPaymentCommandHandler : IRequestHandler<CreateManualPay
             return clinic.ClinicAdminId.Value;
 
         throw new BadRequestException(_localizer[LocalizationKeys.PaymentMessages.PayerUserNotFound.Value]);
-    }
-
-    private async Task<bool> IsEligibleForAdsAsync(Guid clinicId, CancellationToken cancellationToken)
-    {
-        var now = DateTime.UtcNow;
-
-        var subscription = await _unitOfWork.GetRepository<Subscription, Guid>()
-            .GetAllAsync(s => s.ClinicId == clinicId && s.Status == SubscriptionStatus.Active && s.EndDate > now)
-            .Include(s => s.Plan)
-                .ThenInclude(p => p!.Permissions)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        return subscription?.Plan != null
-            && subscription.Plan.Permissions.Any(pp => pp.Permission == SubscriptionPermission.AdvancedReports);
     }
 }

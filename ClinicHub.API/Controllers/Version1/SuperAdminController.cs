@@ -13,10 +13,6 @@ using ClinicHub.Application.Features.Admin.Queries.GetClinicsLookup;
 using ClinicHub.Application.Features.Admin.Queries.GetPendingClinics;
 using ClinicHub.Application.Features.Admin.Queries.GetPendingVerifications;
 using ClinicHub.Application.Features.Admin.Queries.GetUrgentSupportTickets;
-using ClinicHub.Application.Features.Advertisements.Commands.ApproveAdvertisement;
-using ClinicHub.Application.Features.Advertisements.Commands.DeleteAdvertisement;
-using ClinicHub.Application.Features.Advertisements.Commands.RejectAdvertisement;
-using ClinicHub.Application.Features.Advertisements.Queries.GetAllAdvertisements;
 using ClinicHub.Application.Features.Subscriptions.Commands.AdminCreateSubscription;
 using ClinicHub.Application.Features.Subscriptions.Commands.RevokeSubscription;
 using ClinicHub.Application.Features.Subscriptions.Queries.GetAllSubscriptions;
@@ -198,45 +194,6 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> RevokeSubscription(Guid id, CancellationToken ct)
         {
             var result = await _mediator.Send(new RevokeSubscriptionCommand { SubscriptionId = id }, ct);
-            return Ok(result);
-        }
-
-        [HttpGet]
-        [Route(ApiRoutes.AdminDashboardExt.Advertisements)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAdvertisements([FromQuery] GetAllAdvertisementsQuery query, CancellationToken ct)
-        {
-            var result = await _mediator.Send(query, ct);
-            return Ok(result);
-        }
-
-        [HttpPost]
-        [Route(ApiRoutes.AdminDashboardExt.ApproveAdvertisement)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> ApproveAdvertisement(Guid id, CancellationToken ct)
-        {
-            var result = await _mediator.Send(new ApproveAdvertisementCommand { AdvertisementId = id }, ct);
-            return Ok(result);
-        }
-
-        [HttpPost]
-        [Route(ApiRoutes.AdminDashboardExt.RejectAdvertisement)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> RejectAdvertisement(Guid id, CancellationToken ct)
-        {
-            var result = await _mediator.Send(new RejectAdvertisementCommand { AdvertisementId = id }, ct);
-            return Ok(result);
-        }
-
-        [HttpDelete]
-        [Route(ApiRoutes.AdminDashboardExt.DeleteAdvertisement)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> DeleteAdvertisement(Guid id, CancellationToken ct)
-        {
-            var result = await _mediator.Send(new DeleteAdvertisementCommand { Id = id }, ct);
             return Ok(result);
         }
     }

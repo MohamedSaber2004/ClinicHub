@@ -2,8 +2,9 @@ namespace ClinicHub.Domain.Enums
 {
     public enum AdvertisementStatus
     {
-        Active = 0,
-        Inactive = 1,
-        Expired = 2
+        PendingPayment = 0,
+        Active = 1,
+        Expired = 2,
+        Deactivated = 3
     }
 }

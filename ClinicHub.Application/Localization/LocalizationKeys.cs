@@ -311,15 +311,17 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString StaffLimitReached = new("Subscriptions.StaffLimitReached");
         }
 
-        public static class AdvertisementMessages
+        public static class AdsMessages
         {
-            public static readonly KeyString NotFound = new("Advertisements.NotFound");
-            public static readonly KeyString Created = new("Advertisements.Created");
-            public static readonly KeyString Updated = new("Advertisements.Updated");
-            public static readonly KeyString Deleted = new("Advertisements.Deleted");
-            public static readonly KeyString Approved = new("Advertisements.Approved");
-            public static readonly KeyString Rejected = new("Advertisements.Rejected");
-            public static readonly KeyString NotPending = new("Advertisements.NotPending");
+            public static readonly KeyString NotFound = new("Ads.NotFound");
+            public static readonly KeyString Deactivated = new("Ads.Deactivated");
+            public static readonly KeyString AlreadyInactive = new("Ads.AlreadyInactive");
+            public static readonly KeyString InvalidDuration = new("Ads.InvalidDuration");
+            public static readonly KeyString PackageNotFound = new("AdPackages.NotFound");
+            public static readonly KeyString PackageInUse = new("AdPackages.InUse");
+            public static readonly KeyString PackageCreated = new("AdPackages.Created");
+            public static readonly KeyString PackageUpdated = new("AdPackages.Updated");
+            public static readonly KeyString PackageDeleted = new("AdPackages.Deleted");
         }
 
         public static class SupportTicketMessages

@@ -1,9 +1,11 @@
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Localization;
+using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.Application.Features.AdminPayments.Commands.RefundPayment;
@@ -41,6 +43,19 @@ public class RefundPaymentCommandHandler : IRequestHandler<RefundPaymentCommand,
         else
         {
             payment.MarkAsRefunded(request.Reason);
+        }
+
+        if (payment.Type == PaymentType.Ads)
+        {
+            var advertisement = await _unitOfWork.GetRepository<Advertisement, Guid>()
+                .GetAllAsync(a => a.PaymentId == payment.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (advertisement != null && advertisement.Status == AdvertisementStatus.Active)
+            {
+                advertisement.Deactivate();
+                _unitOfWork.GetRepository<Advertisement, Guid>().Update(advertisement);
+            }
         }
 
         _unitOfWork.PaymentRepository.Update(payment);
