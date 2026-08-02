@@ -20,6 +20,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWithGoogle
         private readonly IGoogleAuth _googleAuth;
         private readonly IJwtTokenService _jwtTokenService;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IFcmService _fcmService;
         private readonly JwtSettings _jwtSettings;
         private readonly IStringLocalizer<Messages> _localizer;
 
@@ -28,6 +29,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWithGoogle
             IGoogleAuth googleAuth,
             IJwtTokenService jwtTokenService,
             IUnitOfWork unitOfWork,
+            IFcmService fcmService,
             IOptions<JwtSettings> jwtSettings,
             IStringLocalizer<Messages> localizer)
         {
@@ -35,6 +37,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWithGoogle
             _googleAuth = googleAuth;
             _jwtTokenService = jwtTokenService;
             _unitOfWork = unitOfWork;
+            _fcmService = fcmService;
             _jwtSettings = jwtSettings.Value;
             _localizer = localizer;
         }
@@ -112,6 +115,9 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWithGoogle
                 await _unitOfWork.UserRefreshTokenRepository.AddAsync(userRefreshToken);
                 await _unitOfWork.SaveChangesAsync();
             }
+
+            if (!string.IsNullOrEmpty(request.FcmToken) && request.DevicePlatform.HasValue)
+                await _fcmService.RegisterTokenAsync(user.Id, request.FcmToken, request.DevicePlatform.Value);
 
             var isFreelanceDoctor = await _unitOfWork.DoctorRepository
                 .GetAllAsync(d => d.UserId == user.Id)
