@@ -24,7 +24,7 @@ namespace ClinicHub.Domain.Entities
         public AppointmentStatus Status { get; private set; } = AppointmentStatus.Pending;
 
         public string PatientFullName { get; private set; } = null!;
-        public string PatientPhoneNumber { get; private set; } = null!;
+        public string? PatientPhoneNumber { get; private set; }
         public int PatientAge { get; private set; }
         public Gender PatientGender { get; private set; }
         public string Complaint { get; private set; } = null!;
@@ -47,7 +47,7 @@ namespace ClinicHub.Domain.Entities
             TimeSpan endTime,
             AppointmentType appointmentType,
             string patientFullName,
-            string patientPhoneNumber,
+            string? patientPhoneNumber,
             int patientAge,
             Gender patientGender,
             string complaint,

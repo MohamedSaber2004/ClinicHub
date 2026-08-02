@@ -39,7 +39,6 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
                 .MaximumLength(200).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
 
             RuleFor(v => v.PatientPhoneNumber)
-                .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
                 .MaximumLength(20).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
 
             RuleFor(v => v.PatientAge)

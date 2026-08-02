@@ -16,7 +16,7 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
         public AppointmentType AppointmentType { get; set; }
 
         public string PatientFullName { get; set; } = null!;
-        public string PatientPhoneNumber { get; set; } = null!;
+        public string? PatientPhoneNumber { get; set; }
         public int PatientAge { get; set; }
         public Gender PatientGender { get; set; }
         public string Complaint { get; set; } = null!;

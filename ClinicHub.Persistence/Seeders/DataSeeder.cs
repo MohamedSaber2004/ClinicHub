@@ -236,17 +236,17 @@ namespace ClinicHub.Persistence.Seeders
                 }
             }
 
-            // 6. Seed Doctor Availabilities (one-time: clears old Mon-Fri pattern if found, then seeds Sun-Thu)
+            // 6. Seed Doctor Availabilities (one-time: seeds Sun-Thu only when no active availability exists)
             var existingSlots = await context.Set<DoctorAvailability>().IgnoreQueryFilters().ToListAsync();
-            var hasOldPattern = existingSlots.Any(a => a.DayOfWeek == DayOfWeek.Friday || a.DayOfWeek == DayOfWeek.Saturday);
+            var hasActiveSlots = existingSlots.Any(a => !a.IsDeleted);
+            var hasOldPattern = existingSlots.Any(a => !a.IsDeleted && (a.DayOfWeek == DayOfWeek.Friday || a.DayOfWeek == DayOfWeek.Saturday));
 
-            if (!existingSlots.Any() || hasOldPattern)
+            if (!hasActiveSlots || hasOldPattern)
             {
-                if (hasOldPattern)
+                if (existingSlots.Any())
                 {
-                    logger.LogInformation("Replacing old availabilities with new Sun-Thu pattern...");
-                    context.Set<DoctorAvailability>().RemoveRange(existingSlots);
-                    await context.SaveChangesAsync();
+                    logger.LogInformation("Clearing stale doctor availabilities (hard delete)...");
+                    await context.Database.ExecuteSqlRawAsync("DELETE FROM dbo.DoctorAvailabilities");
                 }
 
                 logger.LogInformation("Seeding doctor availabilities...");
