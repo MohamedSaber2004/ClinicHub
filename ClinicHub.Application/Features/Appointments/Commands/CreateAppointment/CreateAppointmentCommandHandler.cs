@@ -50,7 +50,7 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
                 request.Complaint,
                 request.ChronicDiseases);
 
-            appointment.Reserve(config.ReservationTtlMinutes);
+            // Status remains Pending (0) until staff/doctor approves or rejects it
 
             await _unitOfWork.AppointmentRepository.AddAsync(appointment);
             await _unitOfWork.SaveChangesAsync();

@@ -36,8 +36,11 @@ namespace ClinicHub.Application.Features.StaffDashboard.Queries.GetStaffAppointm
             if (request.Status.HasValue)
                 query = query.Where(a => a.Status == request.Status.Value);
 
-            var targetDate = request.Date?.Date ?? DateTime.Today;
-            query = query.Where(a => a.AppointmentDate == targetDate);
+            if (request.Date.HasValue)
+            {
+                var targetDate = request.Date.Value.Date;
+                query = query.Where(a => a.AppointmentDate == targetDate);
+            }
 
             if (!string.IsNullOrWhiteSpace(request.PatientName))
                 query = query.Where(a => a.PatientFullName.Contains(request.PatientName)

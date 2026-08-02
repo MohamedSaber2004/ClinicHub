@@ -1,3 +1,51 @@
-﻿api/v1/doctors/dashboard/stats:1  Failed to load resource: the server responded with a status of 404 ()
-api/v1/doctors/dashboard/recent-appointments?limit=5:1  Failed to load resource: the server responded with a status of 404 ()
-[NEW] Explain Console errors by using Copilot in Edge: click  to explain an error. Learn more
+﻿  ### Summary of Analysis & Recommended Backend Fixes
+
+  Based on prompts/prompt.txt (which contains the backend API implementation analysis for Doctory API), here is the complete breakdown of why mobile appointment
+  requests are not appearing on the dashboards, along with what has been updated on the frontend and what needs to be updated on the backend.
+  ──────
+  ### 1. 🔍 Root Cause Analysis
+
+  #### A. Backend Default Date Clamp (AppointmentDate == Today)
+
+  • Problem: In GetStaffAppointmentsQueryHandler.cs, when request.Date is null, the backend defaults to:
+    var targetDate = request.Date?.Date ?? DateTime.Today;
+    query = query.Where(a => a.AppointmentDate == targetDate);
+
+  • Impact: When a patient books an appointment for tomorrow or any future date, and staff opens the dashboard (which calls GET /api/v1/staff/appointments
+  without a date parameter), the backend filters out all future appointments and returns only today's appointments. Thus, future pending requests are hidden.
+
+  #### B. Reservation Status vs. Pending Approval (Status = 0)
+
+  • Problem: POST /api/v1/appointments sets Status = 0 (Reserved / Pending). If backend query handlers filter by Status == Confirmed (1), pending requests
+  (status 0) are excluded.
+
+  #### C. Clinic Context Mismatch (CurrentClinicId)
+
+  • Problem: GetStaffAppointmentsQueryHandler filters by _currentUserService.CurrentClinicId. If the mobile app posts an appointment with a mismatched ClinicId,
+  the query excludes it.
+  ──────
+  ### 2. 🟢 What We Fixed on the Frontend (Web Dashboards)
+
+  1. Pending Requests Widget on Home Dashboards:
+      • Staff Dashboard (Views/Staff/Index.cshtml): Added a "طلبات الحجز المعلقة" section with قبول (Approve) and رفض (Reject) buttons for quick staff
+      processing.
+      • Clinic Owner Dashboard (Views/Clinic/Index.cshtml): Connected to IClinicDashboardService.GetBookingsAsync("pending") and populated live stats & pending
+      requests.
+  2. Acceptance Flow Alignment:
+      • Accepting an appointment via قبول sends PUT /api/v1/staff/appointments/{id}/approve (or status 6), transitioning the appointment to 6 (بانتظار الدفع -
+      Awaiting Payment) and returning the Paymob URL for the mobile app to complete payment.
+  3. Date & Status Filters:
+      • Staff Appointments (Views/Staff/Appointments.cshtml): Staff can filter by status=pending and select any date (or clear the date) to view requests booked
+      for future dates.
+
+  ──────
+  ### 3. 🛠️ Required Backend Fixes (Doctory API)
+
+  To resolve the issue completely on the backend:
+
+  1. Fix Date Filtering in GetStaffAppointmentsQueryHandler.cs:
+      • When querying pending requests (status = 0 / pending), do not clamp targetDate to DateTime.Today if request.Date is null. Allow returning all pending
+      requests regardless of appointment date, or default to AppointmentDate >= DateTime.Today.
+  2. Include Status 0 by Default:
+      • Ensure GET /api/v1/staff/appointments and GET /api/v1/doctors/appointments return status = 0 (Pending/Reserved) records when no status parameter is
+      provided.

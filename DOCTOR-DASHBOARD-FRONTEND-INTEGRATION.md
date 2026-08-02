@@ -299,19 +299,24 @@ On failure (`isSuccess: false`):
 
 ### `DoctorAppointmentDto` (full fields)
 
+> **⚠️ Breaking change (2026-08-02):** `patientPhoneNumber` has been **removed** from the
+> `Appointment` table (migration `RemovePatientPhoneNumberFromAppointment`). Drop this field from
+> any frontend type/interface that previously included it. All affected endpoints below no longer
+> return it.
+
 ```ts
 interface DoctorAppointmentDto {
     id: string;                 // GUID
     bookedByUserId: string;
     bookedByUserName: string | null;
-    bookedByUserPhone: string | null;
+    bookedByUserPhone: string | null;   // phone of the booking user (from identity), NOT patientPhoneNumber
     appointmentDate: string;    // "YYYY-MM-DD"
     startTime: string;          // "HH:mm"
     endTime: string;            // "HH:mm"
     appointmentType: number;    // 0=InClinic, 1=Home
     status: number;             // see §8
     patientFullName: string;
-    patientPhoneNumber: string;
+    // patientPhoneNumber — REMOVED. Field no longer exists on the server.
     patientAge: number;
     patientGender: number;      // 0=Male, 1=Female
     complaint: string;
