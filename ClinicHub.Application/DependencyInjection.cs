@@ -1,4 +1,5 @@
 using ClinicHub.Application.Common.Behaviours;
+using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Common.Options;
 using ClinicHub.Application.Common.Services;
 using ClinicHub.Application.HealthCheck;
@@ -40,6 +41,8 @@ namespace ClinicHub.Application
             services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(Assembly.GetExecutingAssembly()));
 
             services.AddAutoMapper(configAction: (action) => { }, Assembly.GetExecutingAssembly());
+
+            services.AddScoped<IAppointmentAcceptanceService, AppointmentAcceptanceService>();
 
             services.Configure<GoogleMapsSettings>(configuration.GetSection("GoogleMaps"));
 

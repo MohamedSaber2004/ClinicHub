@@ -11,6 +11,7 @@ using ClinicHub.Application.Features.StaffDashboard.Queries.GetStaffDashboardSta
 using ClinicHub.Application.Features.StaffDashboard.Queries.GetStaffDoctorSchedule;
 using ClinicHub.Application.Features.StaffDashboard.Queries.GetStaffDoctors;
 using ClinicHub.Application.Features.StaffDashboard.Queries.GetStaffQueue;
+using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -52,7 +53,7 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> ApproveAppointment(Guid id, CancellationToken ct)
         {
             var result = await _mediator.Send(new StaffApproveAppointmentCommand { AppointmentId = id }, ct);
-            return Ok(result);
+            return Ok(result, LocalizationKeys.AppointmentMessages.AcceptedWithPaymentLink);
         }
 
         [HttpPut]

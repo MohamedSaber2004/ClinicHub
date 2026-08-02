@@ -58,6 +58,19 @@ public class RefundPaymentCommandHandler : IRequestHandler<RefundPaymentCommand,
             }
         }
 
+        // Refunding an appointment payment returns the linked appointment to a cancelled state.
+        if (payment.Type == PaymentType.Appointment && payment.AppointmentId.HasValue)
+        {
+            var appointment = await _unitOfWork.AppointmentRepository
+                .GetAllAsync(a => a.Id == payment.AppointmentId.Value)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (appointment != null && appointment.Status == AppointmentStatus.Confirmed)
+            {
+                appointment.Cancel(string.IsNullOrWhiteSpace(request.Reason) ? "Payment refunded" : request.Reason);
+            }
+        }
+
         _unitOfWork.PaymentRepository.Update(payment);
         await _unitOfWork.SaveChangesAsync();
 

@@ -58,7 +58,9 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
         }
 
 
-        if (payment.Status is PaymentStatus.Paid or PaymentStatus.Failed or PaymentStatus.Refunded)
+        // Idempotency: skip only terminal states. Failed is deliberately NOT skipped —
+        // the patient can retry the same checkout (same Paymob order) after a failed attempt.
+        if (payment.Status is PaymentStatus.Paid or PaymentStatus.Refunded)
         {
             return true;
         }

@@ -33,8 +33,8 @@ namespace ClinicHub.Application.Features.DoctorDashboard.Commands.DoctorRejectAp
             if (appointment.DoctorId != doctor.Id)
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.NotAuthorizedToRespond.Value);
 
-            if (appointment.Status != AppointmentStatus.Pending && appointment.Status != AppointmentStatus.Reserved
-                && appointment.Status != AppointmentStatus.Confirmed)
+            // Reject is only allowed while the request is still pending (not accepted/paid).
+            if (appointment.Status != AppointmentStatus.Pending && appointment.Status != AppointmentStatus.Reserved)
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.CannotRespondAppointment.Value);
 
             appointment.Reject(request.Reason);

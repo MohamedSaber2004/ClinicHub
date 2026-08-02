@@ -1,48 +1,36 @@
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
+using ClinicHub.Application.Features.Appointments.DTOs;
 using ClinicHub.Application.Localization;
-using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 
 namespace ClinicHub.Application.Features.Clinics.Commands.AcceptBooking
 {
-    public sealed class AcceptBookingCommandHandler : IRequestHandler<AcceptBookingCommand, bool>
+    public sealed class AcceptBookingCommandHandler : IRequestHandler<AcceptBookingCommand, AppointmentAcceptanceResultDto>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
-        private readonly IFcmService _fcmService;
+        private readonly IAppointmentAcceptanceService _acceptanceService;
 
         public AcceptBookingCommandHandler(
             IUnitOfWork unitOfWork,
             ICurrentUserService currentUserService,
-            IFcmService fcmService)
+            IAppointmentAcceptanceService acceptanceService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
-            _fcmService = fcmService;
+            _acceptanceService = acceptanceService;
         }
 
-        public async Task<bool> Handle(AcceptBookingCommand request, CancellationToken cancellationToken)
+        public async Task<AppointmentAcceptanceResultDto> Handle(AcceptBookingCommand request, CancellationToken cancellationToken)
         {
             var appointment = await _unitOfWork.AppointmentRepository.GetByIdAsync(request.BookingId);
 
             if (appointment.ClinicId != _currentUserService.CurrentClinicId)
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.NotAuthorizedToRespond.Value);
 
-            if (appointment.Status != AppointmentStatus.Pending && appointment.Status != AppointmentStatus.Reserved)
-                throw new BadRequestException(LocalizationKeys.AppointmentMessages.CannotRespondAppointment.Value);
-
-            appointment.Accept();
-            var result = await _unitOfWork.SaveChangesAsync();
-
-            await _fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.AppointmentConfirmation, new()
-            {
-                ["clinicName"] = appointment.Clinic.Name,
-                ["date"] = appointment.AppointmentDate.ToString("yyyy-MM-dd")
-            });
-
-            return result > 0;
+            return await _acceptanceService.AcceptAsync(appointment, cancellationToken);
         }
     }
 }

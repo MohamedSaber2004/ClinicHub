@@ -18,6 +18,7 @@ using ClinicHub.Application.Features.Clinics.Queries.GetClinicDetails;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicSettings;
 using ClinicHub.Application.Features.Clinics.Queries.GetPaginatedClinics;
 using ClinicHub.Application.Features.Auth.DTOs;
+using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -246,7 +247,7 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> AcceptBooking([FromBody] AcceptBookingCommand command)
         {
             var result = await _mediator.Send(command);
-            return Ok(result);
+            return Ok(result, LocalizationKeys.AppointmentMessages.AcceptedWithPaymentLink);
         }
 
         /// <summary>

@@ -70,6 +70,13 @@ public class Payment : BaseEntity<Guid>, IClinicScopedEntity
             Status = PaymentStatus.Processing;
         }
 
+        public void SetPaymobCheckout(string redirectUrl)
+        {
+            RedirectUrl = redirectUrl;
+            Status = PaymentStatus.Pending;
+            FailureReason = null;
+        }
+
     public void MarkAsPaid(string transactionId, string method)
     {
         PaymobTransactionId = transactionId;

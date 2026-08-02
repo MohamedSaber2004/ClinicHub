@@ -66,6 +66,39 @@ public class PaymobService : IPaymobService
     }
 
     /// <summary>
+    /// Initiates a hosted-checkout payment (unified checkout page) using Paymob's Intention API.
+    /// Used when an appointment is accepted and the patient must be sent a payment link —
+    /// the default (card) integration is used so the patient can complete payment from the hosted page.
+    /// </summary>
+    public async Task<WalletPaymentResultDto> InitiateCheckoutPaymentAsync(
+        decimal amount,
+        string currency,
+        PaymentBillingData billing,
+        CancellationToken cancellationToken,
+        string? redirectionUrl = null)
+    {
+        var amountCents = (int)Math.Round(amount * 100);
+        var integrationId = int.Parse(_settings.IntegrationId);
+
+        // Single API call: Create Intention (new unified flow)
+        var (clientSecret, intentionId) = await CreateIntentionAsync(
+            amountCents, currency, integrationId,
+            billing, billing.PhoneNumber ?? "", cancellationToken, redirectionUrl);
+
+        // Build redirect URL using Public Key + Client Secret
+        var redirectUrl = $"{BaseUrl}/unifiedcheckout/" +
+                          $"?publicKey={_settings.PublicKey}" +
+                          $"&clientSecret={clientSecret}";
+
+        return new WalletPaymentResultDto
+        {
+            OrderId = intentionId,
+            PaymentKey = clientSecret,
+            RedirectUrl = redirectUrl
+        };
+    }
+
+    /// <summary>
     /// Creates a payment intention using Paymob's new Intention API.
     /// Returns (client_secret, intention_id) tuple.
     /// </summary>

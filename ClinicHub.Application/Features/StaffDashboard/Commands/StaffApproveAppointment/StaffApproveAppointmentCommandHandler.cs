@@ -1,26 +1,29 @@
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
+using ClinicHub.Application.Features.Appointments.DTOs;
 using ClinicHub.Application.Localization;
-using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 
 namespace ClinicHub.Application.Features.StaffDashboard.Commands.StaffApproveAppointment
 {
-    public class StaffApproveAppointmentCommandHandler : IRequestHandler<StaffApproveAppointmentCommand, bool>
+    public class StaffApproveAppointmentCommandHandler : IRequestHandler<StaffApproveAppointmentCommand, AppointmentAcceptanceResultDto>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
-        private readonly IFcmService _fcmService;
+        private readonly IAppointmentAcceptanceService _acceptanceService;
 
-        public StaffApproveAppointmentCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IFcmService fcmService)
+        public StaffApproveAppointmentCommandHandler(
+            IUnitOfWork unitOfWork,
+            ICurrentUserService currentUserService,
+            IAppointmentAcceptanceService acceptanceService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
-            _fcmService = fcmService;
+            _acceptanceService = acceptanceService;
         }
 
-        public async Task<bool> Handle(StaffApproveAppointmentCommand request, CancellationToken cancellationToken)
+        public async Task<AppointmentAcceptanceResultDto> Handle(StaffApproveAppointmentCommand request, CancellationToken cancellationToken)
         {
             var clinicId = _currentUserService.CurrentClinicId;
             if (clinicId == null)
@@ -31,20 +34,7 @@ namespace ClinicHub.Application.Features.StaffDashboard.Commands.StaffApproveApp
             if (appointment.ClinicId != clinicId.Value)
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.NotAuthorizedToRespond.Value);
 
-            if (appointment.Status != AppointmentStatus.Pending && appointment.Status != AppointmentStatus.Reserved
-                && appointment.Status != AppointmentStatus.Confirmed)
-                throw new BadRequestException(LocalizationKeys.AppointmentMessages.CannotRespondAppointment.Value);
-
-            appointment.Accept();
-            await _unitOfWork.SaveChangesAsync();
-
-            await _fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.AppointmentConfirmation, new()
-            {
-                ["clinicName"] = appointment.Clinic?.Name ?? "",
-                ["date"] = appointment.AppointmentDate.ToString("yyyy-MM-dd")
-            });
-
-            return true;
+            return await _acceptanceService.AcceptAsync(appointment, cancellationToken);
         }
     }
 }

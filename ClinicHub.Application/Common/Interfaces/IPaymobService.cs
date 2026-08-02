@@ -12,6 +12,13 @@ public interface IPaymobService
         CancellationToken cancellationToken,
         string? redirectionUrl = null);
 
+    Task<WalletPaymentResultDto> InitiateCheckoutPaymentAsync(
+        decimal amount,
+        string currency,
+        PaymentBillingData billing,
+        CancellationToken cancellationToken,
+        string? redirectionUrl = null);
+
     Task<bool> ValidateWebhookAsync(string hmac, IDictionary<string, string> transactionData);
 
     Task<RefundResultDto> RefundTransactionAsync(string transactionId, decimal amount, CancellationToken cancellationToken);

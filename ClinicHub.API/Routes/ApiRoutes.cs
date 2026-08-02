@@ -133,6 +133,7 @@ namespace ClinicHub.API.Routes
             public const string Create = Base + "/appointments";
             public const string CreateAdminDashboard = Base + "/admin/dashboard/appointments";
             public const string GetAll = Base + "/appointments";
+            public const string My = Base + "/appointments/my";
             public const string GetById = Base + "/appointments/{id:guid}";
             public const string Update = Base + "/appointments/{id:guid}";
             public const string Delete = Base + "/appointments/{id:guid}";

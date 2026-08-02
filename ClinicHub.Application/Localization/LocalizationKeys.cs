@@ -64,6 +64,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString NotAuthorizedToRespond = new("Appointments.NotAuthorizedToRespond");
             public static readonly KeyString CannotRespondAppointment = new("Appointments.CannotRespondAppointment");
             public static readonly KeyString Accepted = new("Appointments.Accepted");
+            public static readonly KeyString AcceptedWithPaymentLink = new("Appointments.AcceptedWithPaymentLink");
             public static readonly KeyString Rejected = new("Appointments.Rejected");
             public static readonly KeyString Completed = new("Appointments.Completed");
             public static readonly KeyString CheckedIn = new("Appointments.CheckedIn");
@@ -219,6 +220,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString AlreadyPaid = new("Payments.AlreadyPaid");
             public static readonly KeyString AppointmentNotFound = new("Payments.AppointmentNotFound");
             public static readonly KeyString AppointmentNotPending = new("Payments.AppointmentNotPending");
+            public static readonly KeyString AlreadyAcceptedPayment = new("Payments.AlreadyAcceptedPayment");
             public static readonly KeyString Unauthorized = new("Payments.Unauthorized");
             public static readonly KeyString PaymobOrderFailed = new("Payments.PaymobOrderFailed");
             public static readonly KeyString PaymobKeyFailed = new("Payments.PaymobKeyFailed");

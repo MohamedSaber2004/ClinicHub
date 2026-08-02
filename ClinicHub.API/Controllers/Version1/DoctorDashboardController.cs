@@ -15,6 +15,7 @@ using ClinicHub.Application.Features.DoctorDashboard.Queries.GetDoctorDashboardS
 using ClinicHub.Application.Features.DoctorDashboard.Queries.GetDoctorPatients;
 using ClinicHub.Application.Features.DoctorDashboard.Queries.GetPatientHistory;
 using ClinicHub.Application.Features.DoctorDashboard.Queries.GetRecentAppointments;
+using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -65,7 +66,7 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> AcceptAppointment(Guid id, CancellationToken ct)
         {
             var result = await _mediator.Send(new DoctorAcceptAppointmentCommand { AppointmentId = id }, ct);
-            return Ok(result);
+            return Ok(result, LocalizationKeys.AppointmentMessages.AcceptedWithPaymentLink);
         }
 
         [HttpPut]
@@ -103,7 +104,9 @@ namespace ClinicHub.API.Controllers.Version1
         {
             command.AppointmentId = id;
             var result = await _mediator.Send(command, ct);
-            return Ok(result);
+            return result is null
+                ? Ok(result)
+                : Ok(result, LocalizationKeys.AppointmentMessages.AcceptedWithPaymentLink);
         }
 
         [HttpGet]

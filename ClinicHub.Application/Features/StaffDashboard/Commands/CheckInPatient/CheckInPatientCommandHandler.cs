@@ -29,8 +29,8 @@ namespace ClinicHub.Application.Features.StaffDashboard.Commands.CheckInPatient
             if (appointment.ClinicId != clinicId.Value)
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.NotAuthorizedToRespond.Value);
 
-            if (appointment.Status != AppointmentStatus.Accepted
-                && appointment.Status != AppointmentStatus.Reserved)
+            // Check-in is only allowed after the appointment is confirmed (paid).
+            if (appointment.Status != AppointmentStatus.Confirmed)
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.CannotRespondAppointment.Value);
 
             appointment.CheckIn();

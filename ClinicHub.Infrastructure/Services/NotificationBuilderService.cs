@@ -35,6 +35,7 @@ namespace ClinicHub.Infrastructure.Services
             var message = GetParam(parameters, "message", "تحديث من النظام");
             var conversationId = GetParam(parameters, "conversationId");
             var appointmentId = GetParam(parameters, "appointmentId");
+            var paymentUrl = GetParam(parameters, "paymentUrl");
             var senderUserIdParam = GetParam(parameters, "SenderUserId");
 
             switch (type)
@@ -71,10 +72,13 @@ namespace ClinicHub.Infrastructure.Services
                     break;
 
                 case NotificationType.AppointmentConfirmation:
-                    title = "تم تأكيد الموعد";
-                    body = $"تم تأكيد موعدك في {clinicName} بتاريخ {date}";
+                    title = "تم قبول حجزك";
+                    body = $"أكمل الدفع لتأكيد موعدك في {clinicName} بتاريخ {date}";
                     data["clinicName"] = clinicName;
                     data["date"] = date;
+                    data["appointmentId"] = appointmentId;
+                    if (!string.IsNullOrEmpty(paymentUrl))
+                        data["paymentUrl"] = paymentUrl;
                     if (!string.IsNullOrEmpty(appointmentId))
                         link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.AppointmentDetails, appointmentId));
                     else

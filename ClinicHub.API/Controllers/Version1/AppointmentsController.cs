@@ -9,6 +9,8 @@ using ClinicHub.Application.Features.Appointments.Commands.RejectAppointment;
 using ClinicHub.Application.Features.Appointments.Commands.UpdateAppointment;
 using ClinicHub.Application.Features.Appointments.Queries.GetAllAppointmentsWithFilters;
 using ClinicHub.Application.Features.Appointments.Queries.GetAppointmentById;
+using ClinicHub.Application.Features.Appointments.Queries.GetMyAppointments;
+using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -35,6 +37,19 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> GetAll([FromQuery] GetAllAppointmentsWithFiltersQuery query)
         {
             var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Get the current user's (patient) appointment requests with payment info.
+        /// </summary>
+        [HttpGet]
+        [Route(ApiRoutes.Appointments.My)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetMy([FromQuery] GetMyAppointmentsQuery query, CancellationToken ct)
+        {
+            var result = await _mediator.Send(query, ct);
             return Ok(result);
         }
 
@@ -109,7 +124,7 @@ namespace ClinicHub.API.Controllers.Version1
         {
             var command = new AcceptAppointmentCommand { AppointmentId = id };
             var result = await _mediator.Send(command);
-            return Ok(result);
+            return Ok(result, LocalizationKeys.AppointmentMessages.AcceptedWithPaymentLink);
         }
 
         /// <summary>
