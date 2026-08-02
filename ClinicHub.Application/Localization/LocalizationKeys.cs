@@ -303,6 +303,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString NotFound = new("Subscriptions.NotFound");
             public static readonly KeyString Created = new("Subscriptions.Created");
             public static readonly KeyString AlreadyActive = new("Subscriptions.AlreadyActive");
+            public static readonly KeyString PastStartDate = new("Subscriptions.PastStartDate");
             public static readonly KeyString Cancelled = new("Subscriptions.Cancelled");
             public static readonly KeyString Revoked = new("Subscriptions.Revoked");
             public static readonly KeyString LoginRequiresSubscription = new("Subscriptions.LoginRequiresSubscription");

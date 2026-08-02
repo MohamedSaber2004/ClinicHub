@@ -251,6 +251,7 @@
     "NotFound": "Subscription not found",
     "Created": "Subscription created successfully",
     "AlreadyActive": "An active subscription already exists for this clinic",
+    "PastStartDate": "Start date cannot be in the past",
     "Cancelled": "Subscription cancelled successfully",
     "Revoked": "Subscription revoked successfully",
     "LoginRequiresSubscription": "An active subscription is required to access the dashboard. Please subscribe to continue.",

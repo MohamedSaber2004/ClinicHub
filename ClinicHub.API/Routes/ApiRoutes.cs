@@ -286,6 +286,7 @@ namespace ClinicHub.API.Routes
             public const string Tickets = Base + "/admin/dashboard/tickets";
             public const string UpdateTicketStatus = Base + "/admin/dashboard/tickets/{id:guid}/status";
             public const string AllSubscriptions = Base + "/admin/dashboard/subscriptions";
+            public const string CreateSubscription = Base + "/admin/dashboard/subscriptions";
             public const string RevokeSubscription = Base + "/admin/dashboard/subscriptions/{id:guid}/revoke";
             public const string Advertisements = Base + "/admin/dashboard/advertisements";
             public const string ApproveAdvertisement = Base + "/admin/dashboard/advertisements/{id:guid}/approve";

@@ -17,12 +17,15 @@ using ClinicHub.Application.Features.Advertisements.Commands.ApproveAdvertisemen
 using ClinicHub.Application.Features.Advertisements.Commands.DeleteAdvertisement;
 using ClinicHub.Application.Features.Advertisements.Commands.RejectAdvertisement;
 using ClinicHub.Application.Features.Advertisements.Queries.GetAllAdvertisements;
+using ClinicHub.Application.Features.Subscriptions.Commands.AdminCreateSubscription;
 using ClinicHub.Application.Features.Subscriptions.Commands.RevokeSubscription;
 using ClinicHub.Application.Features.Subscriptions.Queries.GetAllSubscriptions;
 using ClinicHub.Application.Features.Users.Queries.GetAllUsers;
+using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.API.Controllers.Version1
 {
@@ -30,8 +33,11 @@ namespace ClinicHub.API.Controllers.Version1
     [RoleAuthorize(nameof(UserType.SuperAdmin))]
     public class SuperAdminController : BaseApiController
     {
-        public SuperAdminController(IMediator mediator) : base(mediator)
+        private readonly IStringLocalizer<Messages> _localizer;
+
+        public SuperAdminController(IMediator mediator, IStringLocalizer<Messages> localizer) : base(mediator)
         {
+            _localizer = localizer;
         }
 
         [HttpGet]
@@ -172,6 +178,17 @@ namespace ClinicHub.API.Controllers.Version1
         {
             var result = await _mediator.Send(query, ct);
             return Ok(result);
+        }
+
+        [HttpPost]
+        [Route(ApiRoutes.AdminDashboardExt.CreateSubscription)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> CreateSubscription([FromBody] AdminCreateSubscriptionCommand command, CancellationToken ct)
+        {
+            var result = await _mediator.Send(command, ct);
+            return Created(ApiRoutes.AdminDashboardExt.CreateSubscription, result, _localizer[LocalizationKeys.SubscriptionMessages.Created.Value]);
         }
 
         [HttpPost]
