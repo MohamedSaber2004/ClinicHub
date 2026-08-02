@@ -74,7 +74,6 @@ namespace ClinicHub.Application.Features.StaffDashboard.Commands.RegisterWalkInP
                 endTime,
                 request.AppointmentType,
                 request.FullName,
-                request.PhoneNumber,
                 request.Age ?? 0,
                 request.Gender ?? Gender.Male,
                 request.Complaint,

@@ -11,6 +11,5 @@ namespace ClinicHub.Application.Features.StaffDashboard.DTOs
         public string Status { get; set; } = null!;
         public string StatusLabel { get; set; } = null!;
         public string StatusClass { get; set; } = null!;
-        public string? Phone { get; set; }
     }
 }

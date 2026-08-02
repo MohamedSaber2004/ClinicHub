@@ -46,15 +46,18 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
 
         var doctor = await _unitOfWork.DoctorRepository.GetByIdAsync(appointment.DoctorId);
         var bookingConfig = await _unitOfWork.BookingConfigurationRepository.GetByClinicIdAsync(appointment.ClinicId);
-        var amount = bookingConfig?.ConsultationFee;
 
+        if (bookingConfig == null)
+            throw new BadRequestException(LocalizationKeys.BookingMessages.BookingConfigNotFound.Value);
+
+        var amount = bookingConfig.ConsultationFee;
         var user = await _unitOfWork.GetRepository<ApplicationUser, Guid>().GetByIdAsync(currentUserId);
 
-        var billing = CreateBillingData(user, request.PhoneNumber);
+        var billing = CreateBillingData(user);
 
         // Single orchestrated Paymob flow: Auth → Order → PaymentKey → WalletPay
         var walletResult = await _paymobService.InitiateWalletPaymentAsync(
-            amount!.Value, "EGP", billing, request.PhoneNumber, cancellationToken, request.ReturnUrl);
+            amount, "EGP", billing, billing.PhoneNumber, cancellationToken, request.ReturnUrl);
 
         var payment = await _unitOfWork.PaymentRepository.GetByAppointmentIdAsync(request.AppointmentId);
         
@@ -70,7 +73,7 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
         }
         else
         {
-            payment = new ClinicHub.Domain.Entities.Payment(PaymentType.Appointment, currentUserId, appointment.ClinicId, amount.Value)
+            payment = new ClinicHub.Domain.Entities.Payment(PaymentType.Appointment, currentUserId, appointment.ClinicId, amount)
             {
                 PaymobOrderId = walletResult.OrderId
             };
@@ -88,7 +91,7 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
         };
     }
 
-    private static PaymentBillingData CreateBillingData(ApplicationUser? user, string phoneNumber)
+    private static PaymentBillingData CreateBillingData(ApplicationUser? user)
     {
         var names = user?.FullName?.Split(' ', StringSplitOptions.RemoveEmptyEntries) ?? new[] { "Clinic", "User" };
         var firstName = names[0];
@@ -99,7 +102,7 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
             FirstName = firstName,
             LastName = lastName,
             Email = string.IsNullOrWhiteSpace(user?.Email) ? "patient@clinichub.com" : user.Email,
-            PhoneNumber = string.IsNullOrWhiteSpace(phoneNumber) ? "01000000000" : phoneNumber,
+            PhoneNumber = string.IsNullOrWhiteSpace(user?.PhoneNumber) ? "01000000000" : user.PhoneNumber,
             City = "Cairo",
             Country = "EG",
             Street = "NA",

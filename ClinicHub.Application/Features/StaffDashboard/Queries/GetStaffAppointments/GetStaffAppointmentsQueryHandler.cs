@@ -74,8 +74,7 @@ namespace ClinicHub.Application.Features.StaffDashboard.Queries.GetStaffAppointm
                     Time = a.StartTime.ToString(@"hh\:mm"),
                     Status = StaffDashboardStatusHelper.GetStatusValue(status),
                     StatusLabel = StaffDashboardStatusHelper.GetStatusLabel(status),
-                    StatusClass = StaffDashboardStatusHelper.GetStatusClass(status),
-                    Phone = a.PatientPhoneNumber
+                    StatusClass = StaffDashboardStatusHelper.GetStatusClass(status)
                 };
             }).ToList();
 

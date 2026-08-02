@@ -69,7 +69,6 @@ namespace ClinicHub.Application.Features.DoctorDashboard.Queries.GetDoctorAppoin
                 AppointmentType = a.AppointmentType,
                 Status = a.Status,
                 PatientFullName = a.PatientFullName,
-                PatientPhoneNumber = a.PatientPhoneNumber,
                 PatientAge = a.PatientAge,
                 PatientGender = a.PatientGender,
                 Complaint = a.Complaint,

@@ -35,7 +35,6 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicBookings
                 {
                     a.Id,
                     a.PatientFullName,
-                    a.PatientPhoneNumber,
                     a.PatientAge,
                     a.Complaint,
                     a.AppointmentDate,
@@ -52,7 +51,6 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicBookings
             {
                 Id = i.Id,
                 PatientName = i.PatientFullName,
-                PatientPhone = i.PatientPhoneNumber,
                 PatientAge = i.PatientAge,
                 Reason = i.Complaint,
                 ClinicName = i.ClinicName ?? "",

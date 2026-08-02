@@ -45,7 +45,6 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
                 request.EndTime,
                 request.AppointmentType,
                 request.PatientFullName,
-                request.PatientPhoneNumber,
                 request.PatientAge,
                 request.PatientGender,
                 request.Complaint,
@@ -56,7 +55,10 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
             await _unitOfWork.AppointmentRepository.AddAsync(appointment);
             await _unitOfWork.SaveChangesAsync();
 
-            return _mapper.Map<AppointmentDto>(appointment);
+            var dto = _mapper.Map<AppointmentDto>(appointment);
+            dto.Amount = config.ConsultationFee;
+            dto.Currency = config.Currency;
+            return dto;
         }
     }
 }

@@ -551,7 +551,6 @@ namespace ClinicHub.Persistence.Seeders
                                 endTime: endTime,
                                 appointmentType: f.PickRandom<AppointmentType>(),
                                 patientFullName: f.Name.FullName(),
-                                patientPhoneNumber: f.Phone.PhoneNumber("010########"),
                                 patientAge: f.Random.Int(18, 80),
                                 patientGender: f.PickRandom<Gender>(),
                                 complaint: f.Lorem.Sentence(5, 10),

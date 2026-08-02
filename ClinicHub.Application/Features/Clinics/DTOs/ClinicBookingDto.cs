@@ -4,7 +4,6 @@ namespace ClinicHub.Application.Features.Clinics.DTOs
     {
         public Guid Id { get; set; }
         public string PatientName { get; set; } = null!;
-        public string? PatientPhone { get; set; }
         public int PatientAge { get; set; }
         public string ClinicName { get; set; } = null!;
         public string DoctorName { get; set; } = null!;

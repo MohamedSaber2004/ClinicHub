@@ -40,9 +40,5 @@ public class InitiatePaymentCommandValidator : AbstractValidator<InitiatePayment
                 // Allow if: no payment exists OR payment is not Paid
                 return payment == null || payment.Status != PaymentStatus.Paid;
             }).WithMessage(localizer[LocalizationKeys.PaymentMessages.AlreadyPaid.Value]);
-
-        RuleFor(x => x.PhoneNumber)
-            .NotEmpty().WithMessage(localizer[LocalizationKeys.PaymentMessages.PhoneNumberRequired.Value])
-            .Matches(@"^01[0125][0-9]{8}$").WithMessage(localizer[LocalizationKeys.PaymentMessages.InvalidPhoneNumber.Value]);
     }
 }

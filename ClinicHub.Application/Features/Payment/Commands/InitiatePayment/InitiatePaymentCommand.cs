@@ -1,7 +1,6 @@
 using MediatR;
 using ClinicHub.Application.Features.Payment.DTOs;
-using System;
 
 namespace ClinicHub.Application.Features.Payment.Commands.InitiatePayment;
 
-public record InitiatePaymentCommand(Guid AppointmentId, string PhoneNumber, string? ReturnUrl = null) : IRequest<InitiatePaymentResponseDto>;
+public record InitiatePaymentCommand(Guid AppointmentId, string? ReturnUrl = null) : IRequest<InitiatePaymentResponseDto>;

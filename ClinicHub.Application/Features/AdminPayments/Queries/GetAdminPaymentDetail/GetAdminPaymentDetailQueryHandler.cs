@@ -52,7 +52,7 @@ public class GetAdminPaymentDetailQueryHandler : IRequestHandler<GetAdminPayment
                 : payment.Clinic?.Name ?? payment.UserId.ToString(),
             PayerType = isAppointment ? "Patient" : "Clinic",
             PayerEmail = isAppointment ? payment.Appointment!.BookedByUser?.Email : payment.Clinic?.Email,
-            PayerPhone = isAppointment ? payment.Appointment!.PatientPhoneNumber : payment.Clinic?.Phone,
+            PayerPhone = payment.Clinic?.Phone,
             ItemName = itemName,
             Amount = payment.Amount,
             Method = PaymentMethodMapper.ToEnum(payment.PaymentMethod),
