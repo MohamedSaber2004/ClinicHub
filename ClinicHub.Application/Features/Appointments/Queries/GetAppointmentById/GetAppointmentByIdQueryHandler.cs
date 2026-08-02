@@ -31,7 +31,25 @@ namespace ClinicHub.Application.Features.Appointments.Queries.GetAppointmentById
             if (appointment == null)
                 throw new NotFoundException(LocalizationKeys.AppointmentMessages.AppointmentNotFound.Value);
 
-            return _mapper.Map<AppointmentDto>(appointment);
+            var dto = _mapper.Map<AppointmentDto>(appointment);
+
+            if (appointment.Payment != null)
+            {
+                dto.Amount = appointment.Payment.Amount;
+                dto.Currency = appointment.Payment.Currency;
+                dto.PaymentUrl = appointment.Payment.RedirectUrl;
+            }
+            else
+            {
+                var config = await _unitOfWork.BookingConfigurationRepository.GetByClinicIdAsync(appointment.ClinicId);
+                if (config != null)
+                {
+                    dto.Amount = config.ConsultationFee;
+                    dto.Currency = config.Currency;
+                }
+            }
+
+            return dto;
         }
     }
 }

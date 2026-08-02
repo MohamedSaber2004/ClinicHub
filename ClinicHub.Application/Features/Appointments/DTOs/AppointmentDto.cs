@@ -32,5 +32,6 @@ namespace ClinicHub.Application.Features.Appointments.DTOs
         public Guid? PaymentId { get; set; }
         public DateTime CreatedAt { get; set; }
         public string? ReceiptUrl { get; set; }
+        public string? PaymentUrl { get; set; }
     }
 }
