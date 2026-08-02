@@ -33,11 +33,14 @@ namespace ClinicHub.Application.Features.Appointments.Queries.GetAppointmentById
 
             var dto = _mapper.Map<AppointmentDto>(appointment);
 
-            if (appointment.Payment != null)
+            var payment = appointment.Payment ?? await _unitOfWork.PaymentRepository.GetByAppointmentIdAsync(appointment.Id);
+
+            if (payment != null)
             {
-                dto.Amount = appointment.Payment.Amount;
-                dto.Currency = appointment.Payment.Currency;
-                dto.PaymentUrl = appointment.Payment.RedirectUrl;
+                dto.PaymentId = payment.Id;
+                dto.Amount = payment.Amount;
+                dto.Currency = payment.Currency;
+                dto.PaymentUrl = payment.RedirectUrl;
             }
             else
             {
