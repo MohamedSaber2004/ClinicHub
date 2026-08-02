@@ -196,7 +196,22 @@
     "RefundFailed": "Refund processing failed",
     "RefundSuccess": "Refund processed successfully",
     "InvalidTransactionId": "Invalid payment transaction ID",
-    "AlreadyRefunded": "This payment has already been refunded"
+    "AlreadyRefunded": "This payment has already been refunded",
+    "ItemAppointment": "Appointment consultation",
+    "ItemAds": "Ads service",
+    "SubscriptionPeriodMonthly": "Monthly subscription",
+    "SubscriptionPeriodYearly": "Yearly subscription",
+    "TimelineCreated": "Transaction created",
+    "TimelinePaid": "Payment confirmed and amount received",
+    "TimelineRefunded": "Amount refunded",
+    "ManualCreated": "Manual payment recorded successfully",
+    "Refunded": "Payment refunded successfully",
+    "ManualTypeUnsupported": "This payment type cannot be recorded manually",
+    "PayerUserNotFound": "No user is linked to this clinic",
+    "AdsNotEligible": "Ads services can only be purchased on the Advanced plan",
+    "AdsOrderCreated": "Ads order created successfully",
+    "AdPackageNotFound": "Ads package not found",
+    "AdPackageNotActive": "This ads package is not available"
   },
   "Booking": {
     "SlotNotFound": "Time slot not found",

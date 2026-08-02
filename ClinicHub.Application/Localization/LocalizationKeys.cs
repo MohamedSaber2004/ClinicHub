@@ -237,6 +237,21 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString RefundSuccess = new("Payments.RefundSuccess");
             public static readonly KeyString InvalidTransactionId = new("Payments.InvalidTransactionId");
             public static readonly KeyString AlreadyRefunded = new("Payments.AlreadyRefunded");
+            public static readonly KeyString ItemAppointment = new("Payments.ItemAppointment");
+            public static readonly KeyString ItemAds = new("Payments.ItemAds");
+            public static readonly KeyString SubscriptionPeriodMonthly = new("Payments.SubscriptionPeriodMonthly");
+            public static readonly KeyString SubscriptionPeriodYearly = new("Payments.SubscriptionPeriodYearly");
+            public static readonly KeyString TimelineCreated = new("Payments.TimelineCreated");
+            public static readonly KeyString TimelinePaid = new("Payments.TimelinePaid");
+            public static readonly KeyString TimelineRefunded = new("Payments.TimelineRefunded");
+            public static readonly KeyString ManualCreated = new("Payments.ManualCreated");
+            public static readonly KeyString Refunded = new("Payments.Refunded");
+            public static readonly KeyString ManualTypeUnsupported = new("Payments.ManualTypeUnsupported");
+            public static readonly KeyString PayerUserNotFound = new("Payments.PayerUserNotFound");
+            public static readonly KeyString AdsNotEligible = new("Payments.AdsNotEligible");
+            public static readonly KeyString AdsOrderCreated = new("Payments.AdsOrderCreated");
+            public static readonly KeyString AdPackageNotFound = new("Payments.AdPackageNotFound");
+            public static readonly KeyString AdPackageNotActive = new("Payments.AdPackageNotActive");
         }
 
         public static class DoctorMessages

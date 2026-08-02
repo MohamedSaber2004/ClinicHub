@@ -67,7 +67,7 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
         {
             payment.MarkAsPaid(transaction.Id.ToString(), transaction.SourceData?.SubType ?? "Unknown");
 
-            if (payment.AppointmentId.HasValue)
+            if (payment.Type == PaymentType.Appointment && payment.AppointmentId.HasValue)
             {
                 var appointment = await _unitOfWork.AppointmentRepository.GetAllAsync(x => x.Id == payment.AppointmentId.Value).FirstOrDefaultAsync(cancellationToken);
                 appointment?.Confirm(payment.Id);
@@ -79,7 +79,7 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
                         ["appointmentId"] = appointment.Id.ToString()
                     });
             }
-            else if (payment.PlanId.HasValue && payment.SubscriptionPeriod.HasValue)
+            else if (payment.Type == PaymentType.Subscription && payment.PlanId.HasValue && payment.SubscriptionPeriod.HasValue)
             {
                 if (payment.SubscriptionId.HasValue)
                 {

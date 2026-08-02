@@ -196,7 +196,22 @@
     "RefundFailed": "فشل معالجة الاسترداد",
     "RefundSuccess": "تم استرداد المبلغ بنجاح",
     "InvalidTransactionId": "معرّف معاملة الدفع غير صالح",
-    "AlreadyRefunded": "تم استرداد هذا الدفع مسبقاً"
+    "AlreadyRefunded": "تم استرداد هذا الدفع مسبقاً",
+    "ItemAppointment": "كشف موعد",
+    "ItemAds": "خدمة إعلانية",
+    "SubscriptionPeriodMonthly": "اشتراك شهري",
+    "SubscriptionPeriodYearly": "اشتراك سنوي",
+    "TimelineCreated": "تم إنشاء المعاملة",
+    "TimelinePaid": "تم تأكيد الدفع واستلام المبلغ",
+    "TimelineRefunded": "تم استرداد المبلغ",
+    "ManualCreated": "تم تسجيل الدفعة اليدوية بنجاح",
+    "Refunded": "تم استرداد المبلغ بنجاح",
+    "ManualTypeUnsupported": "لا يمكن تسجيل هذا النوع من الدفع يدوياً",
+    "PayerUserNotFound": "لا يوجد مستخدم مرتبط بهذه العيادة",
+    "AdsNotEligible": "لا يمكن شراء الخدمات الإعلانية إلا للباقات المتقدمة",
+    "AdsOrderCreated": "تم إنشاء طلب الإعلان بنجاح",
+    "AdPackageNotFound": "الباقة الإعلانية غير موجودة",
+    "AdPackageNotActive": "هذه الباقة الإعلانية غير متاحة حالياً"
   },
   "Booking": {
     "SlotNotFound": "الموعد غير موجود",

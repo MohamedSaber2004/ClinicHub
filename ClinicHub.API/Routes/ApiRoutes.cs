@@ -293,6 +293,23 @@ namespace ClinicHub.API.Routes
             public const string DeleteAdvertisement = Base + "/admin/dashboard/advertisements/{id:guid}";
         }
 
+        public static class AdminPayments
+        {
+            public const string BaseRoute = Base + "/admin/payments";
+            public const string GetAll = BaseRoute;
+            public const string GetById = BaseRoute + "/{id:guid}";
+            public const string Stats = BaseRoute + "/stats";
+            public const string Manual = BaseRoute + "/manual";
+            public const string Refund = BaseRoute + "/{id:guid}/refund";
+        }
+
+        public static class AdminAds
+        {
+            public const string EligibleClinics = Base + "/admin/ads/eligible-clinics";
+            public const string Packages = Base + "/admin/ads/packages";
+            public const string Orders = Base + "/admin/ads/orders";
+        }
+
         public static class Advertisements
         {
             public const string BaseRoute = Base + "/advertisements";

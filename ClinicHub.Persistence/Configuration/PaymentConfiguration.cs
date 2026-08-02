@@ -11,6 +11,9 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.ToTable("Payments");
 
         builder.HasKey(p => p.Id);
+        builder.Property(p => p.Code).HasMaxLength(20);
+        builder.Property(p => p.RefNumber).HasMaxLength(50);
+        builder.Property(p => p.Type).IsRequired().HasConversion<int>();
         builder.Property(p => p.Amount).IsRequired().HasColumnType("decimal(18,2)");
         builder.Property(p => p.Currency).IsRequired().HasMaxLength(3);
         builder.Property(p => p.Status).IsRequired().HasConversion<int>();
@@ -19,9 +22,12 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.FailureReason).HasMaxLength(500);
         builder.Property(p => p.TransactionId).HasMaxLength(100);
         builder.Property(p => p.RefundReason).HasMaxLength(500);
+        builder.Property(p => p.Notes).HasMaxLength(500);
         builder.HasIndex(p => p.AppointmentId);
+        builder.HasIndex(p => p.Type);
+        builder.HasIndex(p => p.RefNumber).IsUnique().HasFilter("[RefNumber] IS NOT NULL");
 
-        builder.HasOne<Appointment>()
+        builder.HasOne(p => p.Appointment)
             .WithMany()
             .HasForeignKey(p => p.AppointmentId)
             .OnDelete(DeleteBehavior.Restrict);

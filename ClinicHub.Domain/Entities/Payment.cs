@@ -6,7 +6,11 @@ namespace ClinicHub.Domain.Entities;
 
 public class Payment : BaseEntity<Guid>, IClinicScopedEntity
 {
+    public PaymentType Type { get; private set; } = PaymentType.Appointment;
+    public string? Code { get; private set; }
+    public string? RefNumber { get; private set; }
     public Guid? AppointmentId { get; private set; }
+    public Appointment? Appointment { get; private set; }
     public Guid UserId { get; private set; }
     public Guid ClinicId { get; private set; }
     Guid? IClinicScopedEntity.ClinicId => ClinicId;
@@ -28,21 +32,35 @@ public class Payment : BaseEntity<Guid>, IClinicScopedEntity
     public string? TransactionId { get; private set; }
     public DateTime? RefundedAt { get; private set; }
     public string? RefundReason { get; private set; }
+    public string? Notes { get; private set; }
 
     private Payment() { }
 
-    public Payment(Guid? appointmentId, Guid userId, Guid clinicId, decimal amount, string currency = "EGP")
+    public Payment(PaymentType type, Guid userId, Guid clinicId, decimal amount, string currency = "EGP")
     {
-        AppointmentId = appointmentId;
+        Type = type;
         UserId = userId;
         ClinicId = clinicId;
         Amount = amount;
         Currency = currency ?? "EGP";
+        Code = "#P-" + Guid.NewGuid().ToString("N")[..6].ToUpper();
+        RefNumber = $"PM-{DateTime.UtcNow.Year}-{Guid.NewGuid().ToString("N")[..6].ToUpper()}";
     }
 
     public void LinkToSubscription(Guid subscriptionId)
     {
         SubscriptionId = subscriptionId;
+    }
+
+    public void LinkToAppointment(Guid appointmentId)
+    {
+        AppointmentId = appointmentId;
+    }
+
+    public void SetManualReference(string? refNumber, string? notes)
+    {
+        RefNumber = string.IsNullOrWhiteSpace(refNumber) ? RefNumber : refNumber;
+        Notes = notes;
     }
 
         public void MarkAsProcessing(string? redirectUrl = null, string? paymentMethod = null)
@@ -56,6 +74,15 @@ public class Payment : BaseEntity<Guid>, IClinicScopedEntity
     {
         PaymobTransactionId = transactionId;
         TransactionId = transactionId;
+        PaymentMethod = method;
+        PaidAt = DateTime.UtcNow;
+        Status = PaymentStatus.Paid;
+        FailureReason = null;
+    }
+
+    public void MarkAsManuallyPaid(string method, string? reference = null)
+    {
+        TransactionId = reference;
         PaymentMethod = method;
         PaidAt = DateTime.UtcNow;
         Status = PaymentStatus.Paid;

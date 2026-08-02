@@ -70,10 +70,11 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
         }
         else
         {
-            payment = new ClinicHub.Domain.Entities.Payment(request.AppointmentId, currentUserId, appointment.ClinicId, amount.Value)
+            payment = new ClinicHub.Domain.Entities.Payment(PaymentType.Appointment, currentUserId, appointment.ClinicId, amount.Value)
             {
                 PaymobOrderId = walletResult.OrderId
             };
+            payment.LinkToAppointment(request.AppointmentId);
             await _unitOfWork.PaymentRepository.AddAsync(payment);
         }
 

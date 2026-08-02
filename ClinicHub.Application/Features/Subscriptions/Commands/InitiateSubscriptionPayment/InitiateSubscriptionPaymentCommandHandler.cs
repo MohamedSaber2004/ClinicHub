@@ -74,7 +74,7 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.InitiateSubscrip
 
             var walletResult = await _paymobService.InitiateWalletPaymentAsync(amount, currency, billing, billing.PhoneNumber, cancellationToken, request.ReturnUrl);
 
-            var payment = new Domain.Entities.Payment(null, _currentUser.UserId, clinicId.Value, amount, currency)
+            var payment = new Domain.Entities.Payment(PaymentType.Subscription, _currentUser.UserId, clinicId.Value, amount, currency)
             {
                 PaymobOrderId = walletResult.OrderId,
                 PlanId = request.PlanId,
