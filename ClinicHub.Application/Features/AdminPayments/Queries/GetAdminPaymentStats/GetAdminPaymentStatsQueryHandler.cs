@@ -23,10 +23,19 @@ public class GetAdminPaymentStatsQueryHandler : IRequestHandler<GetAdminPaymentS
         if (request.Type.HasValue)
             query = query.Where(p => p.Type == request.Type.Value);
 
+        var hasDateRange = request.FromDate.HasValue || request.ToDate.HasValue;
+
+        if (request.FromDate.HasValue)
+            query = query.Where(p => p.PaidAt.HasValue && p.PaidAt.Value.Date >= request.FromDate.Value.Date);
+
+        if (request.ToDate.HasValue)
+            query = query.Where(p => p.PaidAt.HasValue && p.PaidAt.Value.Date <= request.ToDate.Value.Date);
+
         var today = DateTime.UtcNow.Date;
 
         var todayRevenue = await query
-            .Where(p => p.Status == PaymentStatus.Paid && p.PaidAt.HasValue && p.PaidAt.Value >= today)
+            .Where(p => p.Status == PaymentStatus.Paid
+                && (hasDateRange || (p.PaidAt.HasValue && p.PaidAt.Value >= today)))
             .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0;
 
         var appointmentsRevenue = await query

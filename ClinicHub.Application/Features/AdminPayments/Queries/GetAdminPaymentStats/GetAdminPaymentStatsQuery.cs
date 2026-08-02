@@ -7,4 +7,6 @@ namespace ClinicHub.Application.Features.AdminPayments.Queries.GetAdminPaymentSt
 public class GetAdminPaymentStatsQuery : IRequest<AdminPaymentStatsDto>
 {
     public PaymentType? Type { get; set; }
+    public DateTime? FromDate { get; set; }
+    public DateTime? ToDate { get; set; }
 }
