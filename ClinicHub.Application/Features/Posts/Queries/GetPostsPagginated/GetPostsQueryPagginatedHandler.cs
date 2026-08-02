@@ -11,12 +11,12 @@ namespace ClinicHub.Application.Features.Posts.Queries.GetPostsPagginated
     public class GetPostsQueryPagginatedHandler : IRequestHandler<GetPostsQueryPagginated, PagginatedResult<PostDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public GetPostsQueryPagginatedHandler(IUnitOfWork unitOfWork, SignInManager<ApplicationUser> signInManager)
+        public GetPostsQueryPagginatedHandler(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager)
         {
             _unitOfWork = unitOfWork;
-            _signInManager = signInManager;
+            _userManager = userManager;
         }
 
         public async Task<PagginatedResult<PostDto>> Handle(GetPostsQueryPagginated request, CancellationToken cancellationToken)
@@ -39,7 +39,23 @@ namespace ClinicHub.Application.Features.Posts.Queries.GetPostsPagginated
                     (x, doctor) => new { x.post, x.user, doctor })
                 .OrderByDescending(x => x.post.CreatedAt);
 
-            return await query
+            var page = await query
+                .Select(x => new
+                {
+                    x.post,
+                    x.user,
+                    IsFreelanceDoctor = x.doctor != null && x.doctor.IsFreelance
+                })
+                .AsPagginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+
+            var roleLookup = new Dictionary<Guid, string?>();
+            foreach (var author in page.Items.Select(x => x.user).DistinctBy(u => u.Id))
+            {
+                var roles = await _userManager.GetRolesAsync(author);
+                roleLookup[author.Id] = roles.FirstOrDefault();
+            }
+
+            var items = page.Items
                 .Select(x => new PostDto(
                     x.post.Id,
                     x.post.Content,
@@ -49,10 +65,13 @@ namespace ClinicHub.Application.Features.Posts.Queries.GetPostsPagginated
                     x.post.CreatedAt,
                     x.post.Reactions.Count,
                     x.post.Comments.Count,
-                    x.doctor != null && x.doctor.IsFreelance,
-                    x.post.Media.Select(m => new MediaDto(m.Id, m.Url, m.Type.ToString())).ToList()
+                    x.IsFreelanceDoctor,
+                    x.post.Media.Select(m => new MediaDto(m.Id, m.Url, m.Type.ToString())).ToList(),
+                    roleLookup.GetValueOrDefault(x.post.AuthorId)
                 ))
-                .AsPagginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
+                .ToList();
+
+            return new PagginatedResult<PostDto>(items, page.TotalCount, page.PageNumber, page.PageSize);
         }
     }
 }
