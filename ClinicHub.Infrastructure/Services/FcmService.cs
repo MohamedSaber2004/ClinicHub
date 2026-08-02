@@ -73,9 +73,20 @@ namespace ClinicHub.Infrastructure.Services
                 {
                     _tokenRepository.Delete(token);
                 }
+                catch (Exception)
+                {
+                    // Ignore FCM dispatch failures (e.g. invalid credentials or network issues) so approval operation succeeds
+                }
             }
 
-            await _unitOfWork.SaveChangesAsync();
+            try
+            {
+                await _unitOfWork.SaveChangesAsync();
+            }
+            catch (Exception)
+            {
+                // Ignore token deletion save failure
+            }
         }
 
         public async Task SendToDeviceAsync(string deviceToken, NotificationPayload payload, DevicePlatform platform)
