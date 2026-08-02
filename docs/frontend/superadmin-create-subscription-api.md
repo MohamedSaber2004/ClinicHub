@@ -106,7 +106,7 @@ Error envelope (same as the rest of the API):
 
 | Code | Meaning | Frontend action |
 |------|---------|-----------------|
-| `400` | Validation error | toast with `errors[0]` / `message` |
+| `400` | Validation error **or** clinic already has an active subscription (business rejection) | toast with `errors[0]` / `message` |
 | `401` | Missing/invalid/expired admin token | redirect to login |
 | `403` | Not SuperAdmin | toast with `message` |
 | `404` | Clinic or plan not found | toast with `message` |
@@ -133,10 +133,13 @@ clinic owner paying online. The backend MUST therefore behave like a successful 
    `POST /api/v1/admin/payments/manual`).
 
 ### Duplicate handling
-- If the clinic already has an **active** subscription for the same plan, decide the behavior:
-  - Recommended: **extend/refresh** the existing subscription (new `endDate` = `max(current endDate, today) + period`) OR
-  - Reject with `400` and a localized message («العيادة لديها اشتراك نشط بالفعل»).
-  Pick one and document it; the frontend shows whatever `message` the backend returns.
+- **Chosen behavior (implemented): reject with `400`** — if the clinic already has a **valid active**
+  subscription (`status: 0` and `endDate > now`, same **or different** plan), the endpoint returns
+  `400` with the localized message «العيادة لديها اشتراك نشط بالفعل» (`Subscriptions.AlreadyActive`).
+  No data is changed and no payment record is created.
+- Stale active records (`status: 0` but `endDate` already in the past) are auto-marked `Expired`
+  before the new subscription is created, so they never block a fresh subscription.
+- The frontend shows whatever `message` the backend returns.
 
 ---
 

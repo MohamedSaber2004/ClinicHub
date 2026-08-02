@@ -94,12 +94,16 @@ Creating a subscription via this endpoint behaves **exactly like a successful Pa
 
 | Case | Backend behavior |
 |------|------------------|
-| Clinic already has an **active subscription with the same plan** | **Extends it**: `new endDate = max(current endDate, startDate) + period`, updates `amount` and `paidAt`. Returns the **same** subscription id. |
-| Clinic already has an active subscription with a **different plan** | **Revokes** the old one and **creates a new** active subscription for the new plan. |
-| No active subscription | Creates a new one. |
+| Clinic **still has a valid active subscription** (`status: 0` **and** `endDate` in the future) — same **or different** plan | **Rejects with `400`**: «يوجد اشتراك نشط لهذه العيادة بالفعل». No data is changed, no payment is created. |
+| Clinic has an active record that **already expired by date** (`endDate` in the past) | Backend auto-marks it `Expired` and creates the new subscription normally. |
+| Clinic only has cancelled / revoked / expired subscriptions | Creates a new active subscription normally. |
+| Clinic has no subscriptions at all | Creates a new active subscription normally. |
 
-> The UI does **not** need to pre-check or warn — the backend handles every case. Just show
-> whatever `message` comes back (e.g. after extension the message is still "تم إنشاء الاشتراك بنجاح").
+> The UI does **not** need to pre-check — the backend decides. The typical flow is: open the modal,
+> select the clinic, and the backend tells you if the clinic is already subscribed. Toast the
+> `message` («يوجد اشتراك نشط لهذه العيادة بالفعل») so the admin understands why it was rejected.
+> You may optionally disable the submit button while a successful/error response is pending, but
+> **do not** silently succeed — the modal must stay open on `400` and show the message.
 
 ---
 
@@ -107,7 +111,7 @@ Creating a subscription via this endpoint behaves **exactly like a successful Pa
 
 | HTTP | Meaning | Frontend action |
 |------|---------|-----------------|
-| `400` | Validation error | Toast the first value of `errors` (e.g. `errors.clinicId[0]`) or `message` |
+| `400` | Validation error **or** business rejection | If `errors` is non-empty, toast the first value (e.g. `errors.startDate[0]`). If `errors` is empty, toast `message` — this is the already-subscribed case («يوجد اشتراك نشط لهذه العيادة بالفعل»). Keep the modal open on `400`. |
 | `401` | Missing/invalid/expired admin token | Redirect to login |
 | `403` | Not SuperAdmin | Toast `message` |
 | `404` | Clinic or plan not found / plan inactive | Toast `message` (e.g. «العيادة غير موجودة», «هذه الباقة غير نشطة») |

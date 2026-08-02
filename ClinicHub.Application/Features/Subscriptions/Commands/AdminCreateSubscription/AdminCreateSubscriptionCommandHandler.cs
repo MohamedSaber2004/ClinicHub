@@ -37,50 +37,36 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.AdminCreateSubsc
 
             var startDate = request.StartDate?.Date ?? DateTime.UtcNow.Date;
             var amount = request.Amount ?? (request.Period == SubscriptionPlan.Yearly ? plan.PriceYearly : plan.PriceMonthly);
+            var now = DateTime.UtcNow;
 
-            var existingActiveSubs = await _unitOfWork.GetRepository<Subscription, Guid>()
+            var activeSubs = await _unitOfWork.GetRepository<Subscription, Guid>()
                 .GetAllAsync(s => s.ClinicId == request.ClinicId && s.Status == SubscriptionStatus.Active)
                 .ToListAsync(cancellationToken);
 
-            Subscription subscription;
+            var validActive = activeSubs.FirstOrDefault(s => s.EndDate > now);
+            if (validActive != null)
+                throw new BadRequestException(LocalizationKeys.SubscriptionMessages.AlreadyActive.Value);
 
-            var samePlanActive = existingActiveSubs.FirstOrDefault(s => s.PlanId == plan.Id);
-            if (samePlanActive != null)
+            foreach (var staleSub in activeSubs)
             {
-                var baseDate = samePlanActive.EndDate > startDate ? samePlanActive.EndDate : startDate;
-                samePlanActive.Period = request.Period;
-                samePlanActive.EndDate = request.Period == SubscriptionPlan.Yearly
-                    ? baseDate.AddYears(1)
-                    : baseDate.AddMonths(1);
-                samePlanActive.Amount = amount;
-                samePlanActive.PaidAt = DateTime.UtcNow;
-                samePlanActive.Status = SubscriptionStatus.Active;
-                subscription = samePlanActive;
+                staleSub.Status = SubscriptionStatus.Expired;
             }
-            else
+
+            var subscription = new Subscription
             {
-                foreach (var activeSub in existingActiveSubs)
-                {
-                    activeSub.Status = SubscriptionStatus.Revoked;
-                    activeSub.Notes = "Revoked due to new admin subscription creation.";
-                }
+                ClinicId = request.ClinicId,
+                PlanId = plan.Id,
+                Period = request.Period,
+                StartDate = startDate,
+                EndDate = request.Period == SubscriptionPlan.Yearly
+                    ? startDate.AddYears(1)
+                    : startDate.AddMonths(1),
+                Amount = amount,
+                Status = SubscriptionStatus.Active,
+                PaidAt = now
+            };
 
-                subscription = new Subscription
-                {
-                    ClinicId = request.ClinicId,
-                    PlanId = plan.Id,
-                    Period = request.Period,
-                    StartDate = startDate,
-                    EndDate = request.Period == SubscriptionPlan.Yearly
-                        ? startDate.AddYears(1)
-                        : startDate.AddMonths(1),
-                    Amount = amount,
-                    Status = SubscriptionStatus.Active,
-                    PaidAt = DateTime.UtcNow
-                };
-
-                await _unitOfWork.GetRepository<Subscription, Guid>().AddAsync(subscription);
-            }
+            await _unitOfWork.GetRepository<Subscription, Guid>().AddAsync(subscription);
 
             var payment = await CreatePaymentRecordAsync(clinic, plan, amount, request.Period, cancellationToken);
             if (payment != null)
