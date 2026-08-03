@@ -1,7 +1,6 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using AspNetCoreRateLimit;
-using Bogus;
 using ClinicHub.API.Filters;
 using ClinicHub.API.Middleware;
 using ClinicHub.API.Services;
@@ -206,7 +205,7 @@ namespace ClinicHub.API
                 }).ExcludeFromDescription();
 
 
-                // Run seeding in the background after the app starts to avoid blocking IIS startup timeout
+                // Seed roles in the background after the app starts to avoid blocking IIS startup timeout
                 _ = Task.Run(async () =>
                 {
                     try
@@ -216,8 +215,6 @@ namespace ClinicHub.API
                         using var scope = app.Services.CreateScope();
                         var services = scope.ServiceProvider;
                         await services.SeedRolesAsync();
-                        await services.SeedSpecializationsAsync();
-                        await services.SeedDataAsync();
                     }
                     catch (Exception ex)
                     {
