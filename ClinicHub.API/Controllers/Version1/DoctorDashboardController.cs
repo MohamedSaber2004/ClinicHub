@@ -23,7 +23,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ClinicHub.API.Controllers.Version1
 {
     [ApiVersion("1.0")]
-    [RoleAuthorize(nameof(UserType.Doctor))]
+    [RoleAuthorize(nameof(UserType.Doctor), nameof(UserType.ClinicOwner))]
     [RequirePlanPermission(SubscriptionPermission.ManageAppointments)]
     public class DoctorDashboardController : BaseApiController
     {
