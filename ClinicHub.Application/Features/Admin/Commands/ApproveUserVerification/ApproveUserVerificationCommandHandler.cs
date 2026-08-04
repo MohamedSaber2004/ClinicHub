@@ -54,22 +54,22 @@ namespace ClinicHub.Application.Features.Admin.Commands.ApproveUserVerification
 
             var roleName = verification.RequestedRole.ToString();
             var existingRoles = await _userManager.GetRolesAsync(user);
-            if (existingRoles.Count > 0)
-                await _userManager.RemoveFromRolesAsync(user, existingRoles);
 
-            await _userManager.AddToRoleAsync(user, roleName);
-
-            if (verification.RequestedRole == UserType.ClinicOwner)
+            if (!existingRoles.Contains(roleName))
             {
-                var clinic = await _unitOfWork.ClinicRepository
-                    .GetAllAsync(c => (c.ClinicAdminId == user.Id || (user.ClinicId.HasValue && c.Id == user.ClinicId.Value)) && !c.IsDeleted && c.Status == ClinicStatus.PendingApproval)
-                    .FirstOrDefaultAsync(cancellationToken);
+                var roleResult = await _userManager.AddToRoleAsync(user, roleName);
+                if (!roleResult.Succeeded)
+                    throw new BadRequestException(_localizer[LocalizationKeys.AuthMessages.RoleAssignmentFailed.Value]);
+            }
 
-                if (clinic != null)
-                {
-                    clinic.Status = ClinicStatus.Active;
-                    clinic.Active();
-                }
+            var clinic = await _unitOfWork.ClinicRepository
+                .GetAllAsync(c => (c.ClinicAdminId == user.Id || (user.ClinicId.HasValue && c.Id == user.ClinicId.Value)) && !c.IsDeleted)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (verification.RequestedRole == UserType.ClinicOwner && clinic != null && clinic.Status == ClinicStatus.PendingApproval)
+            {
+                clinic.Status = ClinicStatus.Active;
+                clinic.Active();
             }
 
             if (verification is { SpecializationId: not null, RequestedRole: UserType.Doctor or UserType.ClinicOwner })
@@ -80,13 +80,33 @@ namespace ClinicHub.Application.Features.Admin.Commands.ApproveUserVerification
 
                 if (existingDoctor == null)
                 {
-                    var doctor = new Doctor(
-                        user.Id,
-                        verification.SpecializationId.Value,
-                        verification.Bio ?? string.Empty,
-                        verification.YearsOfExperience ?? 0);
+                    var doctor = clinic != null
+                        ? new Doctor(
+                            user.Id,
+                            clinic.Id,
+                            verification.SpecializationId.Value,
+                            verification.Bio ?? string.Empty,
+                            verification.YearsOfExperience ?? 0)
+                        : new Doctor(
+                            user.Id,
+                            verification.SpecializationId.Value,
+                            verification.Bio ?? string.Empty,
+                            verification.YearsOfExperience ?? 0);
 
                     await _unitOfWork.DoctorRepository.AddAsync(doctor);
+                }
+                else if (clinic != null && !existingDoctor.ClinicId.HasValue)
+                {
+                    existingDoctor.AssignToClinic(clinic.Id);
+                }
+
+                // A clinic owner is also a doctor (الطبيب المسؤول): grant the Doctor role
+                // so owner-doctors can access the doctor dashboard endpoints.
+                if (verification.RequestedRole == UserType.ClinicOwner && !existingRoles.Contains(nameof(UserType.Doctor)))
+                {
+                    var doctorRoleResult = await _userManager.AddToRoleAsync(user, nameof(UserType.Doctor));
+                    if (!doctorRoleResult.Succeeded)
+                        throw new BadRequestException(_localizer[LocalizationKeys.AuthMessages.RoleAssignmentFailed.Value]);
                 }
             }
 

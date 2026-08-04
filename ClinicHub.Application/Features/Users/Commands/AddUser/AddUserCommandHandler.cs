@@ -84,6 +84,15 @@ namespace ClinicHub.Application.Features.Users.Commands.AddUser
                     await _unitOfWork.DoctorRepository.AddAsync(doctor);
                     await _unitOfWork.SaveChangesAsync();
                 }
+
+                // The clinic owner is also a doctor (الطبيب المسؤول): grant the Doctor role
+                // so the owner can use the doctor dashboard.
+                if (request.Role == UserType.ClinicOwner)
+                {
+                    var doctorRoleResult = await _userManager.AddToRoleAsync(user, nameof(UserType.Doctor));
+                    if (!doctorRoleResult.Succeeded)
+                        throw new BadRequestException(LocalizationKeys.AuthMessages.RoleAssignmentFailed.Value);
+                }
             }
 
             return user.Id;

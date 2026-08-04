@@ -87,6 +87,15 @@ namespace ClinicHub.Application.Features.Clinics.Commands.CreateClinic
                     throw new BadRequestException(roleErrors);
                 }
 
+                // The clinic owner is also a doctor (الطبيب المسؤول): grant the Doctor role
+                // so the owner can use the doctor dashboard.
+                var doctorRoleResult = await _userManager.AddToRoleAsync(user, UserType.Doctor.ToString());
+                if (!doctorRoleResult.Succeeded)
+                {
+                    var roleErrors = string.Join(", ", doctorRoleResult.Errors.Select(e => e.Description));
+                    throw new BadRequestException(roleErrors);
+                }
+
                 clinic.ClinicAdminId = user.Id;
 
                 var createdBy = _currentUserService.IsAuthenticated

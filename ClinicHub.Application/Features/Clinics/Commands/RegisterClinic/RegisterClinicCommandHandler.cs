@@ -46,6 +46,10 @@ namespace ClinicHub.Application.Features.Clinics.Commands.RegisterClinic
             if (!roleResult.Succeeded)
                 throw new BadRequestException(_localizer[LocalizationKeys.AuthMessages.RoleAssignmentFailed.Value]);
 
+            var doctorRoleResult = await _userManager.AddToRoleAsync(user, UserType.Doctor.ToString());
+            if (!doctorRoleResult.Succeeded)
+                throw new BadRequestException(_localizer[LocalizationKeys.AuthMessages.RoleAssignmentFailed.Value]);
+
             user.IsActive = false;
 
             var clinic = new Clinic

@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Common.Options;
@@ -147,7 +148,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
                 refreshToken,
                 user.FullName,
                 user.Email!,
-                roles.FirstOrDefault(),
+                UserTypeHelper.GetPrimaryRole(roles),
                 user.Id,
                 clinicId,
                 user.ProfilePictureUrl,

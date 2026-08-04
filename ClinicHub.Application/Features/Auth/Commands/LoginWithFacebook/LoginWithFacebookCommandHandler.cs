@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Common.Options;
@@ -127,7 +128,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWithFacebook
                 .Select(d => (bool?)d.IsFreelance)
                 .FirstOrDefaultAsync(cancellationToken) ?? false;
 
-            return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, roles.FirstOrDefault(), user.Id, clinicId, user.ProfilePictureUrl, isFreelanceDoctor);
+            return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, UserTypeHelper.GetPrimaryRole(roles), user.Id, clinicId, user.ProfilePictureUrl, isFreelanceDoctor);
         }
     }
 }

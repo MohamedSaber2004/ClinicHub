@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Auth.DTOs;
 using ClinicHub.Domain.Entities;
@@ -43,7 +44,7 @@ namespace ClinicHub.Application.Features.Auth.Queries.GetUserProfile
                 DateOnly.FromDateTime(user.BirthDate ?? DateTime.MinValue),
                 user.ProfilePictureUrl,
                 user.Language,
-                roles.FirstOrDefault(),
+                UserTypeHelper.GetPrimaryRole(roles),
                 isFreelanceDoctor);
         }
     }

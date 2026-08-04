@@ -25,3 +25,5 @@ namespace ClinicHub.Persistence.Seeders
         }
     }
 }
+
+

@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Common.Options;
@@ -81,7 +82,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
                 await _unitOfWork.SaveChangesAsync();
 
                 return SignupResult.Authenticated(new AuthResponseDto(
-                    accessToken, refreshToken, user.FullName, user.Email!, roles.FirstOrDefault(), user.Id, clinicId, user.ProfilePictureUrl, IsFreelanceDoctor: false));
+                    accessToken, refreshToken, user.FullName, user.Email!, UserTypeHelper.GetPrimaryRole(roles), user.Id, clinicId, user.ProfilePictureUrl, IsFreelanceDoctor: false));
             }
             else
             {
