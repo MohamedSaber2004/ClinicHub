@@ -16,7 +16,7 @@ namespace ClinicHub.Application.Features.Appointments.DTOs
         public string EndTime { get; set; } = null!;
 
         public AppointmentType AppointmentType { get; set; }
-        public AppointmentStatus Status { get; set; }
+        public string Status { get; set; } = null!;
 
         public string PatientFullName { get; set; } = null!;
         public int PatientAge { get; set; }
