@@ -64,7 +64,8 @@ namespace ClinicHub.Application.Features.Clinics.Commands.CreateClinic
                         ? new Point(request.Lng.Value, request.Lat.Value) { SRID = 4326 }
                         : new Point(0, 0) { SRID = 4326 },
                     IsRegistered = true,
-                    Status = ClinicStatus.Active
+                    Status = ClinicStatus.Active,
+                    IsSetupComplete = true
                 };
 
                 var tempPassword = GenerateRandomPassword(12);

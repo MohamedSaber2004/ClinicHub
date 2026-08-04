@@ -131,7 +131,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
                 if (clinic != null)
                 {
                     clinicStatus = clinic.Status;
-                    isClinicSetupComplete = clinic.IsSetupComplete;
+                    isClinicSetupComplete = clinic.IsSetupComplete || clinic.Status == ClinicStatus.Active;
                 }
 
                 var verification = await _unitOfWork.UserVerificationRepository
