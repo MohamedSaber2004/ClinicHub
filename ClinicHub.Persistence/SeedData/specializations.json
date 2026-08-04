@@ -1,0 +1,92 @@
+[
+  {
+    "Name": "General Medicine",
+    "ArName": "طب عام",
+    "Description": "General medical care and health check-ups",
+    "IsFamous": true
+  },
+  {
+    "Name": "Pediatrics",
+    "ArName": "طب أطفال",
+    "Description": "Medical care for infants, children, and adolescents",
+    "IsFamous": true
+  },
+  {
+    "Name": "Internal Medicine",
+    "ArName": "باطنة",
+    "Description": "Prevention, diagnosis, and treatment of adult diseases",
+    "IsFamous": true
+  },
+  {
+    "Name": "Cardiology",
+    "ArName": "قلب وأوعية دموية",
+    "Description": "Diagnosis and treatment of heart and blood vessel diseases",
+    "IsFamous": true
+  },
+  {
+    "Name": "Dermatology",
+    "ArName": "جلدية",
+    "Description": "Treatment of skin, hair, and nail diseases",
+    "IsFamous": true
+  },
+  {
+    "Name": "Orthopedics",
+    "ArName": "عظام",
+    "Description": "Treatment of bones, joints, muscles, and ligaments",
+    "IsFamous": true
+  },
+  {
+    "Name": "Ophthalmology",
+    "ArName": "عيون",
+    "Description": "Eye care and vision treatment",
+    "IsFamous": false
+  },
+  {
+    "Name": "ENT",
+    "ArName": "أنف وأذن وحنجرة",
+    "Description": "Treatment of ear, nose, and throat conditions",
+    "IsFamous": false
+  },
+  {
+    "Name": "Obstetrics and Gynecology",
+    "ArName": "نساء وتوليد",
+    "Description": "Women's health and pregnancy care",
+    "IsFamous": true
+  },
+  {
+    "Name": "Neurology",
+    "ArName": "مخ وأعصاب",
+    "Description": "Diagnosis and treatment of nervous system disorders",
+    "IsFamous": false
+  },
+  {
+    "Name": "Psychiatry",
+    "ArName": "طب نفسي",
+    "Description": "Mental health diagnosis and treatment",
+    "IsFamous": false
+  },
+  {
+    "Name": "Urology",
+    "ArName": "مسالك بولية",
+    "Description": "Treatment of urinary tract and male reproductive system",
+    "IsFamous": false
+  },
+  {
+    "Name": "Dentistry",
+    "ArName": "أسنان",
+    "Description": "Oral and dental care",
+    "IsFamous": true
+  },
+  {
+    "Name": "Radiology",
+    "ArName": "أشعة",
+    "Description": "Medical imaging and diagnosis",
+    "IsFamous": false
+  },
+  {
+    "Name": "Nutrition",
+    "ArName": "تغذية علاجية",
+    "Description": "Dietary and nutritional counseling",
+    "IsFamous": false
+  }
+]

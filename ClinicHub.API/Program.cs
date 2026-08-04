@@ -205,7 +205,8 @@ namespace ClinicHub.API
                 }).ExcludeFromDescription();
 
 
-                // Seed roles in the background after the app starts to avoid blocking IIS startup timeout
+                // Seed specializations first (fast, single batch) then roles (slow, per-role round trips)
+                // so the most important reference data is persisted even if the host is stopped early.
                 _ = Task.Run(async () =>
                 {
                     try
@@ -214,7 +215,9 @@ namespace ClinicHub.API
                         await Task.Delay(TimeSpan.FromSeconds(5));
                         using var scope = app.Services.CreateScope();
                         var services = scope.ServiceProvider;
+                        await services.SeedSpecializationsAsync();
                         await services.SeedRolesAsync();
+                        Log.Information("Database seeding completed successfully.");
                     }
                     catch (Exception ex)
                     {
