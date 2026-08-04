@@ -35,6 +35,10 @@ namespace ClinicHub.Application.Features.Appointments.Queries.GetAppointmentById
 
             var payment = appointment.Payment ?? await _unitOfWork.PaymentRepository.GetByAppointmentIdAsync(appointment.Id);
 
+            var config = await _unitOfWork.BookingConfigurationRepository.GetByClinicIdAsync(appointment.ClinicId);
+            if (config != null)
+                dto.CancellationWindowMinutes = config.CancellationWindowMinutes;
+
             if (payment != null)
             {
                 dto.PaymentId = payment.Id;
@@ -42,14 +46,10 @@ namespace ClinicHub.Application.Features.Appointments.Queries.GetAppointmentById
                 dto.Currency = payment.Currency;
                 dto.PaymentUrl = payment.RedirectUrl;
             }
-            else
+            else if (config != null)
             {
-                var config = await _unitOfWork.BookingConfigurationRepository.GetByClinicIdAsync(appointment.ClinicId);
-                if (config != null)
-                {
-                    dto.Amount = config.ConsultationFee;
-                    dto.Currency = config.Currency;
-                }
+                dto.Amount = config.ConsultationFee;
+                dto.Currency = config.Currency;
             }
 
             return dto;

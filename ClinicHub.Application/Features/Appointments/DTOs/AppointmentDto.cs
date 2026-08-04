@@ -27,6 +27,7 @@ namespace ClinicHub.Application.Features.Appointments.DTOs
         public string? CancellationReason { get; set; }
         public string? BookingReference { get; set; }
         public DateTime? ExpiresAt { get; set; }
+        public int CancellationWindowMinutes { get; set; } = 120;
         public decimal Amount { get; set; }
         public string Currency { get; set; } = "EGP";
         public Guid? PaymentId { get; set; }
