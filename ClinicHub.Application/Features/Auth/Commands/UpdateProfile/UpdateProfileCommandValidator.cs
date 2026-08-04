@@ -14,11 +14,13 @@ namespace ClinicHub.Application.Features.Auth.Commands.UpdateProfile
 
             RuleFor(x => x.PhoneNumber)
                 .NotEmpty().When(x => x.PhoneNumber != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
-                .MaximumLength(50).When(x => x.PhoneNumber != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
+                .MaximumLength(11).When(x => x.PhoneNumber != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]))
+                .Matches(@"^01[0125][0-9]{8}$").When(x => x.PhoneNumber != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value]));
 
             RuleFor(x => x.BirthDate)
                 .NotEmpty().When(x => x.BirthDate != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
-                .LessThan(DateTime.UtcNow).When(x => x.BirthDate != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value]));
+                .GreaterThan(DateOnly.FromDateTime(new DateTime(1900, 1, 1))).When(x => x.BirthDate != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value]))
+                .LessThan(DateOnly.FromDateTime(DateTime.UtcNow)).When(x => x.BirthDate != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value]));
             RuleFor(x => x.Gender)
                 .IsInEnum().When(x => x.Gender != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value]));
             

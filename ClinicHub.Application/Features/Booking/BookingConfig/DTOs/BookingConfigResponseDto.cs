@@ -6,5 +6,6 @@ namespace ClinicHub.Application.Features.Booking.BookingConfig.DTOs
         public string Currency { get; set; } = null!;
         public int MaxAdvanceBookingDays { get; set; }
         public int ReservationTtlMinutes { get; set; }
+        public int CancellationWindowMinutes { get; set; }
     }
 }

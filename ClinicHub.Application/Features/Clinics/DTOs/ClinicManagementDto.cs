@@ -37,6 +37,7 @@ namespace ClinicHub.Application.Features.Clinics.DTOs
         public string Currency { get; set; } = "EGP";
         public int MaxAdvanceBookingDays { get; set; } = 30;
         public int ReservationTtlMinutes { get; set; } = 10;
+        public int CancellationWindowMinutes { get; set; } = 120;
         public int SlotDurationMinutes { get; set; } = 30;
     }
 

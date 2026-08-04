@@ -70,7 +70,8 @@ namespace ClinicHub.Application.Features.Clinics.Commands.UpdateClinicSettings
                     request.ConsultationFee,
                     request.Currency,
                     request.MaxAdvanceBookingDays,
-                    request.ReservationTtlMinutes);
+                    request.ReservationTtlMinutes,
+                    request.CancellationWindowMinutes);
                 bookingConfig.MarkAsCreated(updatedBy);
                 await _unitOfWork.BookingConfigurationRepository.AddAsync(bookingConfig);
             }
@@ -80,7 +81,8 @@ namespace ClinicHub.Application.Features.Clinics.Commands.UpdateClinicSettings
                     request.ConsultationFee,
                     request.Currency,
                     request.MaxAdvanceBookingDays,
-                    request.ReservationTtlMinutes);
+                    request.ReservationTtlMinutes,
+                    request.CancellationWindowMinutes);
                 _unitOfWork.BookingConfigurationRepository.Update(bookingConfig);
             }
 
@@ -91,6 +93,7 @@ namespace ClinicHub.Application.Features.Clinics.Commands.UpdateClinicSettings
             dto.Currency = bookingConfig.Currency;
             dto.MaxAdvanceBookingDays = bookingConfig.MaxAdvanceBookingDays;
             dto.ReservationTtlMinutes = bookingConfig.ReservationTtlMinutes;
+            dto.CancellationWindowMinutes = bookingConfig.CancellationWindowMinutes;
             dto.SlotDurationMinutes = await GetReservationDurationAsync(clinicId, cancellationToken);
             return dto;
         }

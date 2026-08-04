@@ -15,6 +15,7 @@ namespace ClinicHub.Application.Features.Clinics.Commands.UpdateClinicSettings
         string? Currency = null,
         int MaxAdvanceBookingDays = 30,
         int ReservationTtlMinutes = 10,
+        int CancellationWindowMinutes = 120,
         double? Latitude = null,
         double? Longitude = null,
         bool IsActive = true) : IRequest<ClinicSettingsDto>;

@@ -44,6 +44,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicSettings
             dto.Currency = bookingConfig?.Currency ?? "EGP";
             dto.MaxAdvanceBookingDays = bookingConfig?.MaxAdvanceBookingDays ?? 30;
             dto.ReservationTtlMinutes = bookingConfig?.ReservationTtlMinutes ?? 10;
+            dto.CancellationWindowMinutes = bookingConfig?.CancellationWindowMinutes ?? 120;
             dto.SlotDurationMinutes = await GetReservationDurationAsync(clinicId, cancellationToken);
             return dto;
         }

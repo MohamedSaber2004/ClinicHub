@@ -40,7 +40,7 @@ namespace ClinicHub.Application.Features.Auth.Queries.GetUserProfile
                 user.Email!,
                 user.Gender,
                 user.PhoneNumber ?? string.Empty,
-                user.BirthDate,
+                DateOnly.FromDateTime(user.BirthDate ?? DateTime.MinValue),
                 user.ProfilePictureUrl,
                 user.Language,
                 roles.FirstOrDefault(),

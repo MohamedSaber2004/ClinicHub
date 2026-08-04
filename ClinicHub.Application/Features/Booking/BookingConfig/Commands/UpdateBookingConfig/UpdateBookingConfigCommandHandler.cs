@@ -34,7 +34,8 @@ namespace ClinicHub.Application.Features.Booking.BookingConfig.Commands.UpdateBo
                 dto.ConsultationFee,
                 "EGP",
                 dto.MaxAdvanceBookingDays,
-                dto.ReservationTtlMinutes);
+                dto.ReservationTtlMinutes,
+                dto.CancellationWindowMinutes);
 
             _unitOfWork.BookingConfigurationRepository.Update(config);
             await _unitOfWork.SaveChangesAsync();
@@ -44,7 +45,8 @@ namespace ClinicHub.Application.Features.Booking.BookingConfig.Commands.UpdateBo
                 ConsultationFee = config.ConsultationFee,
                 Currency = config.Currency,
                 MaxAdvanceBookingDays = config.MaxAdvanceBookingDays,
-                ReservationTtlMinutes = config.ReservationTtlMinutes
+                ReservationTtlMinutes = config.ReservationTtlMinutes,
+                CancellationWindowMinutes = config.CancellationWindowMinutes
             };
         }
     }

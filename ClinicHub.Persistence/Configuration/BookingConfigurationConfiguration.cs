@@ -29,6 +29,10 @@ namespace ClinicHub.Persistence.Configuration
                 .IsRequired()
                 .HasDefaultValue(10);
 
+            builder.Property(x => x.CancellationWindowMinutes)
+                .IsRequired()
+                .HasDefaultValue(120);
+
             builder.HasOne(x => x.Clinic)
                 .WithMany()
                 .HasForeignKey(x => x.ClinicId)

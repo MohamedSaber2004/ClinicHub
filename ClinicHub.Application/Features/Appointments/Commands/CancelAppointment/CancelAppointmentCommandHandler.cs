@@ -37,6 +37,11 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
             if (appointment.Status == AppointmentStatus.Completed || appointment.Status == AppointmentStatus.Cancelled || appointment.Status == AppointmentStatus.NoShow)
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.CannotCancelAppointment.Value);
 
+            var bookingConfig = await _unitOfWork.BookingConfigurationRepository.GetByClinicIdAsync(appointment.ClinicId);
+            if (bookingConfig != null &&
+                DateTime.UtcNow > appointment.CreatedAt.ToUniversalTime().AddMinutes(bookingConfig.CancellationWindowMinutes))
+                throw new BadRequestException(LocalizationKeys.BookingMessages.CancellationWindowExpired.Value);
+
             await _unitOfWork.BeginTransactionAsync();
 
             try

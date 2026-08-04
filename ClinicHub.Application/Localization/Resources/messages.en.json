@@ -227,7 +227,8 @@
     "ConfigUpdated": "Booking configuration updated successfully",
     "ConfigDeleted": "Booking configuration deleted successfully",
     "Created": "Booking created successfully",
-    "FeeNotConfigured": "Consultation fee is not configured for this clinic"
+    "FeeNotConfigured": "Consultation fee is not configured for this clinic",
+    "CancellationWindowExpired": "The free cancellation window has expired; this reservation can no longer be cancelled"
   },
   "Doctors": {
     "NotFound": "Doctor not found",

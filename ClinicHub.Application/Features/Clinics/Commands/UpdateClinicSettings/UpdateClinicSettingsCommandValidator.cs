@@ -49,6 +49,9 @@ namespace ClinicHub.Application.Features.Clinics.Commands.UpdateClinicSettings
             RuleFor(x => x.ReservationTtlMinutes)
                 .GreaterThan(0).WithMessage(_localizer[LocalizationKeys.ValidationMessages.MustBeGreaterThanZero.Value]);
 
+            RuleFor(x => x.CancellationWindowMinutes)
+                .GreaterThan(0).WithMessage(_localizer[LocalizationKeys.ValidationMessages.MustBeGreaterThanZero.Value]);
+
             RuleFor(x => x.Currency)
                 .MaximumLength(3).WithMessage(_localizer[LocalizationKeys.ValidationMessages.MaxLength.Value])
                 .When(x => !string.IsNullOrWhiteSpace(x.Currency));

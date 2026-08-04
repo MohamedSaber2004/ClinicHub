@@ -27,7 +27,10 @@ namespace ClinicHub.Application.Features.Booking.BookingConfig.Commands.CreateBo
             RuleFor(x => x.Dto.MaxAdvanceBookingDays)
                 .GreaterThan(0).WithMessage(localizer[LocalizationKeys.ValidationMessages.MustBeGreaterThanZero.Value]);
 
-            RuleFor(x => x.Dto.ReservationTtlMinutes)
+RuleFor(x => x.Dto.ReservationTtlMinutes)
+                .GreaterThan(0).WithMessage(localizer[LocalizationKeys.ValidationMessages.MustBeGreaterThanZero.Value]);
+
+            RuleFor(x => x.Dto.CancellationWindowMinutes)
                 .GreaterThan(0).WithMessage(localizer[LocalizationKeys.ValidationMessages.MustBeGreaterThanZero.Value]);
         }
 

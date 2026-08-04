@@ -38,7 +38,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.UpdateProfile
                 user.UpdatePhoneNumber(request.PhoneNumber);
 
             if (request.BirthDate.HasValue)
-                user.UpdateBirthDate(request.BirthDate.Value);
+                user.UpdateBirthDate(request.BirthDate.Value.ToDateTime(TimeOnly.MinValue));
 
             if (request.Gender.HasValue)
                 user.UpdateGender(request.Gender.Value);

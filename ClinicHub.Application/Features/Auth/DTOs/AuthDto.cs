@@ -27,7 +27,7 @@ namespace ClinicHub.Application.Features.Auth.DTOs
         string Email,
         Gender? Gender,
         string PhoneNumber,
-        DateTime? BirthDate,
+        DateOnly? BirthDate,
         string? ProfilePictureUrl,
         LanguageCode Language,
         string Roles,
