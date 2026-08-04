@@ -15,7 +15,7 @@ public class MyAppointmentDto
     public string Date { get; set; } = null!;
     public string StartTime { get; set; } = null!;
     public string EndTime { get; set; } = null!;
-    public AppointmentStatus Status { get; set; }
+    public string Status { get; set; }
     public string? RejectionReason { get; set; }
     public MyAppointmentPaymentDto? Payment { get; set; }
 }

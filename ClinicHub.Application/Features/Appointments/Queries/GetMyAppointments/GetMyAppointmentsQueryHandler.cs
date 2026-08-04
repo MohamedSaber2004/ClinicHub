@@ -54,7 +54,7 @@ namespace ClinicHub.Application.Features.Appointments.Queries.GetMyAppointments
                     Date = a.AppointmentDate.ToString("yyyy-MM-dd"),
                     StartTime = a.StartTime.ToString(@"hh\:mm"),
                     EndTime = a.EndTime.ToString(@"hh\:mm"),
-                    Status = a.Status,
+                    Status = a.Status.ToString(),
                     RejectionReason = a.CancellationReason,
                     Payment = a.Payment == null ? null : new MyAppointmentPaymentDto
                     {

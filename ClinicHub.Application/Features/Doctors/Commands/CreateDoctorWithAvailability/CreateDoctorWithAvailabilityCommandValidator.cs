@@ -72,6 +72,10 @@ namespace ClinicHub.Application.Features.Doctors.Commands.CreateDoctorWithAvaila
             RuleFor(v => v.YearsOfExperience)
                 .GreaterThanOrEqualTo(0).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MustBeGreaterThanZero.Value]));
 
+            RuleFor(v => v.Bio)
+                .MaximumLength(1000).When(v => !string.IsNullOrWhiteSpace(v.Bio))
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
+
             RuleForEach(v => v.Availabilities).ChildRules(av =>
             {
                 av.RuleFor(x => x.DayOfWeek)

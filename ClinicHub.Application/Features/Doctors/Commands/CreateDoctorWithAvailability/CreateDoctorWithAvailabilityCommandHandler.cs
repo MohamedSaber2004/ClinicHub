@@ -70,7 +70,7 @@ namespace ClinicHub.Application.Features.Doctors.Commands.CreateDoctorWithAvaila
                     user.Id,
                     request.ClinicId,
                     request.SpecializationId,
-                    request.Bio,
+                    request.Bio ?? string.Empty,
                     request.YearsOfExperience);
 
                 await _unitOfWork.DoctorRepository.AddAsync(doctor);

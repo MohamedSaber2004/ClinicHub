@@ -8,7 +8,7 @@ namespace ClinicHub.Application.Features.Doctors.Commands.CreateDoctorWithAvaila
     {
         public Guid ClinicId { get; set; }
         public Guid SpecializationId { get; set; }
-        public string Bio { get; set; } = string.Empty;
+        public string? Bio { get; set; }
         public int YearsOfExperience { get; set; }
         public List<CreateDoctorAvailabilityDto> Availabilities { get; set; } = new();
 
