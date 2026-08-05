@@ -9,9 +9,9 @@ namespace ClinicHub.Application.Features.StaffDashboard
             return status switch
             {
                 AppointmentStatus.Pending => "pending",
-                AppointmentStatus.Reserved => "confirmed",
+                AppointmentStatus.Reserved => "reserved",
                 AppointmentStatus.Confirmed => "confirmed",
-                AppointmentStatus.Accepted => "confirmed",
+                AppointmentStatus.Accepted => "accepted",
                 AppointmentStatus.Cancelled => "cancelled",
                 AppointmentStatus.Rejected => "cancelled",
                 AppointmentStatus.Completed => "completed",
@@ -25,9 +25,9 @@ namespace ClinicHub.Application.Features.StaffDashboard
             return status switch
             {
                 AppointmentStatus.Pending => "\u0642\u064A\u062F \u0627\u0644\u0627\u0646\u062A\u0638\u0627\u0631",
-                AppointmentStatus.Reserved => "\u0645\u0624\u0643\u062F",
+                AppointmentStatus.Reserved => "\u0628\u0627\u0646\u062A\u0638\u0627\u0631 \u0627\u0644\u062F\u0641\u0639",
                 AppointmentStatus.Confirmed => "\u0645\u0624\u0643\u062F",
-                AppointmentStatus.Accepted => "\u0645\u0624\u0643\u062F",
+                AppointmentStatus.Accepted => "\u0628\u0627\u0646\u062A\u0638\u0627\u0631 \u0627\u0644\u062F\u0641\u0639",
                 AppointmentStatus.Cancelled => "\u0645\u0644\u063A\u064A",
                 AppointmentStatus.Rejected => "\u0645\u0644\u063A\u064A",
                 AppointmentStatus.Completed => "\u0645\u0646\u062A\u0647\u064A",
@@ -41,9 +41,9 @@ namespace ClinicHub.Application.Features.StaffDashboard
             return status switch
             {
                 AppointmentStatus.Pending => "badge-warning",
-                AppointmentStatus.Reserved => "badge-success",
+                AppointmentStatus.Reserved => "badge-warning",
                 AppointmentStatus.Confirmed => "badge-success",
-                AppointmentStatus.Accepted => "badge-success",
+                AppointmentStatus.Accepted => "badge-warning",
                 AppointmentStatus.Cancelled => "badge-danger",
                 AppointmentStatus.Rejected => "badge-danger",
                 AppointmentStatus.Completed => "badge-info",

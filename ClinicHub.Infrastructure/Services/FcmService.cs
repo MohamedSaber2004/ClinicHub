@@ -122,8 +122,8 @@ namespace ClinicHub.Infrastructure.Services
                         ChannelId = _settings.Android?.ChannelId ?? "clinic_hub_default",
                         Priority = NotificationPriority.HIGH,
                         Sound = _settings.Android?.Sound ?? "default",
-                        Icon = _settings.Android?.Icon ?? "notification_logo",
-                        ImageUrl = _settings.Android?.ImageUrl
+                        //Icon = _settings.Android?.Icon ?? "notification_logo",
+                        //ImageUrl = _settings.Android?.ImageUrl
                     }
                 },
                 Webpush = hasValidLink
@@ -133,7 +133,7 @@ namespace ClinicHub.Infrastructure.Services
                         {
                             Title = payload.Title,
                             Body = payload.Body,
-                            Icon = _settings.Web?.Icon ?? "/notification_logo.png"
+                            //Icon = _settings.Web?.Icon ?? "/notification_logo.png"
                         },
                         FcmOptions = new WebpushFcmOptions { Link = payload.Link! }
                     }
@@ -143,7 +143,7 @@ namespace ClinicHub.Infrastructure.Services
                         {
                             Title = payload.Title,
                             Body = payload.Body,
-                            Icon = _settings.Web?.Icon ?? "/notification_logo.png"
+                            //Icon = _settings.Web?.Icon ?? "/notification_logo.png"
                         }
                     }
             };
