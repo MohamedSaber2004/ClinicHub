@@ -138,6 +138,32 @@ namespace ClinicHub.Infrastructure.Services
                         link = _deepLinkService.GenerateLink(DeepLinkRoutes.Appointments);
                     break;
 
+                case NotificationType.AppointmentOutsideAvailability:
+                    title = "موعد خارج مواعيد الطبيب";
+                    body = $"موعد {clinicName} بتاريخ {date} الساعة {time} خارج فترات توفر الطبيب — يرجى المراجعة";
+                    data["clinicName"] = clinicName;
+                    data["date"] = date;
+                    data["time"] = time;
+                    data["appointmentId"] = appointmentId;
+                    if (!string.IsNullOrEmpty(appointmentId))
+                        link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.AppointmentDetails, appointmentId));
+                    else
+                        link = _deepLinkService.GenerateLink(DeepLinkRoutes.Appointments);
+                    break;
+
+                case NotificationType.AppointmentOutsideWorkingHours:
+                    title = "موعد خارج ساعات عمل العيادة";
+                    body = $"موعد {clinicName} بتاريخ {date} الساعة {time} خارج ساعات عمل العيادة — يرجى المراجعة";
+                    data["clinicName"] = clinicName;
+                    data["date"] = date;
+                    data["time"] = time;
+                    data["appointmentId"] = appointmentId;
+                    if (!string.IsNullOrEmpty(appointmentId))
+                        link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.AppointmentDetails, appointmentId));
+                    else
+                        link = _deepLinkService.GenerateLink(DeepLinkRoutes.Appointments);
+                    break;
+
                 default:
                     title = "إشعار";
                     body = "لديك إشعار جديد";

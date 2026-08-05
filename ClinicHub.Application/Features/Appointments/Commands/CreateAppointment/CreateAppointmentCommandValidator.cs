@@ -53,7 +53,10 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AppointmentMessages.DoctorNotAvailableAtThisTime.Value]))
                 .MustAsync(async (v, ct) => !await HasOverlappingAppointment(v.DoctorId, v.AppointmentDate, v.StartTime, v.EndTime, ct))
                 .WithName("Appointment")
-                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AppointmentMessages.TimeSlotAlreadyBooked.Value]));
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AppointmentMessages.TimeSlotAlreadyBooked.Value]))
+                .MustAsync(async (v, ct) => await ClinicIsOpen(v.ClinicId, v.AppointmentDate, v.StartTime, v.EndTime, ct))
+                .WithName("Appointment")
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.BookingMessages.ClinicClosed.Value]));
         }
 
         private async Task<bool> ClinicExists(Guid clinicId, CancellationToken cancellationToken)
@@ -98,6 +101,36 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
         {
             var minutesSinceStart = (slotStart - availabilityStart).TotalMinutes;
             return minutesSinceStart >= 0 && minutesSinceStart % slotDurationMinutes == 0;
+        }
+
+        private async Task<bool> ClinicIsOpen(Guid clinicId, DateTime appointmentDate, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken)
+        {
+            var clinic = await _ctx.ClinicRepository.GetByIdAsync(clinicId);
+            if (clinic?.WorkingHoursStart is null || clinic.WorkingHoursEnd is null)
+                return true;
+
+            var dayOfWeek = appointmentDate.DayOfWeek;
+            var workingDays = ParseWorkingDays(clinic.WorkingDays);
+            if (workingDays.Count > 0 && !workingDays.Contains(dayOfWeek))
+                return false;
+
+            return TimeOnly.FromTimeSpan(startTime) >= clinic.WorkingHoursStart.Value
+                && TimeOnly.FromTimeSpan(endTime) <= clinic.WorkingHoursEnd.Value;
+        }
+
+        private static HashSet<DayOfWeek> ParseWorkingDays(string? workingDays)
+        {
+            var result = new HashSet<DayOfWeek>();
+            if (string.IsNullOrWhiteSpace(workingDays))
+                return result;
+
+            foreach (var part in workingDays.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                if (Enum.TryParse<DayOfWeek>(part, true, out var day))
+                    result.Add(day);
+            }
+
+            return result;
         }
 
         private Task<bool> HasOverlappingAppointment(Guid doctorId, DateTime appointmentDate, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken)

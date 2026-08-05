@@ -11,6 +11,8 @@ namespace ClinicHub.Domain.Enums
         CancellationWindowClosed = 6,
         SubscriptionExpiring = 7,
         RefundProcessed = 8,
-        AdExpiring = 9
+        AdExpiring = 9,
+        AppointmentOutsideAvailability = 10,
+        AppointmentOutsideWorkingHours = 11
     }
 }

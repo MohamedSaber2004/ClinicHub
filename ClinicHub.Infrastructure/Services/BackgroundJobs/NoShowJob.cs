@@ -29,7 +29,7 @@ public class NoShowJob
             return;
 
         var deadline = appointment.AppointmentDate.Add(appointment.EndTime).Add(GracePeriod);
-        if (DateTime.UtcNow < deadline)
+        if (DateTime.Now < deadline)
             return;
 
         appointment.MarkNoShow();

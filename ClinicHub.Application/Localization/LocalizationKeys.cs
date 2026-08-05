@@ -280,6 +280,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString BookingCreated = new("Booking.Created");
             public static readonly KeyString FeeNotConfigured = new("Booking.FeeNotConfigured");
             public static readonly KeyString CancellationWindowExpired = new("Booking.CancellationWindowExpired");
+            public static readonly KeyString ClinicClosed = new("Booking.ClinicClosed");
         }
 
         public static class StaffMessages
