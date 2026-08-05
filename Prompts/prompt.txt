@@ -1,1 +1,1 @@
-﻿I want to handle tasks that rely on expiration or time-based validity—such as subscription expirations, ad subscription periods, or appointment cancellations. Do these types of tasks require a scheduling tool like Hangfire?
+﻿i am already to try to login with web but fcm and deviceplatform is not set why that 

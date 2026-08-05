@@ -11,6 +11,7 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace ClinicHub.Application.Features.Auth.Commands.LoginWeb
@@ -25,6 +26,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWeb
         private readonly IUnitOfWork _unitOfWork;
         private readonly IFcmService _fcmService;
         private readonly IStringLocalizer<Messages> _localizer;
+        private readonly ILogger<LoginWebCommandHandler> _logger;
 
         public LoginWebCommandHandler(
             UserManager<ApplicationUser> userManager,
@@ -34,7 +36,8 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWeb
             IOptions<EmailSettings> emailSettings,
             IUnitOfWork unitOfWork,
             IFcmService fcmService,
-            IStringLocalizer<Messages> localizer)
+            IStringLocalizer<Messages> localizer,
+            ILogger<LoginWebCommandHandler> logger)
         {
             _userManager = userManager;
             _emailService = emailService;
@@ -44,6 +47,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWeb
             _unitOfWork = unitOfWork;
             _fcmService = fcmService;
             _localizer = localizer;
+            _logger = logger;
         }
 
         public async Task<AuthResponseDto> Handle(LoginWebCommand request, CancellationToken cancellationToken)
@@ -114,8 +118,19 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWeb
                 await _unitOfWork.SaveChangesAsync();
             }
 
-            if (!string.IsNullOrEmpty(request.FcmToken) && request.DevicePlatform.HasValue)
+            var fcmTokenIsEmpty = string.IsNullOrWhiteSpace(request.FcmToken);
+            if (!fcmTokenIsEmpty && request.DevicePlatform.HasValue)
+            {
+                _logger.LogInformation("Registering FCM token for user {UserId} on platform {Platform} (token length: {TokenLength}).",
+                    user.Id, request.DevicePlatform.Value, request.FcmToken!.Length);
                 await _fcmService.RegisterTokenAsync(user.Id, request.FcmToken, request.DevicePlatform.Value);
+                _logger.LogInformation("FCM token registered successfully for user {UserId} on platform {Platform}.", user.Id, request.DevicePlatform.Value);
+            }
+            else
+            {
+                _logger.LogWarning("FCM token NOT registered for user {UserId}. FcmTokenEmpty={FcmTokenEmpty}, DevicePlatformProvided={DevicePlatformProvided} (value: {DevicePlatformValue}).",
+                    user.Id, fcmTokenIsEmpty, request.DevicePlatform.HasValue, request.DevicePlatform?.ToString() ?? "null");
+            }
 
             var isFreelanceDoctor = await _unitOfWork.DoctorRepository
                 .GetAllAsync(d => d.UserId == user.Id)
