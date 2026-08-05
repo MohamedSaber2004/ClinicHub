@@ -1,1 +1,7 @@
-﻿i am already to try to login with web but fcm and deviceplatform is not set why that 
+﻿Why it happens: The API only allows تسجيل وصول (check-in) when the appointment is confirmed (paid). A new patient you register is NOT paid yet — their appointment is created in a waiting state (pending/accepted = awaiting payment). The API correctly refuses, by design.
+What was wrong on our side: The old Queue page showed "تسجيل وصول" button on those rows anyway (for registered/waiting states), inviting clicks that always get rejected. I fixed that — button now only appears for confirmed/paid appointments; others show "بانتظار التأكيد".
+Why you STILL see the error: the fix is not deployed. Git shows all my changes still uncommitted (M/??), last commit is the old merge 034b364. The live site is still running the old code.
+To check in a new patient, the appointment must first be confirmed — patient pays the payment link, then check-in becomes available. If your clinic's real workflow is walk-in check-in without online payment, that rule lives in the backend API (doctory-icare), which this design-only repo cannot change.
+Want me to commit + push all pending fixes so you can redeploy?
+
+i try to make a register access in new patient but still cannot reply on that appointment in that current appointment status why that occured what is worng ?????????
