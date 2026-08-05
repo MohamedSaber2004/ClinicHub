@@ -1,7 +1,237 @@
-﻿Why it happens: The API only allows تسجيل وصول (check-in) when the appointment is confirmed (paid). A new patient you register is NOT paid yet — their appointment is created in a waiting state (pending/accepted = awaiting payment). The API correctly refuses, by design.
-What was wrong on our side: The old Queue page showed "تسجيل وصول" button on those rows anyway (for registered/waiting states), inviting clicks that always get rejected. I fixed that — button now only appears for confirmed/paid appointments; others show "بانتظار التأكيد".
-Why you STILL see the error: the fix is not deployed. Git shows all my changes still uncommitted (M/??), last commit is the old merge 034b364. The live site is still running the old code.
-To check in a new patient, the appointment must first be confirmed — patient pays the payment link, then check-in becomes available. If your clinic's real workflow is walk-in check-in without online payment, that rule lives in the backend API (doctory-icare), which this design-only repo cannot change.
-Want me to commit + push all pending fixes so you can redeploy?
-
-i try to make a register access in new patient but still cannot reply on that appointment in that current appointment status why that occured what is worng ?????????
+﻿Transaction: 85107407-e38a-42b9-985a-9652aaf7a444
+✕
+Overview
+Request ID
+85107407-e38a-42b9-985a-9652aaf7a444
+Status Code
+500
+Method
+POST
+Duration
+266ms
+Timestamp
+8/5/2026, 9:34:11 PM
+Success
+✗ No
+IP Address
+34.200.173.150
+User Agent
+python-requests/2.28.1
+URL
+https://doctory-icare.runasp.net/api/v1/payments/webhook?hmac=13a469b8cd16fde4c0dfdeb694e1664403d26e313bd0bfaff29b50029049f4b4dba0f0f1a3373b86351bd0f177f7757381eb77aa13df895766e4b56259db3e49
+Request Headers
+{
+  "Accept": "*/*",
+  "Accept-Encoding": "gzip, deflate",
+  "Connection": "keep-alive",
+  "Content-Length": "6187",
+  "Content-Type": "application/json",
+  "Host": "doctory-icare.runasp.net",
+  "User-Agent": "python-requests/2.28.1",
+  "X-REWRITE-URL": "/api/v1/payments/webhook?hmac=13a469b8cd16fde4c0dfdeb694e1664403d26e313bd0bfaff29b50029049f4b4dba0f0f1a3373b86351bd0f177f7757381eb77aa13df895766e4b56259db3e49",
+  "X-ORIGINAL-URL": "/api/v1/payments/webhook?hmac=13a469b8cd16fde4c0dfdeb694e1664403d26e313bd0bfaff29b50029049f4b4dba0f0f1a3373b86351bd0f177f7757381eb77aa13df895766e4b56259db3e49"
+}
+Request Body (6187 bytes)
+{
+  "type": "TRANSACTION",
+  "obj": {
+    "id": 509906330,
+    "pending": false,
+    "amount_cents": 37000,
+    "success": true,
+    "is_auth": false,
+    "is_capture": false,
+    "is_standalone_payment": true,
+    "is_voided": false,
+    "is_refunded": false,
+    "is_3d_secure": false,
+    "integration_id": 5690721,
+    "profile_id": 1164474,
+    "has_parent_transaction": false,
+    "order": {
+      "id": 581358484,
+      "created_at": "2026-08-06T00:33:29.602631",
+      "delivery_needed": false,
+      "merchant": {
+        "id": 1164474,
+        "created_at": "2026-05-17T11:58:27.715004",
+        "phones": [
+          "+201022812243"
+        ],
+        "company_emails": [
+          "clinichub2026@gmail.com"
+        ],
+        "company_name": "Doctory",
+        "state": "",
+        "country": "EGY",
+        "city": "Cairo",
+        "postal_code": "",
+        "street": ""
+      },
+      "collector": null,
+      "amount_cents": 37000,
+      "shipping_data": {
+        "id": 279375437,
+        "first_name": "Mohamed",
+        "last_name": "Saber",
+        "street": "NA",
+        "building": "NA",
+        "floor": "NA",
+        "apartment": "NA",
+        "city": "Cairo",
+        "state": "Cairo",
+        "country": "EG",
+        "email": "mmms77990@gmail.com",
+        "phone_number": "01022802243",
+        "postal_code": "NA",
+        "extra_description": "",
+        "shipping_method": "UNK",
+        "order_id": 581358484,
+        "order": 581358484
+      },
+      "currency": "EGP",
+      "is_payment_locked": true,
+      "is_return": false,
+      "is_cancel": false,
+      "is_returned": false,
+      "is_canceled": false,
+      "merchant_order_id": null,
+      "wallet_notification": null,
+      "paid_amount_cents": 37000,
+      "notify_user_with_email": false,
+      "items": [
+        {
+          "name": "ClinicHub Appointment",
+          "description": "Medical appointment booking",
+          "amount_cents": 37000,
+          "quantity": 1
+        }
+      ],
+      "order_url": "NA",
+      "commission_fees": 0,
+      "delivery_fees_cents": 0,
+      "delivery_vat_cents": 0,
+      "payment_method": "tbc",
+      "merchant_staff_tag": null,
+      "api_source": "OTHER",
+      "data": {
+        "notification_url": "https://doctory-icare.runasp.net/api/v1/payments/webhook"
+      },
+      "payment_status": "PAID",
+      "terminal_version": null,
+      "payme_details": null
+    },
+    "created_at": "2026-08-06T00:34:02.097113",
+    "transaction_processed_callback_responses": [],
+    "currency": "EGP",
+    "source_data": {
+      "pan": "01010101010",
+      "type": "wallet",
+      "sub_type": "wallet",
+      "owner_name": null,
+      "phone_number": "01010101010"
+    },
+    "api_source": "OTHER",
+    "terminal_id": null,
+    "merchant_commission": 0,
+    "accept_fees": 0,
+    "installment": null,
+    "discount_details": [],
+    "amount_cents_int": 37000,
+    "is_void": false,
+    "is_refund": false,
+    "data": {
+      "klass": "WalletPayment",
+      "token": "",
+      "amount": 37000,
+      "method": 0,
+      "message": "Transaction has been completed successfully.",
+      "currency": "EGP",
+      "created_at": "2026-08-05T21:34:02.156988",
+      "mpg_txn_id": "213412341",
+      "order_info": "mmms77990@gmail.com",
+      "uig_txn_id": "4351324134",
+      "upg_txn_id": null,
+      "mer_txn_ref": "5690721_cee8b6f9db255238ae0359f69d826319",
+      "redirect_url": "https://accept.paymobsolutions.com/api/acceptance/wallet_other_test/wallet_template?token=ZXlKaGJHY2lPaUpJVXpVeE1pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmpiR0Z6Y3lJNklsUnlZVzV6WVdOMGFXOXVJaXdpZEhKaGJuTmhZM1JwYjI1ZmNHc2lPalV3T1Rrd05qTXpNQ3dpYzNWaVgzUjVjR1VpT2lKM1lXeHNaWFFpZlEuZW9RU2FzX3RadXhWWTRVWFBNTU1Sc3o0Xzc4SzN2TGJsaE5sTFBETk5xRjZuamlnX2hmNTFrNUNCa0NUeUJNUU9oZ0JxWXZCOGs5emJjbVk2aFQzSHc=",
+      "wallet_issuer": "VODAFONE",
+      "wallet_msisdn": "01010101010",
+      "gateway_source": "",
+      "upg_qrcode_ref": "4351324134",
+      "txn_response_code": "200",
+      "gateway_integration_pk": 5690721
+    },
+    "is_hidden": false,
+    "payment_key_claims": {
+      "extra": {
+        "merchant_order_id": null
+      },
+      "user_id": 2237955,
+      "currency": "EGP",
+      "order_id": 581358484,
+      "created_by": 2237955,
+      "is_partner": false,
+      "amount_cents": 37000,
+      "billing_data": {
+        "city": "Cairo",
+        "email": "mmms77990@gmail.com",
+        "floor": "NA",
+        "state": "Cairo",
+        "street": "NA",
+        "country": "EG",
+        "building": "NA",
+        "apartment": "NA",
+        "last_name": "Saber",
+        "first_name": "Mohamed",
+        "postal_code": "NA",
+        "phone_number": "01022802243",
+        "extra_description": "NA"
+      },
+      "redirect_url": "https://accept.paymob.com/unifiedcheckout/payment-status?payment_token=ZXlKaGJHY2lPaUpJVXpVeE1pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lNak0zT1RVMUxDSmhiVzkxYm5SZlkyVnVkSE1pT2pNM01EQXdMQ0pqZFhKeVpXNWplU0k2SWtWSFVDSXNJbWx1ZEdWbmNtRjBhVzl1WDJsa0lqbzFOamt3TnpJeExDSnZjbVJsY2w5cFpDSTZOVGd4TXpVNE5EZzBMQ0ppYVd4c2FXNW5YMlJoZEdFaU9uc2labWx5YzNSZmJtRnRaU0k2SWsxdmFHRnRaV1FpTENKc1lYTjBYMjVoYldVaU9pSlRZV0psY2lJc0luTjBjbVZsZENJNklrNUJJaXdpWW5WcGJHUnBibWNpT2lKT1FTSXNJbVpzYjI5eUlqb2lUa0VpTENKaGNHRnlkRzFsYm5RaU9pSk9RU0lzSW1OcGRIa2lPaUpEWVdseWJ5SXNJbk4wWVhSbElqb2lRMkZwY204aUxDSmpiM1Z1ZEhKNUlqb2lSVWNpTENKbGJXRnBiQ0k2SW0xdGJYTTNOems1TUVCbmJXRnBiQzVqYjIwaUxDSndhRzl1WlY5dWRXMWlaWElpT2lJd01UQXlNamd3TWpJME15SXNJbkJ2YzNSaGJGOWpiMlJsSWpvaVRrRWlMQ0psZUhSeVlWOWtaWE5qY21sd2RHbHZiaUk2SWs1QkluMHNJbXh2WTJ0ZmIzSmtaWEpmZDJobGJsOXdZV2xrSWpwbVlXeHpaU3dpWlhoMGNtRWlPbnNpYldWeVkyaGhiblJmYjNKa1pYSmZhV1FpT201MWJHeDlMQ0p1YjNScFptbGpZWFJwYjI1ZmRYSnNJam9pYUhSMGNITTZMeTlrYjJOMGIzSjVMV2xqWVhKbExuSjFibUZ6Y0M1dVpYUXZZWEJwTDNZeEwzQmhlVzFsYm5SekwzZGxZbWh2YjJzaUxDSnlaV1JwY21WamRHbHZibDkxY213aU9pSm9kSFJ3Y3pvdkwyUnZZM1J2Y25rdGFXTmhjbVV1Y25WdVlYTndMbTVsZEM5aGNHa3ZkakV2Y0dGNWJXVnVkSE12Y21WemRXeDBJaXdpYzJsdVoyeGxYM0JoZVcxbGJuUmZZWFIwWlcxd2RDSTZabUZzYzJVc0ltTnlaV0YwWldSZllua2lPakl5TXpjNU5UVXNJbWx6WDNCaGNuUnVaWElpT21aaGJITmxMQ0p1WlhoMFgzQmhlVzFsYm5SZmFXNTBaVzUwYVc5dUlqb2ljR2xmZEdWemRGOWxaVFZtTnprMU5qVmhNVEEwWVRSbVlUUTRPV1k0T1RKaVpEWXlPRGM1WWlKOS5WdmNzaGJXeDBPUHlhT1VrNTFVNWpUVEM2TEFsdXI1WjJmVjF2b1pUNXNXaDBWcTljTHNJSWFHWVA3QUpBclhRVWQzamJLUHZkVzFReGl0aFFmV1JQQQ==&trx_id=509906330",
+      "integration_id": 5690721,
+      "redirection_url": "https://doctory-icare.runasp.net/api/v1/payments/result",
+      "notification_url": "https://doctory-icare.runasp.net/api/v1/payments/webhook",
+      "lock_order_when_paid": false,
+      "next_payment_intention": "pi_test_ee5f79565a104a4fa489f892bd62879b",
+      "single_payment_attempt": false
+    },
+    "error_occured": false,
+    "is_live": false,
+    "other_endpoint_reference": "4351324134",
+    "refunded_amount_cents": 0,
+    "refunded_amount_cents_int": 0,
+    "source_id": -1,
+    "is_captured": false,
+    "captured_amount": 0,
+    "captured_amount_int": 0,
+    "settlement_amount_cents_int": 0,
+    "merchant_staff_tag": null,
+    "accept_fees_cents_int": 0,
+    "vat_cents_int": 0,
+    "vat_cents_float": null,
+    "updated_at": "2026-08-06T00:34:10.810777",
+    "is_settled": false,
+    "bill_balanced": false,
+    "is_bill": false,
+    "owner": 2237955,
+    "parent_transaction": null
+  },
+  "accept_fees": 0,
+  "transaction_processed_callback_responses": ""
+}
+Response Headers
+{
+  "X-Content-Type-Options": "nosniff",
+  "X-XSS-Protection": "1; mode=block",
+  "X-Frame-Options": "Deny",
+  "Referrer-Policy": "no-referrer-when-downgrade",
+  "Content-Type": "application/json; charset=utf-8"
+}
+Response Body (102 bytes)
+{
+  "success": false,
+  "errors": {},
+  "data": null,
+  "message": "حدث خطأ غير معروف",
+  "statusCode": 500
+}

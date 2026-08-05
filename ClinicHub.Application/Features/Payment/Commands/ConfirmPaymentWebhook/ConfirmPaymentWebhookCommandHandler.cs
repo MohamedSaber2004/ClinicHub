@@ -82,18 +82,25 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
 
                 if (appointment is not null)
                 {
-                    await _fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.PaymentConfirmation, new()
+                    try
                     {
-                        ["amount"] = $"{payment.Amount:N2} EGP",
-                        ["appointmentId"] = appointment.Id.ToString()
-                    });
+                        await _fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.PaymentConfirmation, new()
+                        {
+                            ["amount"] = $"{payment.Amount:N2} EGP",
+                            ["appointmentId"] = appointment.Id.ToString()
+                        });
 
-                    var bookingConfig = await _unitOfWork.BookingConfigurationRepository.GetByClinicIdAsync(appointment.ClinicId);
-                    var windowMinutes = bookingConfig?.CancellationWindowMinutes ?? 120;
-                    if (payment.PaidAt.HasValue)
-                        await _jobScheduler.ScheduleCancellationWindowCloseAsync(appointment.Id, payment.PaidAt.Value.AddMinutes(windowMinutes));
+                        var bookingConfig = await _unitOfWork.BookingConfigurationRepository.GetByClinicIdAsync(appointment.ClinicId);
+                        var windowMinutes = bookingConfig?.CancellationWindowMinutes ?? 120;
+                        if (payment.PaidAt.HasValue)
+                            await _jobScheduler.ScheduleCancellationWindowCloseAsync(appointment.Id, payment.PaidAt.Value.AddMinutes(windowMinutes));
 
-                    await _jobScheduler.ScheduleNoShowMarkingAsync(appointment.Id, appointment.AppointmentDate.Add(appointment.EndTime).AddMinutes(30));
+                        await _jobScheduler.ScheduleNoShowMarkingAsync(appointment.Id, appointment.AppointmentDate.Add(appointment.EndTime).AddMinutes(30));
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Non-critical side effects (FCM/scheduling) failed after payment {PaymentId} was marked paid; payment will still be confirmed.", payment.Id);
+                    }
                 }
             }
             else if (payment.Type == PaymentType.Ads)

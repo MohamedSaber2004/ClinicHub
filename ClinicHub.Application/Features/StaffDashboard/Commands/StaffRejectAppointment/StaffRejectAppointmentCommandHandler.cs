@@ -31,9 +31,16 @@ namespace ClinicHub.Application.Features.StaffDashboard.Commands.StaffRejectAppo
             if (appointment.ClinicId != clinicId.Value)
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.NotAuthorizedToRespond.Value);
 
-            // Reject is only allowed while the request is still pending (not accepted/paid).
-            if (appointment.Status != AppointmentStatus.Pending && appointment.Status != AppointmentStatus.Reserved)
+            // Reject is allowed while the request is still pending (not accepted/paid),
+            // and also after an acceptance the patient never paid — the clinic may withdraw it.
+            if (appointment.Status is not (AppointmentStatus.Pending or AppointmentStatus.Reserved or AppointmentStatus.Accepted))
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.CannotRespondAppointment.Value);
+
+            var existingPayment = await _unitOfWork.PaymentRepository.GetByAppointmentIdAsync(appointment.Id);
+            if (existingPayment is not null && existingPayment.Status == PaymentStatus.Paid)
+                throw new BadRequestException(LocalizationKeys.AppointmentMessages.CannotRespondAppointment.Value);
+            if (existingPayment is not null)
+                existingPayment.MarkAsFailed("تم رفض الموعد من العيادة");
 
             appointment.Reject(request.Reason);
             await _unitOfWork.SaveChangesAsync();

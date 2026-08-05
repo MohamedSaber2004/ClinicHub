@@ -146,7 +146,8 @@ namespace ClinicHub.Infrastructure.Services
 
             data["link"] = link ?? string.Empty;
 
-            var notification = Notification.Create(userId, senderUserIdParam.ToGuid(), "", title, "", body, type);
+            Guid? senderUserId = Guid.TryParse(senderUserIdParam, out var parsedSender) ? parsedSender : null;
+            var notification = Notification.Create(userId, senderUserId, "", title, "", body, type);
             await _notificationRepository.AddAsync(notification);
 
             return new NotificationPayload

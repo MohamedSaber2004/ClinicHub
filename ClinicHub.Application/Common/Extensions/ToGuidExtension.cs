@@ -28,7 +28,7 @@
         {
             if (obj == null || !Guid.TryParse(obj?.ToString(), out var guid))
             {
-                return Guid.Empty;
+                return null;
             }
 
             return guid;

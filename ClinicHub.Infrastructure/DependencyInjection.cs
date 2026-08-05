@@ -71,7 +71,10 @@ namespace ClinicHub.Infrastructure
             services.AddScoped<INotificationBuilder, NotificationBuilderService>();
             services.Configure<FirebaseSettings>(configuration.GetSection(nameof(FirebaseSettings)));
 
-            var hangfireConnectionString = configuration.GetConnectionString("HangfireDb");
+            // Hangfire — isolated database when configured; falls back to the main DB so
+            // background scheduling never breaks payments (see docs/HANGFIRE_README_AR.md).
+            var hangfireConnectionString = configuration.GetConnectionString("HangfireDb")
+                ?? configuration.GetConnectionString("CareClinicHubDb");
 
             services.AddHangfire(config =>
             {
