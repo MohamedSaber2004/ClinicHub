@@ -131,6 +131,10 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
                 await _unitOfWork.GetRepository<Subscription, Guid>().AddAsync(subscription);
                 payment.LinkToSubscription(subscription.Id);
             }
+            else
+            {
+                _logger.LogWarning("Paid transaction {TransactionId} for payment {PaymentId} (type {PaymentType}) has no matching action.", transaction.Id, payment.Id, payment.Type);
+            }
         }
         else
         {
