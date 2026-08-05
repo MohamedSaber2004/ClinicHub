@@ -26,7 +26,8 @@ public class ExpiryReminderJob
         var fcmService = scope.ServiceProvider.GetRequiredService<IFcmService>();
 
         var now = DateTime.UtcNow;
-        var threeDaysAgo = now.AddDays(-3);
+        var subscriptionReminders = 0;
+        var adReminders = 0;
 
         var subscriptions = await unitOfWork.GetRepository<Subscription, Guid>()
             .GetAllAsync(s => s.Status == SubscriptionStatus.Active && s.EndDate > now)
@@ -38,11 +39,17 @@ public class ExpiryReminderJob
             var remaining = subscription.EndDate - now;
 
             if (remaining > TimeSpan.FromDays(2) && remaining <= TimeSpan.FromDays(3))
+            {
                 await NotifyClinicOwnerAsync(unitOfWork, fcmService, subscription.Clinic, subscription.EndDate,
                     NotificationType.SubscriptionExpiring, "٣ أيام", cancellationToken);
+                subscriptionReminders++;
+            }
             else if (remaining > TimeSpan.Zero && remaining <= TimeSpan.FromDays(1))
+            {
                 await NotifyClinicOwnerAsync(unitOfWork, fcmService, subscription.Clinic, subscription.EndDate,
                     NotificationType.SubscriptionExpiring, "يوم واحد", cancellationToken);
+                subscriptionReminders++;
+            }
         }
 
         var ads = await unitOfWork.GetRepository<Advertisement, Guid>()
@@ -55,16 +62,22 @@ public class ExpiryReminderJob
             var remaining = ad.EndDate - now;
 
             if (remaining > TimeSpan.FromDays(2) && remaining <= TimeSpan.FromDays(3))
+            {
                 await NotifyClinicOwnerAsync(unitOfWork, fcmService, ad.Clinic, ad.EndDate,
                     NotificationType.AdExpiring, "٣ أيام", cancellationToken);
+                adReminders++;
+            }
             else if (remaining > TimeSpan.Zero && remaining <= TimeSpan.FromDays(1))
+            {
                 await NotifyClinicOwnerAsync(unitOfWork, fcmService, ad.Clinic, ad.EndDate,
                     NotificationType.AdExpiring, "يوم واحد", cancellationToken);
+                adReminders++;
+            }
         }
 
         await unitOfWork.SaveChangesAsync();
         _logger.LogInformation("Expiry reminders sent: {SubscriptionCount} subscriptions, {AdCount} ads in reminder windows.",
-            subscriptions.Count, ads.Count);
+            subscriptionReminders, adReminders);
     }
 
     private static async Task NotifyClinicOwnerAsync(

@@ -30,12 +30,12 @@ public class CancellationWindowJob
             .Include(a => a.Clinic)
             .FirstOrDefaultAsync(cancellationToken);
 
-        if (appointment == null || appointment.Status is AppointmentStatus.Cancelled or AppointmentStatus.Completed or AppointmentStatus.NoShow)
+        if (appointment == null || appointment.Status is not (AppointmentStatus.Accepted or AppointmentStatus.Confirmed))
             return;
 
         await fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.CancellationWindowClosed, new()
         {
-            ["clinicName"] = appointment.Clinic.Name,
+            ["clinicName"] = appointment.Clinic?.Name ?? "",
             ["appointmentId"] = appointment.Id.ToString()
         });
 

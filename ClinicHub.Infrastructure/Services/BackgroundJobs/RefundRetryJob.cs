@@ -53,7 +53,7 @@ public class RefundRetryJob
             {
                 await fcmService.SendToUserAsync(payment.Appointment.BookedByUserId, NotificationType.RefundProcessed, new()
                 {
-                    ["clinicName"] = payment.Appointment.Clinic.Name,
+                    ["clinicName"] = payment.Appointment.Clinic?.Name ?? "",
                     ["amount"] = $"{payment.Amount:N2} {payment.Currency}",
                     ["appointmentId"] = payment.Appointment.Id.ToString()
                 });

@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
@@ -24,6 +25,7 @@ public class AbandonedPaymentJob
     {
         await using var scope = _serviceProvider.CreateAsyncScope();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var fcmService = scope.ServiceProvider.GetRequiredService<IFcmService>();
 
         var cutoff = DateTime.UtcNow.Add(-AbandonmentThreshold);
 
@@ -31,7 +33,10 @@ public class AbandonedPaymentJob
             .GetAllAsync(p => (p.Status == PaymentStatus.Pending || p.Status == PaymentStatus.Processing)
                 && p.CreatedAt < cutoff)
             .Include(p => p.Appointment)
+                .ThenInclude(a => a.Clinic)
             .ToListAsync(cancellationToken);
+
+        var cancelledAppointments = new List<Appointment>();
 
         foreach (var payment in abandonedPayments)
         {
@@ -42,6 +47,7 @@ public class AbandonedPaymentJob
                 && payment.Appointment.Status == AppointmentStatus.Reserved)
             {
                 payment.Appointment.ExpireReservation();
+                cancelledAppointments.Add(payment.Appointment);
             }
 
             _logger.LogInformation("Payment {PaymentId} marked as failed (abandoned checkout).", payment.Id);
@@ -50,6 +56,15 @@ public class AbandonedPaymentJob
         if (abandonedPayments.Count > 0)
         {
             await unitOfWork.SaveChangesAsync();
+        }
+
+        foreach (var appointment in cancelledAppointments)
+        {
+            await fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.AppointmentCancellation, new()
+            {
+                ["clinicName"] = appointment.Clinic?.Name ?? "",
+                ["reason"] = "لم يتم تأكيد الحجز خلال المهلة المحددة"
+            });
         }
     }
 }
