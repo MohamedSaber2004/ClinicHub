@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Localization;
@@ -24,13 +25,22 @@ public class RefundPaymentCommandHandler : IRequestHandler<RefundPaymentCommand,
     }
 
     public async Task<bool> Handle(RefundPaymentCommand request, CancellationToken cancellationToken)
-    {
-        var payment = await _unitOfWork.PaymentRepository.GetByIdAsync(request.PaymentId);
-        if (payment == null)
-            throw new NotFoundException(LocalizationKeys.PaymentMessages.NotFound.Value);
+        => await PaymentRefundGate.RunAsync(request.PaymentId, async () =>
+        {
+            var payment = await _unitOfWork.PaymentRepository.GetByIdAsync(request.PaymentId);
+            if (payment == null)
+                throw new NotFoundException(LocalizationKeys.PaymentMessages.NotFound.Value);
 
-        if (payment.Status == PaymentStatus.Refunded)
-            throw new BadRequestException(LocalizationKeys.PaymentMessages.AlreadyRefunded.Value);
+            if (payment.Status == PaymentStatus.Refunded)
+                throw new BadRequestException(LocalizationKeys.PaymentMessages.AlreadyRefunded.Value);
+
+            // Re-check against the DB: another concurrent request may have refunded
+            // this payment while we were waiting for the gate.
+            var alreadyRefunded = await _unitOfWork.PaymentRepository.GetAllAsync(p => p.Id == request.PaymentId)
+                .AsNoTracking()
+                .AnyAsync(p => p.Status == PaymentStatus.Refunded, cancellationToken);
+            if (alreadyRefunded)
+                throw new BadRequestException(LocalizationKeys.PaymentMessages.AlreadyRefunded.Value);
 
         if (!string.IsNullOrWhiteSpace(payment.PaymobTransactionId))
         {
@@ -75,5 +85,5 @@ public class RefundPaymentCommandHandler : IRequestHandler<RefundPaymentCommand,
         await _unitOfWork.SaveChangesAsync();
 
         return true;
-    }
+        });
 }

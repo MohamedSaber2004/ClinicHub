@@ -1,9 +1,11 @@
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace ClinicHub.Application.Features.Subscriptions.Commands.RevokeSubscription
 {
@@ -31,15 +33,27 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.RevokeSubscripti
 
             if (subscription.PaymentId.HasValue)
             {
-                var payment = await _unitOfWork.PaymentRepository.GetByIdAsync(subscription.PaymentId.Value);
-                if (payment != null && !string.IsNullOrEmpty(payment.PaymobTransactionId))
+                var paymentId = subscription.PaymentId.Value;
+
+                await PaymentRefundGate.RunAsync(paymentId, async () =>
                 {
-                    var refund = await _paymobService.RefundTransactionAsync(payment.PaymobTransactionId, payment.Amount, cancellationToken);
-                    if (refund.Success)
-                        payment.MarkAsRefunded(refund.RefundId);
-                    else
-                        payment.MarkAsFailed(refund.Message ?? "Refund failed");
-                }
+                    // Another concurrent request may have refunded this payment already.
+                    var alreadyRefunded = await _unitOfWork.PaymentRepository.GetAllAsync(p => p.Id == paymentId)
+                        .AsNoTracking()
+                        .AnyAsync(p => p.Status == PaymentStatus.Refunded, cancellationToken);
+                    if (alreadyRefunded)
+                        return;
+
+                    var payment = await _unitOfWork.PaymentRepository.GetByIdAsync(paymentId);
+                    if (payment != null && !string.IsNullOrEmpty(payment.PaymobTransactionId))
+                    {
+                        var refund = await _paymobService.RefundTransactionAsync(payment.PaymobTransactionId, payment.Amount, cancellationToken);
+                        if (refund.Success)
+                            payment.MarkAsRefunded(refund.RefundId);
+                        else
+                            payment.MarkAsFailed(refund.Message ?? "Refund failed");
+                    }
+                });
             }
 
             _unitOfWork.GetRepository<Subscription, Guid>().Update(subscription);

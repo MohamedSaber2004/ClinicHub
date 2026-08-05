@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Localization;
@@ -5,6 +6,7 @@ using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
@@ -64,29 +66,42 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
             {
                 if (appointment.PaymentId.HasValue)
                 {
-                    var payment = await _unitOfWork.PaymentRepository.GetByIdAsync(appointment.PaymentId.Value);
-                    if (payment != null && payment.Status == PaymentStatus.Paid)
-                    {
-                        var refundResult = await _paymobService.RefundTransactionAsync(
-                            payment.PaymobTransactionId!,
-                            payment.Amount,
-                            cancellationToken);
+                    var paymentId = appointment.PaymentId.Value;
 
-                        if (!refundResult.Success)
-                        {
-                            // Never block the cancellation on a transient Paymob failure —
-                            // the refund is retried in the background by RefundRetryJob.
-                            await _jobScheduler.ScheduleRefundRetryAsync(payment.Id);
-                        }
-                        else
-                        {
-                            payment.MarkAsRefunded("Cancelled by user");
-                        }
-                    }
-                    else if (payment != null && payment.Status == PaymentStatus.Refunded)
+                    await PaymentRefundGate.RunAsync(paymentId, async () =>
                     {
-                        throw new BadRequestException(LocalizationKeys.PaymentMessages.AlreadyRefunded.Value);
-                    }
+                        var payment = await _unitOfWork.PaymentRepository.GetByIdAsync(paymentId);
+                        if (payment != null && payment.Status == PaymentStatus.Paid)
+                        {
+                            // Another concurrent request may have refunded this payment
+                            // while we were waiting for the gate.
+                            var alreadyRefunded = await _unitOfWork.PaymentRepository.GetAllAsync(p => p.Id == paymentId)
+                                .AsNoTracking()
+                                .AnyAsync(p => p.Status == PaymentStatus.Refunded, cancellationToken);
+                            if (alreadyRefunded)
+                                return;
+
+                            var refundResult = await _paymobService.RefundTransactionAsync(
+                                payment.PaymobTransactionId!,
+                                payment.Amount,
+                                cancellationToken);
+
+                            if (!refundResult.Success)
+                            {
+                                // Never block the cancellation on a transient Paymob failure —
+                                // the refund is retried in the background by RefundRetryJob.
+                                await _jobScheduler.ScheduleRefundRetryAsync(payment.Id);
+                            }
+                            else
+                            {
+                                payment.MarkAsRefunded("Cancelled by user");
+                            }
+                        }
+                        else if (payment != null && payment.Status == PaymentStatus.Refunded)
+                        {
+                            throw new BadRequestException(LocalizationKeys.PaymentMessages.AlreadyRefunded.Value);
+                        }
+                    });
                 }
 
                 appointment.Cancel(request.CancellationReason);
