@@ -5,6 +5,7 @@ using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
 {
@@ -15,19 +16,22 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
         private readonly IPaymobService _paymobService;
         private readonly IFcmService _fcmService;
         private readonly IBackgroundJobScheduler _jobScheduler;
+        private readonly ILogger<CancelAppointmentCommandHandler> _logger;
 
         public CancelAppointmentCommandHandler(
             IUnitOfWork unitOfWork,
             ICurrentUserService currentUserService,
             IPaymobService paymobService,
             IFcmService fcmService,
-            IBackgroundJobScheduler jobScheduler)
+            IBackgroundJobScheduler jobScheduler,
+            ILogger<CancelAppointmentCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
             _paymobService = paymobService;
             _fcmService = fcmService;
             _jobScheduler = jobScheduler;
+            _logger = logger;
         }
 
         public async Task<bool> Handle(CancelAppointmentCommand request, CancellationToken cancellationToken)
@@ -90,11 +94,18 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
 
                 await _unitOfWork.CommitAsync();
 
-                await _fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.AppointmentCancellation, new()
+                try
                 {
-                    ["clinicName"] = appointment.Clinic.Name,
-                    ["reason"] = request.CancellationReason
-                });
+                    await _fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.AppointmentCancellation, new()
+                    {
+                        ["clinicName"] = appointment.Clinic?.Name ?? "",
+                        ["reason"] = request.CancellationReason
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send cancellation notification for appointment {AppointmentId}.", appointment.Id);
+                }
 
                 return result > 0;
             }
