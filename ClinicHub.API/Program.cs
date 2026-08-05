@@ -249,8 +249,14 @@ namespace ClinicHub.API
                     };
                 });
 
-                // NET-Tracker middleware — placed early so it intercepts all requests
-                app.UseNetTracker(app.Configuration);
+                // NET-Tracker middleware — exclude background polling, docs, and static files to prevent DB connection pool exhaustion
+                app.UseWhen(context => !context.Request.Path.StartsWithSegments("/hangfire")
+                                    && !context.Request.Path.StartsWithSegments("/scalar")
+                                    && !context.Request.Path.StartsWithSegments("/openapi")
+                                    && !context.Request.Path.StartsWithSegments("/files")
+                                    && !context.Request.Path.StartsWithSegments("/net-tracker"),
+                    subApp => subApp.UseNetTracker(app.Configuration));
+
 
 
                 app.UseRouting();
