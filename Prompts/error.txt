@@ -1,51 +1,241 @@
-﻿  ### Summary of Analysis & Recommended Backend Fixes
-
-  Based on prompts/prompt.txt (which contains the backend API implementation analysis for Doctory API), here is the complete breakdown of why mobile appointment
-  requests are not appearing on the dashboards, along with what has been updated on the frontend and what needs to be updated on the backend.
-  ──────
-  ### 1. 🔍 Root Cause Analysis
-
-  #### A. Backend Default Date Clamp (AppointmentDate == Today)
-
-  • Problem: In GetStaffAppointmentsQueryHandler.cs, when request.Date is null, the backend defaults to:
-    var targetDate = request.Date?.Date ?? DateTime.Today;
-    query = query.Where(a => a.AppointmentDate == targetDate);
-
-  • Impact: When a patient books an appointment for tomorrow or any future date, and staff opens the dashboard (which calls GET /api/v1/staff/appointments
-  without a date parameter), the backend filters out all future appointments and returns only today's appointments. Thus, future pending requests are hidden.
-
-  #### B. Reservation Status vs. Pending Approval (Status = 0)
-
-  • Problem: POST /api/v1/appointments sets Status = 0 (Reserved / Pending). If backend query handlers filter by Status == Confirmed (1), pending requests
-  (status 0) are excluded.
-
-  #### C. Clinic Context Mismatch (CurrentClinicId)
-
-  • Problem: GetStaffAppointmentsQueryHandler filters by _currentUserService.CurrentClinicId. If the mobile app posts an appointment with a mismatched ClinicId,
-  the query excludes it.
-  ──────
-  ### 2. 🟢 What We Fixed on the Frontend (Web Dashboards)
-
-  1. Pending Requests Widget on Home Dashboards:
-      • Staff Dashboard (Views/Staff/Index.cshtml): Added a "طلبات الحجز المعلقة" section with قبول (Approve) and رفض (Reject) buttons for quick staff
-      processing.
-      • Clinic Owner Dashboard (Views/Clinic/Index.cshtml): Connected to IClinicDashboardService.GetBookingsAsync("pending") and populated live stats & pending
-      requests.
-  2. Acceptance Flow Alignment:
-      • Accepting an appointment via قبول sends PUT /api/v1/staff/appointments/{id}/approve (or status 6), transitioning the appointment to 6 (بانتظار الدفع -
-      Awaiting Payment) and returning the Paymob URL for the mobile app to complete payment.
-  3. Date & Status Filters:
-      • Staff Appointments (Views/Staff/Appointments.cshtml): Staff can filter by status=pending and select any date (or clear the date) to view requests booked
-      for future dates.
-
-  ──────
-  ### 3. 🛠️ Required Backend Fixes (Doctory API)
-
-  To resolve the issue completely on the backend:
-
-  1. Fix Date Filtering in GetStaffAppointmentsQueryHandler.cs:
-      • When querying pending requests (status = 0 / pending), do not clamp targetDate to DateTime.Today if request.Date is null. Allow returning all pending
-      requests regardless of appointment date, or default to AppointmentDate >= DateTime.Today.
-  2. Include Status 0 by Default:
-      • Ensure GET /api/v1/staff/appointments and GET /api/v1/doctors/appointments return status = 0 (Pending/Reserved) records when no status parameter is
-      provided.
+﻿Transaction: 0248f5b5-fc17-4bc6-b168-6d9e0e17bdc7
+✕
+Overview
+Request ID
+0248f5b5-fc17-4bc6-b168-6d9e0e17bdc7
+Status Code
+400
+Method
+POST
+Duration
+51ms
+Timestamp
+8/5/2026, 3:12:13 PM
+Success
+✗ No
+IP Address
+34.200.173.150
+User Agent
+python-requests/2.28.1
+URL
+https://doctory-icare.runasp.net/api/v1/payments/webhook?hmac=e165b4dca600837cce79e5c0b2c80e3abc42438da5f385cbc53f8b035f7b2289794043bc8b086c829f00dd797cebe7633af911466066e54aa56c8e0fd01458ce
+Request Headers
+{
+  "Accept": "*/*",
+  "Accept-Encoding": "gzip, deflate",
+  "Connection": "keep-alive",
+  "Content-Length": "6522",
+  "Content-Type": "application/json",
+  "Host": "doctory-icare.runasp.net",
+  "User-Agent": "python-requests/2.28.1",
+  "X-REWRITE-URL": "/api/v1/payments/webhook?hmac=e165b4dca600837cce79e5c0b2c80e3abc42438da5f385cbc53f8b035f7b2289794043bc8b086c829f00dd797cebe7633af911466066e54aa56c8e0fd01458ce",
+  "X-ORIGINAL-URL": "/api/v1/payments/webhook?hmac=e165b4dca600837cce79e5c0b2c80e3abc42438da5f385cbc53f8b035f7b2289794043bc8b086c829f00dd797cebe7633af911466066e54aa56c8e0fd01458ce"
+}
+Request Body (6522 bytes)
+{
+  "type": "TRANSACTION",
+  "obj": {
+    "id": 509619304,
+    "pending": false,
+    "amount_cents": 200000,
+    "success": true,
+    "is_auth": false,
+    "is_capture": false,
+    "is_standalone_payment": true,
+    "is_voided": false,
+    "is_refunded": false,
+    "is_3d_secure": false,
+    "integration_id": 5690721,
+    "profile_id": 1164474,
+    "has_parent_transaction": false,
+    "order": {
+      "id": 581042499,
+      "created_at": "2026-08-05T18:11:57.887437",
+      "delivery_needed": false,
+      "merchant": {
+        "id": 1164474,
+        "created_at": "2026-05-17T11:58:27.715004",
+        "phones": [
+          "+201022812243"
+        ],
+        "company_emails": [
+          "clinichub2026@gmail.com"
+        ],
+        "company_name": "Doctory",
+        "state": "",
+        "country": "EGY",
+        "city": "Cairo",
+        "postal_code": "",
+        "street": ""
+      },
+      "collector": null,
+      "amount_cents": 200000,
+      "shipping_data": {
+        "id": 279240278,
+        "first_name": "Dr.",
+        "last_name": "Ahmed Ali",
+        "street": "طريق طناح - ميت علي",
+        "building": "NA",
+        "floor": "NA",
+        "apartment": "NA",
+        "city": "Egypt",
+        "state": "Egypt",
+        "country": "EG",
+        "email": "dr.ahmedali@gmail.com",
+        "phone_number": "01011121314",
+        "postal_code": "NA",
+        "extra_description": "",
+        "shipping_method": "UNK",
+        "order_id": 581042499,
+        "order": 581042499
+      },
+      "currency": "EGP",
+      "is_payment_locked": true,
+      "is_return": false,
+      "is_cancel": false,
+      "is_returned": false,
+      "is_canceled": false,
+      "merchant_order_id": null,
+      "wallet_notification": null,
+      "paid_amount_cents": 200000,
+      "notify_user_with_email": false,
+      "items": [
+        {
+          "name": "ClinicHub Appointment",
+          "description": "Medical appointment booking",
+          "amount_cents": 200000,
+          "quantity": 1
+        }
+      ],
+      "order_url": "NA",
+      "commission_fees": 0,
+      "delivery_fees_cents": 0,
+      "delivery_vat_cents": 0,
+      "payment_method": "tbc",
+      "merchant_staff_tag": null,
+      "api_source": "OTHER",
+      "data": {
+        "notification_url": "https://doctory-icare.runasp.net/api/v1/payments/webhook"
+      },
+      "payment_status": "PAID",
+      "terminal_version": null,
+      "payme_details": null
+    },
+    "created_at": "2026-08-05T18:12:05.877093",
+    "transaction_processed_callback_responses": [],
+    "currency": "EGP",
+    "source_data": {
+      "pan": "01010101010",
+      "type": "wallet",
+      "sub_type": "wallet",
+      "owner_name": null,
+      "phone_number": "01010101010"
+    },
+    "api_source": "OTHER",
+    "terminal_id": null,
+    "merchant_commission": 0,
+    "accept_fees": 0,
+    "installment": null,
+    "discount_details": [],
+    "amount_cents_int": 200000,
+    "is_void": false,
+    "is_refund": false,
+    "data": {
+      "klass": "WalletPayment",
+      "token": "",
+      "amount": 200000,
+      "method": 0,
+      "message": "Transaction has been completed successfully.",
+      "currency": "EGP",
+      "created_at": "2026-08-05T15:12:05.944587",
+      "mpg_txn_id": "213412341",
+      "order_info": "dr.ahmedali@gmail.com",
+      "uig_txn_id": "4351324134",
+      "upg_txn_id": null,
+      "mer_txn_ref": "5690721_4fa38903e23f570899eb67514906b9cd",
+      "redirect_url": "https://accept.paymobsolutions.com/api/acceptance/wallet_other_test/wallet_template?token=ZXlKaGJHY2lPaUpJVXpVeE1pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmpiR0Z6Y3lJNklsUnlZVzV6WVdOMGFXOXVJaXdpZEhKaGJuTmhZM1JwYjI1ZmNHc2lPalV3T1RZeE9UTXdOQ3dpYzNWaVgzUjVjR1VpT2lKM1lXeHNaWFFpZlEuemhKNHZoR3NMX3ExODNzUGE2S21rTXYxOVVSSko1YUJtREVNYVRUWVFUZmVVeF94ZUdIeXp2bjVQLU1mWk5aSk8wZVdXV2piMnlfaWdMMXhyWEEwLXc=",
+      "wallet_issuer": "VODAFONE",
+      "wallet_msisdn": "01010101010",
+      "gateway_source": "",
+      "upg_qrcode_ref": "4351324134",
+      "txn_response_code": "200",
+      "gateway_integration_pk": 5690721
+    },
+    "is_hidden": false,
+    "payment_key_claims": {
+      "extra": {
+        "merchant_order_id": null
+      },
+      "user_id": 2237955,
+      "currency": "EGP",
+      "order_id": 581042499,
+      "created_by": 2237955,
+      "is_partner": false,
+      "amount_cents": 200000,
+      "billing_data": {
+        "city": "Egypt",
+        "email": "dr.ahmedali@gmail.com",
+        "floor": "NA",
+        "state": "Egypt",
+        "street": "طريق طناح - ميت علي",
+        "country": "EG",
+        "building": "NA",
+        "apartment": "NA",
+        "last_name": "Ahmed Ali",
+        "first_name": "Dr.",
+        "postal_code": "NA",
+        "phone_number": "01011121314",
+        "extra_description": "NA"
+      },
+      "redirect_url": "https://accept.paymob.com/unifiedcheckout/payment-status?payment_token=ZXlKaGJHY2lPaUpJVXpVeE1pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SjFjMlZ5WDJsa0lqb3lNak0zT1RVMUxDSmhiVzkxYm5SZlkyVnVkSE1pT2pJd01EQXdNQ3dpWTNWeWNtVnVZM2tpT2lKRlIxQWlMQ0pwYm5SbFozSmhkR2x2Ymw5cFpDSTZOVFk1TURjeU1Td2liM0prWlhKZmFXUWlPalU0TVRBME1qUTVPU3dpWW1sc2JHbHVaMTlrWVhSaElqcDdJbVpwY25OMFgyNWhiV1VpT2lKRWNpNGlMQ0pzWVhOMFgyNWhiV1VpT2lKQmFHMWxaQ0JCYkdraUxDSnpkSEpsWlhRaU9pSmNkVEEyTXpkY2RUQTJNekZjZFRBMk5HRmNkVEEyTkRJZ1hIVXdOak0zWEhVd05qUTJYSFV3TmpJM1hIVXdOakprSUMwZ1hIVXdOalExWEhVd05qUmhYSFV3TmpKaElGeDFNRFl6T1Z4MU1EWTBORngxTURZMFlTSXNJbUoxYVd4a2FXNW5Jam9pVGtFaUxDSm1iRzl2Y2lJNklrNUJJaXdpWVhCaGNuUnRaVzUwSWpvaVRrRWlMQ0pqYVhSNUlqb2lSV2Q1Y0hRaUxDSnpkR0YwWlNJNklrVm5lWEIwSWl3aVkyOTFiblJ5ZVNJNklrVkhJaXdpWlcxaGFXd2lPaUprY2k1aGFHMWxaR0ZzYVVCbmJXRnBiQzVqYjIwaUxDSndhRzl1WlY5dWRXMWlaWElpT2lJd01UQXhNVEV5TVRNeE5DSXNJbkJ2YzNSaGJGOWpiMlJsSWpvaVRrRWlMQ0psZUhSeVlWOWtaWE5qY21sd2RHbHZiaUk2SWs1QkluMHNJbXh2WTJ0ZmIzSmtaWEpmZDJobGJsOXdZV2xrSWpwbVlXeHpaU3dpWlhoMGNtRWlPbnNpYldWeVkyaGhiblJmYjNKa1pYSmZhV1FpT201MWJHeDlMQ0p1YjNScFptbGpZWFJwYjI1ZmRYSnNJam9pYUhSMGNITTZMeTlrYjJOMGIzSjVMV2xqWVhKbExuSjFibUZ6Y0M1dVpYUXZZWEJwTDNZeEwzQmhlVzFsYm5SekwzZGxZbWh2YjJzaUxDSnlaV1JwY21WamRHbHZibDkxY213aU9pSm9kSFJ3Y3pvdkwyeHZZMkZzYUc5emREbzBORE16T1M5SWIyMWxMMUJoZVcxbGJuUlNaWE4xYkhRX2RIbHdaVDFoWkhNaUxDSnphVzVuYkdWZmNHRjViV1Z1ZEY5aGRIUmxiWEIwSWpwbVlXeHpaU3dpWTNKbFlYUmxaRjlpZVNJNk1qSXpOemsxTlN3aWFYTmZjR0Z5ZEc1bGNpSTZabUZzYzJVc0ltNWxlSFJmY0dGNWJXVnVkRjlwYm5SbGJuUnBiMjRpT2lKd2FWOTBaWE4wWHpObFlUWmtZelV5T0RGa05qUTRZMkk1TlRSbVpEQTJNR0ZoWWpVek1HUXlJbjAuenVXaTFDVVBpMVBEMDlTV2tvZXJEbWR6X1lldjdDdF90S1l4SDc0bTZaUnZhYXBVejFuM29nQlR1bXRXLURNem9VbUhGQzFxX2ZTcXFaT1h6eVBEcVE=&trx_id=509619304",
+      "integration_id": 5690721,
+      "redirection_url": "https://localhost:44339/Home/PaymentResult?type=ads",
+      "notification_url": "https://doctory-icare.runasp.net/api/v1/payments/webhook",
+      "lock_order_when_paid": false,
+      "next_payment_intention": "pi_test_3ea6dc5281d648cb954fd060aab530d2",
+      "single_payment_attempt": false
+    },
+    "error_occured": false,
+    "is_live": false,
+    "other_endpoint_reference": "4351324134",
+    "refunded_amount_cents": 0,
+    "refunded_amount_cents_int": 0,
+    "source_id": -1,
+    "is_captured": false,
+    "captured_amount": 0,
+    "captured_amount_int": 0,
+    "settlement_amount_cents_int": 0,
+    "merchant_staff_tag": null,
+    "accept_fees_cents_int": 0,
+    "vat_cents_int": 0,
+    "vat_cents_float": null,
+    "updated_at": "2026-08-05T18:12:12.815978",
+    "is_settled": false,
+    "bill_balanced": false,
+    "is_bill": false,
+    "owner": 2237955,
+    "parent_transaction": null
+  },
+  "accept_fees": 0,
+  "transaction_processed_callback_responses": ""
+}
+Response Headers
+{
+  "X-Content-Type-Options": "nosniff",
+  "X-XSS-Protection": "1; mode=block",
+  "X-Frame-Options": "Deny",
+  "Referrer-Policy": "no-referrer-when-downgrade",
+  "Content-Type": "application/json; charset=utf-8"
+}
+Response Body (141 bytes)
+{
+  "success": false,
+  "errors": {
+    "Hmac": [
+      "يجب ألا يكون HMAC فارغاً"
+    ]
+  },
+  "data": null,
+  "message": "فشل التحقق",
+  "statusCode": 400
+}

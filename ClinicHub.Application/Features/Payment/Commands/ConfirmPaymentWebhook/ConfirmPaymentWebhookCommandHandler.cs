@@ -32,12 +32,14 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
 
         if (string.IsNullOrWhiteSpace(request.Hmac))
         {
+            _logger.LogWarning("Paymob webhook rejected: empty HMAC.");
             return false;
         }
 
         var transaction = request.Transaction;
         if (transaction == null || transaction.Order?.Id == 0)
         {
+            _logger.LogWarning("Paymob webhook rejected: missing transaction or order id.");
             return false;
         }
 
@@ -46,6 +48,7 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
         var isValid = await _paymobService.ValidateWebhookAsync(request.Hmac, transactionData);
         if (!isValid)
         {
+            _logger.LogWarning("Paymob webhook rejected: HMAC validation failed for order {OrderId} transaction {TransactionId}.", transaction.Order.Id, transaction.Id);
             return false;
         }
 
@@ -54,6 +57,7 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
         var payment = await _unitOfWork.PaymentRepository.GetAllAsync(x => x.PaymobOrderId == orderId).FirstOrDefaultAsync(cancellationToken);
         if (payment == null)
         {
+            _logger.LogWarning("Paymob webhook: no payment found for order {OrderId} transaction {TransactionId}.", orderId, transaction.Id);
             return false;
         }
 
@@ -139,6 +143,7 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
         else
         {
             payment.MarkAsFailed();
+            _logger.LogWarning("Paymob webhook: transaction {TransactionId} for order {OrderId} was NOT successful.", transaction.Id, orderId);
         }
 
         await _unitOfWork.SaveChangesAsync();
