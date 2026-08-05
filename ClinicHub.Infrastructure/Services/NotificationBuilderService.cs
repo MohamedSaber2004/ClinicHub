@@ -100,6 +100,44 @@ namespace ClinicHub.Infrastructure.Services
                     link = _deepLinkService.GenerateLink(DeepLinkRoutes.Notifications);
                     break;
 
+                case NotificationType.CancellationWindowClosed:
+                    title = "انتهت مهلة الإلغاء";
+                    body = $"انتهت مهلة الإلغاء والاسترداد لموعدك في {clinicName}";
+                    data["clinicName"] = clinicName;
+                    data["appointmentId"] = appointmentId;
+                    if (!string.IsNullOrEmpty(appointmentId))
+                        link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.AppointmentDetails, appointmentId));
+                    else
+                        link = _deepLinkService.GenerateLink(DeepLinkRoutes.Appointments);
+                    break;
+
+                case NotificationType.SubscriptionExpiring:
+                    title = "اشتراكك على وشك الانتهاء";
+                    body = $"اشتراك عيادة {clinicName} ينتهي في {date} — جدد الآن لاستمرار الخدمات";
+                    data["clinicName"] = clinicName;
+                    data["date"] = date;
+                    link = _deepLinkService.GenerateLink(DeepLinkRoutes.Notifications);
+                    break;
+
+                case NotificationType.AdExpiring:
+                    title = "إعلانك على وشك الانتهاء";
+                    body = $"إعلان عيادة {clinicName} ينتهي في {date} — جدد الآن";
+                    data["clinicName"] = clinicName;
+                    data["date"] = date;
+                    link = _deepLinkService.GenerateLink(DeepLinkRoutes.Notifications);
+                    break;
+
+                case NotificationType.RefundProcessed:
+                    title = "تم رد المبلغ";
+                    body = $"تم إرجاع مبلغ {amount} الخاص بحجزك في {clinicName}";
+                    data["clinicName"] = clinicName;
+                    data["amount"] = amount;
+                    if (!string.IsNullOrEmpty(appointmentId))
+                        link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.AppointmentDetails, appointmentId));
+                    else
+                        link = _deepLinkService.GenerateLink(DeepLinkRoutes.Appointments);
+                    break;
+
                 default:
                     title = "إشعار";
                     body = "لديك إشعار جديد";

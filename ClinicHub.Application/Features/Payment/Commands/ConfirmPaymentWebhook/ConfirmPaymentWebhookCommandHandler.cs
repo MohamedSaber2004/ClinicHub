@@ -14,13 +14,15 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
     private readonly IPaymobService _paymobService;
     private readonly ILogger<ConfirmPaymentWebhookCommandHandler> _logger;
     private readonly IFcmService _fcmService;
+    private readonly IBackgroundJobScheduler _jobScheduler;
 
-    public ConfirmPaymentWebhookCommandHandler(IUnitOfWork unitOfWork, IPaymobService paymobService, ILogger<ConfirmPaymentWebhookCommandHandler> logger, IFcmService fcmService)
+    public ConfirmPaymentWebhookCommandHandler(IUnitOfWork unitOfWork, IPaymobService paymobService, ILogger<ConfirmPaymentWebhookCommandHandler> logger, IFcmService fcmService, IBackgroundJobScheduler jobScheduler)
     {
         _unitOfWork = unitOfWork;
         _paymobService = paymobService;
         _logger = logger;
         _fcmService = fcmService;
+        _jobScheduler = jobScheduler;
     }
 
     public async Task<bool> Handle(ConfirmPaymentWebhookCommand request, CancellationToken cancellationToken)
@@ -79,11 +81,20 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
                 appointment?.Confirm(payment.Id);
 
                 if (appointment is not null)
+                {
                     await _fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.PaymentConfirmation, new()
                     {
                         ["amount"] = $"{payment.Amount:N2} EGP",
                         ["appointmentId"] = appointment.Id.ToString()
                     });
+
+                    var bookingConfig = await _unitOfWork.BookingConfigurationRepository.GetByClinicIdAsync(appointment.ClinicId);
+                    var windowMinutes = bookingConfig?.CancellationWindowMinutes ?? 120;
+                    if (payment.PaidAt.HasValue)
+                        await _jobScheduler.ScheduleCancellationWindowCloseAsync(appointment.Id, payment.PaidAt.Value.AddMinutes(windowMinutes));
+
+                    await _jobScheduler.ScheduleNoShowMarkingAsync(appointment.Id, appointment.AppointmentDate.Add(appointment.EndTime).AddMinutes(30));
+                }
             }
             else if (payment.Type == PaymentType.Ads)
             {
@@ -95,6 +106,7 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
                 {
                     advertisement.Activate(DateTime.UtcNow, advertisement.DurationDays);
                     _unitOfWork.GetRepository<Advertisement, Guid>().Update(advertisement);
+                    await _jobScheduler.ScheduleAdExpirationAsync(advertisement.Id, advertisement.EndDate);
                 }
             }
             else if (payment.Type == PaymentType.Subscription && payment.PlanId.HasValue && payment.SubscriptionPeriod.HasValue)
@@ -134,6 +146,7 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
 
                 await _unitOfWork.GetRepository<Subscription, Guid>().AddAsync(subscription);
                 payment.LinkToSubscription(subscription.Id);
+                await _jobScheduler.ScheduleSubscriptionExpirationAsync(subscription.Id, subscription.EndDate);
             }
             else
             {

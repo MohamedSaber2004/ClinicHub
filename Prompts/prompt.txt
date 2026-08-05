@@ -1,6 +1,1 @@
-﻿Yes. The backend must fix it — my frontend fix only helps detect activation faster; it can't activate the ad itself.
-What the backend needs to implement (per the ads contract, currently MISSING):
-1. Paymob payment webhook — an endpoint that receives Paymob's payment-success callback, finds the clinic's latest pending ad (status 0), and flips it to 1 (نشط) with StartDate/EndDate set. This is the only thing that can turn "معلق الدفع" → "نشط" after online payment.
-2. The clinic ads endpoints (GET /clinics/{id}/ads, POST /clinics/{id}/ads/orders, GET /ads/packages) — if these return errors, the Marketing page fails to load (your "loading problem").
-3. A written contract doc (docs/ads-backend-contract.md is referenced in SKILL.md but doesn't exist) so the backend team has the exact spec.
-Without #1, the status will stay "معلق الدفع" forever no matter what — even with the fixed polling.
+﻿I want to handle tasks that rely on expiration or time-based validity—such as subscription expirations, ad subscription periods, or appointment cancellations. Do these types of tasks require a scheduling tool like Hangfire?

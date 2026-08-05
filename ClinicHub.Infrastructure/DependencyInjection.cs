@@ -21,6 +21,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using ClinicHub.Infrastructure.Services.Paymob;
+using Hangfire;
+using Hangfire.SqlServer;
 
 namespace ClinicHub.Infrastructure
 {
@@ -68,6 +70,39 @@ namespace ClinicHub.Infrastructure
             services.AddScoped<IFcmService, FcmService>();
             services.AddScoped<INotificationBuilder, NotificationBuilderService>();
             services.Configure<FirebaseSettings>(configuration.GetSection(nameof(FirebaseSettings)));
+
+            var hangfireConnectionString = configuration.GetConnectionString("HangfireDb");
+
+            services.AddHangfire(config =>
+            {
+                config.UseSqlServerStorage(hangfireConnectionString, new SqlServerStorageOptions
+                {
+                    SchemaName = "HangFire",
+                    PrepareSchemaIfNecessary = true,
+                    CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                    SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                    QueuePollInterval = TimeSpan.FromSeconds(15),
+                    UseRecommendedIsolationLevel = true,
+                    DisableGlobalLocks = true
+                });
+                config.UseColouredConsoleLogProvider();
+            });
+            services.AddHangfireServer(options =>
+            {
+                options.WorkerCount = 2;
+                options.Queues = new[] { "default" };
+            });
+
+            services.AddScoped<IBackgroundJobScheduler, ClinicHub.Infrastructure.Services.BackgroundJobs.BackgroundJobScheduler>();
+            services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.AdExpirationJob>();
+            services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.SubscriptionExpirationJob>();
+            services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.AbandonedPaymentJob>();
+            services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.TokenCleanupJob>();
+            services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.ReservationExpirationJob>();
+            services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.CancellationWindowJob>();
+            services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.ExpiryReminderJob>();
+            services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.NoShowJob>();
+            services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.RefundRetryJob>();
 
             //File Services
             services.AddScoped<IBaseFileService, BaseFileService>();
@@ -173,7 +208,6 @@ namespace ClinicHub.Infrastructure
 
 
 
-            services.AddHostedService<SubscriptionExpirationService>();
 
             return services;
         }

@@ -1,4 +1,5 @@
 using ClinicHub.Application.Common.Exceptions;
+using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Payment.DTOs;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Enums;
@@ -11,10 +12,12 @@ namespace ClinicHub.Application.Features.Payment.Commands.VerifyBookingPayment
     public class VerifyBookingPaymentCommandHandler : IRequestHandler<VerifyBookingPaymentCommand, BookingPaymentResponseDto>
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IBackgroundJobScheduler _jobScheduler;
 
-        public VerifyBookingPaymentCommandHandler(IUnitOfWork unitOfWork)
+        public VerifyBookingPaymentCommandHandler(IUnitOfWork unitOfWork, IBackgroundJobScheduler jobScheduler)
         {
             _unitOfWork = unitOfWork;
+            _jobScheduler = jobScheduler;
         }
 
         public async Task<BookingPaymentResponseDto> Handle(VerifyBookingPaymentCommand request, CancellationToken cancellationToken)
@@ -51,6 +54,15 @@ namespace ClinicHub.Application.Features.Payment.Commands.VerifyBookingPayment
                     throw new NotFoundException(LocalizationKeys.AppointmentMessages.AppointmentNotFound.Value);
 
                 appointment.Confirm(payment.Id);
+
+                if (payment.PaidAt.HasValue)
+                {
+                    var bookingConfig = await _unitOfWork.BookingConfigurationRepository.GetByClinicIdAsync(appointment.ClinicId);
+                    var windowMinutes = bookingConfig?.CancellationWindowMinutes ?? 120;
+                    await _jobScheduler.ScheduleCancellationWindowCloseAsync(appointment.Id, payment.PaidAt.Value.AddMinutes(windowMinutes));
+                }
+
+                await _jobScheduler.ScheduleNoShowMarkingAsync(appointment.Id, appointment.AppointmentDate.Add(appointment.EndTime).AddMinutes(30));
 
                 await _unitOfWork.SaveChangesAsync();
 

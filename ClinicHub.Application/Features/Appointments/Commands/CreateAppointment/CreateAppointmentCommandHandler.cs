@@ -14,15 +14,18 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
         private readonly IMapper _mapper;
+        private readonly IBackgroundJobScheduler _jobScheduler;
 
         public CreateAppointmentCommandHandler(
             IUnitOfWork unitOfWork,
             ICurrentUserService currentUserService,
-            IMapper mapper)
+            IMapper mapper,
+            IBackgroundJobScheduler jobScheduler)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
             _mapper = mapper;
+            _jobScheduler = jobScheduler;
         }
 
         public async Task<AppointmentDto> Handle(CreateAppointmentCommand request, CancellationToken cancellationToken)
@@ -50,10 +53,17 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
                 request.Complaint,
                 request.ChronicDiseases);
 
-            // Status remains Pending (0) until staff/doctor approves or rejects it
+            // Clinic with a consultation fee: hold the slot as Reserved until payment is completed
+            // (auto-expired by ReservationExpirationJob when the reservation TTL passes).
+            // Free clinics keep the appointment Pending (0) until staff/doctor approves or rejects it.
+            if (config.ConsultationFee > 0)
+                appointment.Reserve(config.ReservationTtlMinutes);
 
             await _unitOfWork.AppointmentRepository.AddAsync(appointment);
             await _unitOfWork.SaveChangesAsync();
+
+            if (appointment.ExpiresAt.HasValue)
+                await _jobScheduler.ScheduleReservationExpirationAsync(appointment.Id, appointment.ExpiresAt.Value);
 
             var dto = _mapper.Map<AppointmentDto>(appointment);
             dto.Amount = config.ConsultationFee;

@@ -1,5 +1,6 @@
 using AutoMapper;
 using ClinicHub.Application.Common.Exceptions;
+using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Subscriptions.DTOs;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
@@ -14,11 +15,13 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.CreateSubscripti
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IBackgroundJobScheduler _jobScheduler;
 
-        public CreateSubscriptionCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        public CreateSubscriptionCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IBackgroundJobScheduler jobScheduler)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _jobScheduler = jobScheduler;
         }
 
         public async Task<SubscriptionDto> Handle(CreateSubscriptionCommand request, CancellationToken cancellationToken)
@@ -67,6 +70,8 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.CreateSubscripti
             }
 
             await _unitOfWork.SaveChangesAsync();
+
+            await _jobScheduler.ScheduleSubscriptionExpirationAsync(subscription.Id, subscription.EndDate);
 
             var dto = _mapper.Map<SubscriptionDto>(subscription);
             dto.PlanName = plan.Name;

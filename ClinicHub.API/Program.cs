@@ -11,8 +11,11 @@ using ClinicHub.Application.Common.Options;
 using ClinicHub.Application.HealthCheck;
 using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure;
+using ClinicHub.Infrastructure.Services.BackgroundJobs;
 using ClinicHub.Persistence;
 using ClinicHub.Persistence.Seeders;
+using Hangfire;
+using Hangfire.Dashboard;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -254,6 +257,38 @@ namespace ClinicHub.API
                 app.UseCors("CorsPolicy");
                 app.UseAuthentication();
                 app.UseAuthorization();
+
+                // Hangfire dashboard — localhost-only in Development, SuperAdmin JWT otherwise
+                app.UseHangfireDashboard("/hangfire", new DashboardOptions
+                {
+                    DashboardTitle = "ClinicHub Background Jobs",
+                    Authorization = app.Environment.IsDevelopment()
+                        ? new IDashboardAuthorizationFilter[] { new LocalRequestsOnlyAuthorizationFilter() }
+                        : new IDashboardAuthorizationFilter[] { new HangfireDashboardAuthorizationFilter(allowAnonymous: false) },
+                    StatsPollingInterval = 10000
+                });
+
+                // Recurring jobs — safety-net sweeps; exact-time jobs are scheduled per entity at creation
+                try
+                {
+                    RecurringJob.AddOrUpdate<SubscriptionExpirationJob>("subscriptions-expiration",
+                        job => job.SweepExpiredAsync(CancellationToken.None), Cron.Hourly);
+                    RecurringJob.AddOrUpdate<AdExpirationJob>("ads-expiration",
+                        job => job.SweepExpiredAsync(CancellationToken.None), Cron.Hourly);
+                    RecurringJob.AddOrUpdate<AbandonedPaymentJob>("abandoned-payments",
+                        job => job.SweepAsync(CancellationToken.None), Cron.Hourly);
+                    RecurringJob.AddOrUpdate<ReservationExpirationJob>("reservations-expiration",
+                        job => job.SweepExpiredReservationsAsync(CancellationToken.None), Cron.Hourly);
+                    RecurringJob.AddOrUpdate<TokenCleanupJob>("token-cleanup",
+                        job => job.CleanupAsync(CancellationToken.None), Cron.Daily);
+                    RecurringJob.AddOrUpdate<ExpiryReminderJob>("expiry-reminders",
+                        job => job.SendExpiryRemindersAsync(CancellationToken.None), Cron.Daily);
+                    Log.Information("Hangfire recurring jobs registered successfully.");
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Failed to register Hangfire recurring jobs.");
+                }
 
                 app.UseStaticFiles();
 

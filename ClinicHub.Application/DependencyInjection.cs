@@ -29,7 +29,8 @@ namespace ClinicHub.Application
             services.AddHealthChecks()
                 .AddCheck<CustomHealthCheck>("API Custom Checks")
                 .AddCheck<DiskSpaceHealthCheck>("Disk Space", tags: new[] { "ready" })
-                .AddCheck<DatabaseHealthCheck>("Database", tags: new[] { "ready" });
+                .AddCheck<DatabaseHealthCheck>("Database", tags: new[] { "ready" })
+                .AddHangfire(_ => { }, "Hangfire");
 
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(UnhandledExceptionBehaviour<,>));
             services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));

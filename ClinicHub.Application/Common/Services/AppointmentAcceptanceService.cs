@@ -18,15 +18,18 @@ public class AppointmentAcceptanceService : IAppointmentAcceptanceService
     private readonly IUnitOfWork _unitOfWork;
     private readonly IPaymobService _paymobService;
     private readonly IFcmService _fcmService;
+    private readonly IBackgroundJobScheduler _jobScheduler;
 
     public AppointmentAcceptanceService(
         IUnitOfWork unitOfWork,
         IPaymobService paymobService,
-        IFcmService fcmService)
+        IFcmService fcmService,
+        IBackgroundJobScheduler jobScheduler)
     {
         _unitOfWork = unitOfWork;
         _paymobService = paymobService;
         _fcmService = fcmService;
+        _jobScheduler = jobScheduler;
     }
 
     public async Task<AppointmentAcceptanceResultDto> AcceptAsync(Appointment appointment, CancellationToken cancellationToken)
@@ -73,6 +76,9 @@ public class AppointmentAcceptanceService : IAppointmentAcceptanceService
         appointment.Accept();
 
         await _unitOfWork.SaveChangesAsync();
+
+        // Auto-mark as no-show after the appointment ends (plus a grace period) if never attended.
+        await _jobScheduler.ScheduleNoShowMarkingAsync(appointment.Id, appointment.AppointmentDate.Add(appointment.EndTime).AddMinutes(30));
 
         // Notify the patient that the request was accepted and payment is awaited.
         await _fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.AppointmentConfirmation, new()

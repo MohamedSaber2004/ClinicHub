@@ -14,17 +14,20 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
         private readonly ICurrentUserService _currentUserService;
         private readonly IPaymobService _paymobService;
         private readonly IFcmService _fcmService;
+        private readonly IBackgroundJobScheduler _jobScheduler;
 
         public CancelAppointmentCommandHandler(
             IUnitOfWork unitOfWork,
             ICurrentUserService currentUserService,
             IPaymobService paymobService,
-            IFcmService fcmService)
+            IFcmService fcmService,
+            IBackgroundJobScheduler jobScheduler)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
             _paymobService = paymobService;
             _fcmService = fcmService;
+            _jobScheduler = jobScheduler;
         }
 
         public async Task<bool> Handle(CancelAppointmentCommand request, CancellationToken cancellationToken)
@@ -38,9 +41,18 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.CannotCancelAppointment.Value);
 
             var bookingConfig = await _unitOfWork.BookingConfigurationRepository.GetByClinicIdAsync(appointment.ClinicId);
-            if (bookingConfig != null &&
-                DateTime.UtcNow > appointment.CreatedAt.ToUniversalTime().AddMinutes(bookingConfig.CancellationWindowMinutes))
-                throw new BadRequestException(LocalizationKeys.BookingMessages.CancellationWindowExpired.Value);
+            if (bookingConfig != null)
+            {
+                var payment = appointment.PaymentId.HasValue
+                    ? await _unitOfWork.PaymentRepository.GetByIdAsync(appointment.PaymentId.Value)
+                    : null;
+
+                // Cancellation window is measured from the payment time (PaidAt) for paid appointments,
+                // and from creation time for unpaid ones. After it passes, cancellation is blocked entirely.
+                var cancelDeadline = (payment?.PaidAt ?? appointment.CreatedAt.ToUniversalTime()).AddMinutes(bookingConfig.CancellationWindowMinutes);
+                if (DateTime.UtcNow > cancelDeadline)
+                    throw new BadRequestException(LocalizationKeys.BookingMessages.CancellationWindowExpired.Value);
+            }
 
             await _unitOfWork.BeginTransactionAsync();
 
@@ -57,9 +69,15 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
                             cancellationToken);
 
                         if (!refundResult.Success)
-                            throw new BadRequestException(LocalizationKeys.PaymentMessages.RefundFailed.Value);
-
-                        payment.MarkAsRefunded("Cancelled by user");
+                        {
+                            // Never block the cancellation on a transient Paymob failure —
+                            // the refund is retried in the background by RefundRetryJob.
+                            await _jobScheduler.ScheduleRefundRetryAsync(payment.Id);
+                        }
+                        else
+                        {
+                            payment.MarkAsRefunded("Cancelled by user");
+                        }
                     }
                     else if (payment != null && payment.Status == PaymentStatus.Refunded)
                     {
