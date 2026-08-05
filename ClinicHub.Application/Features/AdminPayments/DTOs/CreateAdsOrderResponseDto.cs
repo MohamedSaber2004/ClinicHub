@@ -11,4 +11,5 @@ public class CreateAdsOrderResponseDto
     public PaymentStatus Status { get; set; }
     public string? PaymobRedirectUrl { get; set; }
     public string? PaymobPaymentKey { get; set; }
+    public string? ImageUrl { get; set; }
 }

@@ -20,6 +20,7 @@ public static class AdsOrderProcessor
         Guid clinicId,
         Guid adPackageId,
         int durationDays,
+        string? logoImageUrl,
         string? returnUrl,
         CancellationToken cancellationToken)
     {
@@ -78,7 +79,8 @@ public static class AdsOrderProcessor
             Currency = "EGP",
             Status = AdvertisementStatus.PendingPayment,
             StartDate = DateTime.UtcNow,
-            EndDate = DateTime.UtcNow.AddDays(durationDays)
+            EndDate = DateTime.UtcNow.AddDays(durationDays),
+            ImageUrl = logoImageUrl
         };
         await unitOfWork.GetRepository<Advertisement, Guid>().AddAsync(advertisement);
 
@@ -102,7 +104,8 @@ public static class AdsOrderProcessor
             Currency = payment.Currency,
             Status = payment.Status,
             PaymobRedirectUrl = walletResult.RedirectUrl,
-            PaymobPaymentKey = walletResult.PaymentKey
+            PaymobPaymentKey = walletResult.PaymentKey,
+            ImageUrl = advertisement.ImageUrl
         };
     }
 

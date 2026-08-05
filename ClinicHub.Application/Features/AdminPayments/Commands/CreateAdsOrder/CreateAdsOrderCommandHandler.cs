@@ -30,6 +30,7 @@ public class CreateAdsOrderCommandHandler : IRequestHandler<CreateAdsOrderComman
             request.ClinicId,
             request.AdPackageId,
             request.DurationDays,
+            request.LogoImageUrl,
             request.ReturnUrl,
             cancellationToken);
     }

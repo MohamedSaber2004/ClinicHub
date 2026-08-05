@@ -36,7 +36,8 @@ public class GetActiveAdsPublicQueryHandler : IRequestHandler<GetActiveAdsPublic
                 PackageNameAr = a.AdPackage != null ? (a.AdPackage.NameAr ?? a.AdPackage.Name) : null,
                 Title = a.Title,
                 StartDate = a.StartDate,
-                EndDate = a.EndDate
+                EndDate = a.EndDate,
+                ImageUrl = a.ImageUrl
             })
             .ToListAsync(cancellationToken);
     }

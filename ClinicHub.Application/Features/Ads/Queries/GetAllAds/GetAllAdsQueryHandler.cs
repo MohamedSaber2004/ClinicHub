@@ -50,7 +50,8 @@ public class GetAllAdsQueryHandler : IRequestHandler<GetAllAdsQuery, PagginatedR
                 Status = a.Status,
                 StartDate = a.StartDate,
                 EndDate = a.EndDate,
-                CreatedAt = a.CreatedAt
+                CreatedAt = a.CreatedAt,
+                ImageUrl = a.ImageUrl
             })
             .ToListAsync(cancellationToken);
 

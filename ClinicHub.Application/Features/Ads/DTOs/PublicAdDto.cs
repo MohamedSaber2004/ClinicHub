@@ -6,6 +6,7 @@ public class PublicAdDto
     public Guid ClinicId { get; set; }
     public string? ClinicName { get; set; }
     public string? ClinicLogoUrl { get; set; }
+    public string? ImageUrl { get; set; }
     public Guid PackageId { get; set; }
     public string? PackageNameAr { get; set; }
     public string? Title { get; set; }
