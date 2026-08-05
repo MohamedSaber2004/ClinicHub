@@ -60,12 +60,11 @@ public class PaymentsController : BaseApiController
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Webhook(
-        [FromQuery] string hmac,
         [FromBody] ConfirmPaymentWebhookRequestDto request)
     {
         var command = new ConfirmPaymentWebhookCommand
         {
-            Hmac = hmac,
+            Hmac = request.Hmac,
             Type = request.Type,
             Transaction = request.Transaction
         };

@@ -32,7 +32,7 @@ namespace ClinicHub.Application.Features.Payment.Commands.VerifyBookingPayment
                 return BuildResponse(payment, apt);
             }
 
-            if (payment.Status == PaymentStatus.Processing)
+            if (payment.Status is PaymentStatus.Processing or PaymentStatus.Pending)
             {
                 payment.MarkAsPaid(request.TransactionId, payment.PaymentMethod ?? "cash");
 

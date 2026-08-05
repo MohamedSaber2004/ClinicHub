@@ -8,6 +8,9 @@ public class ConfirmPaymentWebhookRequestDto
     [JsonPropertyName("type")]
     public string Type { get; set; } = string.Empty;
 
+    [JsonPropertyName("hmac")]
+    public string Hmac { get; set; } = string.Empty;
+
     [JsonPropertyName("obj")]
     public PaymobTransaction Transaction { get; set; } = new();
 }

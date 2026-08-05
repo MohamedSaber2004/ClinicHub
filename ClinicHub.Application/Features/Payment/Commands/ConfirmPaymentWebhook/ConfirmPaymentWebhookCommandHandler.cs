@@ -25,7 +25,7 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
 
     public async Task<bool> Handle(ConfirmPaymentWebhookCommand request, CancellationToken cancellationToken)
     {
-        if (request.Type != "TRANSACTION")
+        if (!string.Equals(request.Type, "TRANSACTION", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }
