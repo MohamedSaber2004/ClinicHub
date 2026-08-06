@@ -57,7 +57,7 @@ namespace ClinicHub.Application.Features.Appointments.Commands.UpdateAppointment
                 .GetAllAsync(a => a.DoctorId == appointment.DoctorId && a.DayOfWeek == dayOfWeek)
                 .ToListAsync(cancellationToken);
 
-            return availabilities.Any(a =>
+            return availabilities.Where(a => a.SlotDurationMinutes > 0).Any(a =>
                 a.StartTime <= startTime &&
                 a.EndTime >= endTime &&
                 (endTime - startTime).TotalMinutes == a.SlotDurationMinutes &&

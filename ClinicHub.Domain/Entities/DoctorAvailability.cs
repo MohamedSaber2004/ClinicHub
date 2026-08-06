@@ -29,6 +29,9 @@ namespace ClinicHub.Domain.Entities
             TimeSpan endTime,
             int slotDurationMinutes = 30)
         {
+            if (slotDurationMinutes <= 0)
+                throw new ArgumentException("Slot duration must be greater than 0", nameof(slotDurationMinutes));
+
             DoctorId = doctorId;
             ClinicId = clinicId;
             DayOfWeek = dayOfWeek;
@@ -39,6 +42,9 @@ namespace ClinicHub.Domain.Entities
 
         public void Update(DayOfWeek dayOfWeek, TimeSpan startTime, TimeSpan endTime, int slotDurationMinutes)
         {
+            if (slotDurationMinutes <= 0)
+                throw new ArgumentException("Slot duration must be greater than 0", nameof(slotDurationMinutes));
+
             DayOfWeek = dayOfWeek;
             StartTime = startTime;
             EndTime = endTime;

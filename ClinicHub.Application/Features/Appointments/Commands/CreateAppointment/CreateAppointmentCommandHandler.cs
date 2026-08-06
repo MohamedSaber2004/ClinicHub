@@ -6,6 +6,7 @@ using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
 {
@@ -15,17 +16,20 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
         private readonly ICurrentUserService _currentUserService;
         private readonly IMapper _mapper;
         private readonly IBackgroundJobScheduler _jobScheduler;
+        private readonly ILogger<CreateAppointmentCommandHandler> _logger;
 
         public CreateAppointmentCommandHandler(
             IUnitOfWork unitOfWork,
             ICurrentUserService currentUserService,
             IMapper mapper,
-            IBackgroundJobScheduler jobScheduler)
+            IBackgroundJobScheduler jobScheduler,
+            ILogger<CreateAppointmentCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
             _mapper = mapper;
             _jobScheduler = jobScheduler;
+            _logger = logger;
         }
 
         public async Task<AppointmentDto> Handle(CreateAppointmentCommand request, CancellationToken cancellationToken)
@@ -63,7 +67,19 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
             await _unitOfWork.SaveChangesAsync();
 
             if (appointment.ExpiresAt.HasValue)
-                await _jobScheduler.ScheduleReservationExpirationAsync(appointment.Id, appointment.ExpiresAt.Value);
+            {
+                try
+                {
+                    await _jobScheduler.ScheduleReservationExpirationAsync(appointment.Id, appointment.ExpiresAt.Value);
+                }
+                catch (Exception ex)
+                {
+                    // Never turn a Hangfire scheduling failure into a 500 after the appointment
+                    // is already committed. If the exact-time job was not scheduled, the hourly
+                    // reservations-expiration sweep expires the reservation instead.
+                    _logger.LogWarning(ex, "Failed to schedule reservation expiration for appointment {AppointmentId}; the hourly sweep will handle it.", appointment.Id);
+                }
+            }
 
             var dto = _mapper.Map<AppointmentDto>(appointment);
             dto.Amount = config.ConsultationFee;
