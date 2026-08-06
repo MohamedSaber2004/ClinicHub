@@ -8,6 +8,7 @@ using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Linq.Expressions;
 
 namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
 {
@@ -38,7 +39,13 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
 
         public async Task<bool> Handle(CancelAppointmentCommand request, CancellationToken cancellationToken)
         {
-            var appointment = await _unitOfWork.AppointmentRepository.GetByIdAsync(request.AppointmentId);
+            // Load appointment including Clinic so appointment.Clinic?.Name is available for notifications
+            var appointment = await _unitOfWork.AppointmentRepository
+                .GetFirstWithIncluding(
+                    a => a.Id == request.AppointmentId,
+                    a => a.Clinic!)
+                .FirstOrDefaultAsync(cancellationToken);
+
             if (appointment == null)
                 throw new NotFoundException(nameof(Appointment), request.AppointmentId);
 
