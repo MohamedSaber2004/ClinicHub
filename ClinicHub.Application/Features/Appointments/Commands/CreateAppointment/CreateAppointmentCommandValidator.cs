@@ -25,7 +25,7 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
 
             RuleFor(v => v.AppointmentDate)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
-                .GreaterThanOrEqualTo(DateTime.UtcNow.Date).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidDate.Value]));
+                .GreaterThanOrEqualTo(DateTime.Now.Date).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.BookingMessages.PastDate.Value]));
 
             RuleFor(v => v.StartTime)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
@@ -45,6 +45,9 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
 
             RuleFor(v => v)
+                .Must(v => v.AppointmentDate.Add(v.StartTime) > DateTime.Now)
+                .WithName("AppointmentDate")
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.BookingMessages.PastDate.Value]))
                 .MustAsync(async (v, ct) => await IsWithinBookingWindow(v.ClinicId, v.AppointmentDate, ct))
                 .WithName("AppointmentDate")
                 .WithMessage(localizer[LocalizationKeys.BookingMessages.InvalidDate])

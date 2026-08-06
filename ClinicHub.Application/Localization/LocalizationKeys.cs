@@ -63,6 +63,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString Cancelled = new("Appointments.Cancelled");
             public static readonly KeyString NotAuthorizedToRespond = new("Appointments.NotAuthorizedToRespond");
             public static readonly KeyString CannotRespondAppointment = new("Appointments.CannotRespondAppointment");
+            public static readonly KeyString CannotCompleteBeforeTime = new("Appointments.CannotCompleteBeforeTime");
             public static readonly KeyString Accepted = new("Appointments.Accepted");
             public static readonly KeyString AcceptedWithPaymentLink = new("Appointments.AcceptedWithPaymentLink");
             public static readonly KeyString Rejected = new("Appointments.Rejected");

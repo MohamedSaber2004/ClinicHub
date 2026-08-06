@@ -38,6 +38,9 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
             if (config == null)
                 throw new BadRequestException(LocalizationKeys.BookingMessages.BookingConfigNotFound.Value);
 
+            if (request.AppointmentDate.Add(request.StartTime) <= DateTime.Now)
+                throw new BadRequestException(LocalizationKeys.BookingMessages.PastDate.Value);
+
             if (request.AppointmentDate > DateTime.UtcNow.Date.AddDays(config.MaxAdvanceBookingDays))
                 throw new BadRequestException(LocalizationKeys.BookingMessages.InvalidDate.Value);
 

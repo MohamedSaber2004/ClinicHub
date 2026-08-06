@@ -168,6 +168,7 @@
     "Cancelled": "Appointment cancelled successfully",
     "NotAuthorizedToRespond": "You are not authorized to respond to this appointment request",
     "CannotRespondAppointment": "This appointment cannot be responded to in its current status",
+    "CannotCompleteBeforeTime": "Cannot complete the appointment before its scheduled time",
     "Accepted": "Appointment accepted successfully",
     "AcceptedWithPaymentLink": "Appointment accepted and payment link sent to the patient",
     "Rejected": "Appointment rejected successfully",

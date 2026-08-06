@@ -168,6 +168,7 @@
     "Cancelled": "تم إلغاء الموعد بنجاح",
     "NotAuthorizedToRespond": "ليس لديك صلاحية الرد على طلب الموعد هذا",
     "CannotRespondAppointment": "لا يمكن الرد على هذا الموعد في حالته الحالية",
+    "CannotCompleteBeforeTime": "لا يمكن إنهاء الموعد قبل حلول موعده",
     "Accepted": "تم قبول الموعد بنجاح",
     "AcceptedWithPaymentLink": "تم قبول الحجز وتم إرسال رابط الدفع للمريض",
     "Rejected": "تم رفض الموعد بنجاح",

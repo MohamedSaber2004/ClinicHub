@@ -35,6 +35,10 @@ namespace ClinicHub.Application.Features.DoctorDashboard.Commands.DoctorComplete
             if (appointment.Status != AppointmentStatus.Confirmed)
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.CannotRespondAppointment.Value);
 
+            // Complete is only allowed after the appointment date and time have passed.
+            if (appointment.AppointmentDate.Add(appointment.EndTime) > DateTime.Now)
+                throw new BadRequestException(LocalizationKeys.AppointmentMessages.CannotCompleteBeforeTime.Value);
+
             appointment.Complete();
             await _unitOfWork.SaveChangesAsync();
 
