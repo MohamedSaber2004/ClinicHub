@@ -1,4 +1,4 @@
-using ClinicHub.Domain.Entities;
+﻿using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +27,7 @@ public class SubscriptionExpirationJob
         if (subscription == null || subscription.Status != SubscriptionStatus.Active)
             return;
 
-        if (subscription.EndDate > DateTime.UtcNow)
+        if (subscription.EndDate > DateTime.Now)
             return;
 
         subscription.Status = SubscriptionStatus.Expired;
@@ -41,7 +41,7 @@ public class SubscriptionExpirationJob
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
         var expiredSubscriptions = await unitOfWork.GetRepository<Subscription, Guid>()
-            .GetAllAsync(s => s.Status == SubscriptionStatus.Active && s.EndDate <= DateTime.UtcNow)
+            .GetAllAsync(s => s.Status == SubscriptionStatus.Active && s.EndDate <= DateTime.Now)
             .ToListAsync(cancellationToken);
 
         foreach (var subscription in expiredSubscriptions)

@@ -1,4 +1,4 @@
-using ClinicHub.Application.Common.Exceptions;
+﻿using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.AdminPayments.DTOs;
 using ClinicHub.Application.Features.Payment.DTOs;
@@ -78,8 +78,8 @@ public static class AdsOrderProcessor
             AmountPaid = amount,
             Currency = "EGP",
             Status = AdvertisementStatus.PendingPayment,
-            StartDate = DateTime.UtcNow,
-            EndDate = DateTime.UtcNow.AddDays(durationDays),
+            StartDate = DateTime.Now,
+            EndDate = DateTime.Now.AddDays(durationDays),
             ImageUrl = logoImageUrl
         };
         await unitOfWork.GetRepository<Advertisement, Guid>().AddAsync(advertisement);
@@ -111,7 +111,7 @@ public static class AdsOrderProcessor
 
     public static async Task<bool> IsEligibleForAdsAsync(IUnitOfWork unitOfWork, Guid clinicId, CancellationToken cancellationToken)
     {
-        var now = DateTime.UtcNow;
+        var now = DateTime.Now;
 
         var subscription = await unitOfWork.GetRepository<Subscription, Guid>()
             .GetAllAsync(s => s.ClinicId == clinicId && s.Status == SubscriptionStatus.Active && s.EndDate > now)

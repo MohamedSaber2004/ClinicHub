@@ -1,4 +1,4 @@
-using ClinicHub.Application.Common;
+﻿using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Payment.DTOs;
@@ -67,8 +67,8 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
 
                 // Cancellation window is measured from the payment time (PaidAt) for paid appointments,
                 // and from creation time for unpaid ones. After it passes, cancellation is blocked entirely.
-                var cancelDeadline = (payment?.PaidAt ?? appointment.CreatedAt.ToUniversalTime()).AddMinutes(bookingConfig.CancellationWindowMinutes);
-                if (DateTime.UtcNow > cancelDeadline)
+                var cancelDeadline = (payment?.PaidAt ?? appointment.CreatedAt).AddMinutes(bookingConfig.CancellationWindowMinutes);
+                if (DateTime.Now > cancelDeadline)
                     throw new BadRequestException(LocalizationKeys.BookingMessages.CancellationWindowExpired.Value);
             }
 
@@ -110,7 +110,7 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
                                 catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException)
                                 {
                                     // Paymob is unreachable, timed out, or returned an unparseable
-                                    // response — never turn a transient transport failure into a 500.
+                                    // response â€” never turn a transient transport failure into a 500.
                                     // The refund is retried in the background by RefundRetryJob.
                                     _logger.LogWarning(ex, "Paymob refund call failed for payment {PaymentId}; refund scheduled for background retry.", payment.Id);
                                     refundResult = null;
@@ -118,7 +118,7 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
 
                                 if (refundResult == null || !refundResult.Success)
                                 {
-                                    // Never block the cancellation on a transient Paymob failure —
+                                    // Never block the cancellation on a transient Paymob failure â€”
                                     // the refund is retried in the background by RefundRetryJob.
                                     await _jobScheduler.ScheduleRefundRetryAsync(payment.Id);
                                 }

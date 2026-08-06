@@ -1,4 +1,4 @@
-using ClinicHub.Application.Common.Exceptions;
+﻿using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
@@ -23,7 +23,7 @@ namespace ClinicHub.Application.Features.Admin.Commands.UpdateSupportTicketStatu
             ticket.Status = request.Status;
 
             if (request.Status == SupportTicketStatus.Resolved || request.Status == SupportTicketStatus.Closed)
-                ticket.ResolvedAt = DateTime.UtcNow;
+                ticket.ResolvedAt = DateTime.Now;
 
             _unitOfWork.GetRepository<SupportTicket, Guid>().Update(ticket);
             await _unitOfWork.SaveChangesAsync();

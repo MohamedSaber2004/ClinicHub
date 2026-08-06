@@ -31,7 +31,7 @@ namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
             if (!date.HasValue) return true;
 
             var config = await _ctx.BookingConfigurationRepository.GetByClinicIdAsync(clinicId);
-            return config == null || date.Value.Date <= DateTime.UtcNow.Date.AddDays(config.MaxAdvanceBookingDays);
+            return config == null || date.Value.Date <= DateTime.Now.Date.AddDays(config.MaxAdvanceBookingDays);
         }
     }
 }

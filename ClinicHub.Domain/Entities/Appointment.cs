@@ -1,4 +1,4 @@
-using ClinicHub.Domain.Common;
+﻿using ClinicHub.Domain.Common;
 using ClinicHub.Domain.Common.Interfaces;
 using ClinicHub.Domain.Enums;
 
@@ -68,12 +68,12 @@ namespace ClinicHub.Domain.Entities
         }
 
         public bool IsReservationExpired() =>
-            ExpiresAt.HasValue && Status == AppointmentStatus.Reserved && DateTime.UtcNow >= ExpiresAt.Value;
+            ExpiresAt.HasValue && Status == AppointmentStatus.Reserved && DateTime.Now >= ExpiresAt.Value;
 
         public void Reserve(int reservationTtlMinutes)
         {
             Status = AppointmentStatus.Reserved;
-            ExpiresAt = DateTime.UtcNow.AddMinutes(reservationTtlMinutes);
+            ExpiresAt = DateTime.Now.AddMinutes(reservationTtlMinutes);
         }
 
         public void ExpireReservation()

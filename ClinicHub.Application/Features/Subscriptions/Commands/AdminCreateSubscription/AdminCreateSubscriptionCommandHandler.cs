@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.AdminPayments;
@@ -38,9 +38,9 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.AdminCreateSubsc
             if (!plan.IsActive)
                 throw new NotFoundException(LocalizationKeys.PlanMessages.NotActive.Value);
 
-            var startDate = request.StartDate?.Date ?? DateTime.UtcNow.Date;
+            var startDate = request.StartDate?.Date ?? DateTime.Now.Date;
             var amount = request.Amount ?? (request.Period == SubscriptionPlan.Yearly ? plan.PriceYearly : plan.PriceMonthly);
-            var now = DateTime.UtcNow;
+            var now = DateTime.Now;
 
             var activeSubs = await _unitOfWork.GetRepository<Subscription, Guid>()
                 .GetAllAsync(s => s.ClinicId == request.ClinicId && s.Status == SubscriptionStatus.Active)

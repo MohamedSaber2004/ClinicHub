@@ -1,4 +1,4 @@
-using ClinicHub.Domain.Common;
+﻿using ClinicHub.Domain.Common;
 using ClinicHub.Domain.Enums;
 
 namespace ClinicHub.Domain.Entities
@@ -27,7 +27,7 @@ namespace ClinicHub.Domain.Entities
             UserId = userId,
             RequestedRole = requestedRole,
             Status = VerificationStatus.Pending,
-            RequestedAt = DateTime.UtcNow,
+            RequestedAt = DateTime.Now,
             ProfessionalPracticeCardImage = professionalPracticeCardImage,
             TaxCardImage = taxCardImage,
             UnionIdCardImage = unionIdCardImage,
@@ -43,14 +43,14 @@ namespace ClinicHub.Domain.Entities
         {
             Status = VerificationStatus.Approved;
             ReviewedByUserId = reviewedByUserId;
-            ReviewedAt = DateTime.UtcNow;
+            ReviewedAt = DateTime.Now;
         }
 
         public void Reject(Guid reviewedByUserId, string? notes)
         {
             Status = VerificationStatus.Rejected;
             ReviewedByUserId = reviewedByUserId;
-            ReviewedAt = DateTime.UtcNow;
+            ReviewedAt = DateTime.Now;
             Notes = notes;
         }
     }

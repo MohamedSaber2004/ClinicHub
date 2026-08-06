@@ -1,4 +1,4 @@
-using ClinicHub.Domain.Entities;
+﻿using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +24,7 @@ public class TokenCleanupJob
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
-        var now = DateTime.UtcNow;
+        var now = DateTime.Now;
 
         var expiredTokens = await unitOfWork.GetRepository<UserRefreshToken, Guid>()
             .GetAllAsync(t => !t.IsRevoked && t.ExpiryDate < now)

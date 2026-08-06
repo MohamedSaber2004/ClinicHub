@@ -1,4 +1,4 @@
-using ClinicHub.Application.Common.Interfaces;
+﻿using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
@@ -47,7 +47,7 @@ public class ReservationExpirationJob
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
         var expiredReservations = await unitOfWork.AppointmentRepository
-            .GetAllAsync(a => a.Status == AppointmentStatus.Reserved && a.ExpiresAt <= DateTime.UtcNow)
+            .GetAllAsync(a => a.Status == AppointmentStatus.Reserved && a.ExpiresAt <= DateTime.Now)
             .Include(a => a.Clinic)
             .ToListAsync(cancellationToken);
 
@@ -74,7 +74,7 @@ public class ReservationExpirationJob
         await fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.AppointmentCancellation, new()
         {
             ["clinicName"] = appointment.Clinic?.Name ?? "",
-            ["reason"] = "لم يتم تأكيد الحجز خلال المهلة المحددة"
+            ["reason"] = "Ù„Ù… ÙŠØªÙ… ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø­Ø¬Ø² Ø®Ù„Ø§Ù„ Ø§Ù„Ù…Ù‡Ù„Ø© Ø§Ù„Ù…Ø­Ø¯Ø¯Ø©"
         });
     }
 }

@@ -1,4 +1,4 @@
-using ClinicHub.Domain.Enums;
+﻿using ClinicHub.Domain.Enums;
 
 namespace ClinicHub.Application.Features.Subscriptions.DTOs
 {
@@ -15,7 +15,7 @@ namespace ClinicHub.Application.Features.Subscriptions.DTOs
         public SubscriptionStatus Status { get; set; }
         public decimal Amount { get; set; }
         public DateTime? PaidAt { get; set; }
-        public bool IsActive => Status == SubscriptionStatus.Active && EndDate > DateTime.UtcNow;
+        public bool IsActive => Status == SubscriptionStatus.Active && EndDate > DateTime.Now;
         public List<string>? Permissions { get; set; }
     }
 }

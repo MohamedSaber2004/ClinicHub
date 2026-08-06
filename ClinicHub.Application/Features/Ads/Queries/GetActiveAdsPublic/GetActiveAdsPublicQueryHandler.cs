@@ -1,4 +1,4 @@
-using ClinicHub.Application.Features.Ads.DTOs;
+﻿using ClinicHub.Application.Features.Ads.DTOs;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
@@ -18,7 +18,7 @@ public class GetActiveAdsPublicQueryHandler : IRequestHandler<GetActiveAdsPublic
 
     public async Task<List<PublicAdDto>> Handle(GetActiveAdsPublicQuery request, CancellationToken cancellationToken)
     {
-        var now = DateTime.UtcNow;
+        var now = DateTime.Now;
 
         return await _unitOfWork.GetRepository<Advertisement, Guid>()
             .GetAllAsync(a => a.Status == AdvertisementStatus.Active && a.EndDate >= now)

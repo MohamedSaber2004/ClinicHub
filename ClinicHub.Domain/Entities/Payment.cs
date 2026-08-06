@@ -1,4 +1,4 @@
-using ClinicHub.Domain.Common;
+﻿using ClinicHub.Domain.Common;
 using ClinicHub.Domain.Common.Interfaces;
 using ClinicHub.Domain.Enums;
 
@@ -44,7 +44,7 @@ public class Payment : BaseEntity<Guid>, IClinicScopedEntity
         Amount = amount;
         Currency = currency ?? "EGP";
         Code = "#P-" + Guid.NewGuid().ToString("N")[..6].ToUpper();
-        RefNumber = $"PM-{DateTime.UtcNow.Year}-{Guid.NewGuid().ToString("N")[..6].ToUpper()}";
+        RefNumber = $"PM-{DateTime.Now.Year}-{Guid.NewGuid().ToString("N")[..6].ToUpper()}";
     }
 
     public void LinkToSubscription(Guid subscriptionId)
@@ -82,7 +82,7 @@ public class Payment : BaseEntity<Guid>, IClinicScopedEntity
         PaymobTransactionId = transactionId;
         TransactionId = transactionId;
         PaymentMethod = method;
-        PaidAt = DateTime.UtcNow;
+        PaidAt = DateTime.Now;
         Status = PaymentStatus.Paid;
         FailureReason = null;
     }
@@ -91,7 +91,7 @@ public class Payment : BaseEntity<Guid>, IClinicScopedEntity
     {
         TransactionId = reference;
         PaymentMethod = method;
-        PaidAt = DateTime.UtcNow;
+        PaidAt = DateTime.Now;
         Status = PaymentStatus.Paid;
         FailureReason = null;
     }
@@ -105,7 +105,7 @@ public class Payment : BaseEntity<Guid>, IClinicScopedEntity
     public void MarkAsRefunded(string? reason = null)
     {
         Status = PaymentStatus.Refunded;
-        RefundedAt = DateTime.UtcNow;
+        RefundedAt = DateTime.Now;
         RefundReason = reason;
         PaidAt = null;
         PaymentMethod = null;

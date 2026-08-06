@@ -1,4 +1,4 @@
-using ClinicHub.Domain.Common;
+﻿using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Domain.Entities
 {
@@ -20,6 +20,6 @@ namespace ClinicHub.Domain.Entities
 
         public void Revoke() => IsRevoked = true;
         
-        public bool IsValid => !IsRevoked && ExpiryDate > DateTime.UtcNow;
+        public bool IsValid => !IsRevoked && ExpiryDate > DateTime.Now;
     }
 }

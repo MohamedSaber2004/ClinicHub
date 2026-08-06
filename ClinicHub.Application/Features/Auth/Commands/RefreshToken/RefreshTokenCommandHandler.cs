@@ -1,4 +1,4 @@
-using ClinicHub.Application.Common.Exceptions;
+﻿using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Auth.DTOs;
 using ClinicHub.Application.Localization;
@@ -55,11 +55,11 @@ namespace ClinicHub.Application.Features.Auth.Commands.RefreshToken
                 .FirstOrDefaultAsync(cancellationToken);
             var hasActiveSubscription = clinicId.HasValue
                 && await _unitOfWork.GetRepository<Subscription, Guid>()
-                    .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > DateTime.UtcNow, cancellationToken);
+                    .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > DateTime.Now, cancellationToken);
             var newAccessToken = _jwtTokenService.GenerateAccessToken(user, roles, clinicId, hasActiveSubscription);
             var newRefreshToken = _jwtTokenService.GenerateRefreshToken(user);
 
-            var newTokenEntity = UserRefreshToken.Create(user.Id, newRefreshToken, DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenExpiryDays));
+            var newTokenEntity = UserRefreshToken.Create(user.Id, newRefreshToken, DateTime.Now.AddDays(_jwtSettings.RefreshTokenExpiryDays));
             await _unitOfWork.UserRefreshTokenRepository.AddAsync(newTokenEntity);
             await _unitOfWork.SaveChangesAsync();
 

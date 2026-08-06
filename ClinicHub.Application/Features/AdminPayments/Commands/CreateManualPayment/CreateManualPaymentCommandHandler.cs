@@ -1,4 +1,4 @@
-using ClinicHub.Application.Common.Exceptions;
+﻿using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.AdminPayments.DTOs;
 using ClinicHub.Application.Features.Ads;
@@ -52,7 +52,7 @@ public class CreateManualPaymentCommandHandler : IRequestHandler<CreateManualPay
 
             if (pendingAd != null)
             {
-                pendingAd.Activate(DateTime.UtcNow, pendingAd.DurationDays);
+                pendingAd.Activate(DateTime.Now, pendingAd.DurationDays);
                 pendingAd.PaymentId = payment.Id;
                 _unitOfWork.GetRepository<Advertisement, Guid>().Update(pendingAd);
                 await _jobScheduler.ScheduleAdExpirationAsync(pendingAd.Id, pendingAd.EndDate);

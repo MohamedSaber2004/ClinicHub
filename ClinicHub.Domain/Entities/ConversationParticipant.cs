@@ -1,4 +1,4 @@
-using ClinicHub.Domain.Common;
+﻿using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Domain.Entities
 {
@@ -28,7 +28,7 @@ namespace ClinicHub.Domain.Entities
             IsMuted = false;
             IsArchived = false;
             IsBlocked = false;
-            JoinedAt = DateTime.UtcNow;
+            JoinedAt = DateTime.Now;
         }
 
         public void ToggleMute(bool muted) => IsMuted = muted;

@@ -1,4 +1,4 @@
-using ClinicHub.Application.Common.Interfaces;
+﻿using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Common.Options;
 using ClinicHub.Domain.Entities;
 using MediatR;
@@ -33,7 +33,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.ForgetPassword
             var user = await _userManager.FindByEmailAsync(request.Email);
 
             var otp = RandomNumberGenerator.GetInt32(0, 1_000_000).ToString("D6");
-            user!.SetPasswordResetToken(otp, DateTime.UtcNow.AddMinutes(_settings.ForgetPasswordExpiryMinutes));
+            user!.SetPasswordResetToken(otp, DateTime.Now.AddMinutes(_settings.ForgetPasswordExpiryMinutes));
             await _userManager.UpdateAsync(user);
 
             await _emailService.SendPasswordResetEmailAsync(user.Email!, user.FullName, otp, cancellationToken);

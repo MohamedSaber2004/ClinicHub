@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Subscriptions.DTOs;
@@ -53,7 +53,7 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.CreateSubscripti
                 EndDate = request.EndDate,
                 Amount = request.Amount,
                 Status = SubscriptionStatus.Active,
-                PaidAt = DateTime.UtcNow,
+                PaidAt = DateTime.Now,
                 PaymentId = request.PaymentId,
                 Notes = request.Notes
             };

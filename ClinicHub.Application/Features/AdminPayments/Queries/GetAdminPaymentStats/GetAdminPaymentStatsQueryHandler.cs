@@ -1,4 +1,4 @@
-using ClinicHub.Application.Features.AdminPayments.DTOs;
+﻿using ClinicHub.Application.Features.AdminPayments.DTOs;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
@@ -31,7 +31,7 @@ public class GetAdminPaymentStatsQueryHandler : IRequestHandler<GetAdminPaymentS
         if (request.ToDate.HasValue)
             query = query.Where(p => p.PaidAt.HasValue && p.PaidAt.Value.Date <= request.ToDate.Value.Date);
 
-        var today = DateTime.UtcNow.Date;
+        var today = DateTime.Now.Date;
 
         var todayRevenue = await query
             .Where(p => p.Status == PaymentStatus.Paid

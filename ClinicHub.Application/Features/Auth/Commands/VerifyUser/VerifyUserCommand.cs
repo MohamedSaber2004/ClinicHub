@@ -1,4 +1,4 @@
-using ClinicHub.Application.Localization;
+﻿using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using FluentValidation;
 using MediatR;
@@ -35,7 +35,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.VerifyUser
                         context.AddFailure(nameof(x.Email), JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.UserNotFound.Value]));
                     } 
 
-                    if (user?.VerificationCode != x.Code || user.VerificationCodeExpiry < DateTime.UtcNow)
+                    if (user?.VerificationCode != x.Code || user.VerificationCodeExpiry < DateTime.Now)
                     {
                         context.AddFailure(nameof(x.Code), JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.InvalidVerificationCode.Value]));
                     }

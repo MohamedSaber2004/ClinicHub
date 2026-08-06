@@ -1,4 +1,4 @@
-using ClinicHub.Application.Common.Exceptions;
+﻿using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
@@ -32,7 +32,7 @@ namespace ClinicHub.Application.Features.Users.Commands.DeleteUser
 
             user.IsDeleted = true;
             user.IsActive = false;
-            user.DeletedAt = DateTime.UtcNow;
+            user.DeletedAt = DateTime.Now;
 
             var result = await _userManager.UpdateAsync(user);
             if (!result.Succeeded)

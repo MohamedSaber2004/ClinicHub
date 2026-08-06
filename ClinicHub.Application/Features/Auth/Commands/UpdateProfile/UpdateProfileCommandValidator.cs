@@ -1,4 +1,4 @@
-using ClinicHub.Application.Localization;
+﻿using ClinicHub.Application.Localization;
 using FluentValidation;
 using Microsoft.Extensions.Localization;
 
@@ -20,7 +20,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.UpdateProfile
             RuleFor(x => x.BirthDate)
                 .NotEmpty().When(x => x.BirthDate != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
                 .GreaterThan(DateOnly.FromDateTime(new DateTime(1900, 1, 1))).When(x => x.BirthDate != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value]))
-                .LessThan(DateOnly.FromDateTime(DateTime.UtcNow)).When(x => x.BirthDate != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value]));
+                .LessThan(DateOnly.FromDateTime(DateTime.Now)).When(x => x.BirthDate != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value]));
             RuleFor(x => x.Gender)
                 .IsInEnum().When(x => x.Gender != null).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value]));
             

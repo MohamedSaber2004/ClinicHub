@@ -1,4 +1,4 @@
-using ClinicHub.Application.Common.Interfaces;
+﻿using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Common.Models;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
@@ -29,7 +29,7 @@ namespace ClinicHub.API.Filters
             var hasActive = await unitOfWork.GetRepository<Subscription, Guid>()
                 .ExistsAsync(s => s.ClinicId == currentUserService.CurrentClinicId.Value
                     && s.Status == SubscriptionStatus.Active
-                    && s.EndDate > DateTime.UtcNow);
+                    && s.EndDate > DateTime.Now);
 
             if (!hasActive)
             {

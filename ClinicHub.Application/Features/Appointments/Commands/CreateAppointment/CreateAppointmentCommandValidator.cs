@@ -1,4 +1,4 @@
-using ClinicHub.Application.Localization;
+﻿using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -80,7 +80,7 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
         private async Task<bool> IsWithinBookingWindow(Guid clinicId, DateTime appointmentDate, CancellationToken cancellationToken)
         {
             var config = await _ctx.BookingConfigurationRepository.GetByClinicIdAsync(clinicId);
-            return config == null || appointmentDate.Date <= DateTime.UtcNow.Date.AddDays(config.MaxAdvanceBookingDays);
+            return config == null || appointmentDate.Date <= DateTime.Now.Date.AddDays(config.MaxAdvanceBookingDays);
         }
 
         private async Task<bool> DoctorIsAvailable(Guid doctorId, Guid clinicId, DateTime appointmentDate, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken)

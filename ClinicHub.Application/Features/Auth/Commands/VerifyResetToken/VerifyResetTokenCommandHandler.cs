@@ -1,4 +1,4 @@
-using ClinicHub.Domain.Entities;
+﻿using ClinicHub.Domain.Entities;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 
@@ -18,7 +18,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.VerifyResetToken
             var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null) return false;
 
-            if (user.PasswordResetTokenExpiry < DateTime.UtcNow) return false;
+            if (user.PasswordResetTokenExpiry < DateTime.Now) return false;
 
             return string.Equals(user.PasswordResetToken, request.Token, StringComparison.Ordinal);
         }

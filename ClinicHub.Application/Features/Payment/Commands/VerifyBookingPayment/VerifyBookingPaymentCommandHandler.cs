@@ -1,4 +1,4 @@
-using ClinicHub.Application.Common.Exceptions;
+﻿using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Payment.DTOs;
 using ClinicHub.Application.Localization;
@@ -67,7 +67,7 @@ namespace ClinicHub.Application.Features.Payment.Commands.VerifyBookingPayment
                 await _unitOfWork.SaveChangesAsync();
 
                 var response = BuildResponse(payment, appointment);
-                response.CompletedAt = DateTime.UtcNow;
+                response.CompletedAt = DateTime.Now;
                 return response;
             }
 

@@ -1,4 +1,4 @@
-using ClinicHub.Application.Common.Interfaces;
+﻿using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
@@ -25,7 +25,7 @@ public class ExpiryReminderJob
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
         var fcmService = scope.ServiceProvider.GetRequiredService<IFcmService>();
 
-        var now = DateTime.UtcNow;
+        var now = DateTime.Now;
         var subscriptionReminders = 0;
         var adReminders = 0;
 
@@ -41,13 +41,13 @@ public class ExpiryReminderJob
             if (remaining > TimeSpan.FromDays(2) && remaining <= TimeSpan.FromDays(3))
             {
                 await NotifyClinicOwnerAsync(unitOfWork, fcmService, subscription.Clinic, subscription.EndDate,
-                    NotificationType.SubscriptionExpiring, "٣ أيام", cancellationToken);
+                    NotificationType.SubscriptionExpiring, "Ù£ Ø£ÙŠØ§Ù…", cancellationToken);
                 subscriptionReminders++;
             }
             else if (remaining > TimeSpan.Zero && remaining <= TimeSpan.FromDays(1))
             {
                 await NotifyClinicOwnerAsync(unitOfWork, fcmService, subscription.Clinic, subscription.EndDate,
-                    NotificationType.SubscriptionExpiring, "يوم واحد", cancellationToken);
+                    NotificationType.SubscriptionExpiring, "ÙŠÙˆÙ… ÙˆØ§Ø­Ø¯", cancellationToken);
                 subscriptionReminders++;
             }
         }
@@ -64,13 +64,13 @@ public class ExpiryReminderJob
             if (remaining > TimeSpan.FromDays(2) && remaining <= TimeSpan.FromDays(3))
             {
                 await NotifyClinicOwnerAsync(unitOfWork, fcmService, ad.Clinic, ad.EndDate,
-                    NotificationType.AdExpiring, "٣ أيام", cancellationToken);
+                    NotificationType.AdExpiring, "Ù£ Ø£ÙŠØ§Ù…", cancellationToken);
                 adReminders++;
             }
             else if (remaining > TimeSpan.Zero && remaining <= TimeSpan.FromDays(1))
             {
                 await NotifyClinicOwnerAsync(unitOfWork, fcmService, ad.Clinic, ad.EndDate,
-                    NotificationType.AdExpiring, "يوم واحد", cancellationToken);
+                    NotificationType.AdExpiring, "ÙŠÙˆÙ… ÙˆØ§Ø­Ø¯", cancellationToken);
                 adReminders++;
             }
         }

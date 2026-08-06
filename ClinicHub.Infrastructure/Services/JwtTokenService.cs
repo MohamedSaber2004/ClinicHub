@@ -1,4 +1,4 @@
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -50,7 +50,7 @@ namespace ClinicHub.Infrastructure.Services
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expiry = DateTime.UtcNow.AddDays(_settings.ExpiryInDays);
+            var expiry = DateTime.Now.AddDays(_settings.ExpiryInDays);
 
             var token = new JwtSecurityToken(
                 _settings.Issuer,
@@ -73,7 +73,7 @@ namespace ClinicHub.Infrastructure.Services
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expiry = DateTime.UtcNow.AddDays(_settings.RefreshTokenExpiryDays);
+            var expiry = DateTime.Now.AddDays(_settings.RefreshTokenExpiryDays);
 
             var token = new JwtSecurityToken(
                 _settings.Issuer,

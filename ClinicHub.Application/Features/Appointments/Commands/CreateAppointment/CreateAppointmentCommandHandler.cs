@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Appointments.DTOs;
@@ -41,7 +41,7 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
             if (request.AppointmentDate.Add(request.StartTime) <= DateTime.Now)
                 throw new BadRequestException(LocalizationKeys.BookingMessages.PastDate.Value);
 
-            if (request.AppointmentDate > DateTime.UtcNow.Date.AddDays(config.MaxAdvanceBookingDays))
+            if (request.AppointmentDate > DateTime.Now.Date.AddDays(config.MaxAdvanceBookingDays))
                 throw new BadRequestException(LocalizationKeys.BookingMessages.InvalidDate.Value);
 
             var userId = _currentUserService.UserId;

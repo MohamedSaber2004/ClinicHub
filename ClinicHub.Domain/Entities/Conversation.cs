@@ -1,4 +1,4 @@
-using ClinicHub.Domain.Common;
+﻿using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Domain.Entities
 {
@@ -57,7 +57,7 @@ namespace ClinicHub.Domain.Entities
         public void AddMessage(Message message)
         {
             _messages.Add(message);
-            LastMessageDate = DateTime.UtcNow;
+            LastMessageDate = DateTime.Now;
 
             if (string.IsNullOrWhiteSpace(message.Content) && message.Media.Any())
             {

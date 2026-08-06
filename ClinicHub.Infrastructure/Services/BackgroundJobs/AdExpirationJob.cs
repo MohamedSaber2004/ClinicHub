@@ -1,4 +1,4 @@
-using ClinicHub.Domain.Entities;
+﻿using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +27,7 @@ public class AdExpirationJob
         if (ad == null || ad.Status != AdvertisementStatus.Active)
             return;
 
-        if (ad.EndDate > DateTime.UtcNow)
+        if (ad.EndDate > DateTime.Now)
             return;
 
         ad.Status = AdvertisementStatus.Expired;
@@ -41,7 +41,7 @@ public class AdExpirationJob
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
         var expiredAds = await unitOfWork.GetRepository<Advertisement, Guid>()
-            .GetAllAsync(a => a.Status == AdvertisementStatus.Active && a.EndDate <= DateTime.UtcNow)
+            .GetAllAsync(a => a.Status == AdvertisementStatus.Active && a.EndDate <= DateTime.Now)
             .ToListAsync(cancellationToken);
 
         foreach (var ad in expiredAds)

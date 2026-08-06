@@ -1,4 +1,4 @@
-using ClinicHub.Application.Features.AdminPayments.DTOs;
+﻿using ClinicHub.Application.Features.AdminPayments.DTOs;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
@@ -18,7 +18,7 @@ public class GetEligibleAdsClinicsQueryHandler : IRequestHandler<GetEligibleAdsC
 
     public async Task<List<EligibleClinicDto>> Handle(GetEligibleAdsClinicsQuery request, CancellationToken cancellationToken)
     {
-        var now = DateTime.UtcNow;
+        var now = DateTime.Now;
 
         return await _unitOfWork.GetRepository<Subscription, Guid>()
             .GetAllAsync(s => s.Status == SubscriptionStatus.Active && s.EndDate > now)

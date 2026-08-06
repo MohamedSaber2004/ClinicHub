@@ -1,4 +1,4 @@
-using AutoMapper;
+﻿using AutoMapper;
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Clinics.DTOs;
@@ -49,7 +49,7 @@ namespace ClinicHub.Application.Features.Clinics.Commands.DeactivateClinic
                 {
                     adminUser.IsDeleted = true;
                     adminUser.IsActive = false;
-                    adminUser.DeletedAt = DateTime.UtcNow;
+                    adminUser.DeletedAt = DateTime.Now;
                     await _userManager.UpdateAsync(adminUser);
                 }
             }

@@ -1,4 +1,4 @@
-using ClinicHub.Application.Common.Interfaces;
+﻿using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
@@ -64,7 +64,7 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
         }
 
 
-        // Idempotency: skip only terminal states. Failed is deliberately NOT skipped —
+        // Idempotency: skip only terminal states. Failed is deliberately NOT skipped â€”
         // the patient can retry the same checkout (same Paymob order) after a failed attempt.
         if (payment.Status is PaymentStatus.Paid or PaymentStatus.Refunded)
         {
@@ -111,7 +111,7 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
 
                 if (advertisement != null && advertisement.Status == AdvertisementStatus.PendingPayment)
                 {
-                    advertisement.Activate(DateTime.UtcNow, advertisement.DurationDays);
+                    advertisement.Activate(DateTime.Now, advertisement.DurationDays);
                     _unitOfWork.GetRepository<Advertisement, Guid>().Update(advertisement);
                     await _jobScheduler.ScheduleAdExpirationAsync(advertisement.Id, advertisement.EndDate);
                 }
@@ -135,7 +135,7 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
                 }
 
                 var period = payment.SubscriptionPeriod.Value;
-                var now = DateTime.UtcNow;
+                var now = DateTime.Now;
                 var endDate = period == SubscriptionPlan.Yearly ? now.AddYears(1) : now.AddMonths(1);
 
                 var subscription = new Subscription
