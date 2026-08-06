@@ -14,7 +14,14 @@ namespace ClinicHub.Persistence
             services.AddDbContext<ClinicHubContext>(options =>
             {
                 options.UseSqlServer(configuration.GetConnectionString("CareClinicHubDb"),
-                    x => x.UseNetTopologySuite());
+                    sqlOptions =>
+                    {
+                        sqlOptions.UseNetTopologySuite();
+                        sqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 5,
+                            maxRetryDelay: TimeSpan.FromSeconds(10),
+                            errorNumbersToAdd: null);
+                    });
             });
 
             services.AddScoped<IClinicHubContext>(provider => provider.GetRequiredService<ClinicHubContext>());
