@@ -39,6 +39,8 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
         public async Task<bool> Handle(CancelAppointmentCommand request, CancellationToken cancellationToken)
         {
             var appointment = await _unitOfWork.AppointmentRepository.GetByIdAsync(request.AppointmentId);
+            if (appointment == null)
+                throw new NotFoundException(nameof(Appointment), request.AppointmentId);
 
             if (appointment.BookedByUserId != _currentUserService.UserId)
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.NotAuthorizedToCancel.Value);
@@ -81,20 +83,27 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
                             if (alreadyRefunded)
                                 return;
 
-                            var refundResult = await _paymobService.RefundTransactionAsync(
-                                payment.PaymobTransactionId!,
-                                payment.Amount,
-                                cancellationToken);
-
-                            if (!refundResult.Success)
+                            if (!string.IsNullOrEmpty(payment.PaymobTransactionId))
                             {
-                                // Never block the cancellation on a transient Paymob failure —
-                                // the refund is retried in the background by RefundRetryJob.
-                                await _jobScheduler.ScheduleRefundRetryAsync(payment.Id);
+                                var refundResult = await _paymobService.RefundTransactionAsync(
+                                    payment.PaymobTransactionId,
+                                    payment.Amount,
+                                    cancellationToken);
+
+                                if (!refundResult.Success)
+                                {
+                                    // Never block the cancellation on a transient Paymob failure —
+                                    // the refund is retried in the background by RefundRetryJob.
+                                    await _jobScheduler.ScheduleRefundRetryAsync(payment.Id);
+                                }
+                                else
+                                {
+                                    payment.MarkAsRefunded("Cancelled by user");
+                                }
                             }
                             else
                             {
-                                payment.MarkAsRefunded("Cancelled by user");
+                                payment.MarkAsRefunded("Cancelled by user (No Paymob transaction ID)");
                             }
                         }
                         else if (payment != null && payment.Status == PaymentStatus.Refunded)
