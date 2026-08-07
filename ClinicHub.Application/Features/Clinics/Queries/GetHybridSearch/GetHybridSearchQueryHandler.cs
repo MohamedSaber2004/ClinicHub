@@ -41,8 +41,11 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
 
             var finalResultsMap = new Dictionary<string, ClinicDto>(StringComparer.OrdinalIgnoreCase);
             var normalizedSearchText = request.SearchText?.NormalizeArabic();
+            var hasSearchText = !string.IsNullOrEmpty(request.SearchText);
 
-            Guid? specializationId = await ResolveSpecializationId(request.SpecializationId, cancellationToken);
+            var specialization = await ResolveSpecialization(request.SpecializationId, cancellationToken);
+            var specializationId = specialization?.Id;
+            var specializationName = specialization?.Name;
 
             Point? userPoint = null;
             if (request.UserLat.HasValue && request.UserLng.HasValue)
@@ -57,20 +60,33 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
             if (request.IsNearest && userPoint != null)
             {
                 externalTasks.Add(GetExternalNearbyAsync(userPoint, request.RadiusInKm, cancellationToken));
+            }
 
-                if (!string.IsNullOrEmpty(request.SearchText))
+            if (hasSearchText)
+            {
+                externalTasks.Add(GetExternalTextSearchAsync(request.SearchText!, userPoint, request.RadiusInKm, specializationName, cancellationToken));
+            }
+            else if (specializationName != null)
+            {
+                if (userPoint != null)
                 {
-                    externalTasks.Add(GetExternalTextSearchAsync(request.SearchText, userPoint, request.RadiusInKm, request.SpecializationId, cancellationToken));
+                    externalTasks.Add(GetExternalTextSearchAsync(specializationName, userPoint, request.RadiusInKm, null, cancellationToken));
+                }
+                else
+                {
+                    externalTasks.Add(GeocodeAndSearchAsync(specializationName, request.RadiusInKm, cancellationToken));
                 }
             }
-            else if (!string.IsNullOrEmpty(request.SearchText))
+
+            if (userPoint == null && hasSearchText)
             {
-                externalTasks.Add(GetExternalTextSearchAsync(request.SearchText, userPoint, request.RadiusInKm, request.SpecializationId, cancellationToken));
+                externalTasks.Add(GeocodeAndSearchAsync(request.SearchText!, request.RadiusInKm, cancellationToken));
             }
 
-            if (userPoint == null && !string.IsNullOrEmpty(request.SearchText))
+            if (externalTasks.Count == 0)
             {
-                externalTasks.Add(GeocodeAndSearchAsync(request.SearchText, request.RadiusInKm, cancellationToken));
+                _logger.LogInformation("GetHybridSearch: no external search tasks created (IsNearest={IsNearest}, HasSearchText={HasSearchText}, HasUserPoint={HasUserPoint}, SpecializationId={SpecId})",
+                    request.IsNearest, hasSearchText, userPoint != null, request.SpecializationId);
             }
 
             var internalClinics = await internalTask;
@@ -172,13 +188,13 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
                 radiusInKm * 1000);
         }
 
-        private Task<List<ClinicExternalDto>> GetExternalTextSearchAsync(string searchText, Point? userPoint, double radiusInKm, string? specializationId, CancellationToken cancellationToken)
+        private Task<List<ClinicExternalDto>> GetExternalTextSearchAsync(string searchText, Point? userPoint, double radiusInKm, string? specializationName, CancellationToken cancellationToken)
         {
             var query = searchText;
 
-            if (!string.IsNullOrEmpty(specializationId))
+            if (!string.IsNullOrEmpty(specializationName))
             {
-                query = $"{searchText} {specializationId}";
+                query = $"{searchText} {specializationName}";
             }
 
             return _mapService.TextSearchAsync(
@@ -203,17 +219,19 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
             return [];
         }
 
-        private async Task<Guid?> ResolveSpecializationId(string? specializationIdInput, CancellationToken cancellationToken)
+        private async Task<Specialization?> ResolveSpecialization(string? specializationIdInput, CancellationToken cancellationToken)
         {
             if (string.IsNullOrEmpty(specializationIdInput))
                 return null;
 
             if (Guid.TryParse(specializationIdInput, out var guid))
-                return guid;
+            {
+                return await _unitOfWork.SpecializationRepository
+                    .GetFirstAsync(s => s.Id == guid, cancellationToken);
+            }
 
-            var spec = await _unitOfWork.SpecializationRepository
+            return await _unitOfWork.SpecializationRepository
                 .GetFirstAsync(s => s.Name == specializationIdInput || s.ArName == specializationIdInput, cancellationToken);
-            return spec?.Id;
         }
 
         private async Task<IEnumerable<Clinic>> GetInternalClinicsAsync(GetHybridSearchQuery request, string? normalizedSearchText, Guid? specializationId, CancellationToken cancellationToken)
