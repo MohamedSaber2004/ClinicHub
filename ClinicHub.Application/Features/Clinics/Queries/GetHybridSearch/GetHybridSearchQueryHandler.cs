@@ -57,7 +57,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
 
             List<Task<List<ClinicExternalDto>>> externalTasks = [];
 
-            if (request.IsNearest && userPoint != null)
+            if (userPoint != null && request.RadiusInKm > 0)
             {
                 externalTasks.Add(GetExternalNearbyAsync(userPoint, request.RadiusInKm, cancellationToken));
             }
@@ -142,7 +142,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
                         ? CalculateDistance(userPoint.Y, userPoint.X, external.Lat, external.Lng)
                         : 0;
 
-                    if (request.IsNearest && userPoint != null && distance > (request.RadiusInKm * 1000))
+                    if (userPoint != null && request.RadiusInKm > 0 && distance > (request.RadiusInKm * 1000))
                     {
                         externalFilteredByDistance++;
                         continue;
@@ -236,7 +236,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
 
         private async Task<IEnumerable<Clinic>> GetInternalClinicsAsync(GetHybridSearchQuery request, string? normalizedSearchText, Guid? specializationId, CancellationToken cancellationToken)
         {
-            if (request.IsNearest && request.UserLat.HasValue && request.UserLng.HasValue)
+            if (request.UserLat.HasValue && request.UserLng.HasValue && request.RadiusInKm > 0)
             {
                 var userPoint = new Point(request.UserLng.Value, request.UserLat.Value) { SRID = 4326 };
                 var radiusInMeters = request.RadiusInKm * 1000;
