@@ -13,6 +13,13 @@ namespace ClinicHub.Domain.Enums
         RefundProcessed = 8,
         AdExpiring = 9,
         AppointmentOutsideAvailability = 10,
-        AppointmentOutsideWorkingHours = 11
+        AppointmentOutsideWorkingHours = 11,
+        NewBookingRequest = 12,
+        ClinicRegistered = 13,
+        ClinicApproved = 14,
+        ClinicRejected = 15,
+        SupportTicketUpdate = 16,
+        PaymentReceived = 17,
+        RevenueIncreased = 18
     }
 }

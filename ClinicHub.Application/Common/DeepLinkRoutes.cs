@@ -9,5 +9,8 @@ namespace ClinicHub.Application.Common
         public const string AppointmentDetails = "/appointments/{0}";
         public const string Chat = "/chat/{0}";
         public const string Notifications = "/notifications";
+        public const string Clinics = "/clinics";
+        public const string ClinicDetails = "/clinics/{0}";
+        public const string SupportTickets = "/support-tickets/{0}";
     }
 }

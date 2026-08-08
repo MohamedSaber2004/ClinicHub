@@ -3,6 +3,7 @@ using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -15,14 +16,16 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
     private readonly ILogger<ConfirmPaymentWebhookCommandHandler> _logger;
     private readonly IFcmService _fcmService;
     private readonly IBackgroundJobScheduler _jobScheduler;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public ConfirmPaymentWebhookCommandHandler(IUnitOfWork unitOfWork, IPaymobService paymobService, ILogger<ConfirmPaymentWebhookCommandHandler> logger, IFcmService fcmService, IBackgroundJobScheduler jobScheduler)
+    public ConfirmPaymentWebhookCommandHandler(IUnitOfWork unitOfWork, IPaymobService paymobService, ILogger<ConfirmPaymentWebhookCommandHandler> logger, IFcmService fcmService, IBackgroundJobScheduler jobScheduler, UserManager<ApplicationUser> userManager)
     {
         _unitOfWork = unitOfWork;
         _paymobService = paymobService;
         _logger = logger;
         _fcmService = fcmService;
         _jobScheduler = jobScheduler;
+        _userManager = userManager;
     }
 
     public async Task<bool> Handle(ConfirmPaymentWebhookCommand request, CancellationToken cancellationToken)
@@ -77,7 +80,10 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
 
             if (payment.Type == PaymentType.Appointment && payment.AppointmentId.HasValue)
             {
-                var appointment = await _unitOfWork.AppointmentRepository.GetAllAsync(x => x.Id == payment.AppointmentId.Value).FirstOrDefaultAsync(cancellationToken);
+                var appointment = await _unitOfWork.AppointmentRepository
+                    .GetAllAsync(x => x.Id == payment.AppointmentId.Value)
+                    .Include(a => a.Clinic!)
+                    .FirstOrDefaultAsync(cancellationToken);
                 appointment?.Confirm(payment.Id);
 
                 if (appointment is not null)
@@ -89,6 +95,8 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
                             ["amount"] = $"{payment.Amount:N2} EGP",
                             ["appointmentId"] = appointment.Id.ToString()
                         });
+
+                        await NotifyClinicOwnerAndSuperAdminsAsync(appointment, payment);
 
                         var bookingConfig = await _unitOfWork.BookingConfigurationRepository.GetByClinicIdAsync(appointment.ClinicId);
                         var windowMinutes = bookingConfig?.CancellationWindowMinutes ?? 120;
@@ -168,6 +176,38 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
 
         await _unitOfWork.SaveChangesAsync();
         return true;
+    }
+
+    private async Task NotifyClinicOwnerAndSuperAdminsAsync(Appointment appointment, ClinicHub.Domain.Entities.Payment payment)
+    {
+        var amount = $"{payment.Amount:N2} EGP";
+
+        if (appointment.Clinic?.ClinicAdminId.HasValue == true)
+        {
+            await _fcmService.SendToUserAsync(appointment.Clinic.ClinicAdminId.Value, NotificationType.PaymentReceived, new()
+            {
+                ["amount"] = amount,
+                ["patientName"] = appointment.PatientFullName ?? "",
+                ["clinicName"] = appointment.Clinic.Name,
+                ["appointmentId"] = appointment.Id.ToString()
+            });
+        }
+
+        var totalRevenue = await _unitOfWork.PaymentRepository
+            .GetAllAsync(p => p.Status == PaymentStatus.Paid && p.Type == PaymentType.Appointment)
+            .SumAsync(p => (decimal?)p.Amount) ?? 0m;
+
+        var superAdmins = await _userManager.GetUsersInRoleAsync(UserType.SuperAdmin.ToString());
+        foreach (var admin in superAdmins.Where(a => !a.IsDeleted))
+        {
+            await _fcmService.SendToUserAsync(admin.Id, NotificationType.RevenueIncreased, new()
+            {
+                ["amount"] = amount,
+                ["clinicName"] = appointment.Clinic?.Name ?? "",
+                ["totalRevenue"] = $"{totalRevenue:N2} EGP",
+                ["appointmentId"] = appointment.Id.ToString()
+            });
+        }
     }
 
     private static Dictionary<string, string> TransactionToDictionary(PaymobTransaction transaction)

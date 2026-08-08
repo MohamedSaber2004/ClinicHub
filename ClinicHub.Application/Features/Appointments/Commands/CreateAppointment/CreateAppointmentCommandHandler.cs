@@ -4,8 +4,11 @@ using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Appointments.DTOs;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
+using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
@@ -16,6 +19,8 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
         private readonly ICurrentUserService _currentUserService;
         private readonly IMapper _mapper;
         private readonly IBackgroundJobScheduler _jobScheduler;
+        private readonly IFcmService _fcmService;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<CreateAppointmentCommandHandler> _logger;
 
         public CreateAppointmentCommandHandler(
@@ -23,12 +28,16 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
             ICurrentUserService currentUserService,
             IMapper mapper,
             IBackgroundJobScheduler jobScheduler,
+            IFcmService fcmService,
+            UserManager<ApplicationUser> userManager,
             ILogger<CreateAppointmentCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
             _mapper = mapper;
             _jobScheduler = jobScheduler;
+            _fcmService = fcmService;
+            _userManager = userManager;
             _logger = logger;
         }
 
@@ -84,10 +93,59 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
                 }
             }
 
+            await NotifyClinicStaffAsync(appointment, request, cancellationToken);
+
             var dto = _mapper.Map<AppointmentDto>(appointment);
             dto.Amount = config.ConsultationFee;
             dto.Currency = config.Currency;
             return dto;
+        }
+
+        private async Task NotifyClinicStaffAsync(Appointment appointment, CreateAppointmentCommand request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var loaded = await _unitOfWork.AppointmentRepository
+                    .GetFirstWithIncluding(a => a.Id == appointment.Id, a => a.Doctor, a => a.Clinic!)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (loaded == null)
+                    return;
+
+                var doctorName = loaded.Doctor?.User?.FullName ?? "";
+                var parameters = new Dictionary<string, object>
+                {
+                    ["patientName"] = request.PatientFullName,
+                    ["clinicName"] = loaded.Clinic?.Name ?? "",
+                    ["doctorName"] = doctorName,
+                    ["date"] = request.AppointmentDate.ToString("yyyy-MM-dd"),
+                    ["time"] = $"{request.StartTime:hh\\:mm} - {request.EndTime:hh\\:mm}",
+                    ["appointmentId"] = appointment.Id.ToString()
+                };
+
+                var recipients = new HashSet<Guid>();
+
+                if (loaded.Doctor != null)
+                    recipients.Add(loaded.Doctor.UserId);
+
+                if (loaded.Clinic?.ClinicAdminId.HasValue == true)
+                    recipients.Add(loaded.Clinic.ClinicAdminId.Value);
+
+                var staffUsers = await _userManager.GetUsersInRoleAsync(UserType.Staff.ToString());
+                foreach (var staff in staffUsers.Where(u => u.ClinicId == loaded.ClinicId && !u.IsDeleted))
+                    recipients.Add(staff.Id);
+
+                foreach (var userId in recipients)
+                {
+                    await _fcmService.SendToUserAsync(userId, NotificationType.NewBookingRequest, parameters);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Never block the booking on a push failure — the in-app notification
+                // record and dispatch are best-effort.
+                _logger.LogError(ex, "Failed to send new-booking notifications for appointment {AppointmentId}.", appointment.Id);
+            }
         }
     }
 }

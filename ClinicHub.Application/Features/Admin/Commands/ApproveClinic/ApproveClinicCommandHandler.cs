@@ -8,6 +8,7 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
 
 namespace ClinicHub.Application.Features.Admin.Commands.ApproveClinic
 {
@@ -17,17 +18,23 @@ namespace ClinicHub.Application.Features.Admin.Commands.ApproveClinic
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ICurrentUserService _currentUser;
         private readonly IStringLocalizer<Messages> _localizer;
+        private readonly IFcmService _fcmService;
+        private readonly ILogger<ApproveClinicCommandHandler> _logger;
 
         public ApproveClinicCommandHandler(
             IUnitOfWork unitOfWork,
             UserManager<ApplicationUser> userManager,
             ICurrentUserService currentUser,
-            IStringLocalizer<Messages> localizer)
+            IStringLocalizer<Messages> localizer,
+            IFcmService fcmService,
+            ILogger<ApproveClinicCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _userManager = userManager;
             _currentUser = currentUser;
             _localizer = localizer;
+            _fcmService = fcmService;
+            _logger = logger;
         }
 
         public async Task<bool> Handle(ApproveClinicCommand request, CancellationToken cancellationToken)
@@ -62,7 +69,29 @@ namespace ClinicHub.Application.Features.Admin.Commands.ApproveClinic
             }
 
             await _unitOfWork.SaveChangesAsync();
+
+            await NotifyClinicOwnerAsync(clinic);
+
             return true;
+        }
+
+        private async Task NotifyClinicOwnerAsync(Clinic clinic)
+        {
+            if (!clinic.ClinicAdminId.HasValue)
+                return;
+
+            try
+            {
+                await _fcmService.SendToUserAsync(clinic.ClinicAdminId.Value, NotificationType.ClinicApproved, new()
+                {
+                    ["clinicName"] = clinic.Name,
+                    ["clinicId"] = clinic.Id.ToString()
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send clinic-approved notification for clinic {ClinicId}.", clinic.Id);
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 using ClinicHub.Application.Common.Exceptions;
+using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
@@ -7,6 +8,7 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
 
 namespace ClinicHub.Application.Features.Admin.Commands.RejectClinic
 {
@@ -15,15 +17,21 @@ namespace ClinicHub.Application.Features.Admin.Commands.RejectClinic
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IStringLocalizer<Messages> _localizer;
+        private readonly IFcmService _fcmService;
+        private readonly ILogger<RejectClinicCommandHandler> _logger;
 
         public RejectClinicCommandHandler(
             IUnitOfWork unitOfWork,
             UserManager<ApplicationUser> userManager,
-            IStringLocalizer<Messages> localizer)
+            IStringLocalizer<Messages> localizer,
+            IFcmService fcmService,
+            ILogger<RejectClinicCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _userManager = userManager;
             _localizer = localizer;
+            _fcmService = fcmService;
+            _logger = logger;
         }
 
         public async Task<bool> Handle(RejectClinicCommand request, CancellationToken cancellationToken)
@@ -58,7 +66,29 @@ namespace ClinicHub.Application.Features.Admin.Commands.RejectClinic
             }
 
             await _unitOfWork.SaveChangesAsync();
+
+            await NotifyClinicOwnerAsync(clinic, request.Reason ?? "Clinic registration rejected.");
+
             return true;
+        }
+
+        private async Task NotifyClinicOwnerAsync(Clinic clinic, string reason)
+        {
+            if (!clinic.ClinicAdminId.HasValue)
+                return;
+
+            try
+            {
+                await _fcmService.SendToUserAsync(clinic.ClinicAdminId.Value, NotificationType.ClinicRejected, new()
+                {
+                    ["clinicName"] = clinic.Name,
+                    ["reason"] = reason
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send clinic-rejected notification for clinic {ClinicId}.", clinic.Id);
+            }
         }
     }
 }

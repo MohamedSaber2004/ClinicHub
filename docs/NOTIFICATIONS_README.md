@@ -325,6 +325,16 @@ Browsers rotate FCM tokens over time and after service-worker updates. If you re
 | 9 | `AdExpiring` | إعلانك على وشك الانتهاء | ✅ Daily job |
 | 10 | `AppointmentOutsideAvailability` | موعد خارج مواعيد الطبيب | ✅ Hourly validation job |
 | 11 | `AppointmentOutsideWorkingHours` | موعد خارج ساعات عمل العيادة | ✅ Hourly validation job |
+| 12 | `NewBookingRequest` | حجز جديد | ✅ Patient books an appointment (clinic owner/doctor/staff) |
+| 13 | `ClinicRegistered` | تسجيل عيادة جديدة | ✅ Clinic registration submitted (superadmin) |
+| 14 | `ClinicApproved` | تمت الموافقة على العيادة | ✅ Clinic approved (clinic owner) |
+| 15 | `ClinicRejected` | تم رفض العيادة | ✅ Clinic rejected (clinic owner) |
+| 16 | `SupportTicketUpdate` | تحديث تذكرة الدعم | ✅ Ticket status changed (ticket owner) |
+| 17 | `PaymentReceived` | تم استلام الدفع | ✅ Appointment paid (clinic owner) |
+| 18 | `RevenueIncreased` | زيادة الإيرادات | ✅ Appointment paid (superadmin, with total revenue) |
+
+> Dashboard-role scenarios (superadmin / clinic owner / doctor / staff), payloads and
+> navigation data are documented in **`docs/WEB_DASHBOARD_NOTIFICATIONS_README.md`**.
 
 ### 4.2 How a notification is created (single flow)
 

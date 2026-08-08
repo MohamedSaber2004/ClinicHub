@@ -9,6 +9,7 @@ using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
 using NetTopologySuite.Geometries;
 
 namespace ClinicHub.Application.Features.Clinics.Commands.RegisterClinic
@@ -18,15 +19,21 @@ namespace ClinicHub.Application.Features.Clinics.Commands.RegisterClinic
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IStringLocalizer<Messages> _localizer;
+        private readonly IFcmService _fcmService;
+        private readonly ILogger<RegisterClinicCommandHandler> _logger;
 
         public RegisterClinicCommandHandler(
             UserManager<ApplicationUser> userManager,
             IUnitOfWork unitOfWork,
-            IStringLocalizer<Messages> localizer)
+            IStringLocalizer<Messages> localizer,
+            IFcmService fcmService,
+            ILogger<RegisterClinicCommandHandler> logger)
         {
             _userManager = userManager;
             _unitOfWork = unitOfWork;
             _localizer = localizer;
+            _fcmService = fcmService;
+            _logger = logger;
         }
 
         public async Task<SignupResult> Handle(RegisterClinicCommand request, CancellationToken cancellationToken)
@@ -105,10 +112,38 @@ namespace ClinicHub.Application.Features.Clinics.Commands.RegisterClinic
 
             await _unitOfWork.SaveChangesAsync();
 
+            if (!string.IsNullOrEmpty(request.FcmToken) && request.DevicePlatform.HasValue)
+                await _fcmService.RegisterTokenAsync(user.Id, request.FcmToken, request.DevicePlatform.Value);
+
+            await NotifySuperAdminsAsync(user, clinic);
+
             return SignupResult.Pending(new SignupResponseDto(
                 user.Id,
                 _localizer[LocalizationKeys.AuthMessages.SignupPendingApproval.Value],
                 IsPendingApproval: true));
+        }
+
+        private async Task NotifySuperAdminsAsync(ApplicationUser owner, Clinic clinic)
+        {
+            try
+            {
+                var parameters = new Dictionary<string, object>
+                {
+                    ["clinicName"] = clinic.Name,
+                    ["clinicId"] = clinic.Id.ToString(),
+                    ["ownerName"] = owner.FullName
+                };
+
+                var superAdmins = await _userManager.GetUsersInRoleAsync(UserType.SuperAdmin.ToString());
+                foreach (var admin in superAdmins.Where(a => !a.IsDeleted))
+                {
+                    await _fcmService.SendToUserAsync(admin.Id, NotificationType.ClinicRegistered, parameters);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send clinic-registered notifications for clinic {ClinicId}.", clinic.Id);
+            }
         }
     }
 }

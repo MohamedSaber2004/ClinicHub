@@ -164,6 +164,90 @@ namespace ClinicHub.Infrastructure.Services
                         link = _deepLinkService.GenerateLink(DeepLinkRoutes.Appointments);
                     break;
 
+                case NotificationType.NewBookingRequest:
+                    title = "حجز جديد";
+                    body = $"قام {GetParam(parameters, "patientName")} بحجز موعد في {clinicName} بتاريخ {date} الساعة {time}";
+                    data["patientName"] = GetParam(parameters, "patientName");
+                    data["clinicName"] = clinicName;
+                    data["date"] = date;
+                    data["time"] = time;
+                    data["appointmentId"] = appointmentId;
+                    data["doctorName"] = GetParam(parameters, "doctorName");
+                    if (!string.IsNullOrEmpty(appointmentId))
+                        link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.AppointmentDetails, appointmentId));
+                    else
+                        link = _deepLinkService.GenerateLink(DeepLinkRoutes.Appointments);
+                    break;
+
+                case NotificationType.ClinicRegistered:
+                    title = "تسجيل عيادة جديدة";
+                    body = $"تسجيل عيادة جديدة بانتظار الموافقة: {clinicName}";
+                    data["clinicName"] = clinicName;
+                    data["clinicId"] = GetParam(parameters, "clinicId");
+                    data["ownerName"] = GetParam(parameters, "ownerName");
+                    if (!string.IsNullOrEmpty(GetParam(parameters, "clinicId")))
+                        link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.ClinicDetails, GetParam(parameters, "clinicId")));
+                    else
+                        link = _deepLinkService.GenerateLink(DeepLinkRoutes.Clinics);
+                    break;
+
+                case NotificationType.ClinicApproved:
+                    title = "تمت الموافقة على العيادة";
+                    body = $"تمت الموافقة على عيادة {clinicName} — يمكنك الآن بدء العمل";
+                    data["clinicName"] = clinicName;
+                    data["clinicId"] = GetParam(parameters, "clinicId");
+                    if (!string.IsNullOrEmpty(GetParam(parameters, "clinicId")))
+                        link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.ClinicDetails, GetParam(parameters, "clinicId")));
+                    else
+                        link = _deepLinkService.GenerateLink(DeepLinkRoutes.Clinics);
+                    break;
+
+                case NotificationType.ClinicRejected:
+                    title = "تم رفض العيادة";
+                    body = $"عذرًا، تم رفض تسجيل عيادة {clinicName}: {reason}";
+                    data["clinicName"] = clinicName;
+                    data["reason"] = reason;
+                    link = _deepLinkService.GenerateLink(DeepLinkRoutes.Clinics);
+                    break;
+
+                case NotificationType.SupportTicketUpdate:
+                    title = "تحديث تذكرة الدعم";
+                    body = $"تم تحديث حالة تذكرتك «{GetParam(parameters, "subject")}» إلى {GetParam(parameters, "status", "جديدة")}";
+                    data["ticketId"] = GetParam(parameters, "ticketId");
+                    data["subject"] = GetParam(parameters, "subject");
+                    data["status"] = GetParam(parameters, "status");
+                    if (!string.IsNullOrEmpty(GetParam(parameters, "ticketId")))
+                        link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.SupportTickets, GetParam(parameters, "ticketId")));
+                    else
+                        link = _deepLinkService.GenerateLink(DeepLinkRoutes.Notifications);
+                    break;
+
+                case NotificationType.PaymentReceived:
+                    title = "تم استلام الدفع";
+                    body = $"تم استلام دفعة بقيمة {amount} لحجز {GetParam(parameters, "patientName")} في عيادتك {clinicName}";
+                    data["amount"] = amount;
+                    data["patientName"] = GetParam(parameters, "patientName");
+                    data["clinicName"] = clinicName;
+                    data["appointmentId"] = appointmentId;
+                    if (!string.IsNullOrEmpty(appointmentId))
+                        link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.AppointmentDetails, appointmentId));
+                    else
+                        link = _deepLinkService.GenerateLink(DeepLinkRoutes.Appointments);
+                    break;
+
+                case NotificationType.RevenueIncreased:
+                    title = "زيادة الإيرادات";
+                    body = $"تم دفع {amount} لحجز في عيادة {clinicName} — إجمالي الإيرادات الآن {GetParam(parameters, "totalRevenue")}";
+                    data["amount"] = amount;
+                    data["clinicName"] = clinicName;
+                    data["totalRevenue"] = GetParam(parameters, "totalRevenue");
+                    data["appointmentId"] = appointmentId;
+                    if (!string.IsNullOrEmpty(appointmentId))
+                        link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.AppointmentDetails, appointmentId));
+                    else
+                        link = _deepLinkService.GenerateLink(DeepLinkRoutes.Appointments);
+                    break;
+
                 default:
                     title = "إشعار";
                     body = "لديك إشعار جديد";
