@@ -39,7 +39,12 @@ public class RefundRetryJob
         if (payment == null || payment.Status != PaymentStatus.Paid)
             return;
 
-        if (string.IsNullOrWhiteSpace(payment.PaymobTransactionId))
+        // The VerifyBookingPayment path stores the transaction id in TransactionId only —
+        // either one is a valid Paymob refund key.
+        var paymobTransactionId = payment.PaymobTransactionId ??
+            (long.TryParse(payment.TransactionId, out _) ? payment.TransactionId : null);
+
+        if (string.IsNullOrWhiteSpace(paymobTransactionId))
         {
             _logger.LogWarning("Refund retry skipped for payment {PaymentId}: missing Paymob transaction id.", paymentId);
             return;
@@ -55,7 +60,7 @@ public class RefundRetryJob
             if (alreadyRefunded)
                 return new RefundResultDto { Success = true, Message = "Already refunded" };
 
-            return await paymobService.RefundTransactionAsync(payment.PaymobTransactionId, payment.Amount, cancellationToken);
+            return await paymobService.RefundTransactionAsync(paymobTransactionId, payment.Amount, cancellationToken);
         });
         if (refundResult.Success)
         {

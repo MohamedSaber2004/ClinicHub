@@ -1,4 +1,4 @@
-﻿using ClinicHub.Application.Common;
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Payment.DTOs;
@@ -55,21 +55,28 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
             if (appointment.BookedByUserId != _currentUserService.UserId)
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.NotAuthorizedToCancel.Value);
 
-            if (appointment.Status == AppointmentStatus.Completed || appointment.Status == AppointmentStatus.Cancelled || appointment.Status == AppointmentStatus.NoShow)
+            if (appointment.Status == AppointmentStatus.Completed || appointment.Status == AppointmentStatus.Cancelled || appointment.Status == AppointmentStatus.NoShow || appointment.Status == AppointmentStatus.Rejected)
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.CannotCancelAppointment.Value);
 
             var bookingConfig = await _unitOfWork.BookingConfigurationRepository.GetByClinicIdAsync(appointment.ClinicId);
             if (bookingConfig != null)
             {
                 var payment = appointment.PaymentId.HasValue
-                    ? await _unitOfWork.PaymentRepository.GetByIdAsync(appointment.PaymentId.Value)
+                    ? await _unitOfWork.PaymentRepository
+                        .GetAllAsync(p => p.Id == appointment.PaymentId.Value)
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(cancellationToken)
                     : null;
 
-                // Cancellation window is measured from the payment time (PaidAt) for paid appointments,
-                // and from creation time for unpaid ones. After it passes, cancellation is blocked entirely.
-                var cancelDeadline = (payment?.PaidAt ?? appointment.CreatedAt).AddMinutes(bookingConfig.CancellationWindowMinutes);
-                if (DateTime.Now > cancelDeadline)
-                    throw new BadRequestException(LocalizationKeys.BookingMessages.CancellationWindowExpired.Value);
+                // A paid appointment is always refundable: the money was already captured and
+                // the refund flow below returns it to the patient. The cancellation window
+                // only protects UNPAID reservations, measured from the booking time.
+                if (payment is null || payment.Status != PaymentStatus.Paid)
+                {
+                    var cancelDeadline = appointment.CreatedAt.AddMinutes(bookingConfig.CancellationWindowMinutes);
+                    if (DateTime.Now > cancelDeadline)
+                        throw new BadRequestException(LocalizationKeys.BookingMessages.CancellationWindowExpired.Value);
+                }
             }
 
             await _unitOfWork.BeginTransactionAsync();
@@ -82,18 +89,23 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
 
                     await PaymentRefundGate.RunAsync(paymentId, async () =>
                     {
-                        var payment = await _unitOfWork.PaymentRepository.GetByIdAsync(paymentId);
-                        if (payment != null && payment.Status == PaymentStatus.Paid)
-                        {
-                            // Another concurrent request may have refunded this payment
-                            // while we were waiting for the gate.
-                            var alreadyRefunded = await _unitOfWork.PaymentRepository.GetAllAsync(p => p.Id == paymentId)
-                                .AsNoTracking()
-                                .AnyAsync(p => p.Status == PaymentStatus.Refunded, cancellationToken);
-                            if (alreadyRefunded)
-                                return;
+                        var payment = await _unitOfWork.PaymentRepository
+                            .GetAllAsync(p => p.Id == paymentId)
+                            .FirstOrDefaultAsync(cancellationToken);
 
-                            if (!string.IsNullOrEmpty(payment.PaymobTransactionId))
+                        // No payment record, or already refunded (by this request, the retry
+                        // job, or an admin) — nothing left to refund.
+                        if (payment is null || payment.Status == PaymentStatus.Refunded)
+                            return;
+
+                        if (payment.Status == PaymentStatus.Paid)
+                        {
+                            // The VerifyBookingPayment path stores the transaction id in
+                            // TransactionId only — either one is a valid Paymob refund key.
+                            var paymobTransactionId = payment.PaymobTransactionId ??
+                                (long.TryParse(payment.TransactionId, out _) ? payment.TransactionId : null);
+
+                            if (!string.IsNullOrEmpty(paymobTransactionId))
                             {
                                 RefundResultDto? refundResult;
 
@@ -103,14 +115,14 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
                                     // the refund mid-flight. Timeouts are governed by the Paymob
                                     // HttpClient's own timeout.
                                     refundResult = await _paymobService.RefundTransactionAsync(
-                                        payment.PaymobTransactionId,
+                                        paymobTransactionId,
                                         payment.Amount,
                                         CancellationToken.None);
                                 }
                                 catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException)
                                 {
                                     // Paymob is unreachable, timed out, or returned an unparseable
-                                    // response â€” never turn a transient transport failure into a 500.
+                                    // response — never turn a transient transport failure into a 500.
                                     // The refund is retried in the background by RefundRetryJob.
                                     _logger.LogWarning(ex, "Paymob refund call failed for payment {PaymentId}; refund scheduled for background retry.", payment.Id);
                                     refundResult = null;
@@ -118,7 +130,7 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
 
                                 if (refundResult == null || !refundResult.Success)
                                 {
-                                    // Never block the cancellation on a transient Paymob failure â€”
+                                    // Never block the cancellation on a transient Paymob failure —
                                     // the refund is retried in the background by RefundRetryJob.
                                     await _jobScheduler.ScheduleRefundRetryAsync(payment.Id);
                                 }
@@ -131,10 +143,6 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
                             {
                                 payment.MarkAsRefunded("Cancelled by user (No Paymob transaction ID)");
                             }
-                        }
-                        else if (payment != null && payment.Status == PaymentStatus.Refunded)
-                        {
-                            throw new BadRequestException(LocalizationKeys.PaymentMessages.AlreadyRefunded.Value);
                         }
                     });
                 }
@@ -157,10 +165,17 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
                     _logger.LogError(ex, "Failed to send cancellation notification for appointment {AppointmentId}.", appointment.Id);
                 }
 
-                // Persist the notification row added by the send above in its own single
-                // transaction (the appointment/refund changes were already committed by the
-                // explicit transaction's SaveChanges + CommitAsync above).
-                await _unitOfWork.SaveChangesAsync();
+                try
+                {
+                    // Persist the notification row added by the send above. The cancellation
+                    // and refund are already committed — a notification-save hiccup must never
+                    // surface as an error for an operation that actually succeeded.
+                    await _unitOfWork.SaveChangesAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to persist cancellation notification row for appointment {AppointmentId}.", appointment.Id);
+                }
 
                 return result > 0;
             }

@@ -193,9 +193,13 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
             });
         }
 
-        var totalRevenue = await _unitOfWork.PaymentRepository
+        // The current payment was only marked Paid in memory and is committed later by the
+        // handler's SaveChangesAsync, so the DB sum below does not include it yet. Add it
+        // manually so the notification reports the total AFTER this deposit. No double-count:
+        // the idempotency guard above rejects payments already stored as Paid/Refunded.
+        var totalRevenue = (await _unitOfWork.PaymentRepository
             .GetAllAsync(p => p.Status == PaymentStatus.Paid && p.Type == PaymentType.Appointment)
-            .SumAsync(p => (decimal?)p.Amount) ?? 0m;
+            .SumAsync(p => (decimal?)p.Amount) ?? 0m) + payment.Amount;
 
         var superAdmins = await _userManager.GetUsersInRoleAsync(UserType.SuperAdmin.ToString());
         foreach (var admin in superAdmins.Where(a => !a.IsDeleted))

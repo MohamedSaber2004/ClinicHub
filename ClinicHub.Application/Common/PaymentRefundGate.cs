@@ -25,7 +25,19 @@ namespace ClinicHub.Application.Common
             }
         }
 
-        public static Task RunAsync(Guid paymentId, Func<Task> action)
-            => RunAsync(paymentId, async () => await action().ConfigureAwait(false));
+        public static async Task RunAsync(Guid paymentId, Func<Task> action)
+        {
+            var gate = Gates.GetOrAdd(paymentId, _ => new SemaphoreSlim(1, 1));
+
+            await gate.WaitAsync();
+            try
+            {
+                await action();
+            }
+            finally
+            {
+                gate.Release();
+            }
+        }
     }
 }

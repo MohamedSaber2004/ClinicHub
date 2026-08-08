@@ -23,19 +23,28 @@ namespace ClinicHub.Application.Features.Booking.BookingConfig.Commands.UpdateBo
         {
             var clinic = await _unitOfWork.ClinicRepository.GetByIdAsync(request.ClinicId);
             if (clinic.ClinicAdminId != _currentUser.UserId)
-                throw new UnauthorizedAccessException(LocalizationKeys.ExceptionMessages.Unauthorized.Value);
+                throw new ForbiddenException(LocalizationKeys.ExceptionMessages.Unauthorized.Value);
 
             var config = await _unitOfWork.BookingConfigurationRepository.GetByClinicIdAsync(request.ClinicId);
             if (config == null)
                 throw new NotFoundException(LocalizationKeys.BookingMessages.BookingConfigNotFound.Value);
 
             var dto = request.Dto;
-            config.Update(
-                dto.ConsultationFee,
-                "EGP",
-                dto.MaxAdvanceBookingDays,
-                dto.ReservationTtlMinutes,
-                dto.CancellationWindowMinutes);
+            try
+            {
+                config.Update(
+                    dto.ConsultationFee,
+                    "EGP",
+                    dto.MaxAdvanceBookingDays,
+                    dto.ReservationTtlMinutes,
+                    dto.CancellationWindowMinutes);
+            }
+            catch (ArgumentException ex)
+            {
+                // BookingConfiguration.Update validates its inputs and throws ArgumentException —
+                // surface it as a friendly 400 instead of a raw 500.
+                throw new BadRequestException(ex.Message);
+            }
 
             _unitOfWork.BookingConfigurationRepository.Update(config);
             await _unitOfWork.SaveChangesAsync();
