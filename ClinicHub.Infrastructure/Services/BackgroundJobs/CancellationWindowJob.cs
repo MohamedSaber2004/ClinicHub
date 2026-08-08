@@ -39,6 +39,9 @@ public class CancellationWindowJob
             ["appointmentId"] = appointment.Id.ToString()
         });
 
+        // Single commit: persist the notification row.
+        await unitOfWork.SaveChangesAsync();
+
         _logger.LogInformation("Cancellation window closed for appointment {AppointmentId}.", appointmentId);
     }
 }

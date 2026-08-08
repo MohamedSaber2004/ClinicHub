@@ -38,7 +38,6 @@ namespace ClinicHub.Application.Features.DoctorDashboard.Commands.DoctorRejectAp
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.CannotRespondAppointment.Value);
 
             appointment.Reject(request.Reason);
-            await _unitOfWork.SaveChangesAsync();
 
             await _fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.AppointmentCancellation, new()
             {
@@ -46,6 +45,9 @@ namespace ClinicHub.Application.Features.DoctorDashboard.Commands.DoctorRejectAp
                 ["date"] = appointment.AppointmentDate.ToString("yyyy-MM-dd"),
                 ["reason"] = request.Reason ?? ""
             });
+
+            // Single commit: the rejection and the notification row in one transaction.
+            await _unitOfWork.SaveChangesAsync();
 
             return true;
         }

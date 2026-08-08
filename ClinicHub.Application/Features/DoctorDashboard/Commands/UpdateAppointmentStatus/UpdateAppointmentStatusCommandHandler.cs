@@ -59,7 +59,6 @@ namespace ClinicHub.Application.Features.DoctorDashboard.Commands.UpdateAppointm
                         throw new BadRequestException(LocalizationKeys.AppointmentMessages.CannotRespondAppointment.Value);
 
                     appointment.Reject(request.Notes);
-                    await _unitOfWork.SaveChangesAsync();
 
                     await _fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.AppointmentCancellation, new()
                     {
@@ -67,6 +66,9 @@ namespace ClinicHub.Application.Features.DoctorDashboard.Commands.UpdateAppointm
                         ["date"] = appointment.AppointmentDate.ToString("yyyy-MM-dd"),
                         ["reason"] = request.Notes ?? ""
                     });
+
+                    // Single commit: the rejection and the notification row in one transaction.
+                    await _unitOfWork.SaveChangesAsync();
                     break;
 
                 // 3 = Complete — only paid/confirmed appointments can be completed

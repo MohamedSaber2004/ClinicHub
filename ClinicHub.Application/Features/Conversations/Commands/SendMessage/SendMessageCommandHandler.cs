@@ -93,7 +93,6 @@ namespace ClinicHub.Application.Features.Conversations.Commands.SendMessage
 
             await _unitOfWork.MessageRepository.AddAsync(message);
             _unitOfWork.ConversationRepository.Update(conversation);
-            await _unitOfWork.SaveChangesAsync();
 
             bool wasReadImmediately = message.Status == ClinicHub.Domain.Enums.MessageStatus.Read;
 
@@ -149,6 +148,10 @@ namespace ClinicHub.Application.Features.Conversations.Commands.SendMessage
                 ["conversationId"] = request.ConversationId.ToString(),
                 ["SenderUserId"] = currentUserId.ToString()
             });
+
+            // Single commit: message, conversation update, and the recipient's notification
+            // row are written in one transaction.
+            await _unitOfWork.SaveChangesAsync();
 
             return messageDto;
         }

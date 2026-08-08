@@ -117,6 +117,11 @@ namespace ClinicHub.Application.Features.Clinics.Commands.RegisterClinic
 
             await NotifySuperAdminsAsync(user, clinic);
 
+            // Commit the notification rows added by the sends above. The clinic/user/doctor
+            // were already committed above (line 113) because token registration and the
+            // registration result depend on the persisted rows.
+            await _unitOfWork.SaveChangesAsync();
+
             return SignupResult.Pending(new SignupResponseDto(
                 user.Id,
                 _localizer[LocalizationKeys.AuthMessages.SignupPendingApproval.Value],

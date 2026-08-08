@@ -65,9 +65,11 @@ namespace ClinicHub.Application.Features.Admin.Commands.RejectClinic
                 }
             }
 
-            await _unitOfWork.SaveChangesAsync();
-
             await NotifyClinicOwnerAsync(clinic, request.Reason ?? "Clinic registration rejected.");
+
+            // Single commit: clinic state, admin deactivation, verification, and the
+            // notification row in one transaction.
+            await _unitOfWork.SaveChangesAsync();
 
             return true;
         }

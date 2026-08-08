@@ -53,11 +53,6 @@ public class AbandonedPaymentJob
             _logger.LogInformation("Payment {PaymentId} marked as failed (abandoned checkout).", payment.Id);
         }
 
-        if (abandonedPayments.Count > 0)
-        {
-            await unitOfWork.SaveChangesAsync();
-        }
-
         foreach (var appointment in cancelledAppointments)
         {
             await fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.AppointmentCancellation, new()
@@ -66,5 +61,9 @@ public class AbandonedPaymentJob
                 ["reason"] = "Ù„Ù… ÙŠØªÙ… ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø­Ø¬Ø² Ø®Ù„Ø§Ù„ Ø§Ù„Ù…Ù‡Ù„Ø© Ø§Ù„Ù…Ø­Ø¯Ø¯Ø©"
             });
         }
+
+        // Single commit: the failed payments, expired reservations, and the notification
+        // rows are all written in one transaction.
+        await unitOfWork.SaveChangesAsync();
     }
 }

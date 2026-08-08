@@ -157,6 +157,11 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
                     _logger.LogError(ex, "Failed to send cancellation notification for appointment {AppointmentId}.", appointment.Id);
                 }
 
+                // Persist the notification row added by the send above in its own single
+                // transaction (the appointment/refund changes were already committed by the
+                // explicit transaction's SaveChanges + CommitAsync above).
+                await _unitOfWork.SaveChangesAsync();
+
                 return result > 0;
             }
             catch

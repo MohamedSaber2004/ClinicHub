@@ -68,9 +68,11 @@ namespace ClinicHub.Application.Features.Admin.Commands.ApproveClinic
                 }
             }
 
-            await _unitOfWork.SaveChangesAsync();
-
             await NotifyClinicOwnerAsync(clinic);
+
+            // Single commit: clinic state, admin activation, verification, and the
+            // notification row in one transaction.
+            await _unitOfWork.SaveChangesAsync();
 
             return true;
         }

@@ -32,9 +32,11 @@ namespace ClinicHub.Application.Features.Admin.Commands.UpdateSupportTicketStatu
                 ticket.ResolvedAt = DateTime.Now;
 
             _unitOfWork.GetRepository<SupportTicket, Guid>().Update(ticket);
-            await _unitOfWork.SaveChangesAsync();
 
             await NotifyTicketOwnerAsync(ticket);
+
+            // Single commit: the ticket update and the notification row in one transaction.
+            await _unitOfWork.SaveChangesAsync();
 
             return true;
         }

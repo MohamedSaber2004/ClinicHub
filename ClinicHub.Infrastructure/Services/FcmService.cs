@@ -79,14 +79,10 @@ namespace ClinicHub.Infrastructure.Services
                 }
             }
 
-            try
-            {
-                await _unitOfWork.SaveChangesAsync();
-            }
-            catch (Exception)
-            {
-                // Ignore token deletion save failure
-            }
+            // NOTE: No SaveChanges here on purpose. The notification row (and any deleted
+            // unregistered tokens) stay tracked on the shared unit of work and are committed
+            // by a single SaveChangesAsync at the end of the calling operation (handler/job),
+            // so each request performs exactly one DB write transaction.
         }
 
         public async Task SendToDeviceAsync(string deviceToken, NotificationPayload payload, DevicePlatform platform)

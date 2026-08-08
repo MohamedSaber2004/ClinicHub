@@ -60,7 +60,6 @@ public class RefundRetryJob
         if (refundResult.Success)
         {
             payment.MarkAsRefunded("Refunded by background retry (user cancellation).");
-            await unitOfWork.SaveChangesAsync();
 
             if (payment.AppointmentId.HasValue && payment.Appointment != null)
             {
@@ -71,6 +70,9 @@ public class RefundRetryJob
                     ["appointmentId"] = payment.Appointment.Id.ToString()
                 });
             }
+
+            // Single commit: the refund state and the notification row in one transaction.
+            await unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation("Refund retry succeeded for payment {PaymentId}.", paymentId);
             return;

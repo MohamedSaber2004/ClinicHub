@@ -95,6 +95,11 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
 
             await NotifyClinicStaffAsync(appointment, request, cancellationToken);
 
+            // Commit the notification rows added by the sends above. The appointment itself
+            // was already committed above (line 79) because the reservation-expiration job
+            // and the staff-notification re-query require the row to exist.
+            await _unitOfWork.SaveChangesAsync();
+
             var dto = _mapper.Map<AppointmentDto>(appointment);
             dto.Amount = config.ConsultationFee;
             dto.Currency = config.Currency;

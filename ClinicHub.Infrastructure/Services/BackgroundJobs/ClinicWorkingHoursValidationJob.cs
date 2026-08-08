@@ -76,5 +76,8 @@ public class ClinicWorkingHoursValidationJob
         _logger.LogInformation(
             "Clinic working hours validation: checked {AppointmentCount} upcoming appointments, flagged {FlaggedCount} outside clinic working hours.",
             appointments.Count, flagged);
+
+        // Single commit: all notification rows added by the sends above in one transaction.
+        await unitOfWork.SaveChangesAsync();
     }
 }

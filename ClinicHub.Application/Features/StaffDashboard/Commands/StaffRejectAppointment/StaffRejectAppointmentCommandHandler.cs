@@ -43,7 +43,6 @@ namespace ClinicHub.Application.Features.StaffDashboard.Commands.StaffRejectAppo
                 existingPayment.MarkAsFailed("تم رفض الموعد من العيادة");
 
             appointment.Reject(request.Reason);
-            await _unitOfWork.SaveChangesAsync();
 
             await _fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.AppointmentCancellation, new()
             {
@@ -51,6 +50,9 @@ namespace ClinicHub.Application.Features.StaffDashboard.Commands.StaffRejectAppo
                 ["date"] = appointment.AppointmentDate.ToString("yyyy-MM-dd"),
                 ["reason"] = request.Reason ?? ""
             });
+
+            // Single commit: rejection, failed payment, and the notification row in one transaction.
+            await _unitOfWork.SaveChangesAsync();
 
             return true;
         }

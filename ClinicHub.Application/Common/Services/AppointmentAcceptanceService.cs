@@ -99,6 +99,11 @@ public class AppointmentAcceptanceService : IAppointmentAcceptanceService
         // appointment list and the owner's overview in sync with the acceptance).
         await NotifyDoctorAndOwnerAsync(appointment, cancellationToken);
 
+        // Commit the notification rows added by the sends above. The payment and the
+        // acceptance were already committed above (line 83) because the no-show job
+        // and the doctor/owner notification re-query require the row to exist.
+        await _unitOfWork.SaveChangesAsync();
+
         return new AppointmentAcceptanceResultDto
         {
             AppointmentId = appointment.Id,

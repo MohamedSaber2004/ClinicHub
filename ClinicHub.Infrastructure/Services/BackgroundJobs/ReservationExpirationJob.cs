@@ -36,8 +36,9 @@ public class ReservationExpirationJob
             return;
 
         appointment.ExpireReservation();
-        await unitOfWork.SaveChangesAsync();
         await NotifyPatientAsync(scope.ServiceProvider, appointment);
+        // Single commit: the expiration and the notification row in one transaction.
+        await unitOfWork.SaveChangesAsync();
         _logger.LogInformation("Reservation {AppointmentId} expired (payment not completed within TTL).", appointmentId);
     }
 
@@ -58,13 +59,14 @@ public class ReservationExpirationJob
 
         if (expiredReservations.Count > 0)
         {
+            foreach (var appointment in expiredReservations)
+            {
+                await NotifyPatientAsync(scope.ServiceProvider, appointment);
+            }
+
+            // Single commit: all expirations and notification rows in one transaction.
             await unitOfWork.SaveChangesAsync();
             _logger.LogInformation("Expired {Count} reservations", expiredReservations.Count);
-        }
-
-        foreach (var appointment in expiredReservations)
-        {
-            await NotifyPatientAsync(scope.ServiceProvider, appointment);
         }
     }
 

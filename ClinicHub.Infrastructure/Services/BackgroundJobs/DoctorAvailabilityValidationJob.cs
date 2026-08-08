@@ -65,6 +65,9 @@ public class DoctorAvailabilityValidationJob
         _logger.LogInformation(
             "Doctor availability validation: checked {AppointmentCount} upcoming appointments, flagged {FlaggedCount} outside doctor availability.",
             appointments.Count, flagged);
+
+        // Single commit: all notification rows added by the sends above in one transaction.
+        await unitOfWork.SaveChangesAsync();
     }
 
     private static bool IsWithinAvailability(
