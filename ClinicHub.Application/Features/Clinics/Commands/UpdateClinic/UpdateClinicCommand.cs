@@ -19,5 +19,7 @@ namespace ClinicHub.Application.Features.Clinics.Commands.UpdateClinic
         Guid? SpecializationId,
         TimeOnly? WorkingHoursStart = null,
         TimeOnly? WorkingHoursEnd = null,
-        List<DayOfWeek>? WorkingDays = null) : IRequest<ClinicManagementDto>;
+        List<DayOfWeek>? WorkingDays = null,
+        double? Latitude = null,
+        double? Longitude = null) : IRequest<ClinicManagementDto>;
 }

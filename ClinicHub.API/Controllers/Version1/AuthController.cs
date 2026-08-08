@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Mvc;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Auth.Commands.ValidateGoogleAccessToken;
 using ClinicHub.Application.Features.Auth.Commands.Logout;
+using ClinicHub.Application.Features.Auth.Commands.RegisterFcmToken;
 using ClinicHub.API.Filters;
 using ClinicHub.Domain.Enums;
 
@@ -271,6 +272,26 @@ namespace ClinicHub.API.Controllers.Version1
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Logout(LogoutCommand command, CancellationToken ct)
+        {
+            var result = await _mediator.Send(command, ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Registers (or replaces) the push notification (FCM) token of the current user.
+        /// Can be called any time after login — e.g. when the browser grants notification
+        /// permission or produces a rotated token — without requiring a new login.
+        /// </summary>
+        /// <param name="command">FCM token and device platform.</param>
+        /// <param name="ct">Cancellation token.</param>
+        /// <returns>A success message.</returns>
+        [HttpPost]
+        [RoleAuthorize]
+        [Route(ApiRoutes.Auth.RegisterFcmToken)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> RegisterFcmToken(RegisterFcmTokenCommand command, CancellationToken ct)
         {
             var result = await _mediator.Send(command, ct);
             return Ok(result);

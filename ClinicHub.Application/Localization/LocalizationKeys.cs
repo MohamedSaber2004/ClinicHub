@@ -141,6 +141,9 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString InvalidEmail = new("Auth.InvalidEmail");
             public static readonly KeyString MustBeGmail = new("Auth.MustBeGmail");
             public static readonly KeyString LogoutSuccess = new("Auth.LogoutSuccess");
+            public static readonly KeyString FcmTokenRegistered = new("Auth.FcmTokenRegistered");
+            public static readonly KeyString FcmTokenRequired = new("Auth.FcmTokenRequired");
+            public static readonly KeyString FcmTokenPlatformRequired = new("Auth.FcmTokenPlatformRequired");
             public static readonly KeyString RefreshTokenRequired = new("Auth.RefreshTokenRequired");
             public static readonly KeyString PhoneNumberExistsBefore = new("Auth.PhoneNumberExistsBefore");
             public static readonly KeyString RoleAssignmentFailed = new("Auth.RoleAssignmentFailed");

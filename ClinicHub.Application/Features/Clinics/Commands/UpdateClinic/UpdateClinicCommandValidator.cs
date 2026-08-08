@@ -71,6 +71,24 @@ namespace ClinicHub.Application.Features.Clinics.Commands.UpdateClinic
                 .Must(BeValidDayNames)
                 .WithMessage(_localizer[LocalizationKeys.ValidationMessages.InvalidWorkingDays.Value])
                 .When(x => x.WorkingDays != null && x.WorkingDays.Count > 0);
+
+            RuleFor(x => x.Latitude)
+                .InclusiveBetween(-90, 90).WithMessage(_localizer[LocalizationKeys.ClinicMessages.InvalidLatitude.Value])
+                .When(x => x.Latitude.HasValue);
+
+            RuleFor(x => x.Longitude)
+                .InclusiveBetween(-180, 180).WithMessage(_localizer[LocalizationKeys.ClinicMessages.InvalidLongitude.Value])
+                .When(x => x.Longitude.HasValue);
+
+            RuleFor(x => x)
+                .Must(HaveBothCoordinates)
+                .WithMessage(_localizer[LocalizationKeys.ClinicMessages.InvalidCoordinates.Value])
+                .When(x => x.Latitude.HasValue || x.Longitude.HasValue);
+        }
+
+        private static bool HaveBothCoordinates(UpdateClinicCommand command)
+        {
+            return command.Latitude.HasValue && command.Longitude.HasValue;
         }
 
         private static bool BeValidDayNames(List<DayOfWeek>? days)

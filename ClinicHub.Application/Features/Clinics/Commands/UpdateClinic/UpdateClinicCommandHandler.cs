@@ -6,6 +6,7 @@ using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.Extensions.Localization;
+using NetTopologySuite.Geometries;
 
 namespace ClinicHub.Application.Features.Clinics.Commands.UpdateClinic
 {
@@ -44,6 +45,10 @@ namespace ClinicHub.Application.Features.Clinics.Commands.UpdateClinic
                     ? _currentUserService.UserId.ToString()
                     : "system";
 
+                var locationPoint = request.Latitude.HasValue && request.Longitude.HasValue
+                    ? new Point(request.Longitude.Value, request.Latitude.Value) { SRID = 4326 }
+                    : null;
+
                 clinic.UpdateDetails(
                     request.Name,
                     request.NameAr,
@@ -60,7 +65,8 @@ namespace ClinicHub.Application.Features.Clinics.Commands.UpdateClinic
                     updatedBy,
                     request.WorkingHoursStart,
                     request.WorkingHoursEnd,
-                    request.WorkingDays != null ? string.Join(",", request.WorkingDays) : null);
+                    request.WorkingDays != null ? string.Join(",", request.WorkingDays) : null,
+                    locationPoint);
 
                 _unitOfWork.ClinicRepository.Update(clinic);
                 await _unitOfWork.SaveChangesAsync();

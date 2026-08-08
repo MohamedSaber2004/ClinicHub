@@ -48,7 +48,7 @@ namespace ClinicHub.Domain.Entities
 
         public void UpdateDetails(string name, string? nameAr, string? description, string? arDescription, string? address, string? addressAr,
             string? phone, string? email, string? website, string? logo, string? workingHours, Guid specializationId, string updatedBy,
-            TimeOnly? workingHoursStart = null, TimeOnly? workingHoursEnd = null, string? workingDays = null)
+            TimeOnly? workingHoursStart = null, TimeOnly? workingHoursEnd = null, string? workingDays = null, Point? locationPoint = null)
         {
             Name = name;
             NameAr = nameAr;
@@ -65,6 +65,10 @@ namespace ClinicHub.Domain.Entities
             WorkingHoursEnd = workingHoursEnd;
             WorkingDays = workingDays;
             SpecializationId = specializationId;
+            if (locationPoint != null)
+            {
+                Location = locationPoint;
+            }
             MarkAsUpdated(updatedBy);
         }
 
