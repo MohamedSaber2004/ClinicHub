@@ -332,9 +332,11 @@ Browsers rotate FCM tokens over time and after service-worker updates. If you re
 | 16 | `SupportTicketUpdate` | تحديث تذكرة الدعم | ✅ Ticket status changed (ticket owner) |
 | 17 | `PaymentReceived` | تم استلام الدفع | ✅ Appointment paid (clinic owner) |
 | 18 | `RevenueIncreased` | زيادة الإيرادات | ✅ Appointment paid (superadmin, with total revenue) |
+| 19 | `AppointmentAccepted` | تم تأكيد الحجز | ✅ Booking request accepted (doctor + clinic owner) |
 
 > Dashboard-role scenarios (superadmin / clinic owner / doctor / staff), payloads and
 > navigation data are documented in **`docs/WEB_DASHBOARD_NOTIFICATIONS_README.md`**.
+> The full per-type catalogue (triggers, recipients, payloads) is in **`docs/NOTIFICATION_TYPES_README.md`**.
 
 ### 4.2 How a notification is created (single flow)
 

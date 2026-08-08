@@ -20,6 +20,7 @@ namespace ClinicHub.Domain.Enums
         ClinicRejected = 15,
         SupportTicketUpdate = 16,
         PaymentReceived = 17,
-        RevenueIncreased = 18
+        RevenueIncreased = 18,
+        AppointmentAccepted = 19
     }
 }

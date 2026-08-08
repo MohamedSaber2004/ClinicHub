@@ -167,9 +167,10 @@ The deep links are configured in `ClinicHub.Application/Common/DeepLinkRoutes.cs
 | O8 | **Ticket status updated** | `SupportTicketUpdate` (16) | SuperAdmin updates a support ticket | `ticketId, subject, status` | `/support-tickets/{ticketId}` | `Features/Admin/Commands/UpdateSupportTicketStatus/UpdateSupportTicketStatusCommandHandler.cs` |
 | O9 | **Appointment paid (revenue received)** | `PaymentReceived` (17) | Paymob webhook confirms an appointment payment | `amount, patientName, clinicName, appointmentId` | `/appointments/{appointmentId}` | `Features/Payment/Commands/ConfirmPaymentWebhook/ConfirmPaymentWebhookCommandHandler.cs` |
 | O10 | **New chat message** | `NewMessage` (1) | A message is sent in a conversation you belong to | `senderName, conversationId` | `/chat/{conversationId}` | `Features/Conversations/Commands/SendMessage/SendMessageCommandHandler.cs` |
+| O11 | **Booking request approved** | `AppointmentAccepted` (19) | Clinic admin / staff / doctor accepts a pending booking request | `patientName, clinicName, doctorName, date, time, appointmentId` | `/appointments/{appointmentId}` | `Common/Services/AppointmentAcceptanceService.cs` |
 
-> O1–O3, O8 and O9 were **added** in this update — previously the owner was never told about
-> new bookings, approval/rejection outcomes, ticket updates, or received payments.
+> O1–O3, O8, O9 and O11 were **added** in this update — previously the owner was never told about
+> new bookings, approval/rejection outcomes, ticket updates, received payments, or approved bookings.
 
 ### 3.3 Doctor
 
@@ -178,6 +179,7 @@ The deep links are configured in `ClinicHub.Application/Common/DeepLinkRoutes.cs
 | D1 | **New booking request for this doctor** | `NewBookingRequest` (12) | A patient books with this doctor | `patientName, clinicName, doctorName, date, time, appointmentId` | `/appointments/{appointmentId}` | `CreateAppointmentCommandHandler.cs` |
 | D2 | **Appointment outside doctor availability** | `AppointmentOutsideAvailability` (10) | Hourly validation job | `clinicName, date, time, appointmentId` | `/appointments/{appointmentId}` | `DoctorAvailabilityValidationJob.cs` |
 | D3 | **New chat message** | `NewMessage` (1) | Chat message | `senderName, conversationId` | `/chat/{conversationId}` | `SendMessageCommandHandler.cs` |
+| D4 | **Your booking request approved** | `AppointmentAccepted` (19) | Clinic admin / staff accepts the doctor's booking request | `patientName, clinicName, doctorName, date, time, appointmentId` | `/appointments/{appointmentId}` | `Common/Services/AppointmentAcceptanceService.cs` |
 
 ### 3.4 Staff
 
@@ -279,6 +281,21 @@ Title: `تم استلام الدفع` — Body: `تم استلام دفعة بق
 Title: `زيادة الإيرادات` — Body: `تم دفع {amount} لحجز في عيادة {clinicName} — إجمالي الإيرادات الآن {totalRevenue}`
 (`totalRevenue` = running sum of **all** paid appointment payments at that moment).
 
+**`AppointmentAccepted` (19)** — recipients: appointment's doctor + clinic owner (`ClinicAdminId`). Sent when the pending/reserved booking request is accepted (via the shared `AppointmentAcceptanceService`, so clinic admin, staff, and doctor accept paths all trigger it). The patient receives `AppointmentConfirmation` (3) separately.
+```json
+{
+  "type": "AppointmentAccepted",
+  "patientName": "أحمد محمد",
+  "clinicName": "عيادة الأمل",
+  "doctorName": "د. سارة أحمد",
+  "date": "2026-08-10",
+  "time": "10:00 - 10:30",
+  "appointmentId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "link": "https://your-frontend/appointments/3fa85f64-5717-4562-b3fc-2c963f66afa6"
+}
+```
+Title: `تم تأكيد الحجز` — Body: `تم تأكيد حجز {patientName} في {clinicName} بتاريخ {date} الساعة {time}`
+
 ---
 
 ## 4. What each dashboard role receives (summary)
@@ -286,8 +303,8 @@ Title: `زيادة الإيرادات` — Body: `تم دفع {amount} لحجز 
 | Role | Types |
 |---|---|
 | **SuperAdmin** | `ClinicRegistered`, `RevenueIncreased` |
-| **ClinicOwner** | `NewBookingRequest`, `ClinicApproved`, `ClinicRejected`, `PaymentReceived`, `AppointmentOutsideWorkingHours`, `AppointmentOutsideAvailability`, `SubscriptionExpiring`, `AdExpiring`, `SupportTicketUpdate`, `NewMessage` |
-| **Doctor** | `NewBookingRequest`, `AppointmentOutsideAvailability`, `NewMessage` |
+| **ClinicOwner** | `NewBookingRequest`, `ClinicApproved`, `ClinicRejected`, `PaymentReceived`, `AppointmentAccepted`, `AppointmentOutsideWorkingHours`, `AppointmentOutsideAvailability`, `SubscriptionExpiring`, `AdExpiring`, `SupportTicketUpdate`, `NewMessage` |
+| **Doctor** | `NewBookingRequest`, `AppointmentAccepted`, `AppointmentOutsideAvailability`, `NewMessage` |
 | **Staff** | `NewBookingRequest`, `NewMessage` |
 | **Everyone** | `NewMessage` (chat) |
 

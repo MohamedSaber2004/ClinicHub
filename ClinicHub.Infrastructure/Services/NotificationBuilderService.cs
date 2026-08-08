@@ -248,6 +248,21 @@ namespace ClinicHub.Infrastructure.Services
                         link = _deepLinkService.GenerateLink(DeepLinkRoutes.Appointments);
                     break;
 
+                case NotificationType.AppointmentAccepted:
+                    title = "تم تأكيد الحجز";
+                    body = $"تم تأكيد حجز {GetParam(parameters, "patientName")} في {clinicName} بتاريخ {date} الساعة {time}";
+                    data["patientName"] = GetParam(parameters, "patientName");
+                    data["clinicName"] = clinicName;
+                    data["date"] = date;
+                    data["time"] = time;
+                    data["appointmentId"] = appointmentId;
+                    data["doctorName"] = GetParam(parameters, "doctorName");
+                    if (!string.IsNullOrEmpty(appointmentId))
+                        link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.AppointmentDetails, appointmentId));
+                    else
+                        link = _deepLinkService.GenerateLink(DeepLinkRoutes.Appointments);
+                    break;
+
                 default:
                     title = "إشعار";
                     body = "لديك إشعار جديد";

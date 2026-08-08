@@ -6,6 +6,8 @@ using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace ClinicHub.Application.Common.Services;
 
@@ -19,17 +21,20 @@ public class AppointmentAcceptanceService : IAppointmentAcceptanceService
     private readonly IPaymobService _paymobService;
     private readonly IFcmService _fcmService;
     private readonly IBackgroundJobScheduler _jobScheduler;
+    private readonly ILogger<AppointmentAcceptanceService> _logger;
 
     public AppointmentAcceptanceService(
         IUnitOfWork unitOfWork,
         IPaymobService paymobService,
         IFcmService fcmService,
-        IBackgroundJobScheduler jobScheduler)
+        IBackgroundJobScheduler jobScheduler,
+        ILogger<AppointmentAcceptanceService> logger)
     {
         _unitOfWork = unitOfWork;
         _paymobService = paymobService;
         _fcmService = fcmService;
         _jobScheduler = jobScheduler;
+        _logger = logger;
     }
 
     public async Task<AppointmentAcceptanceResultDto> AcceptAsync(Appointment appointment, CancellationToken cancellationToken)
@@ -89,6 +94,11 @@ public class AppointmentAcceptanceService : IAppointmentAcceptanceService
             ["paymentUrl"] = checkout.RedirectUrl
         });
 
+        // Notify the doctor and the clinic owner that the appointment was approved
+        // (patient-facing confirmation is sent above; this keeps the doctor's
+        // appointment list and the owner's overview in sync with the acceptance).
+        await NotifyDoctorAndOwnerAsync(appointment, cancellationToken);
+
         return new AppointmentAcceptanceResultDto
         {
             AppointmentId = appointment.Id,
@@ -99,6 +109,51 @@ public class AppointmentAcceptanceService : IAppointmentAcceptanceService
             PaymobRedirectUrl = checkout.RedirectUrl,
             PaymobPaymentKey = checkout.PaymentKey
         };
+    }
+
+    private async Task NotifyDoctorAndOwnerAsync(Appointment appointment, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var loaded = await _unitOfWork.AppointmentRepository
+                .GetFirstWithIncluding(a => a.Id == appointment.Id, a => a.Doctor, a => a.Clinic!)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (loaded == null)
+                return;
+
+            var patientUser = await _unitOfWork.GetRepository<ApplicationUser, Guid>()
+                .GetByIdAsync(appointment.BookedByUserId);
+
+            var parameters = new Dictionary<string, object>
+            {
+                ["patientName"] = patientUser?.FullName ?? "",
+                ["clinicName"] = loaded.Clinic?.Name ?? "",
+                ["doctorName"] = loaded.Doctor?.User?.FullName ?? "",
+                ["date"] = appointment.AppointmentDate.ToString("yyyy-MM-dd"),
+                ["time"] = $"{appointment.StartTime:hh\\:mm} - {appointment.EndTime:hh\\:mm}",
+                ["appointmentId"] = appointment.Id.ToString()
+            };
+
+            var recipients = new HashSet<Guid>();
+
+            if (loaded.Doctor != null)
+                recipients.Add(loaded.Doctor.UserId);
+
+            if (loaded.Clinic?.ClinicAdminId.HasValue == true)
+                recipients.Add(loaded.Clinic.ClinicAdminId.Value);
+
+            foreach (var userId in recipients)
+            {
+                await _fcmService.SendToUserAsync(userId, NotificationType.AppointmentAccepted, parameters);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Never block the acceptance flow on a push failure — the in-app
+            // notification record and dispatch are best-effort.
+            _logger.LogError(ex, "Failed to send appointment-accepted notifications for appointment {AppointmentId}.", appointment.Id);
+        }
     }
 
     private static PaymentBillingData CreateBillingData(ApplicationUser? user)
