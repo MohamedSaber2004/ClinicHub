@@ -124,6 +124,7 @@ namespace ClinicHub.API
                 builder.Services.AddInMemoryRateLimiting();
 
                 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
+                builder.Services.Configure<DeepLinkSettings>(builder.Configuration.GetSection("DeepLinkSettings"));
                 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
                 builder.Services.Configure<SeedingSettings>(builder.Configuration.GetSection("SeedingSettings"));
                 builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));

@@ -351,6 +351,8 @@ namespace ClinicHub.API.Routes
         {
             public const string BaseRoute = Base + "/deep-links";
             public const string Verify = BaseRoute + "/verify";
+            public const string Go = "/go/{0}";
+            public const string GoRoute = "/go/{**path}";
         }
     }
 }
