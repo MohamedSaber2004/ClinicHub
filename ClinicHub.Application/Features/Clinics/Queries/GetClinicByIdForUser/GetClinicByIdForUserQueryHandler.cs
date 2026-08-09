@@ -31,6 +31,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicByIdForUser
                 throw new NotFoundException(LocalizationKeys.ClinicMessages.ClinicNotFound.Value);
 
             var dto = _mapper.Map<ClinicManagementDto>(clinic);
+            dto.Rating = await _unitOfWork.RatingRepository.GetClinicAverageRatingAsync(request.Id);
 
             var doctors = await _unitOfWork.DoctorRepository
                 .GetAllAsync(d => d.ClinicId == request.Id && !d.IsDeleted)
