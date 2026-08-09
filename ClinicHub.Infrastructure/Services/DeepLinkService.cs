@@ -26,7 +26,7 @@ namespace ClinicHub.Infrastructure.Services
 
         public string GeneratePostLink(Guid postId)
         {
-            return $"{_settings.FrontendUrl.TrimEnd('/')}/post/{postId}";
+            return GenerateGoLink($"post/{postId}");
         }
 
         public string GenerateVerificationApprovedLink(string userId, string role, string status)
