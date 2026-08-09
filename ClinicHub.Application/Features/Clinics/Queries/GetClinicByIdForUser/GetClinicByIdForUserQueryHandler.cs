@@ -32,6 +32,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicByIdForUser
 
             var dto = _mapper.Map<ClinicManagementDto>(clinic);
             dto.Rating = await _unitOfWork.RatingRepository.GetClinicAverageRatingAsync(request.Id);
+            dto.ReviewsCount = await _unitOfWork.RatingRepository.GetClinicRatingsCountAsync(request.Id);
 
             var doctors = await _unitOfWork.DoctorRepository
                 .GetAllAsync(d => d.ClinicId == request.Id && !d.IsDeleted)

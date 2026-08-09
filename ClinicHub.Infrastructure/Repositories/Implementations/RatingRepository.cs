@@ -60,6 +60,12 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations
             return ratings.Count > 0 ? ratings.Average() : null;
         }
 
+        public async Task<int> GetClinicRatingsCountAsync(Guid clinicId)
+        {
+            return await _context.Set<Rating>()
+                .CountAsync(r => r.Type == RatingType.Clinic && r.ClinicId == clinicId && !r.IsDeleted);
+        }
+
         public Task<Rating?> GetUserRatingForDoctorAsync(Guid userId, Guid doctorId)
         {
             return _context.Set<Rating>()

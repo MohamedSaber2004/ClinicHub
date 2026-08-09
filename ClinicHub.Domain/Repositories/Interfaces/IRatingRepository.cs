@@ -11,6 +11,7 @@ namespace ClinicHub.Domain.Repositories.Interfaces
         Task<List<Rating>> GetPlaceCleanlinessRatingsAsync(Guid clinicId);
         Task<double?> GetDoctorAverageRatingAsync(Guid doctorId);
         Task<double?> GetClinicAverageRatingAsync(Guid clinicId);
+        Task<int> GetClinicRatingsCountAsync(Guid clinicId);
         Task<Rating?> GetUserRatingForDoctorAsync(Guid userId, Guid doctorId);
         Task<Rating?> GetUserRatingForClinicAsync(Guid userId, Guid clinicId, RatingType type);
     }

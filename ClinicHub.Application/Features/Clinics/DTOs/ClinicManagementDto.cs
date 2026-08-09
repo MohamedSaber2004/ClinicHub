@@ -65,6 +65,7 @@ namespace ClinicHub.Application.Features.Clinics.DTOs
         public string? SpecializationName { get; set; }
         public string? SpecializationNameAr { get; set; }
         public double? Rating { get; set; }
+        public int ReviewsCount { get; set; }
         public string? ImageUrl { get; set; }
         public Guid? ClinicAdminId { get; set; }
         public string? OwnerName { get; set; }
