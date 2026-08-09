@@ -9,6 +9,7 @@ namespace ClinicHub.Domain.Repositories.Interfaces
         Task<List<Rating>> GetDoctorRatingsAsync(Guid doctorId);
         Task<List<Rating>> GetClinicRatingsAsync(Guid clinicId);
         Task<List<Rating>> GetPlaceCleanlinessRatingsAsync(Guid clinicId);
+        Task<List<Rating>> GetReceptionRatingsAsync(Guid clinicId);
         Task<double?> GetDoctorAverageRatingAsync(Guid doctorId);
         Task<double?> GetClinicAverageRatingAsync(Guid clinicId);
         Task<int> GetClinicRatingsCountAsync(Guid clinicId);

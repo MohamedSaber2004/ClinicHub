@@ -40,6 +40,14 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations
                 .ToListAsync();
         }
 
+        public Task<List<Rating>> GetReceptionRatingsAsync(Guid clinicId)
+        {
+            return _context.Set<Rating>()
+                .Where(r => r.Type == RatingType.Reception && r.ClinicId == clinicId && !r.IsDeleted)
+                .Include(r => r.User)
+                .ToListAsync();
+        }
+
         public async Task<double?> GetDoctorAverageRatingAsync(Guid doctorId)
         {
             var ratings = await _context.Set<Rating>()

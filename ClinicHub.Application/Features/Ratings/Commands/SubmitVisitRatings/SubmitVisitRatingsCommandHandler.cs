@@ -50,6 +50,10 @@ namespace ClinicHub.Application.Features.Ratings.Commands.SubmitVisitRatings
             if (existingClinic != null)
                 throw new BadRequestException(LocalizationKeys.RatingMessages.AlreadyRated.Value);
 
+            var existingReception = await _unitOfWork.RatingRepository.GetUserRatingForClinicAsync(userId, clinicId.Value, RatingType.Reception);
+            if (existingReception != null)
+                throw new BadRequestException(LocalizationKeys.RatingMessages.AlreadyRated.Value);
+
             var existingCleanliness = await _unitOfWork.RatingRepository.GetUserRatingForClinicAsync(userId, clinicId.Value, RatingType.PlaceCleanliness);
             if (existingCleanliness != null)
                 throw new BadRequestException(LocalizationKeys.RatingMessages.AlreadyRated.Value);
@@ -60,6 +64,7 @@ namespace ClinicHub.Application.Features.Ratings.Commands.SubmitVisitRatings
                 ratings.Add(new Rating(userId, RatingType.Doctor, request.DoctorId, null, request.DoctorValue.Value, request.Review));
 
             ratings.Add(new Rating(userId, RatingType.Clinic, null, clinicId, request.ClinicValue, request.Review));
+            ratings.Add(new Rating(userId, RatingType.Reception, null, clinicId, request.ReceptionValue, request.Review));
             ratings.Add(new Rating(userId, RatingType.PlaceCleanliness, null, clinicId, request.CleanlinessValue, request.Review));
 
             await _unitOfWork.RatingRepository.AddRangeAsync(ratings);

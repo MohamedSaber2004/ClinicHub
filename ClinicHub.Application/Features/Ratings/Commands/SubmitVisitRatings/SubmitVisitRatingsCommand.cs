@@ -9,6 +9,7 @@ namespace ClinicHub.Application.Features.Ratings.Commands.SubmitVisitRatings
         public Guid? ClinicId { get; set; }
         public int? DoctorValue { get; set; }
         public int ClinicValue { get; set; }
+        public int ReceptionValue { get; set; }
         public int CleanlinessValue { get; set; }
         public string? Review { get; set; }
     }

@@ -33,7 +33,7 @@ namespace ClinicHub.Application.Features.Ratings.Commands.CreateRating
             if (v.Type == RatingType.Doctor)
                 return v.DoctorId != null && v.ClinicId == null;
 
-            if (v.Type == RatingType.Clinic || v.Type == RatingType.PlaceCleanliness)
+            if (v.Type == RatingType.Clinic || v.Type == RatingType.PlaceCleanliness || v.Type == RatingType.Reception)
                 return v.ClinicId != null && v.DoctorId == null;
 
             return v.DoctorId != null || v.ClinicId != null;

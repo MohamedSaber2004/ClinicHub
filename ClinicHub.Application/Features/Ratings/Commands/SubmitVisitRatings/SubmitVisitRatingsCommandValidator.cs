@@ -14,6 +14,9 @@ namespace ClinicHub.Application.Features.Ratings.Commands.SubmitVisitRatings
             RuleFor(v => v.CleanlinessValue)
                 .InclusiveBetween(1, 5).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.RatingMessages.InvalidValue.Value]));
 
+            RuleFor(v => v.ReceptionValue)
+                .InclusiveBetween(1, 5).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.RatingMessages.InvalidValue.Value]));
+
             RuleFor(v => v.DoctorValue)
                 .InclusiveBetween(1, 5).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.RatingMessages.InvalidValue.Value]))
                 .When(v => v.DoctorValue.HasValue);

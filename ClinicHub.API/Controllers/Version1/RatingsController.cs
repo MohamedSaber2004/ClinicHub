@@ -6,6 +6,7 @@ using ClinicHub.Application.Features.Ratings.Commands.SubmitVisitRatings;
 using ClinicHub.Application.Features.Ratings.Queries.GetDoctorRatings;
 using ClinicHub.Application.Features.Ratings.Queries.GetClinicRatings;
 using ClinicHub.Application.Features.Ratings.Queries.GetPlaceCleanlinessRatings;
+using ClinicHub.Application.Features.Ratings.Queries.GetReceptionRatings;
 using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -71,6 +72,17 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> GetPlaceCleanlinessRatings([FromRoute] Guid clinicId)
         {
             var query = new GetPlaceCleanlinessRatingsQuery { ClinicId = clinicId };
+            var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Route(ApiRoutes.Ratings.GetReceptionRatings)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetReceptionRatings([FromRoute] Guid clinicId)
+        {
+            var query = new GetReceptionRatingsQuery { ClinicId = clinicId };
             var result = await _mediator.Send(query);
             return Ok(result);
         }

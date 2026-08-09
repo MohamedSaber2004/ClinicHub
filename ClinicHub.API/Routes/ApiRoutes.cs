@@ -188,6 +188,7 @@ namespace ClinicHub.API.Routes
             public const string GetDoctorRatings = Base + "/doctors/{doctorId:guid}/ratings";
             public const string GetClinicRatings = Base + "/clinics/{clinicId:guid}/ratings";
             public const string GetPlaceCleanlinessRatings = Base + "/clinics/{clinicId:guid}/place-cleanliness-ratings";
+            public const string GetReceptionRatings = Base + "/clinics/{clinicId:guid}/reception-ratings";
         }
 
         public static class Users

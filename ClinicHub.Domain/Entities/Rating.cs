@@ -31,8 +31,9 @@ namespace ClinicHub.Domain.Entities
                     break;
                 case RatingType.Clinic:
                 case RatingType.PlaceCleanliness:
+                case RatingType.Reception:
                     if (clinicId == null)
-                        throw new ArgumentException("clinicId is required for clinic and place cleanliness ratings");
+                        throw new ArgumentException("clinicId is required for clinic ratings");
                     break;
                 default:
                     throw new ArgumentException("Invalid rating type");
