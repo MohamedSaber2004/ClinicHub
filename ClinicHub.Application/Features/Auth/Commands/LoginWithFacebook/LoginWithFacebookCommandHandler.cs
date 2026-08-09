@@ -128,7 +128,12 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWithFacebook
                 .Select(d => (bool?)d.IsFreelance)
                 .FirstOrDefaultAsync(cancellationToken) ?? false;
 
-            return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, UserTypeHelper.GetPrimaryRole(roles), user.Id, clinicId, user.ProfilePictureUrl, isFreelanceDoctor);
+            var doctorId = await _unitOfWork.DoctorRepository
+                .GetAllAsync(d => d.UserId == user.Id && !d.IsDeleted)
+                .Select(d => (Guid?)d.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, UserTypeHelper.GetPrimaryRole(roles), user.Id, clinicId, doctorId, user.ProfilePictureUrl, isFreelanceDoctor);
         }
     }
 }

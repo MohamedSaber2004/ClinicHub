@@ -10,6 +10,7 @@ namespace ClinicHub.Application.Features.Auth.DTOs
         string Roles,
         Guid id,
         Guid? ClinicId,
+        Guid? DoctorId,
         string? ProfilePictureUrl,
         bool IsFreelanceDoctor = false,
         ClinicStatus? ClinicStatus = null,

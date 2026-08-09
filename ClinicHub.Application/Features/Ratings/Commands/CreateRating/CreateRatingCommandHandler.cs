@@ -4,6 +4,7 @@ using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Ratings.DTOs;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
+using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 
@@ -24,7 +25,12 @@ namespace ClinicHub.Application.Features.Ratings.Commands.CreateRating
 
         public async Task<RatingDto> Handle(CreateRatingCommand request, CancellationToken cancellationToken)
         {
-            if (request.DoctorId == null && request.ClinicId == null)
+            var type = request.Type ?? (request.DoctorId != null ? RatingType.Doctor : RatingType.Clinic);
+
+            if (type == RatingType.Doctor && request.DoctorId == null)
+                throw new BadRequestException(LocalizationKeys.RatingMessages.TargetRequired.Value);
+
+            if (type != RatingType.Doctor && request.ClinicId == null)
                 throw new BadRequestException(LocalizationKeys.RatingMessages.TargetRequired.Value);
 
             if (request.DoctorId != null && request.ClinicId != null)
@@ -53,12 +59,12 @@ namespace ClinicHub.Application.Features.Ratings.Commands.CreateRating
                 if (!clinicExists)
                     throw new NotFoundException(LocalizationKeys.ClinicMessages.ClinicNotFound.Value);
 
-                var existing = await _unitOfWork.RatingRepository.GetUserRatingForClinicAsync(userId, request.ClinicId.Value);
+                var existing = await _unitOfWork.RatingRepository.GetUserRatingForClinicAsync(userId, request.ClinicId.Value, type);
                 if (existing != null)
                     throw new BadRequestException(LocalizationKeys.RatingMessages.AlreadyRated.Value);
             }
 
-            var rating = new Rating(userId, request.DoctorId, clinicId, request.Value, request.Review);
+            var rating = new Rating(userId, type, request.DoctorId, clinicId, request.Value, request.Review);
 
             await _unitOfWork.RatingRepository.AddAsync(rating);
             await _unitOfWork.SaveChangesAsync();

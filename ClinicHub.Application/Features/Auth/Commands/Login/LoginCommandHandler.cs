@@ -119,6 +119,11 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
                 .Select(d => (bool?)d.IsFreelance)
                 .FirstOrDefaultAsync(cancellationToken) ?? false;
 
+            var doctorId = await _unitOfWork.DoctorRepository
+                .GetAllAsync(d => d.UserId == user.Id && !d.IsDeleted)
+                .Select(d => (Guid?)d.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
             ClinicStatus? clinicStatus = null;
             VerificationStatus? verificationStatus = null;
             var isClinicSetupComplete = false;
@@ -151,6 +156,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
                 UserTypeHelper.GetPrimaryRole(roles),
                 user.Id,
                 clinicId,
+                doctorId,
                 user.ProfilePictureUrl,
                 isFreelanceDoctor,
                 clinicStatus,

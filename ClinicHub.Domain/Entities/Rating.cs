@@ -1,10 +1,12 @@
 using ClinicHub.Domain.Common;
 using ClinicHub.Domain.Common.Interfaces;
+using ClinicHub.Domain.Enums;
 
 namespace ClinicHub.Domain.Entities
 {
     public class Rating : BaseEntity<Guid>, IClinicScopedEntity
     {
+        public RatingType Type { get; private set; }
         public Guid UserId { get; private set; }
         public ApplicationUser User { get; private set; } = null!;
 
@@ -19,15 +21,29 @@ namespace ClinicHub.Domain.Entities
 
         private Rating() { }
 
-        public Rating(Guid userId, Guid? doctorId, Guid? clinicId, int value, string? review)
+        public Rating(Guid userId, RatingType type, Guid? doctorId, Guid? clinicId, int value, string? review)
         {
-            if (doctorId == null && clinicId == null)
-                throw new ArgumentException("Either doctorId or clinicId must be provided");
+            switch (type)
+            {
+                case RatingType.Doctor:
+                    if (doctorId == null)
+                        throw new ArgumentException("doctorId is required for doctor ratings");
+                    break;
+                case RatingType.Clinic:
+                case RatingType.PlaceCleanliness:
+                    if (clinicId == null)
+                        throw new ArgumentException("clinicId is required for clinic and place cleanliness ratings");
+                    break;
+                default:
+                    throw new ArgumentException("Invalid rating type");
+            }
+
             if (doctorId != null && clinicId != null)
                 throw new ArgumentException("Only one of doctorId or clinicId should be provided");
             if (value < 1 || value > 5)
                 throw new ArgumentException("Rating value must be between 1 and 5");
 
+            Type = type;
             UserId = userId;
             DoctorId = doctorId;
             ClinicId = clinicId;

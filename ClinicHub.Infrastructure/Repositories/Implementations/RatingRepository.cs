@@ -1,4 +1,5 @@
 using ClinicHub.Domain.Entities;
+using ClinicHub.Domain.Enums;
 using ClinicHub.Domain.Repositories.Interfaces;
 using ClinicHub.Infrastructure.Repositories.Implementations.Base;
 using ClinicHub.Persistence;
@@ -18,7 +19,7 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations
         public Task<List<Rating>> GetDoctorRatingsAsync(Guid doctorId)
         {
             return _context.Set<Rating>()
-                .Where(r => r.DoctorId == doctorId && !r.IsDeleted)
+                .Where(r => r.Type == RatingType.Doctor && r.DoctorId == doctorId && !r.IsDeleted)
                 .Include(r => r.User)
                 .ToListAsync();
         }
@@ -26,7 +27,15 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations
         public Task<List<Rating>> GetClinicRatingsAsync(Guid clinicId)
         {
             return _context.Set<Rating>()
-                .Where(r => r.ClinicId == clinicId && !r.IsDeleted)
+                .Where(r => r.Type == RatingType.Clinic && r.ClinicId == clinicId && !r.IsDeleted)
+                .Include(r => r.User)
+                .ToListAsync();
+        }
+
+        public Task<List<Rating>> GetPlaceCleanlinessRatingsAsync(Guid clinicId)
+        {
+            return _context.Set<Rating>()
+                .Where(r => r.Type == RatingType.PlaceCleanliness && r.ClinicId == clinicId && !r.IsDeleted)
                 .Include(r => r.User)
                 .ToListAsync();
         }
@@ -34,7 +43,7 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations
         public async Task<double?> GetDoctorAverageRatingAsync(Guid doctorId)
         {
             var ratings = await _context.Set<Rating>()
-                .Where(r => r.DoctorId == doctorId && !r.IsDeleted)
+                .Where(r => r.Type == RatingType.Doctor && r.DoctorId == doctorId && !r.IsDeleted)
                 .Select(r => r.Value)
                 .ToListAsync();
 
@@ -44,7 +53,7 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations
         public async Task<double?> GetClinicAverageRatingAsync(Guid clinicId)
         {
             var ratings = await _context.Set<Rating>()
-                .Where(r => r.ClinicId == clinicId && !r.IsDeleted)
+                .Where(r => r.Type == RatingType.Clinic && r.ClinicId == clinicId && !r.IsDeleted)
                 .Select(r => r.Value)
                 .ToListAsync();
 
@@ -54,13 +63,13 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations
         public Task<Rating?> GetUserRatingForDoctorAsync(Guid userId, Guid doctorId)
         {
             return _context.Set<Rating>()
-                .FirstOrDefaultAsync(r => r.UserId == userId && r.DoctorId == doctorId && !r.IsDeleted);
+                .FirstOrDefaultAsync(r => r.Type == RatingType.Doctor && r.UserId == userId && r.DoctorId == doctorId && !r.IsDeleted);
         }
 
-        public Task<Rating?> GetUserRatingForClinicAsync(Guid userId, Guid clinicId)
+        public Task<Rating?> GetUserRatingForClinicAsync(Guid userId, Guid clinicId, RatingType type)
         {
             return _context.Set<Rating>()
-                .FirstOrDefaultAsync(r => r.UserId == userId && r.ClinicId == clinicId && !r.IsDeleted);
+                .FirstOrDefaultAsync(r => r.Type == type && r.UserId == userId && r.ClinicId == clinicId && !r.IsDeleted);
         }
     }
 }

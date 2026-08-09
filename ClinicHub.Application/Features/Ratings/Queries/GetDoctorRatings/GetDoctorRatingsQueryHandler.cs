@@ -3,6 +3,7 @@ using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Features.Ratings.DTOs;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
+using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +28,7 @@ namespace ClinicHub.Application.Features.Ratings.Queries.GetDoctorRatings
                 throw new NotFoundException(LocalizationKeys.DoctorMessages.NotFound.Value);
 
             var ratings = await _unitOfWork.RatingRepository
-                .GetAllAsync(r => r.DoctorId == request.DoctorId)
+                .GetAllAsync(r => r.Type == RatingType.Doctor && r.DoctorId == request.DoctorId)
                 .Include(r => r.User)
                 .ToListAsync(cancellationToken);
 

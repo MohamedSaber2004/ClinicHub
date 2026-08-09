@@ -72,6 +72,11 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWeb
 
             var roles = await _userManager.GetRolesAsync(user);
 
+            var doctorId = await _unitOfWork.DoctorRepository
+                .GetAllAsync(d => d.UserId == user.Id && !d.IsDeleted)
+                .Select(d => (Guid?)d.Id)
+                .FirstOrDefaultAsync(cancellationToken);
+
             var clinicId = user.ClinicId;
             if (!clinicId.HasValue)
             {
@@ -137,7 +142,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.LoginWeb
                 .Select(d => (bool?)d.IsFreelance)
                 .FirstOrDefaultAsync(cancellationToken) ?? false;
 
-            var authData = new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, UserTypeHelper.GetPrimaryRole(roles), user.Id, clinicId, user.ProfilePictureUrl, isFreelanceDoctor);
+            var authData = new AuthResponseDto(accessToken, refreshToken, user.FullName, user.Email!, UserTypeHelper.GetPrimaryRole(roles), user.Id, clinicId, doctorId, user.ProfilePictureUrl, isFreelanceDoctor);
 
             var isDashboardUser = roles.Any(r => r == nameof(UserType.ClinicOwner) || r == nameof(UserType.Staff) || r == nameof(UserType.Doctor));
             if (isDashboardUser && clinicId.HasValue && !hasActiveSubscription)

@@ -8,27 +8,27 @@ using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace ClinicHub.Application.Features.Ratings.Queries.GetClinicRatings
+namespace ClinicHub.Application.Features.Ratings.Queries.GetPlaceCleanlinessRatings
 {
-    public class GetClinicRatingsQueryHandler : IRequestHandler<GetClinicRatingsQuery, List<RatingDto>>
+    public class GetPlaceCleanlinessRatingsQueryHandler : IRequestHandler<GetPlaceCleanlinessRatingsQuery, List<RatingDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
 
-        public GetClinicRatingsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        public GetPlaceCleanlinessRatingsQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
         }
 
-        public async Task<List<RatingDto>> Handle(GetClinicRatingsQuery request, CancellationToken cancellationToken)
+        public async Task<List<RatingDto>> Handle(GetPlaceCleanlinessRatingsQuery request, CancellationToken cancellationToken)
         {
             var clinicExists = await _unitOfWork.ClinicRepository.ExistsAsync(c => c.Id == request.ClinicId, cancellationToken);
             if (!clinicExists)
                 throw new NotFoundException(LocalizationKeys.ClinicMessages.ClinicNotFound.Value);
 
             var ratings = await _unitOfWork.RatingRepository
-                .GetAllAsync(r => r.Type == RatingType.Clinic && r.ClinicId == request.ClinicId)
+                .GetAllAsync(r => r.Type == RatingType.PlaceCleanliness && r.ClinicId == request.ClinicId)
                 .Include(r => r.User)
                 .ToListAsync(cancellationToken);
 

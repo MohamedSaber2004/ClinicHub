@@ -1,5 +1,5 @@
 using ClinicHub.Application.Localization;
-using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
+using ClinicHub.Domain.Enums;
 using FluentValidation;
 using Microsoft.Extensions.Localization;
 
@@ -7,14 +7,14 @@ namespace ClinicHub.Application.Features.Ratings.Commands.CreateRating
 {
     public class CreateRatingCommandValidator : AbstractValidator<CreateRatingCommand>
     {
-        private readonly IUnitOfWork _ctx;
-
-        public CreateRatingCommandValidator(IStringLocalizer<Messages> localizer, IUnitOfWork ctx)
+        public CreateRatingCommandValidator(IStringLocalizer<Messages> localizer)
         {
-            _ctx = ctx;
+            RuleFor(v => v.Type)
+                .IsInEnum().When(v => v.Type.HasValue)
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.RatingMessages.InvalidValue.Value]));
 
             RuleFor(v => v)
-                .Must(v => v.DoctorId != null || v.ClinicId != null)
+                .Must(HasValidTarget)
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.RatingMessages.TargetRequired.Value]));
 
             RuleFor(v => v)
@@ -26,6 +26,17 @@ namespace ClinicHub.Application.Features.Ratings.Commands.CreateRating
 
             RuleFor(v => v.Review)
                 .MaximumLength(1000).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
+        }
+
+        private static bool HasValidTarget(CreateRatingCommand v)
+        {
+            if (v.Type == RatingType.Doctor)
+                return v.DoctorId != null && v.ClinicId == null;
+
+            if (v.Type == RatingType.Clinic || v.Type == RatingType.PlaceCleanliness)
+                return v.ClinicId != null && v.DoctorId == null;
+
+            return v.DoctorId != null || v.ClinicId != null;
         }
     }
 }
