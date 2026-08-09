@@ -7,6 +7,7 @@ namespace ClinicHub.Application.Common.Options
         public string PlayStoreUrl { get; set; } = "https://play.google.com/store/apps/details?id=com.doctory";
         public string AppStoreUrl { get; set; } = "https://apps.apple.com/app/idYOUR_APPLE_APP_ID";
         public string? WebFallbackUrl { get; set; }
+        public string BaseUrl { get; set; } = null!;
         public string AppNameAr { get; set; } = "كلينيك هب";
         public string AppNameEn { get; set; } = "ClinicHub";
     }

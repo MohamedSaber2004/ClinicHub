@@ -6,6 +6,7 @@ namespace ClinicHub.Application.Common.Interfaces
         string GeneratePostLink(Guid postId);
         string GenerateVerificationApprovedLink(string userId, string role, string status);
         string GenerateLink(string path);
+        string GenerateGoLink(string path);
         bool VerifyToken(string data, string token);
     }
 }

@@ -10,10 +10,12 @@ namespace ClinicHub.Infrastructure.Services
     public class DeepLinkService : IDeepLinkService
     {
         private readonly EmailSettings _settings;
+        private readonly DeepLinkSettings _deepLinkSettings;
 
-        public DeepLinkService(IOptions<EmailSettings> settings)
+        public DeepLinkService(IOptions<EmailSettings> settings, IOptions<DeepLinkSettings> deepLinkSettings)
         {
             _settings = settings.Value;
+            _deepLinkSettings = deepLinkSettings.Value;
         }
 
         public string GenerateClinicApprovalLink(Guid clinicId, Guid userId)
@@ -36,6 +38,12 @@ namespace ClinicHub.Infrastructure.Services
         public string GenerateLink(string path)
         {
             return $"{_settings.FrontendUrl.TrimEnd('/')}/{path.TrimStart('/')}";
+        }
+
+        public string GenerateGoLink(string path)
+        {
+            var baseUrl = string.IsNullOrWhiteSpace(_deepLinkSettings.BaseUrl) ? _settings.FrontendUrl : _deepLinkSettings.BaseUrl;
+            return $"{baseUrl.TrimEnd('/')}/go/{path.TrimStart('/')}";
         }
 
         public bool VerifyToken(string data, string token)

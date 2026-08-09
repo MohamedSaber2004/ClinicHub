@@ -46,17 +46,20 @@ Examples:
 | `AndroidPackageName` | `com.doctory` | Play Store package |
 | `PlayStoreUrl` | `https://play.google.com/store/apps/details?id=com.doctory` | Android store redirect |
 | `AppStoreUrl` | `https://apps.apple.com/app/idYOUR_APPLE_APP_ID` | iOS store redirect — **fill real Apple ID** |
+| `BaseUrl` | API host (e.g. `https://doctory-icare.runasp.net`) | Host for generated `/go/...` links |
 | `WebFallbackUrl` | frontend URL | Desktop redirect target |
 | `AppNameAr` / `AppNameEn` | كلينيك هب / ClinicHub | Page branding |
 
 ## 4. Generating Links Server-Side
 
-Reuse the existing `IDeepLinkService.GenerateLink`:
+Use `IDeepLinkService.GenerateGoLink` — it points to the **API host** (`DeepLinkSettings.BaseUrl`), not the Flutter web host:
 
 ```csharp
-var link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.Go, "clinic/3f9a0000-0000-0000-0000-000000000001"));
-// => https://doctory.runasp.net/go/clinic/3f9a0000-0000-0000-0000-000000000001
+var link = _deepLinkService.GenerateGoLink("clinic/3f9a0000-0000-0000-0000-000000000001");
+// => https://doctory-icare.runasp.net/go/clinic/3f9a0000-0000-0000-0000-000000000001
 ```
+
+> Do NOT use `GenerateLink` for `/go/...` links — it builds against `FrontendUrl` (the Flutter web host), where the fallback page does not exist.
 
 ## 5. Flutter / Mobile Setup (to make links open the app)
 
