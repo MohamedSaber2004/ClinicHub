@@ -194,6 +194,10 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString InvalidValue = new("Ratings.InvalidValue");
             public static readonly KeyString AlreadyRated = new("Ratings.AlreadyRated");
             public static readonly KeyString Created = new("Ratings.Created");
+            public static readonly KeyString DoctorValueRequired = new("Ratings.DoctorValueRequired");
+            public static readonly KeyString DoctorTargetRequired = new("Ratings.DoctorTargetRequired");
+            public static readonly KeyString NoCompletedVisit = new("Ratings.NoCompletedVisit");
+            public static readonly KeyString CannotRateSelf = new("Ratings.CannotRateSelf");
         }
 
         public static class RealTimeMessages

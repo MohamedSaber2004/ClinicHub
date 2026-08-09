@@ -33,13 +33,13 @@ namespace ClinicHub.Persistence.Configuration
                 .HasForeignKey(r => r.ClinicId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            builder.HasIndex(r => new { r.UserId, r.DoctorId })
+            builder.HasIndex(r => new { r.UserId, r.DoctorId, r.Type })
                 .IsUnique()
-                .HasFilter("[DoctorId] IS NOT NULL");
+                .HasFilter("[DoctorId] IS NOT NULL AND [IsDeleted] = 0");
 
-            builder.HasIndex(r => new { r.UserId, r.ClinicId })
+            builder.HasIndex(r => new { r.UserId, r.ClinicId, r.Type })
                 .IsUnique()
-                .HasFilter("[ClinicId] IS NOT NULL");
+                .HasFilter("[ClinicId] IS NOT NULL AND [IsDeleted] = 0");
 
         }
 

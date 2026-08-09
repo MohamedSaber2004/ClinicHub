@@ -7,6 +7,7 @@ using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace ClinicHub.Application.Features.Ratings.Commands.CreateRating
 {
@@ -42,22 +43,18 @@ namespace ClinicHub.Application.Features.Ratings.Commands.CreateRating
 
             if (request.DoctorId != null)
             {
-                var doctor = await _unitOfWork.DoctorRepository.GetByIdAsync(request.DoctorId.Value);
-                if (doctor == null)
-                    throw new NotFoundException(LocalizationKeys.DoctorMessages.NotFound.Value);
+                await RatingValidationHelper.GetValidatedDoctorAsync(_unitOfWork, userId, request.DoctorId.Value, cancellationToken);
 
                 var existing = await _unitOfWork.RatingRepository.GetUserRatingForDoctorAsync(userId, request.DoctorId.Value);
                 if (existing != null)
                     throw new BadRequestException(LocalizationKeys.RatingMessages.AlreadyRated.Value);
 
-                clinicId = doctor.ClinicId;
+                clinicId = null;
             }
 
             if (request.ClinicId != null)
             {
-                var clinicExists = await _unitOfWork.ClinicRepository.ExistsAsync(c => c.Id == request.ClinicId.Value, cancellationToken);
-                if (!clinicExists)
-                    throw new NotFoundException(LocalizationKeys.ClinicMessages.ClinicNotFound.Value);
+                await RatingValidationHelper.ValidateClinicAsync(_unitOfWork, userId, request.ClinicId.Value, cancellationToken);
 
                 var existing = await _unitOfWork.RatingRepository.GetUserRatingForClinicAsync(userId, request.ClinicId.Value, type);
                 if (existing != null)
@@ -67,9 +64,25 @@ namespace ClinicHub.Application.Features.Ratings.Commands.CreateRating
             var rating = new Rating(userId, type, request.DoctorId, clinicId, request.Value, request.Review);
 
             await _unitOfWork.RatingRepository.AddAsync(rating);
-            await _unitOfWork.SaveChangesAsync();
+
+            try
+            {
+                await _unitOfWork.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+            {
+                throw new BadRequestException(LocalizationKeys.RatingMessages.AlreadyRated.Value);
+            }
 
             return _mapper.Map<RatingDto>(rating);
+        }
+
+        private static bool IsUniqueViolation(DbUpdateException ex)
+        {
+            var message = ex.InnerException?.Message ?? ex.Message;
+            return message.Contains("unique key", StringComparison.OrdinalIgnoreCase)
+                || message.Contains("unique index", StringComparison.OrdinalIgnoreCase)
+                || message.Contains("duplicate key", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

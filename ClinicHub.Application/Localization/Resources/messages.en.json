@@ -247,6 +247,10 @@
     "SingleTargetRequired": "Cannot rate both a doctor and a clinic at the same time",
     "InvalidValue": "Rating value must be between 1 and 5",
     "AlreadyRated": "You have already rated this item",
+    "DoctorValueRequired": "A doctor rating value is required when rating a doctor",
+    "DoctorTargetRequired": "A doctor target is required when providing a doctor rating value",
+    "NoCompletedVisit": "You can only rate after a completed visit",
+    "CannotRateSelf": "You cannot rate yourself",
     "Created": "Rating submitted successfully"
   },
   "Staff": {

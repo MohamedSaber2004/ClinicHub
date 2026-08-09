@@ -2,6 +2,7 @@ using Asp.Versioning;
 using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Ratings.Commands.CreateRating;
+using ClinicHub.Application.Features.Ratings.Commands.SubmitVisitRatings;
 using ClinicHub.Application.Features.Ratings.Queries.GetDoctorRatings;
 using ClinicHub.Application.Features.Ratings.Queries.GetClinicRatings;
 using ClinicHub.Application.Features.Ratings.Queries.GetPlaceCleanlinessRatings;
@@ -25,6 +26,17 @@ namespace ClinicHub.API.Controllers.Version1
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Create([FromBody] CreateRatingCommand command)
+        {
+            var result = await _mediator.Send(command);
+            return Created("", result);
+        }
+
+        [HttpPost]
+        [Route(ApiRoutes.Ratings.SubmitBatch)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> SubmitBatch([FromBody] SubmitVisitRatingsCommand command)
         {
             var result = await _mediator.Send(command);
             return Created("", result);
