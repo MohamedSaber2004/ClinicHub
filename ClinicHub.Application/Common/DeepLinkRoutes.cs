@@ -12,7 +12,5 @@ namespace ClinicHub.Application.Common
         public const string Clinics = "/clinics";
         public const string ClinicDetails = "/clinics/{0}";
         public const string SupportTickets = "/support-tickets/{0}";
-        public const string Go = "/go/{0}";
-        public const string GoRoute = "/go/{**path}";
     }
 }

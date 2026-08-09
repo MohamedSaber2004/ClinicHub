@@ -42,14 +42,20 @@ namespace ClinicHub.Infrastructure.Services
 
         public string GenerateGoLink(string path)
         {
-            var baseUrl = string.IsNullOrWhiteSpace(_deepLinkSettings.BaseUrl) ? _settings.FrontendUrl : _deepLinkSettings.BaseUrl;
-            return $"{baseUrl.TrimEnd('/')}/go/{path.TrimStart('/')}";
+            return $"{_deepLinkSettings.BaseUrl.TrimEnd('/')}/go/{path.TrimStart('/')}";
         }
 
         public bool VerifyToken(string data, string token)
         {
+            if (string.IsNullOrEmpty(token))
+                return false;
+
             var expected = GenerateToken(data);
-            return string.Equals(expected, token, StringComparison.OrdinalIgnoreCase);
+            var expectedBytes = Encoding.UTF8.GetBytes(expected);
+            var tokenBytes = Encoding.UTF8.GetBytes(token);
+
+            return expectedBytes.Length == tokenBytes.Length
+                && CryptographicOperations.FixedTimeEquals(expectedBytes, tokenBytes);
         }
 
         public string GenerateToken(string data)

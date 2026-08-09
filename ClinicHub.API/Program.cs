@@ -124,7 +124,24 @@ namespace ClinicHub.API
                 builder.Services.AddInMemoryRateLimiting();
 
                 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
-                builder.Services.Configure<DeepLinkSettings>(builder.Configuration.GetSection("DeepLinkSettings"));
+                builder.Services.AddOptions<DeepLinkSettings>()
+                    .Bind(builder.Configuration.GetSection("DeepLinkSettings"))
+                    .Validate(s => !string.IsNullOrWhiteSpace(s.BaseUrl), "DeepLinkSettings.BaseUrl is required.")
+                    .Validate(s => Uri.TryCreate(s.BaseUrl, UriKind.Absolute, out _), "DeepLinkSettings.BaseUrl must be an absolute URL.")
+                    .ValidateOnStart();
+                builder.Services.AddOptions<IdProtectionSettings>()
+                    .Bind(builder.Configuration.GetSection("IdProtectionSettings"))
+                    .Validate(s =>
+                    {
+                        if (string.IsNullOrWhiteSpace(s.Key)) return false;
+                        try
+                        {
+                            var length = Convert.FromBase64String(s.Key).Length;
+                            return length is 16 or 24 or 32;
+                        }
+                        catch (FormatException) { return false; }
+                    }, "IdProtectionSettings.Key must be a base64-encoded AES key of 16, 24 or 32 bytes.")
+                    .ValidateOnStart();
                 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
                 builder.Services.Configure<SeedingSettings>(builder.Configuration.GetSection("SeedingSettings"));
                 builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));
@@ -185,6 +202,8 @@ namespace ClinicHub.API
                 }
 
                 app.UseRequestLocalization();
+
+                app.UseHsts();
 
                 app.MapOpenApi("/openapi/{documentName}.json");
 
@@ -250,12 +269,13 @@ namespace ClinicHub.API
                     };
                 });
 
-                // NET-Tracker middleware — exclude background polling, docs, and static files to prevent DB connection pool exhaustion
+                // NET-Tracker middleware — exclude background polling, docs, static files, and public deeplink pages to prevent DB connection pool exhaustion
                 app.UseWhen(context => !context.Request.Path.StartsWithSegments("/hangfire")
                                     && !context.Request.Path.StartsWithSegments("/scalar")
                                     && !context.Request.Path.StartsWithSegments("/openapi")
                                     && !context.Request.Path.StartsWithSegments("/files")
-                                    && !context.Request.Path.StartsWithSegments("/net-tracker"),
+                                    && !context.Request.Path.StartsWithSegments("/net-tracker")
+                                    && !context.Request.Path.StartsWithSegments("/go"),
                     subApp => subApp.UseNetTracker(app.Configuration));
 
 

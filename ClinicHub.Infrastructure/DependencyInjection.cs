@@ -61,6 +61,7 @@ namespace ClinicHub.Infrastructure
             services.AddScoped<IJwtTokenService, JwtTokenService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IDeepLinkService, DeepLinkService>();
+            services.AddSingleton<IIdProtectorService, IdProtectorService>();
             services.AddScoped<IFacebookAuth, FacebookAuth>();
             services.AddScoped<IGoogleAuth, GoogleAuth>();
             services.AddScoped<IPusherService, PusherService>();
@@ -153,7 +154,7 @@ namespace ClinicHub.Infrastructure
                 ValidIssuer = jwtSettings.Issuer,
                 ValidateAudience = false,
                 ValidAudience = jwtSettings.Audience,
-                RequireExpirationTime = false,
+                RequireExpirationTime = true,
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.Zero,
             };

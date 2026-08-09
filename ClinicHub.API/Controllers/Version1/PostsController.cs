@@ -21,10 +21,12 @@ namespace ClinicHub.API.Controllers.Version1
     public class PostsController : BaseApiController
     {
         private readonly IDeepLinkService _deepLinkService;
+        private readonly ICurrentUserService _currentUserService;
 
-        public PostsController(IMediator mediator, IDeepLinkService deepLinkService) : base(mediator)
+        public PostsController(IMediator mediator, IDeepLinkService deepLinkService, ICurrentUserService currentUserService) : base(mediator)
         {
             _deepLinkService = deepLinkService;
+            _currentUserService = currentUserService;
         }
 
         /// <summary>
@@ -151,6 +153,9 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> GetShareLink(Guid id, CancellationToken ct)
         {
             var post = await _mediator.Send(new GetPostByIdQuery(id), ct);
+            if (post.AuthorId != _currentUserService.UserId)
+                return NotFound();
+
             var deepLink = _deepLinkService.GeneratePostLink(post.Id);
             return Ok(new { link = deepLink });
         }

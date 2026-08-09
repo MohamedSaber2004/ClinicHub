@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace ClinicHub.API.Controllers.Version1
@@ -28,19 +29,6 @@ namespace ClinicHub.API.Controllers.Version1
             _deepLinkSettings = deepLinkSettings.Value;
         }
 
-        [HttpPost]
-        [Route(ApiRoutes.DeepLinks.Verify)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult Verify([FromBody] VerifyDeepLinkRequest request)
-        {
-            if (string.IsNullOrWhiteSpace(request.Data) || string.IsNullOrWhiteSpace(request.Token))
-                return BadRequest("Data and token are required.");
-
-            var isValid = _deepLinkService.VerifyToken(request.Data, request.Token);
-            return Ok(new { valid = isValid });
-        }
-
         [HttpGet]
         [Route(ApiRoutes.DeepLinks.GoRoute)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -50,27 +38,31 @@ namespace ClinicHub.API.Controllers.Version1
             if (string.IsNullOrWhiteSpace(path) || path.Length > MaxPathLength || !PathPattern.IsMatch(path))
                 return NotFound();
 
-            var userAgent = Request.Headers.UserAgent.ToString();
-            var isAndroid = userAgent.Contains("Android", StringComparison.OrdinalIgnoreCase);
-            var isIos = userAgent.Contains("iPhone", StringComparison.OrdinalIgnoreCase)
-                        || userAgent.Contains("iPad", StringComparison.OrdinalIgnoreCase)
-                        || userAgent.Contains("iPod", StringComparison.OrdinalIgnoreCase);
+            Response.Headers.CacheControl = "no-store, no-cache, must-revalidate";
+            Response.Headers.Append("X-Robots-Tag", "noindex, nofollow");
+            Response.Headers.Append("Referrer-Policy", "no-referrer");
 
-            var html = BuildFallbackPage(path, isAndroid, isIos);
+            var html = BuildFallbackPage(path);
             return Content(html, "text/html; charset=utf-8");
         }
 
-        private string BuildFallbackPage(string path, bool isAndroid, bool isIos)
+        private string BuildFallbackPage(string path)
         {
             var safePath = WebUtility.HtmlEncode(path);
-            var safePathJs = safePath.Replace("'", "\\'");
-            var scheme = WebUtility.HtmlEncode(_deepLinkSettings.AppScheme);
             var appNameAr = WebUtility.HtmlEncode(_deepLinkSettings.AppNameAr);
-            var appNameEn = WebUtility.HtmlEncode(_deepLinkSettings.AppNameEn);
             var playStoreUrl = WebUtility.HtmlEncode(_deepLinkSettings.PlayStoreUrl);
             var appStoreUrl = WebUtility.HtmlEncode(_deepLinkSettings.AppStoreUrl);
             var webFallbackUrl = WebUtility.HtmlEncode(
                 string.IsNullOrWhiteSpace(_deepLinkSettings.WebFallbackUrl) ? "/" : _deepLinkSettings.WebFallbackUrl);
+
+            var pathJs = JsonSerializer.Serialize(path);
+            var schemeJs = JsonSerializer.Serialize(_deepLinkSettings.AppScheme);
+            var playStoreUrlJs = JsonSerializer.Serialize(_deepLinkSettings.PlayStoreUrl);
+            var appStoreUrlJs = JsonSerializer.Serialize(_deepLinkSettings.AppStoreUrl);
+            var webFallbackUrlJs = JsonSerializer.Serialize(
+                string.IsNullOrWhiteSpace(_deepLinkSettings.WebFallbackUrl) ? "/" : _deepLinkSettings.WebFallbackUrl);
+
+            var logoChar = appNameAr.Length > 0 ? appNameAr.Substring(0, 1) : "C";
 
             var sb = new StringBuilder();
             sb.AppendLine("<!DOCTYPE html>");
@@ -95,7 +87,7 @@ namespace ClinicHub.API.Controllers.Version1
             sb.AppendLine("</head>");
             sb.AppendLine("<body>");
             sb.AppendLine("<div class=\"card\">");
-            sb.AppendLine("<div class=\"logo\">" + appNameAr.Substring(0, 1) + "</div>");
+            sb.AppendLine("<div class=\"logo\">" + logoChar + "</div>");
             sb.AppendLine($"<h1>{appNameAr}</h1>");
             sb.AppendLine("<p>سيفتح التطبيق على جهازك. إذا لم يفتح تلقائياً، اضغط على أحد الأزرار أدناه.</p>");
             sb.AppendLine($"<a id=\"btnOpen\" class=\"btn btn-primary btn-hidden\" href=\"#\">فتح التطبيق</a>");
@@ -106,8 +98,8 @@ namespace ClinicHub.API.Controllers.Version1
             sb.AppendLine("</div>");
             sb.AppendLine("<script>");
             sb.AppendLine("(function(){");
-            sb.AppendLine("var path='" + safePathJs + "';");
-            sb.AppendLine("var scheme='" + scheme + "';");
+            sb.AppendLine("var path=" + pathJs + ";");
+            sb.AppendLine("var scheme=" + schemeJs + ";");
             sb.AppendLine("var ua=window.navigator.userAgent;");
             sb.AppendLine("var isAndroid=/Android/i.test(ua);");
             sb.AppendLine("var isIos=/iPhone|iPad|iPod/i.test(ua);");
@@ -117,7 +109,7 @@ namespace ClinicHub.API.Controllers.Version1
             sb.AppendLine("var btnIos=document.getElementById('btnIos');");
             sb.AppendLine("var btnWeb=document.getElementById('btnWeb');");
             sb.AppendLine("var status=document.getElementById('status');");
-            sb.AppendLine("var storeUrl=isAndroid?'" + playStoreUrl + "':isIos?'" + appStoreUrl + "':'" + webFallbackUrl + "';");
+            sb.AppendLine("var storeUrl=isAndroid?" + playStoreUrlJs + ":isIos?" + appStoreUrlJs + ":" + webFallbackUrlJs + ";");
             sb.AppendLine("var fallbackTimer=null;");
             sb.AppendLine("var done=false;");
             sb.AppendLine("function toStore(){if(done)return;done=true;clearTimeout(fallbackTimer);status.textContent='جاري فتح المتجر...';window.location.replace(storeUrl);}");
@@ -142,11 +134,5 @@ namespace ClinicHub.API.Controllers.Version1
             sb.AppendLine("</html>");
             return sb.ToString();
         }
-    }
-
-    public class VerifyDeepLinkRequest
-    {
-        public string Data { get; set; } = string.Empty;
-        public string Token { get; set; } = string.Empty;
     }
 }
