@@ -17,7 +17,7 @@ Link: https://doctory.runasp.net/go/{unique-path}
              Mobile  -> tries to open the app via  clinichub://{path}
                         (if it opens, page is backgrounded and the timer is cancelled)
                         else after 1.8s -> redirects to the correct store
-             Desktop -> redirects to the web app after 0.4s
+             Desktop -> shows the page with buttons (Open app / Google Play / App Store / Web) — no auto-redirect
         -> the page also shows manual buttons: Open app / Google Play / App Store / Web
 ```
 
@@ -90,7 +90,7 @@ var link = _deepLinkService.GenerateGoLink("clinic/3f9a0000-0000-0000-0000-00000
 ## 6. Testing
 
 ```bash
-# Desktop -> web fallback
+# Desktop -> page with buttons (no auto-redirect)
 curl "https://localhost:5027/go/test"
 # Android UA -> page with Play Store target + clinichub attempt
 curl -A "Mozilla/5.0 (Linux; Android 13) Chrome/120.0 Mobile" "https://localhost:5027/go/clinic/abc"
