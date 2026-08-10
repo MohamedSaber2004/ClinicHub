@@ -29,7 +29,7 @@ namespace ClinicHub.Persistence.Configuration
 
             builder.HasIndex(x => x.Token)
                 .IsUnique()
-                .HasFilter("[IsDeleted] = 0");
+                .HasFilter("\"IsDeleted\" = false");
         }
     }
 }

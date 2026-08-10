@@ -35,11 +35,11 @@ namespace ClinicHub.Persistence.Configuration
 
             builder.HasIndex(r => new { r.UserId, r.DoctorId, r.Type })
                 .IsUnique()
-                .HasFilter("[DoctorId] IS NOT NULL AND [IsDeleted] = 0");
+                .HasFilter("\"DoctorId\" IS NOT NULL AND \"IsDeleted\" = false");
 
             builder.HasIndex(r => new { r.UserId, r.ClinicId, r.Type })
                 .IsUnique()
-                .HasFilter("[ClinicId] IS NOT NULL AND [IsDeleted] = 0");
+                .HasFilter("\"ClinicId\" IS NOT NULL AND \"IsDeleted\" = false");
 
         }
 

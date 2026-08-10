@@ -25,7 +25,7 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.Notes).HasMaxLength(500);
         builder.HasIndex(p => p.AppointmentId);
         builder.HasIndex(p => p.Type);
-        builder.HasIndex(p => p.RefNumber).IsUnique().HasFilter("[RefNumber] IS NOT NULL");
+        builder.HasIndex(p => p.RefNumber).IsUnique().HasFilter("\"RefNumber\" IS NOT NULL");
 
         builder.HasOne(p => p.Appointment)
             .WithMany()
@@ -38,6 +38,6 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(p => p.ClinicId);
-        builder.HasIndex(p => p.SubscriptionId).IsUnique().HasFilter("[SubscriptionId] IS NOT NULL");
+        builder.HasIndex(p => p.SubscriptionId).IsUnique().HasFilter("\"SubscriptionId\" IS NOT NULL");
     }
 }

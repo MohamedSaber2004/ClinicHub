@@ -18,5 +18,10 @@ namespace ClinicHub.Application.Common.Options
         public int? SubscriptionCount { get; set; } = 5;
         public int? AdvertisementCount { get; set; } = 5;
         public int? AuditLogCount { get; set; } = 20;
+
+        public string? SuperAdminEmail { get; set; }
+        public string? SuperAdminPassword { get; set; }
+        public string? SuperAdminFullName { get; set; }
+        public string? SuperAdminPhoneNumber { get; set; }
     }
 }

@@ -39,7 +39,7 @@ public class AdvertisementConfiguration : IEntityTypeConfiguration<Advertisement
 
         builder.HasIndex(x => x.ClinicId);
         builder.HasIndex(x => new { x.ClinicId, x.Status });
-        builder.HasIndex(x => x.PaymentId).IsUnique().HasFilter("[PaymentId] IS NOT NULL");
+        builder.HasIndex(x => x.PaymentId).IsUnique().HasFilter("\"PaymentId\" IS NOT NULL");
 
         builder.HasQueryFilter(x => !x.IsDeleted);
     }

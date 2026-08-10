@@ -57,11 +57,11 @@ namespace ClinicHub.Persistence.Configuration
                 .HasMaxLength(200);
 
             builder.Property(x => x.Location)
-                .HasColumnType("geography");
+                .HasColumnType("geometry (point)");
 
             builder.HasIndex(x => x.Location)
                 .HasDatabaseName("IX_Clinics_Location")
-                .HasAnnotation("SqlServer:SpatialIndex", true);
+                .HasMethod("GIST");
 
             builder.Property(x => x.IsRegistered)
                 .HasDefaultValue(true);

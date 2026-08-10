@@ -60,7 +60,7 @@ namespace ClinicHub.Domain.Common
     public class BaseEntity<TKey> : BaseEntity, IBaseEntity<TKey> where TKey : IEquatable<TKey>
     {
         [Key]
-        public TKey Id { get; private set; } = default!;
+        public TKey Id { get; protected set; } = default!;
 
         public BaseEntity()
         {

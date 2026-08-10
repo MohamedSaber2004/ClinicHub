@@ -16,5 +16,21 @@ namespace ClinicHub.Domain.Entities
         public bool IsActive { get; set; } = true;
         public int SortOrder { get; set; }
         public ICollection<PlanPermission> Permissions { get; set; } = new List<PlanPermission>();
+
+        public static Plan Create(Guid id, string name, string? nameAr, string? description, string? descriptionAr,
+            decimal priceMonthly, decimal priceYearly, int? maxDoctors, int? maxStaff, string? features, int sortOrder) => new()
+        {
+            Id = id,
+            Name = name,
+            NameAr = nameAr,
+            Description = description,
+            DescriptionAr = descriptionAr,
+            PriceMonthly = priceMonthly,
+            PriceYearly = priceYearly,
+            MaxDoctors = maxDoctors,
+            MaxStaff = maxStaff,
+            Features = features,
+            SortOrder = sortOrder
+        };
     }
 }

@@ -1,1 +1,1 @@
-﻿https://doctory.runasp.net/go/post/361936c2-f149-457a-a3e0-dbfbc063a986
+﻿postgresql://neondb_owner:npg_vz4YyWhHjr1J@ep-lingering-rain-ayx7ua9s.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require

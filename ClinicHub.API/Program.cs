@@ -32,6 +32,10 @@ namespace ClinicHub.API
     {
         public static async Task Main(string[] args)
         {
+            // Npgsql: the app uses DateTime.Now (Kind=Local) throughout; legacy timestamp
+            // behavior keeps DateTime <-> timestamp mappings without UTC enforcement.
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
             try
             {
                 var builder = WebApplication.CreateBuilder(args);
@@ -240,6 +244,8 @@ namespace ClinicHub.API
                         var services = scope.ServiceProvider;
                         await services.SeedSpecializationsAsync();
                         await services.SeedRolesAsync();
+                        await services.SeedPlansAsync();
+                        await services.SeedSuperAdminAsync();
                         Log.Information("Database seeding completed successfully.");
                     }
                     catch (Exception ex)

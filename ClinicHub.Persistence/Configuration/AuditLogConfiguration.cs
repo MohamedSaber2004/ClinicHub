@@ -15,8 +15,8 @@ public class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
         builder.Property(x => x.Action).IsRequired().HasMaxLength(100);
         builder.Property(x => x.EntityType).IsRequired().HasMaxLength(100);
         builder.Property(x => x.EntityId).HasMaxLength(100);
-        builder.Property(x => x.OldValues).HasColumnType("nvarchar(max)");
-        builder.Property(x => x.NewValues).HasColumnType("nvarchar(max)");
+        builder.Property(x => x.OldValues);
+        builder.Property(x => x.NewValues);
         builder.Property(x => x.Timestamp).IsRequired();
 
         builder.HasOne(x => x.Clinic)

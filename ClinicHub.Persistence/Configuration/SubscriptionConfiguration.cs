@@ -36,7 +36,7 @@ public class SubscriptionConfiguration : IEntityTypeConfiguration<Subscription>
 
         builder.HasIndex(x => x.ClinicId);
         builder.HasIndex(x => x.PlanId);
-        builder.HasIndex(x => x.PaymentId).IsUnique().HasFilter("[PaymentId] IS NOT NULL");
+        builder.HasIndex(x => x.PaymentId).IsUnique().HasFilter("\"PaymentId\" IS NOT NULL");
 
         builder.HasQueryFilter(x => !x.IsDeleted);
     }

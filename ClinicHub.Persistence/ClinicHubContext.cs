@@ -68,7 +68,9 @@ namespace ClinicHub.Persistence
             builder.ApplyConfigurationsFromAssembly(typeof(ClinicHubContext).Assembly,
                 type => type.Namespace is not null && type.Namespace.EndsWith("Configuration"));
 
-            builder.HasDefaultSchema("dbo");
+            builder.HasDefaultSchema("public");
+
+            builder.HasPostgresExtension("postgis");
 
             foreach (var entityType in builder.Model.GetEntityTypes()
                 .Where(e => typeof(IClinicScopedEntity).IsAssignableFrom(e.ClrType)))
