@@ -111,6 +111,7 @@ namespace ClinicHub.API.Controllers.Version1
 
         [HttpGet]
         [Route(ApiRoutes.DoctorDashboard.Patients)]
+        [RequirePlanPermission(SubscriptionPermission.PatientRecords)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetPatients([FromQuery] GetDoctorPatientsQuery query, CancellationToken ct)
         {
@@ -120,6 +121,7 @@ namespace ClinicHub.API.Controllers.Version1
 
         [HttpGet]
         [Route(ApiRoutes.DoctorDashboard.PatientHistory)]
+        [RequirePlanPermission(SubscriptionPermission.PatientRecords)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetPatientHistory(Guid patientId, [FromQuery] GetPatientHistoryQuery query, CancellationToken ct)

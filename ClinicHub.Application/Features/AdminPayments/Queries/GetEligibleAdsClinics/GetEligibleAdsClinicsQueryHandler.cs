@@ -28,7 +28,7 @@ public class GetEligibleAdsClinicsQueryHandler : IRequestHandler<GetEligibleAdsC
             .Where(s => s.Clinic != null
                 && s.Clinic.Status == ClinicStatus.Active
                 && s.Plan != null
-                && s.Plan.Permissions.Any(pp => pp.Permission == SubscriptionPermission.AdvancedReports))
+                && s.Plan.Permissions.Any(pp => pp.Permission == SubscriptionPermission.MarketingTools))
             .Select(s => new EligibleClinicDto
             {
                 Id = s.ClinicId,

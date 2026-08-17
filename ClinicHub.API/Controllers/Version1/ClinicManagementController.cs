@@ -12,6 +12,7 @@ using ClinicHub.Application.Features.Clinics.Commands.UpdateClinic;
 using ClinicHub.Application.Features.Clinics.Commands.UpdateClinicSettings;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicBookings;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicDashboardStats;
+using ClinicHub.Application.Features.Clinics.Queries.GetClinicAdvancedReport;
 using ClinicHub.Application.Features.Clinics.DTOs;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicById;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicDetails;
@@ -222,11 +223,28 @@ namespace ClinicHub.API.Controllers.Version1
         }
 
         /// <summary>
+        /// Returns advanced clinic analytics for the selected date range:
+        /// revenue by doctor, appointment status distribution and busiest days.
+        /// </summary>
+        [HttpGet]
+        [Route(ApiRoutes.ClinicManagement.AdvancedReport)]
+        [RoleAuthorize(nameof(UserType.ClinicOwner))]
+        [RequirePlanPermission(SubscriptionPermission.AdvancedReports)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> AdvancedReport([FromQuery] GetClinicAdvancedReportQuery query, CancellationToken ct)
+        {
+            var result = await _mediator.Send(query, ct);
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Retrieves paginated clinic bookings filtered by status.
         /// </summary>
         [HttpGet]
         [Route(ApiRoutes.ClinicManagement.GetBookings)]
         [RoleAuthorize(nameof(UserType.ClinicOwner))]
+        [RequirePlanPermission(SubscriptionPermission.ManageAppointments)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetBookings([FromQuery] GetClinicBookingsQuery query)
@@ -241,6 +259,7 @@ namespace ClinicHub.API.Controllers.Version1
         [HttpPost]
         [Route(ApiRoutes.ClinicManagement.AcceptBooking)]
         [RoleAuthorize(nameof(UserType.ClinicOwner))]
+        [RequirePlanPermission(SubscriptionPermission.ManageAppointments)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -256,6 +275,7 @@ namespace ClinicHub.API.Controllers.Version1
         [HttpPost]
         [Route(ApiRoutes.ClinicManagement.RejectBooking)]
         [RoleAuthorize(nameof(UserType.ClinicOwner))]
+        [RequirePlanPermission(SubscriptionPermission.ManageAppointments)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
