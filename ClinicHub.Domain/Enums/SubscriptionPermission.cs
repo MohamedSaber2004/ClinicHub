@@ -9,7 +9,6 @@ namespace ClinicHub.Domain.Enums
         BasicReports = 4,
         AdvancedReports = 8,
         MarketingTools = 16,
-        PrioritySupport = 32,
         ManageStaff = 64,
         ManageDoctors = 128,
         OnlineBooking = 256,

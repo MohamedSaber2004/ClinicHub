@@ -62,8 +62,11 @@ namespace ClinicHub.Application.Features.Doctors.Commands.CreateDoctorWithAvaila
                     doctorLimit = await PlanLimitService.CanAddDoctorAsync(_ctx, clinicId, ct);
                     return doctorLimit.Allowed;
                 })
+                .When(v => v.ClinicId != Guid.Empty)
                 .WithMessage(v => JsonLocalizationProvider.GetLocalizedString(
-                    _localizer[LocalizationKeys.SubscriptionMessages.DoctorLimitReached.Value, doctorLimit!.Limit ?? 0]));
+                    doctorLimit!.HasActiveSubscription
+                        ? _localizer[LocalizationKeys.SubscriptionMessages.DoctorLimitReached.Value, doctorLimit.Limit ?? 0]
+                        : _localizer[LocalizationKeys.SubscriptionMessages.NoActiveSubscription.Value]));
 
             RuleFor(v => v.SpecializationId)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))

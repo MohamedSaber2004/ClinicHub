@@ -321,6 +321,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString LoginRequiresSubscription = new("Subscriptions.LoginRequiresSubscription");
             public static readonly KeyString DoctorLimitReached = new("Subscriptions.DoctorLimitReached");
             public static readonly KeyString StaffLimitReached = new("Subscriptions.StaffLimitReached");
+            public static readonly KeyString NoActiveSubscription = new("Subscriptions.NoActiveSubscription");
         }
 
         public static class AdsMessages

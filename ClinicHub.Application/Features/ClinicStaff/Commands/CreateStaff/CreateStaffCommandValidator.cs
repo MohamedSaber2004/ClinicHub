@@ -14,16 +14,19 @@ namespace ClinicHub.Application.Features.ClinicStaff.Commands.CreateStaff
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IClinicHubContext _context;
         private readonly IStringLocalizer<Messages> _localizer;
 
         public CreateStaffCommandValidator(
             IStringLocalizer<Messages> localizer,
             UserManager<ApplicationUser> userManager,
             IUnitOfWork unitOfWork,
-            ICurrentUserService currentUserService)
+            ICurrentUserService currentUserService,
+            IClinicHubContext context)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
+            _context = context;
             _localizer = localizer;
             PlanLimitResult? staffLimit = null;
             RuleFor(v => v.FullName)
@@ -58,11 +61,13 @@ namespace ClinicHub.Application.Features.ClinicStaff.Commands.CreateStaff
                     if (clinicId == null)
                         return true;
 
-                    staffLimit = await PlanLimitService.CanAddStaffAsync(_unitOfWork, userManager, clinicId.Value, ct);
+                    staffLimit = await PlanLimitService.CanAddStaffAsync(_unitOfWork, userManager, _context, clinicId.Value, ct);
                     return staffLimit.Allowed;
                 })
                 .WithMessage(_ => JsonLocalizationProvider.GetLocalizedString(
-                    _localizer[LocalizationKeys.SubscriptionMessages.StaffLimitReached.Value, staffLimit!.Limit ?? 0]));
+                    staffLimit!.HasActiveSubscription
+                        ? _localizer[LocalizationKeys.SubscriptionMessages.StaffLimitReached.Value, staffLimit.Limit ?? 0]
+                        : _localizer[LocalizationKeys.SubscriptionMessages.NoActiveSubscription.Value]));
         }
     }
 }
