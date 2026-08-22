@@ -6,6 +6,7 @@ using ClinicHub.Application.Features.Payment.Commands.InitiateBookingPayment;
 using ClinicHub.Application.Features.Payment.Commands.InitiatePayment;
 using ClinicHub.Application.Features.Payment.Commands.VerifyBookingPayment;
 using ClinicHub.Application.Features.Payment.Queries.GetPaymentStatus;
+using ClinicHub.Application.Features.Payment.Queries.VerifyLatestSubscriptionPayment;
 using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -82,6 +83,22 @@ public class PaymentsController : BaseApiController
     {
         var query = new GetPaymentStatusQuery { AppointmentId = appointmentId };
         var result = await _mediator.Send(query);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Verifies the clinic's most recent subscription payment (local state first,
+    /// then a direct Paymob inquiry) and activates the subscription idempotently
+    /// when Paymob confirms the money was captured. Used after the user returns
+    /// from the payment gateway when the webhook has not arrived yet.
+    /// </summary>
+    [Authorize]
+    [HttpGet]
+    [Route(ApiRoutes.Payments.VerifyLatestSubscription)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> VerifyLatestSubscriptionPayment(CancellationToken ct)
+    {
+        var result = await _mediator.Send(new VerifyLatestSubscriptionPaymentQuery(), ct);
         return Ok(result);
     }
 

@@ -44,6 +44,7 @@ namespace ClinicHub.Application
             services.AddAutoMapper(configAction: (action) => { }, Assembly.GetExecutingAssembly());
 
             services.AddScoped<IAppointmentAcceptanceService, AppointmentAcceptanceService>();
+            services.AddScoped<ISubscriptionPaymentCompleter, SubscriptionPaymentCompleter>();
 
             services.Configure<GoogleMapsSettings>(configuration.GetSection("GoogleMaps"));
 

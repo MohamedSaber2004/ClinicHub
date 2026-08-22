@@ -21,5 +21,11 @@ public interface IPaymobService
 
     Task<bool> ValidateWebhookAsync(string hmac, IDictionary<string, string> transactionData);
 
+    /// <summary>
+    /// Asks Paymob directly whether an order has been paid (server-to-server inquiry).
+    /// Used as a fallback when the webhook has not arrived yet.
+    /// </summary>
+    Task<PaymobOrderStatusDto> GetOrderPaymentStatusAsync(string orderId, CancellationToken cancellationToken);
+
     Task<RefundResultDto> RefundTransactionAsync(string transactionId, decimal amount, CancellationToken cancellationToken);
 }

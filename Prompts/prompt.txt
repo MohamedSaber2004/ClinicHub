@@ -1,1 +1,5 @@
-﻿postgresql://neondb_owner:npg_vz4YyWhHjr1J@ep-lingering-rain-ayx7ua9s.c-5.us-east-2.aws.neon.tech/neondb?sslmode=require
+﻿﻿[03:39:15 WRN] Failed to determine the https port for redirect.
+﻿[03:39:16 WRN] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: '["br"]'. Consider disabling response compression.
+﻿[03:39:16 WRN] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: '["br"]'. Consider disabling response compression.
+﻿[03:39:28 WRN] Unable to configure Browser Link script injection on the response. This may have been caused by the response's Content-Encoding: '["br"]'. Consider disabling response compression.
+﻿[03:39:28 WRN] Unable to configure browser refresh script injection on the response. This may have been caused by the response's Content-Encoding: '["br"]'. Consider disabling response compression.

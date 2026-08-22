@@ -236,6 +236,66 @@ public class PaymobService : IPaymobService
         }
     }
 
+    /// <inheritdoc />
+    public async Task<PaymobOrderStatusDto> GetOrderPaymentStatusAsync(string orderId, CancellationToken cancellationToken)
+    {
+        var result = new PaymobOrderStatusDto();
+
+        if (string.IsNullOrWhiteSpace(_settings.ApiKey) || string.IsNullOrWhiteSpace(orderId))
+            return result;
+
+        try
+        {
+            // 1. Legacy auth token (valid for 1 hour)
+            var authPayload = new { api_key = _settings.ApiKey };
+            var authRequest = new HttpRequestMessage(HttpMethod.Post, $"{BaseUrl}/api/auth/tokens")
+            {
+                Content = new StringContent(
+                    JsonSerializer.Serialize(authPayload),
+                    Encoding.UTF8,
+                    "application/json")
+            };
+
+            var authResponse = await _httpClient.SendAsync(authRequest, cancellationToken);
+            if (!authResponse.IsSuccessStatusCode)
+                return result;
+
+            var authJson = await authResponse.Content.ReadAsStringAsync(cancellationToken);
+            using var authDoc = JsonDocument.Parse(authJson);
+            if (!authDoc.RootElement.TryGetProperty("token", out var tokenElement))
+                return result;
+
+            var token = tokenElement.GetString();
+            if (string.IsNullOrWhiteSpace(token))
+                return result;
+
+            // 2. Order inquiry
+            var orderResponse = await _httpClient.GetAsync(
+                $"{BaseUrl}/api/ecommerce/orders/{orderId}?token={Uri.EscapeDataString(token)}",
+                cancellationToken);
+
+            if (!orderResponse.IsSuccessStatusCode)
+                return result;
+
+            var orderJson = await orderResponse.Content.ReadAsStringAsync(cancellationToken);
+            using var doc = JsonDocument.Parse(orderJson);
+            var root = doc.RootElement;
+
+            result.Found = true;
+            result.AmountCents = root.TryGetProperty("amount_cents", out var amountEl) && amountEl.TryGetInt64(out var a) ? a : 0;
+            result.PaidAmountCents = root.TryGetProperty("paid_amount_cents", out var paidEl) && paidEl.TryGetInt64(out var p) ? p : 0;
+            result.Paid = result.AmountCents > 0 && result.PaidAmountCents >= result.AmountCents;
+
+            return result;
+        }
+        catch (Exception)
+        {
+            // Inquiry is best-effort; treat any failure as "unknown / not found"
+            // so the caller falls back to the webhook as the source of truth.
+            return new PaymobOrderStatusDto();
+        }
+    }
+
     private static string GetValue(IDictionary<string, string> data, params string[] keys)
     {
         foreach (var key in keys)

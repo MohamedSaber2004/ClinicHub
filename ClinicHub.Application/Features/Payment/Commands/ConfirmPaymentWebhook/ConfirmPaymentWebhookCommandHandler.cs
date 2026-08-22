@@ -17,8 +17,9 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
     private readonly IFcmService _fcmService;
     private readonly IBackgroundJobScheduler _jobScheduler;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly ISubscriptionPaymentCompleter _subscriptionPaymentCompleter;
 
-    public ConfirmPaymentWebhookCommandHandler(IUnitOfWork unitOfWork, IPaymobService paymobService, ILogger<ConfirmPaymentWebhookCommandHandler> logger, IFcmService fcmService, IBackgroundJobScheduler jobScheduler, UserManager<ApplicationUser> userManager)
+    public ConfirmPaymentWebhookCommandHandler(IUnitOfWork unitOfWork, IPaymobService paymobService, ILogger<ConfirmPaymentWebhookCommandHandler> logger, IFcmService fcmService, IBackgroundJobScheduler jobScheduler, UserManager<ApplicationUser> userManager, ISubscriptionPaymentCompleter subscriptionPaymentCompleter)
     {
         _unitOfWork = unitOfWork;
         _paymobService = paymobService;
@@ -26,6 +27,7 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
         _fcmService = fcmService;
         _jobScheduler = jobScheduler;
         _userManager = userManager;
+        _subscriptionPaymentCompleter = subscriptionPaymentCompleter;
     }
 
     public async Task<bool> Handle(ConfirmPaymentWebhookCommand request, CancellationToken cancellationToken)
@@ -126,42 +128,7 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
             }
             else if (payment.Type == PaymentType.Subscription && payment.PlanId.HasValue && payment.SubscriptionPeriod.HasValue)
             {
-                if (payment.SubscriptionId.HasValue)
-                {
-                    _logger.LogWarning("Payment {PaymentId} already has subscription {SubscriptionId}. Skipping duplicate.", payment.Id, payment.SubscriptionId);
-                    return true;
-                }
-
-                var existingActiveSubs = await _unitOfWork.GetRepository<Subscription, Guid>()
-                    .GetAllAsync(s => s.ClinicId == payment.ClinicId && s.Status == SubscriptionStatus.Active)
-                    .ToListAsync(cancellationToken);
-
-                foreach (var activeSub in existingActiveSubs)
-                {
-                    activeSub.Status = SubscriptionStatus.Revoked;
-                    activeSub.Notes = "Revoked due to new subscription payment confirmation.";
-                }
-
-                var period = payment.SubscriptionPeriod.Value;
-                var now = DateTime.Now;
-                var endDate = period == SubscriptionPlan.Yearly ? now.AddYears(1) : now.AddMonths(1);
-
-                var subscription = new Subscription
-                {
-                    ClinicId = payment.ClinicId,
-                    PlanId = payment.PlanId.Value,
-                    Period = period,
-                    StartDate = now,
-                    EndDate = endDate,
-                    Amount = payment.Amount,
-                    Status = SubscriptionStatus.Active,
-                    PaidAt = now,
-                    PaymentId = payment.Id
-                };
-
-                await _unitOfWork.GetRepository<Subscription, Guid>().AddAsync(subscription);
-                payment.LinkToSubscription(subscription.Id);
-                await _jobScheduler.ScheduleSubscriptionExpirationAsync(subscription.Id, subscription.EndDate);
+                await _subscriptionPaymentCompleter.ActivateFromPaymentAsync(payment, cancellationToken);
             }
             else
             {

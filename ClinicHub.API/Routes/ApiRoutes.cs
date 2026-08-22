@@ -180,6 +180,7 @@ namespace ClinicHub.API.Routes
             public const string Webhook = Base + "/payments/webhook";
             public const string GetStatus = Base + "/payments/status/{appointmentId:guid}";
             public const string Result = Base + "/payments/result";
+            public const string VerifyLatestSubscription = Base + "/payments/verify-latest-subscription";
         }
 
         public static class Ratings
