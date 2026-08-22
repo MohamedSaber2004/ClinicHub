@@ -263,6 +263,15 @@ namespace ClinicHub.Infrastructure.Services
                         link = _deepLinkService.GenerateLink(DeepLinkRoutes.Appointments);
                     break;
 
+                case NotificationType.SubscriptionActivated:
+                    title = "تفعيل اشتراك";
+                    body = $"تم تفعيل اشتراك عيادة {clinicName} في باقة {GetParam(parameters, "planName")} بقيمة {amount}";
+                    data["clinicName"] = clinicName;
+                    data["planName"] = GetParam(parameters, "planName");
+                    data["amount"] = amount;
+                    link = _deepLinkService.GenerateLink(DeepLinkRoutes.Notifications);
+                    break;
+
                 default:
                     title = "إشعار";
                     body = "لديك إشعار جديد";
