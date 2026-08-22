@@ -16,6 +16,26 @@ namespace ClinicHub.Domain.Common
         [Timestamp]
         public byte[]? Version { get; internal set; }
 
+        private static readonly TimeZoneInfo AppTimeZone = ResolveAppTimeZone();
+
+        /// <summary>
+        /// Wall-clock time in Africa/Cairo regardless of the host server's timezone.
+        /// The production host runs UTC+2 while Egypt observes DST (UTC+3), which made
+        /// DateTime.Now stamps lag an hour behind users' clocks during DST months.
+        /// </summary>
+        public static DateTime CairoNow => TimeZoneInfo.ConvertTime(DateTime.UtcNow, AppTimeZone);
+
+        private static TimeZoneInfo ResolveAppTimeZone()
+        {
+            foreach (var id in new[] { "Egypt Standard Time", "Africa/Cairo" })
+            {
+                try { return TimeZoneInfo.FindSystemTimeZoneById(id); }
+                catch (TimeZoneNotFoundException) { }
+                catch (InvalidTimeZoneException) { }
+            }
+            return TimeZoneInfo.Local;
+        }
+
         public void Deactive()
         {
             IsActive = false;
@@ -38,19 +58,19 @@ namespace ClinicHub.Domain.Common
         {
             IsDeleted = true;
             IsActive = false;
-            DeletedAt = DateTime.Now;
+            DeletedAt = CairoNow;
             DeletedBy = deletedBy;
         }
 
         public virtual void MarkAsUpdated(string updatedBy)
         {
-            UpdatedAt = DateTime.Now;
+            UpdatedAt = CairoNow;
             UpdatedBy = updatedBy;
         }
 
         public virtual void MarkAsCreated(string createdBy)
         {
-            CreatedAt = DateTime.Now;
+            CreatedAt = CairoNow;
             CreatedBy = createdBy;
             IsActive = true;
             IsDeleted = false;
