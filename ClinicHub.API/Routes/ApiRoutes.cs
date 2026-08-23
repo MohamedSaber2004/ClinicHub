@@ -209,7 +209,11 @@ namespace ClinicHub.API.Routes
         {
             public const string BaseRoute = Base + "/admin/dashboard";
             public const string Stats = BaseRoute + "/stats";
-            public const string UrgentTickets = BaseRoute + "/urgent-tickets";
+            public const string RevenueTrend = BaseRoute + "/revenue-trend";
+            public const string ClinicsGrowth = BaseRoute + "/clinics-growth";
+            public const string SubscriptionsByPlan = BaseRoute + "/subscriptions-by-plan";
+            public const string UsersGrowth = BaseRoute + "/users-growth";
+            public const string AppointmentsSummary = BaseRoute + "/appointments-summary";
             public const string Users = BaseRoute + "/users";
             public const string ClinicLogs = BaseRoute + "/clinics/{clinicId:guid}/logs";
             public const string ClinicsLookup = BaseRoute + "/clinics";
@@ -290,8 +294,6 @@ namespace ClinicHub.API.Routes
 
         public static class AdminDashboardExt
         {
-            public const string Tickets = Base + "/admin/dashboard/tickets";
-            public const string UpdateTicketStatus = Base + "/admin/dashboard/tickets/{id:guid}/status";
             public const string AllSubscriptions = Base + "/admin/dashboard/subscriptions";
             public const string CreateSubscription = Base + "/admin/dashboard/subscriptions";
             public const string RevokeSubscription = Base + "/admin/dashboard/subscriptions/{id:guid}/revoke";

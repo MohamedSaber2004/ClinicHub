@@ -292,9 +292,5 @@
     "NotActive": "This plan is not active",
     "PlanIdRequired": "Plan ID is required",
     "InvalidPeriod": "Invalid subscription period"
-  },
-  "SupportTickets": {
-    "NotFound": "Support ticket not found",
-    "StatusUpdated": "Support ticket status updated successfully"
   }
 }

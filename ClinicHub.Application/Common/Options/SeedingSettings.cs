@@ -13,7 +13,6 @@ namespace ClinicHub.Application.Common.Options
         public int? DoctorCount { get; set; } = 5;
         public int? DoctorAvailabilityCount { get; set; } = 5;
         public int? AppointmentCount { get; set; } = 20;
-        public int? SupportTicketCount { get; set; } = 10;
         public int? PlanCount { get; set; } = 3;
         public int? SubscriptionCount { get; set; } = 5;
         public int? AdvertisementCount { get; set; } = 5;

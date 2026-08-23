@@ -292,9 +292,5 @@
     "NotActive": "هذه الباقة غير نشطة",
     "PlanIdRequired": "معرف الباقة مطلوب",
     "InvalidPeriod": "فترة الاشتراك غير صالحة"
-  },
-  "SupportTickets": {
-    "NotFound": "تذكرة الدعم غير موجودة",
-    "StatusUpdated": "تم تحديث حالة تذكرة الدعم بنجاح"
   }
 }

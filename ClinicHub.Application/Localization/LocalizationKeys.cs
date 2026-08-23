@@ -337,11 +337,5 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString PackageDeleted = new("AdPackages.Deleted");
         }
 
-        public static class SupportTicketMessages
-        {
-            public static readonly KeyString NotFound = new("SupportTickets.NotFound");
-            public static readonly KeyString StatusUpdated = new("SupportTickets.StatusUpdated");
-        }
-
     }
 }

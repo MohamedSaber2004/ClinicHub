@@ -11,6 +11,5 @@ namespace ClinicHub.Application.Common
         public const string Notifications = "/notifications";
         public const string Clinics = "/clinics";
         public const string ClinicDetails = "/clinics/{0}";
-        public const string SupportTickets = "/support-tickets/{0}";
     }
 }

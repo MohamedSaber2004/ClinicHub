@@ -5,14 +5,16 @@ using ClinicHub.Application.Features.Admin.Commands.ApproveClinic;
 using ClinicHub.Application.Features.Admin.Commands.ApproveUserVerification;
 using ClinicHub.Application.Features.Admin.Commands.RejectClinic;
 using ClinicHub.Application.Features.Admin.Commands.RejectUserVerification;
-using ClinicHub.Application.Features.Admin.Commands.UpdateSupportTicketStatus;
 using ClinicHub.Application.Features.Admin.Queries.GetAdminDashboardStats;
-using ClinicHub.Application.Features.Admin.Queries.GetAllSupportTickets;
+using ClinicHub.Application.Features.Admin.Queries.GetAppointmentsSummary;
 using ClinicHub.Application.Features.Admin.Queries.GetClinicAuditLogs;
 using ClinicHub.Application.Features.Admin.Queries.GetClinicsLookup;
+using ClinicHub.Application.Features.Admin.Queries.GetClinicsGrowth;
 using ClinicHub.Application.Features.Admin.Queries.GetPendingClinics;
 using ClinicHub.Application.Features.Admin.Queries.GetPendingVerifications;
-using ClinicHub.Application.Features.Admin.Queries.GetUrgentSupportTickets;
+using ClinicHub.Application.Features.Admin.Queries.GetRevenueTrend;
+using ClinicHub.Application.Features.Admin.Queries.GetSubscriptionsByPlan;
+using ClinicHub.Application.Features.Admin.Queries.GetUsersGrowth;
 using ClinicHub.Application.Features.Subscriptions.Commands.AdminCreateSubscription;
 using ClinicHub.Application.Features.Subscriptions.Commands.RevokeSubscription;
 using ClinicHub.Application.Features.Subscriptions.Queries.GetAllSubscriptions;
@@ -76,11 +78,47 @@ namespace ClinicHub.API.Controllers.Version1
         }
 
         [HttpGet]
-        [Route(ApiRoutes.AdminDashboard.UrgentTickets)]
+        [Route(ApiRoutes.AdminDashboard.RevenueTrend)]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetUrgentTickets(CancellationToken ct)
+        public async Task<IActionResult> GetRevenueTrend([FromQuery] GetRevenueTrendQuery query, CancellationToken ct)
         {
-            var result = await _mediator.Send(new GetUrgentSupportTicketsQuery(), ct);
+            var result = await _mediator.Send(query, ct);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Route(ApiRoutes.AdminDashboard.ClinicsGrowth)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetClinicsGrowth([FromQuery] GetClinicsGrowthQuery query, CancellationToken ct)
+        {
+            var result = await _mediator.Send(query, ct);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Route(ApiRoutes.AdminDashboard.SubscriptionsByPlan)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetSubscriptionsByPlan([FromQuery] GetSubscriptionsByPlanQuery query, CancellationToken ct)
+        {
+            var result = await _mediator.Send(query, ct);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Route(ApiRoutes.AdminDashboard.UsersGrowth)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetUsersGrowth([FromQuery] GetUsersGrowthQuery query, CancellationToken ct)
+        {
+            var result = await _mediator.Send(query, ct);
+            return Ok(result);
+        }
+
+        [HttpGet]
+        [Route(ApiRoutes.AdminDashboard.AppointmentsSummary)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAppointmentsSummary([FromQuery] GetAppointmentsSummaryQuery query, CancellationToken ct)
+        {
+            var result = await _mediator.Send(query, ct);
             return Ok(result);
         }
 
@@ -143,26 +181,6 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> RejectUser(Guid id, [FromBody] RejectUserVerificationCommand command, CancellationToken ct)
         {
             command = command with { UserId = id };
-            var result = await _mediator.Send(command, ct);
-            return Ok(result);
-        }
-
-        [HttpGet]
-        [Route(ApiRoutes.AdminDashboardExt.Tickets)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetTickets([FromQuery] GetAllSupportTicketsQuery query, CancellationToken ct)
-        {
-            var result = await _mediator.Send(query, ct);
-            return Ok(result);
-        }
-
-        [HttpPut]
-        [Route(ApiRoutes.AdminDashboardExt.UpdateTicketStatus)]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UpdateTicketStatus(Guid id, [FromBody] UpdateSupportTicketStatusCommand command, CancellationToken ct)
-        {
-            command.TicketId = id;
             var result = await _mediator.Send(command, ct);
             return Ok(result);
         }

@@ -29,9 +29,6 @@ namespace ClinicHub.Application.Features.Admin.Queries.GetAdminDashboardStats
             var clinicsQuery = _unitOfWork.ClinicRepository
                 .GetAllAsync(c => !c.IsDeleted && c.Status == ClinicStatus.Active);
 
-            var ticketsQuery = _unitOfWork.GetRepository<SupportTicket, Guid>()
-                .GetAllAsync(t => true);
-
             var adsQuery = _unitOfWork.GetRepository<Advertisement, Guid>()
                 .GetAllAsync(a => a.Status == AdvertisementStatus.Active);
 
@@ -41,19 +38,11 @@ namespace ClinicHub.Application.Features.Admin.Queries.GetAdminDashboardStats
             var specializationsQuery = _unitOfWork.SpecializationRepository
                 .GetAllAsync(s => true);
 
-            var totalTickets = await ticketsQuery.CountAsync(cancellationToken);
-            var urgentTickets = await ticketsQuery
-                .CountAsync(t => t.Priority == SupportTicketPriority.Urgent
-                    && (t.Status == SupportTicketStatus.Open || t.Status == SupportTicketStatus.InProgress),
-                    cancellationToken);
-
             return new AdminDashboardStatsDto
             {
                 TotalUsersCount = totalUsers,
                 VerificationRequestsCount = await verificationsQuery.CountAsync(cancellationToken),
                 ActiveClinicsCount = await clinicsQuery.CountAsync(cancellationToken),
-                SupportTicketsCount = totalTickets,
-                UrgentSupportTicketsCount = urgentTickets,
                 SpecializationsCount = await specializationsQuery.CountAsync(cancellationToken),
                 ActiveAdsCount = await adsQuery.CountAsync(cancellationToken),
                 RevokedSubscriptionsCount = await subscriptionsQuery.CountAsync(cancellationToken)

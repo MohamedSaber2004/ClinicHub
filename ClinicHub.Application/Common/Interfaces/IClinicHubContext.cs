@@ -18,7 +18,6 @@ namespace ClinicHub.Application.Common.Interfaces
         DbSet<UserFbToken> UserFbTokens { get; }
         DbSet<Notification> Notifications { get; }
         DbSet<UserRefreshToken> UserRefreshTokens { get; }
-        DbSet<SupportTicket> SupportTickets { get; }
         DbSet<Subscription> Subscriptions { get; }
         DbSet<Advertisement> Advertisements { get; }
         DbSet<AuditLog> AuditLogs { get; }

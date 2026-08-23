@@ -210,18 +210,6 @@ namespace ClinicHub.Infrastructure.Services
                     link = _deepLinkService.GenerateLink(DeepLinkRoutes.Clinics);
                     break;
 
-                case NotificationType.SupportTicketUpdate:
-                    title = "تحديث تذكرة الدعم";
-                    body = $"تم تحديث حالة تذكرتك «{GetParam(parameters, "subject")}» إلى {GetParam(parameters, "status", "جديدة")}";
-                    data["ticketId"] = GetParam(parameters, "ticketId");
-                    data["subject"] = GetParam(parameters, "subject");
-                    data["status"] = GetParam(parameters, "status");
-                    if (!string.IsNullOrEmpty(GetParam(parameters, "ticketId")))
-                        link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.SupportTickets, GetParam(parameters, "ticketId")));
-                    else
-                        link = _deepLinkService.GenerateLink(DeepLinkRoutes.Notifications);
-                    break;
-
                 case NotificationType.PaymentReceived:
                     title = "تم استلام الدفع";
                     body = $"تم استلام دفعة بقيمة {amount} لحجز {GetParam(parameters, "patientName")} في عيادتك {clinicName}";
