@@ -26,7 +26,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicDashboardStats
             var todayStart = now.Date;
             var todayEnd = todayStart.AddDays(1);
 
-            var weekStart = todayStart.AddDays(-(int)now.DayOfWeek + (int)DayOfWeek.Monday);
+            var weekStart = todayStart.AddDays(-(((int)now.DayOfWeek - (int)DayOfWeek.Monday + 7) % 7));
             var monthStart = new DateTime(now.Year, now.Month, 1);
             var yearStart = new DateTime(now.Year, 1, 1);
 
@@ -34,7 +34,10 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicDashboardStats
                 .GetAllAsync(a => a.ClinicId == clinicId && !a.IsDeleted);
 
             var paymentsQuery = _unitOfWork.PaymentRepository
-                .GetAllAsync(p => p.ClinicId == clinicId && p.Status == PaymentStatus.Paid);
+                .GetAllAsync(p => p.ClinicId == clinicId
+                    && p.Type == PaymentType.Appointment
+                    && p.Status == PaymentStatus.Paid
+                    && p.PaidAt != null);
 
             var todayVisits = await appointmentsQuery
                 .CountAsync(a => a.AppointmentDate >= todayStart && a.AppointmentDate < todayEnd
@@ -54,19 +57,19 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicDashboardStats
 
             var todayIncome = await paymentsQuery
                 .Where(p => p.PaidAt >= todayStart && p.PaidAt < todayEnd)
-                .SumAsync(p => (double?)p.Amount, cancellationToken) ?? 0;
+                .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0;
 
             var weeklyIncome = await paymentsQuery
                 .Where(p => p.PaidAt >= weekStart && p.PaidAt < todayEnd)
-                .SumAsync(p => (double?)p.Amount, cancellationToken) ?? 0;
+                .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0;
 
             var monthlyIncome = await paymentsQuery
                 .Where(p => p.PaidAt >= monthStart && p.PaidAt < todayEnd)
-                .SumAsync(p => (double?)p.Amount, cancellationToken) ?? 0;
+                .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0;
 
             var yearlyIncome = await paymentsQuery
                 .Where(p => p.PaidAt >= yearStart && p.PaidAt < todayEnd)
-                .SumAsync(p => (double?)p.Amount, cancellationToken) ?? 0;
+                .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0;
 
             var pendingActions = await appointmentsQuery
                 .CountAsync(a => a.Status == AppointmentStatus.Pending, cancellationToken);
