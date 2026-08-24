@@ -7,6 +7,7 @@ using ClinicHub.Application.Features.Doctors.Commands.CreateDoctorWithAvailabili
 using ClinicHub.Application.Features.Doctors.Commands.UpdateDoctor;
 using ClinicHub.Application.Features.Doctors.Commands.DeleteDoctor;
 using ClinicHub.Application.Features.Doctors.Queries.GetDoctorById;
+using ClinicHub.Application.Features.Doctors.Queries.GetMyDoctorProfile;
 using ClinicHub.Application.Features.Doctors.Queries.GetDoctorDetailsForMobile;
 using ClinicHub.Application.Features.Doctors.Queries.GetDoctorsByClinic;
 using ClinicHub.Domain.Enums;
@@ -47,6 +48,19 @@ namespace ClinicHub.API.Controllers.Version1
         {
             var query = new GetDoctorByIdQuery { Id = id };
             var result = await _mediator.Send(query);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Returns the doctor profile linked to the currently authenticated user.
+        /// </summary>
+        [HttpGet]
+        [Route(ApiRoutes.Doctors.GetMyProfile)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetMyProfile(CancellationToken ct)
+        {
+            var result = await _mediator.Send(new GetMyDoctorProfileQuery(), ct);
             return Ok(result);
         }
 

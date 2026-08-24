@@ -15,6 +15,7 @@ using ClinicHub.Application.Features.Clinics.Queries.GetClinicDashboardStats;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicRevenueTrend;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicAppointmentsSummary;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicAdvancedReport;
+using ClinicHub.Application.Features.Clinics.Queries.GetClinicOperationalReport;
 using ClinicHub.Application.Features.Clinics.DTOs;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicById;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicDetails;
@@ -263,6 +264,21 @@ namespace ClinicHub.API.Controllers.Version1
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> AdvancedReport([FromQuery] GetClinicAdvancedReportQuery query, CancellationToken ct)
+        {
+            var result = await _mediator.Send(query, ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Operational report for the clinic: attendance KPIs, hourly traffic,
+        /// weekday workload, doctor productivity and recent visits log.
+        /// </summary>
+        [HttpGet]
+        [Route(ApiRoutes.ClinicManagement.OperationalReport)]
+        [RoleAuthorize(nameof(UserType.ClinicOwner))]
+        [RequirePlanPermission(SubscriptionPermission.AdvancedReports)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> OperationalReport([FromQuery] GetClinicOperationalReportQuery query, CancellationToken ct)
         {
             var result = await _mediator.Send(query, ct);
             return Ok(result);

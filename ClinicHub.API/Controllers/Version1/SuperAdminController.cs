@@ -21,6 +21,7 @@ using ClinicHub.Application.Features.Subscriptions.Commands.AdminCreateSubscript
 using ClinicHub.Application.Features.Subscriptions.Commands.RevokeSubscription;
 using ClinicHub.Application.Features.Subscriptions.Queries.GetAllSubscriptions;
 using ClinicHub.Application.Features.Users.Queries.GetAllUsers;
+using ClinicHub.Application.Features.Users.Queries.GetUserAdminOverview;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Enums;
 using MediatR;
@@ -226,6 +227,18 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> GetPlatformSetting(CancellationToken ct)
         {
             var result = await _mediator.Send(new GetPlatformSettingQuery(), ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Returns a real-data overview for a user: visits, ratings, payments and requests.
+        /// </summary>
+        [HttpGet]
+        [Route(ApiRoutes.AdminDashboardExt.UserOverview)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetUserOverview(Guid id, CancellationToken ct)
+        {
+            var result = await _mediator.Send(new GetUserAdminOverviewQuery { UserId = id }, ct);
             return Ok(result);
         }
 
