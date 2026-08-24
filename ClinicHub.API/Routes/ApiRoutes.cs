@@ -296,6 +296,12 @@ namespace ClinicHub.API.Routes
             public const string RejectClinic = Base + "/admin/dashboard/clinics/{id:guid}/reject";
         }
 
+        public static class PlatformSettings
+        {
+            public const string Get = Base + "/admin/platform-settings";
+            public const string Update = Base + "/admin/platform-settings";
+        }
+
         public static class AdminDashboardExt
         {
             public const string AllSubscriptions = Base + "/admin/dashboard/subscriptions";

@@ -1,4 +1,5 @@
 using MediatR;
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Payment.DTOs;
 using ClinicHub.Domain.Enums;
@@ -10,6 +11,7 @@ using System.Threading.Tasks;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Localization;
+using Microsoft.EntityFrameworkCore;
 
 namespace ClinicHub.Application.Features.Payment.Commands.InitiatePayment;
 
@@ -50,7 +52,10 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
         if (bookingConfig == null)
             throw new BadRequestException(LocalizationKeys.BookingMessages.BookingConfigNotFound.Value);
 
-        var amount = bookingConfig.ConsultationFee;
+        var platformFeePercent = await GetPlatformFeePercentAsync(cancellationToken);
+
+        // Patient pays the clinic fee plus the platform fee percentage on top.
+        var amount = AppointmentPricingCalculator.CalculateTotal(bookingConfig.ConsultationFee, platformFeePercent);
         var user = await _unitOfWork.GetRepository<ApplicationUser, Guid>().GetByIdAsync(currentUserId);
 
         var billing = CreateBillingData(user);
@@ -89,6 +94,16 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
             RedirectUrl = walletResult.RedirectUrl,
             PaymentId = payment.Id
         };
+    }
+
+    private async Task<decimal> GetPlatformFeePercentAsync(CancellationToken cancellationToken)
+    {
+        var setting = await _unitOfWork.GetRepository<PlatformSetting, Guid>()
+            .GetAllAsync(s => !s.IsDeleted)
+            .OrderBy(s => s.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return setting?.AppointmentFeePercent ?? 0m;
     }
 
     private static PaymentBillingData CreateBillingData(ApplicationUser? user)

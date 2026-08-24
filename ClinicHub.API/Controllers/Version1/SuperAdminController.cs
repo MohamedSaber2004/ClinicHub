@@ -15,6 +15,8 @@ using ClinicHub.Application.Features.Admin.Queries.GetPendingVerifications;
 using ClinicHub.Application.Features.Admin.Queries.GetRevenueTrend;
 using ClinicHub.Application.Features.Admin.Queries.GetSubscriptionsByPlan;
 using ClinicHub.Application.Features.Admin.Queries.GetUsersGrowth;
+using ClinicHub.Application.Features.PlatformSettings.Commands.UpdatePlatformSetting;
+using ClinicHub.Application.Features.PlatformSettings.Queries.GetPlatformSetting;
 using ClinicHub.Application.Features.Subscriptions.Commands.AdminCreateSubscription;
 using ClinicHub.Application.Features.Subscriptions.Commands.RevokeSubscription;
 using ClinicHub.Application.Features.Subscriptions.Queries.GetAllSubscriptions;
@@ -212,6 +214,31 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> RevokeSubscription(Guid id, CancellationToken ct)
         {
             var result = await _mediator.Send(new RevokeSubscriptionCommand { SubscriptionId = id }, ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Returns the platform appointment fee percentage charged on top of every booking.
+        /// </summary>
+        [HttpGet]
+        [Route(ApiRoutes.PlatformSettings.Get)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetPlatformSetting(CancellationToken ct)
+        {
+            var result = await _mediator.Send(new GetPlatformSettingQuery(), ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Updates the platform appointment fee percentage (0-100).
+        /// </summary>
+        [HttpPut]
+        [Route(ApiRoutes.PlatformSettings.Update)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> UpdatePlatformSetting([FromBody] UpdatePlatformSettingCommand command, CancellationToken ct)
+        {
+            var result = await _mediator.Send(command, ct);
             return Ok(result);
         }
     }

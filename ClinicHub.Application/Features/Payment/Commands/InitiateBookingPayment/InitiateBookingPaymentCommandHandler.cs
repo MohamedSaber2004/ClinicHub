@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Payment.DTOs;
@@ -6,6 +7,7 @@ using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace ClinicHub.Application.Features.Payment.Commands.InitiateBookingPayment
 {
@@ -46,8 +48,12 @@ namespace ClinicHub.Application.Features.Payment.Commands.InitiateBookingPayment
             if (bookingConfig == null)
                 throw new BadRequestException(LocalizationKeys.BookingMessages.BookingConfigNotFound.Value);
 
-            var amount = bookingConfig.ConsultationFee;
+            var platformFeePercent = await GetPlatformFeePercentAsync(cancellationToken);
             var currency = string.IsNullOrWhiteSpace(bookingConfig.Currency) ? "EGP" : bookingConfig.Currency;
+
+            // Patient pays the clinic fee plus the platform fee percentage on top.
+            // The clinic keeps its full consultation fee; the platform fee stays separate.
+            var amount = AppointmentPricingCalculator.CalculateTotal(bookingConfig.ConsultationFee, platformFeePercent);
 
             var patientUser = await _unitOfWork.GetRepository<ApplicationUser, Guid>().GetByIdAsync(_currentUser.UserId);
             var billing = CreateBillingData(patientUser);
@@ -77,6 +83,16 @@ namespace ClinicHub.Application.Features.Payment.Commands.InitiateBookingPayment
                 FailureReason = payment.FailureReason,
                 CreatedAt = payment.CreatedAt
             };
+        }
+
+        private async Task<decimal> GetPlatformFeePercentAsync(CancellationToken cancellationToken)
+        {
+            var setting = await _unitOfWork.GetRepository<PlatformSetting, Guid>()
+                .GetAllAsync(s => !s.IsDeleted)
+                .OrderBy(s => s.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return setting?.AppointmentFeePercent ?? 0m;
         }
 
         private static PaymentBillingData CreateBillingData(ApplicationUser? user)
