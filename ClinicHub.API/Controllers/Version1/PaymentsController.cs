@@ -1,6 +1,8 @@
 using Asp.Versioning;
 using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
+using ClinicHub.Application.Features.ClinicPayments.Queries.GetAppointmentPayments;
+using ClinicHub.Application.Features.ClinicPayments.Queries.GetAppointmentRevenueStats;
 using ClinicHub.Application.Features.Payment.Commands.ConfirmPaymentWebhook;
 using ClinicHub.Application.Features.Payment.Commands.InitiateBookingPayment;
 using ClinicHub.Application.Features.Payment.Commands.InitiatePayment;
@@ -52,6 +54,32 @@ public class PaymentsController : BaseApiController
     public async Task<IActionResult> VerifyBookingPayment([FromBody] VerifyBookingPaymentCommand command)
     {
         var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Clinic-scoped paginated appointment payments (clinic owner revenue page).
+    /// </summary>
+    [Authorize]
+    [HttpGet]
+    [Route(ApiRoutes.Payments.AppointmentPayments)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAppointmentPayments([FromQuery] GetAppointmentPaymentsQuery query, CancellationToken ct)
+    {
+        var result = await _mediator.Send(query, ct);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Revenue aggregates for the clinic's appointment payments (today / month / collected / pending).
+    /// </summary>
+    [Authorize]
+    [HttpGet]
+    [Route(ApiRoutes.Payments.AppointmentPaymentStats)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAppointmentPaymentStats(CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetAppointmentRevenueStatsQuery(), ct);
         return Ok(result);
     }
 
