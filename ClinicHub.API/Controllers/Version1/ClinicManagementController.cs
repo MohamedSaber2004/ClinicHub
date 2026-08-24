@@ -12,6 +12,8 @@ using ClinicHub.Application.Features.Clinics.Commands.UpdateClinic;
 using ClinicHub.Application.Features.Clinics.Commands.UpdateClinicSettings;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicBookings;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicDashboardStats;
+using ClinicHub.Application.Features.Clinics.Queries.GetClinicRevenueTrend;
+using ClinicHub.Application.Features.Clinics.Queries.GetClinicAppointmentsSummary;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicAdvancedReport;
 using ClinicHub.Application.Features.Clinics.DTOs;
 using ClinicHub.Application.Features.Clinics.Queries.GetClinicById;
@@ -219,6 +221,34 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> Dashboard()
         {
             var result = await _mediator.Send(new GetClinicDashboardStatsQuery());
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Clinic-scoped revenue trend buckets (day/week/month) for dashboard graphs.
+        /// </summary>
+        [HttpGet]
+        [Route(ApiRoutes.ClinicManagement.DashboardRevenueTrend)]
+        [RoleAuthorize(nameof(UserType.ClinicOwner))]
+        [RequirePlanPermission(SubscriptionPermission.BasicReports)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> DashboardRevenueTrend([FromQuery] GetClinicRevenueTrendQuery query, CancellationToken ct)
+        {
+            var result = await _mediator.Send(query, ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Clinic-scoped appointments status summary buckets (day/week/month) for dashboard graphs.
+        /// </summary>
+        [HttpGet]
+        [Route(ApiRoutes.ClinicManagement.DashboardAppointmentsSummary)]
+        [RoleAuthorize(nameof(UserType.ClinicOwner))]
+        [RequirePlanPermission(SubscriptionPermission.BasicReports)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> DashboardAppointmentsSummary([FromQuery] GetClinicAppointmentsSummaryQuery query, CancellationToken ct)
+        {
+            var result = await _mediator.Send(query, ct);
             return Ok(result);
         }
 
