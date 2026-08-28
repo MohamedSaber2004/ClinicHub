@@ -18,19 +18,15 @@ public class GetEligibleAdsClinicsQueryHandler : IRequestHandler<GetEligibleAdsC
 
     public async Task<List<EligibleClinicDto>> Handle(GetEligibleAdsClinicsQuery request, CancellationToken cancellationToken)
     {
-        var now = DateTime.Now;
-
-        return await _unitOfWork.GetRepository<Subscription, Guid>()
-            .GetAllAsync(s => s.Status == SubscriptionStatus.Active && s.EndDate > now)
-            .Include(s => s.Clinic)
-            .Where(s => s.Clinic != null
-                && s.Clinic.Status == ClinicStatus.Active)
-            .Select(s => new EligibleClinicDto
+        // ADS INDEPENDENT: return all Active clinics, not only those with Active subscription
+        return await _unitOfWork.ClinicRepository
+            .GetAllAsync(c => c.Status == ClinicStatus.Active && !c.IsDeleted)
+            .Select(c => new EligibleClinicDto
             {
-                Id = s.ClinicId,
-                Name = s.Clinic!.Name,
-                Email = s.Clinic.Email,
-                Phone = s.Clinic.Phone
+                Id = c.Id,
+                Name = c.Name,
+                Email = c.Email,
+                Phone = c.Phone
             })
             .Distinct()
             .ToListAsync(cancellationToken);

@@ -1,5 +1,6 @@
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
+using ClinicHub.Application.Features.AdminPayments;
 using ClinicHub.Application.Features.Appointments.DTOs;
 using ClinicHub.Application.Features.Payment.DTOs;
 using ClinicHub.Application.Localization;
@@ -37,7 +38,7 @@ public class AppointmentAcceptanceService : IAppointmentAcceptanceService
         _logger = logger;
     }
 
-    public async Task<AppointmentAcceptanceResultDto> AcceptAsync(Appointment appointment, CancellationToken cancellationToken)
+    public async Task<AppointmentAcceptanceResultDto> AcceptAsync(Appointment appointment, CancellationToken cancellationToken, string? paymentMethod = null, string? returnUrl = null)
     {
         // Guard: accept only from a pending request (requested / reserved hold).
         if (appointment.Status != AppointmentStatus.Pending && appointment.Status != AppointmentStatus.Reserved)
@@ -53,14 +54,29 @@ public class AppointmentAcceptanceService : IAppointmentAcceptanceService
         if (bookingConfig is null || bookingConfig.ConsultationFee <= 0)
             throw new BadRequestException(LocalizationKeys.BookingMessages.FeeNotConfigured.Value);
 
-        var amount = bookingConfig.ConsultationFee;
+        // Include platform fee on top of consultation fee (same as booking-payment flows)
+        var platformFeePercent = await GetPlatformFeePercentAsync(cancellationToken);
+        var amount = ClinicHub.Application.Common.AppointmentPricingCalculator.CalculateTotal(bookingConfig.ConsultationFee, platformFeePercent);
         var currency = string.IsNullOrWhiteSpace(bookingConfig.Currency) ? "EGP" : bookingConfig.Currency;
 
         var patientUser = await _unitOfWork.GetRepository<ApplicationUser, Guid>().GetByIdAsync(appointment.BookedByUserId);
         var billing = CreateBillingData(patientUser);
 
-        // Initiate the Paymob hosted checkout first — if it fails nothing is persisted.
-        var checkout = await _paymobService.InitiateCheckoutPaymentAsync(amount, currency, billing, cancellationToken);
+        // Initiate Paymob payment — now supports wallet vs card selection, same as subscriptions/ads.
+        // If paymentMethod is null/empty, default to hosted checkout (card) for backward compat.
+        WalletPaymentResultDto checkout;
+        var resolvedMethod = PaymentMethodMapper.ToEnum(paymentMethod);
+        var hasExplicitMethod = !string.IsNullOrWhiteSpace(paymentMethod);
+        if (hasExplicitMethod && resolvedMethod == PaymentMethod.PaymobWallet)
+            checkout = await _paymobService.InitiateWalletPaymentAsync(amount, currency, billing, billing.PhoneNumber, cancellationToken, returnUrl);
+        else if (hasExplicitMethod && resolvedMethod == PaymentMethod.PaymobCreditCard)
+            checkout = await _paymobService.InitiateCheckoutPaymentAsync(amount, currency, billing, cancellationToken, returnUrl);
+        else
+            checkout = await _paymobService.InitiateCheckoutPaymentAsync(amount, currency, billing, cancellationToken, returnUrl);
+
+        // Determine db method string for the payment row (paymob_wallet vs paymob_card)
+        var dbMethod = PaymentMethodMapper.ToDbString(
+            !string.IsNullOrWhiteSpace(paymentMethod) ? PaymentMethodMapper.ToEnum(paymentMethod) : PaymentMethod.PaymobCreditCard);
 
         if (existingPayment is null)
         {
@@ -69,15 +85,15 @@ public class AppointmentAcceptanceService : IAppointmentAcceptanceService
                 PaymobOrderId = checkout.OrderId
             };
             existingPayment.LinkToAppointment(appointment.Id);
+            existingPayment.MarkAsProcessing(checkout.RedirectUrl, dbMethod);
             await _unitOfWork.PaymentRepository.AddAsync(existingPayment);
         }
         else
         {
             // Refresh an earlier unpaid checkout (e.g. a leftover pre-accept payment record).
             existingPayment.PaymobOrderId = checkout.OrderId;
+            existingPayment.MarkAsProcessing(checkout.RedirectUrl, dbMethod);
         }
-
-        existingPayment.SetPaymobCheckout(checkout.RedirectUrl);
         appointment.Accept();
 
         await _unitOfWork.SaveChangesAsync();
@@ -159,6 +175,15 @@ public class AppointmentAcceptanceService : IAppointmentAcceptanceService
             // notification record and dispatch are best-effort.
             _logger.LogError(ex, "Failed to send appointment-accepted notifications for appointment {AppointmentId}.", appointment.Id);
         }
+    }
+
+    private async Task<decimal> GetPlatformFeePercentAsync(CancellationToken cancellationToken)
+    {
+        var setting = await _unitOfWork.GetRepository<PlatformSetting, Guid>()
+            .GetAllAsync(s => !s.IsDeleted)
+            .OrderBy(s => s.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+        return setting?.AppointmentFeePercent ?? 0m;
     }
 
     private static PaymentBillingData CreateBillingData(ApplicationUser? user)

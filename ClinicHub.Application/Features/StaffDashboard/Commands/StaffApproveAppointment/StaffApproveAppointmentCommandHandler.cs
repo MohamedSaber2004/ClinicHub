@@ -34,7 +34,7 @@ namespace ClinicHub.Application.Features.StaffDashboard.Commands.StaffApproveApp
             if (appointment.ClinicId != clinicId.Value)
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.NotAuthorizedToRespond.Value);
 
-            return await _acceptanceService.AcceptAsync(appointment, cancellationToken);
+            return await _acceptanceService.AcceptAsync(appointment, cancellationToken, request.PaymentMethod, request.ReturnUrl);
         }
     }
 }

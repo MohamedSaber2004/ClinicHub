@@ -1,16 +1,13 @@
-using MediatR;
 using ClinicHub.Application.Common;
-using ClinicHub.Application.Common.Interfaces;
-using ClinicHub.Application.Features.Payment.DTOs;
-using ClinicHub.Domain.Enums;
-using ClinicHub.Domain.Entities;
-using System;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using ClinicHub.Application.Common.Exceptions;
+using ClinicHub.Application.Common.Interfaces;
+using ClinicHub.Application.Features.AdminPayments;
+using ClinicHub.Application.Features.Payment.DTOs;
 using ClinicHub.Application.Localization;
+using ClinicHub.Domain.Entities;
+using ClinicHub.Domain.Enums;
+using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace ClinicHub.Application.Features.Payment.Commands.InitiatePayment;
@@ -60,9 +57,15 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
 
         var billing = CreateBillingData(user);
 
-        // Single orchestrated Paymob flow: Auth → Order → PaymentKey → WalletPay
-        var walletResult = await _paymobService.InitiateWalletPaymentAsync(
-            amount, "EGP", billing, billing.PhoneNumber, cancellationToken, request.ReturnUrl);
+        // Appointment now supports both Paymob wallet and card, same as subscriptions/ads.
+        // PaymentMethod: "wallet"/null => PaymobWallet (Vodafone Cash etc.), "card"/"creditcard"/"credit_card" => PaymobCreditCard.
+        // Null stays wallet for backward compat (old mobile clients omitted the field).
+        var resolvedMethod = PaymentMethodMapper.ToEnum(request.PaymentMethod);
+        WalletPaymentResultDto payResult;
+        if (resolvedMethod == PaymentMethod.PaymobCreditCard)
+            payResult = await _paymobService.InitiateCheckoutPaymentAsync(amount, "EGP", billing, cancellationToken, request.ReturnUrl);
+        else
+            payResult = await _paymobService.InitiateWalletPaymentAsync(amount, "EGP", billing, billing.PhoneNumber, cancellationToken, request.ReturnUrl);
 
         var payment = await _unitOfWork.PaymentRepository.GetByAppointmentIdAsync(request.AppointmentId);
         
@@ -73,16 +76,18 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
                 throw new BadRequestException(LocalizationKeys.PaymentMessages.AlreadyPaid.Value);
             }
 
-            // Update existing payment with new Paymob Order ID
-            payment.PaymobOrderId = walletResult.OrderId;
+            // Update existing payment with new Paymob Order ID + refresh redirect/method
+            payment.PaymobOrderId = payResult.OrderId;
+            payment.MarkAsProcessing(payResult.RedirectUrl, PaymentMethodMapper.ToDbString(resolvedMethod));
         }
         else
         {
             payment = new ClinicHub.Domain.Entities.Payment(PaymentType.Appointment, currentUserId, appointment.ClinicId, amount)
             {
-                PaymobOrderId = walletResult.OrderId
+                PaymobOrderId = payResult.OrderId
             };
             payment.LinkToAppointment(request.AppointmentId);
+            payment.MarkAsProcessing(payResult.RedirectUrl, PaymentMethodMapper.ToDbString(resolvedMethod));
             await _unitOfWork.PaymentRepository.AddAsync(payment);
         }
 
@@ -90,8 +95,8 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
 
         return new InitiatePaymentResponseDto
         {
-            PaymentKey = walletResult.PaymentKey,
-            RedirectUrl = walletResult.RedirectUrl,
+            PaymentKey = payResult.PaymentKey,
+            RedirectUrl = payResult.RedirectUrl,
             PaymentId = payment.Id
         };
     }

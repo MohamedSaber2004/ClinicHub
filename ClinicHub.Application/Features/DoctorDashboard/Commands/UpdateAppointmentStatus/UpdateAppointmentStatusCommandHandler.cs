@@ -51,7 +51,7 @@ namespace ClinicHub.Application.Features.DoctorDashboard.Commands.UpdateAppointm
                 // 6 = Accept (AppointmentStatus.Accepted) — legacy 1 = Accept
                 case 1:
                 case (int)AppointmentStatus.Accepted:
-                    return await _acceptanceService.AcceptAsync(appointment, cancellationToken);
+                    return await _acceptanceService.AcceptAsync(appointment, cancellationToken, request.PaymentMethod, request.ReturnUrl);
 
                 // 2 = Reject / Cancel — only pending requests can be rejected
                 case (int)AppointmentStatus.Cancelled:

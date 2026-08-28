@@ -31,12 +31,35 @@ public class UpdateClinicAdSettingsCommandHandler : IRequestHandler<UpdateClinic
             .GetAllAsync(a => a.ClinicId == request.ClinicId && a.Status == AdvertisementStatus.Active)
             .CountAsync(cancellationToken);
 
+        var settings = await _unitOfWork.GetRepository<ClinicAdSettings, Guid>()
+            .GetAllAsync(s => s.ClinicId == request.ClinicId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (settings == null)
+        {
+            settings = new ClinicAdSettings
+            {
+                ClinicId = request.ClinicId,
+                MaxAds = request.MaxAds,
+                MaxImpressions = request.MaxImpressions
+            };
+            await _unitOfWork.GetRepository<ClinicAdSettings, Guid>().AddAsync(settings);
+        }
+        else
+        {
+            settings.MaxAds = request.MaxAds;
+            settings.MaxImpressions = request.MaxImpressions;
+            _unitOfWork.GetRepository<ClinicAdSettings, Guid>().Update(settings);
+        }
+
+        await _unitOfWork.SaveChangesAsync();
+
         return new ClinicAdSettingsDto
         {
             ClinicId = clinic.Id,
             ClinicName = clinic.Name ?? string.Empty,
-            MaxAds = request.MaxAds,
-            MaxImpressions = request.MaxImpressions,
+            MaxAds = settings.MaxAds,
+            MaxImpressions = settings.MaxImpressions,
             ActiveAdsCount = activeAdsCount
         };
     }

@@ -1,6 +1,7 @@
 using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
+using ClinicHub.Application.Features.AdminPayments;
 using ClinicHub.Application.Features.Payment.DTOs;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
@@ -58,17 +59,24 @@ namespace ClinicHub.Application.Features.Payment.Commands.InitiateBookingPayment
             var patientUser = await _unitOfWork.GetRepository<ApplicationUser, Guid>().GetByIdAsync(_currentUser.UserId);
             var billing = CreateBillingData(patientUser);
 
-            // Initiate the real Paymob hosted checkout first — if it fails nothing is persisted.
-            var checkout = await _paymobService.InitiateCheckoutPaymentAsync(amount, currency, billing, cancellationToken);
+            // Appointment now supports wallet or card — same branching as subscriptions/ads.
+            // If PaymentMethod is omitted, keep legacy behavior (card/checkout) for /payments backward compat.
+            var hasExplicitMethod = !string.IsNullOrWhiteSpace(request.PaymentMethod);
+            var resolvedMethod = hasExplicitMethod
+                ? PaymentMethodMapper.ToEnum(request.PaymentMethod)
+                : PaymentMethod.PaymobCreditCard; // legacy default for POST /payments
+            WalletPaymentResultDto checkout;
+            if (resolvedMethod == PaymentMethod.PaymobCreditCard)
+                checkout = await _paymobService.InitiateCheckoutPaymentAsync(amount, currency, billing, cancellationToken, request.ReturnUrl);
+            else
+                checkout = await _paymobService.InitiateWalletPaymentAsync(amount, currency, billing, billing.PhoneNumber, cancellationToken, request.ReturnUrl);
 
             var payment = new Domain.Entities.Payment(PaymentType.Appointment, _currentUser.UserId, appointment.ClinicId, amount, currency)
             {
                 PaymobOrderId = checkout.OrderId
             };
             payment.LinkToAppointment(request.ReservationId);
-            payment.SetPaymobCheckout(checkout.RedirectUrl);
-
-            await _unitOfWork.PaymentRepository.AddAsync(payment);
+            payment.MarkAsProcessing(checkout.RedirectUrl, PaymentMethodMapper.ToDbString(resolvedMethod));
             await _unitOfWork.SaveChangesAsync();
 
             return new BookingPaymentResponseDto

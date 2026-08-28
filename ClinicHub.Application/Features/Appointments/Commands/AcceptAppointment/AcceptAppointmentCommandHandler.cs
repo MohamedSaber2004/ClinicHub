@@ -4,6 +4,7 @@ using ClinicHub.Application.Features.Appointments.DTOs;
 using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace ClinicHub.Application.Features.Appointments.Commands.AcceptAppointment
 {
@@ -27,10 +28,13 @@ namespace ClinicHub.Application.Features.Appointments.Commands.AcceptAppointment
         {
             var appointment = await _unitOfWork.AppointmentRepository.GetByIdAsync(request.AppointmentId);
 
+            if (appointment == null)
+                throw new NotFoundException(LocalizationKeys.AppointmentMessages.AppointmentNotFound.Value);
+
             if (appointment.Clinic.ClinicAdminId != _currentUserService.UserId)
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.NotAuthorizedToRespond.Value);
 
-            return await _acceptanceService.AcceptAsync(appointment, cancellationToken);
+            return await _acceptanceService.AcceptAsync(appointment, cancellationToken, request.PaymentMethod, request.ReturnUrl);
         }
     }
 }

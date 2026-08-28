@@ -13,7 +13,7 @@ public class AdvertisementConfiguration : IEntityTypeConfiguration<Advertisement
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Title).HasMaxLength(200);
-        builder.Property(x => x.ImageUrl).HasMaxLength(500);
+        builder.Property(x => x.ImageUrl).HasMaxLength(2000);
         builder.Property(x => x.TargetUrl).HasMaxLength(500);
         builder.Property(x => x.DurationDays).IsRequired();
         builder.Property(x => x.AmountPaid).IsRequired().HasColumnType("decimal(18,2)");
