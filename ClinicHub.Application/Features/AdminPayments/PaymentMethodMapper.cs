@@ -12,6 +12,7 @@ public static class PaymentMethodMapper
         return method.Trim().ToLowerInvariant() switch
         {
             "cash" => PaymentMethod.Cash,
+            "creditcard" or "card" or "credit_card" => PaymentMethod.PaymobCreditCard,
             _ => PaymentMethod.PaymobWallet
         };
     }
@@ -19,6 +20,7 @@ public static class PaymentMethodMapper
     public static string ToDbString(PaymentMethod method) => method switch
     {
         PaymentMethod.Cash => "cash",
+        PaymentMethod.PaymobCreditCard => "paymob_card",
         _ => "paymob"
     };
 

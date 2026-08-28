@@ -1,5 +1,6 @@
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
+using ClinicHub.Application.Features.AdminPayments;
 using ClinicHub.Application.Features.Payment.DTOs;
 using ClinicHub.Application.Features.Subscriptions.DTOs;
 using ClinicHub.Application.Localization;
@@ -72,15 +73,25 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.InitiateSubscrip
                 State = "Egypt"
             };
 
-            var walletResult = await _paymobService.InitiateWalletPaymentAsync(amount, currency, billing, billing.PhoneNumber, cancellationToken, request.ReturnUrl);
+            var resolvedMethod = PaymentMethodMapper.ToEnum(request.PaymentMethod);
+            WalletPaymentResultDto payResult;
+
+            if (resolvedMethod == PaymentMethod.PaymobCreditCard)
+            {
+                payResult = await _paymobService.InitiateCheckoutPaymentAsync(amount, currency, billing, cancellationToken, request.ReturnUrl);
+            }
+            else
+            {
+                payResult = await _paymobService.InitiateWalletPaymentAsync(amount, currency, billing, billing.PhoneNumber, cancellationToken, request.ReturnUrl);
+            }
 
             var payment = new Domain.Entities.Payment(PaymentType.Subscription, _currentUser.UserId, clinicId.Value, amount, currency)
             {
-                PaymobOrderId = walletResult.OrderId,
+                PaymobOrderId = payResult.OrderId,
                 PlanId = request.PlanId,
                 SubscriptionPeriod = request.Period
             };
-            payment.MarkAsProcessing(walletResult.RedirectUrl, "paymob");
+            payment.MarkAsProcessing(payResult.RedirectUrl, "paymob");
 
             await _unitOfWork.PaymentRepository.AddAsync(payment);
             await _unitOfWork.SaveChangesAsync();
@@ -88,11 +99,11 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.InitiateSubscrip
             return new InitiateSubscriptionPaymentResponseDto
             {
                 PaymentId = payment.Id,
-                PaymobRedirectUrl = walletResult.RedirectUrl,
-                RedirectUrl = walletResult.RedirectUrl,
-                PaymentUrl = walletResult.RedirectUrl,
-                Url = walletResult.RedirectUrl,
-                PaymobPaymentKey = walletResult.PaymentKey,
+                PaymobRedirectUrl = payResult.RedirectUrl,
+                RedirectUrl = payResult.RedirectUrl,
+                PaymentUrl = payResult.RedirectUrl,
+                Url = payResult.RedirectUrl,
+                PaymobPaymentKey = payResult.PaymentKey,
                 PlanId = plan.Id,
                 PlanName = plan.Name,
                 Period = request.Period,
