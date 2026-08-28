@@ -32,6 +32,7 @@ public class CreateAdsOrderCommandHandler : IRequestHandler<CreateAdsOrderComman
             request.DurationDays,
             request.LogoImageUrl,
             request.ReturnUrl,
+            request.PaymentMethod,
             cancellationToken);
     }
 }

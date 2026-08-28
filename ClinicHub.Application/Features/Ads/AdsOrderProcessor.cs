@@ -1,5 +1,6 @@
 ﻿using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
+using ClinicHub.Application.Features.AdminPayments;
 using ClinicHub.Application.Features.AdminPayments.DTOs;
 using ClinicHub.Application.Features.Payment.DTOs;
 using ClinicHub.Application.Localization;
@@ -22,6 +23,7 @@ public static class AdsOrderProcessor
         int durationDays,
         string? logoImageUrl,
         string? returnUrl,
+        string? paymentMethod,
         CancellationToken cancellationToken)
     {
         var clinic = await unitOfWork.ClinicRepository.FindByKeyAsync(clinicId, cancellationToken);
@@ -67,8 +69,17 @@ public static class AdsOrderProcessor
             State = "Egypt"
         };
 
-        var walletResult = await paymobService.InitiateWalletPaymentAsync(
-            amount, "EGP", billing, billing.PhoneNumber, cancellationToken, returnUrl);
+        var resolvedMethod = PaymentMethodMapper.ToEnum(paymentMethod);
+        WalletPaymentResultDto payResult;
+
+        if (resolvedMethod == PaymentMethod.PaymobCreditCard)
+        {
+            payResult = await paymobService.InitiateCheckoutPaymentAsync(amount, "EGP", billing, cancellationToken, returnUrl);
+        }
+        else
+        {
+            payResult = await paymobService.InitiateWalletPaymentAsync(amount, "EGP", billing, billing.PhoneNumber, cancellationToken, returnUrl);
+        }
 
         var advertisement = new Advertisement
         {
@@ -86,9 +97,9 @@ public static class AdsOrderProcessor
 
         var payment = new ClinicHub.Domain.Entities.Payment(PaymentType.Ads, userId, clinic.Id, amount)
         {
-            PaymobOrderId = walletResult.OrderId
+            PaymobOrderId = payResult.OrderId
         };
-        payment.MarkAsProcessing(walletResult.RedirectUrl, "paymob");
+        payment.MarkAsProcessing(payResult.RedirectUrl, "paymob");
         payment.SetManualReference(null, $"{package.Name} - {durationDays} days");
 
         await unitOfWork.PaymentRepository.AddAsync(payment);
@@ -103,8 +114,8 @@ public static class AdsOrderProcessor
             Amount = payment.Amount,
             Currency = payment.Currency,
             Status = payment.Status,
-            PaymobRedirectUrl = walletResult.RedirectUrl,
-            PaymobPaymentKey = walletResult.PaymentKey,
+            PaymobRedirectUrl = payResult.RedirectUrl,
+            PaymobPaymentKey = payResult.PaymentKey,
             ImageUrl = advertisement.ImageUrl
         };
     }

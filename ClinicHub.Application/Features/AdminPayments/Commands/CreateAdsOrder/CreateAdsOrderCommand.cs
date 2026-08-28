@@ -10,4 +10,5 @@ public class CreateAdsOrderCommand : IRequest<CreateAdsOrderResponseDto>
     public int DurationDays { get; set; }
     public string? LogoImageUrl { get; set; }
     public string? ReturnUrl { get; set; }
+    public string? PaymentMethod { get; set; }
 }

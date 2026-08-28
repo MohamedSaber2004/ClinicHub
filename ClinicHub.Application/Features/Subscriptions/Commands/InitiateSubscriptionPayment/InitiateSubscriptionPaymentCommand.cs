@@ -9,5 +9,6 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.InitiateSubscrip
         public Guid PlanId { get; set; }
         public SubscriptionPlan Period { get; set; }
         public string? ReturnUrl { get; set; }
+        public string? PaymentMethod { get; set; }
     }
 }
