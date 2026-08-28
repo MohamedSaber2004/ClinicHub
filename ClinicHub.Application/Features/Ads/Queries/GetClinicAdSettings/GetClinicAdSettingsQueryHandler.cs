@@ -33,12 +33,16 @@ public class GetClinicAdSettingsQueryHandler : IRequestHandler<GetClinicAdSettin
                 .GetAllAsync(a => a.ClinicId == clinic.ClinicId && a.Status == AdvertisementStatus.Active)
                 .CountAsync(cancellationToken);
 
+            var settings = await _unitOfWork.GetRepository<ClinicAdSettings, Guid>()
+                .GetAllAsync(s => s.ClinicId == clinic.ClinicId)
+                .FirstOrDefaultAsync(cancellationToken);
+
             result.Add(new ClinicAdSettingsDto
             {
                 ClinicId = clinic.ClinicId,
                 ClinicName = clinic.ClinicName ?? string.Empty,
-                MaxAds = 0,
-                MaxImpressions = 0,
+                MaxAds = settings?.MaxAds ?? 0,
+                MaxImpressions = settings?.MaxImpressions ?? 0,
                 ActiveAdsCount = activeAdsCount
             });
         }
