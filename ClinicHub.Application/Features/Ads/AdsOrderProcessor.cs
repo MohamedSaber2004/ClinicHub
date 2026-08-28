@@ -1,4 +1,4 @@
-﻿using ClinicHub.Application.Common.Exceptions;
+using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.AdminPayments;
 using ClinicHub.Application.Features.AdminPayments.DTOs;
@@ -39,6 +39,15 @@ public static class AdsOrderProcessor
 
         if (durationDays <= 0 || durationDays % package.DurationDays != 0)
             throw new BadRequestException(localizer[LocalizationKeys.AdsMessages.InvalidDuration.Value]);
+
+        if (!string.IsNullOrWhiteSpace(logoImageUrl))
+        {
+            var logoCount = logoImageUrl.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Length;
+            if (package.MaxAds > 0 && logoCount > package.MaxAds)
+            {
+                throw new BadRequestException($"الباقة المختارة تسمح برفع حتى {package.MaxAds} شعارات/صور كحد أقصى.");
+            }
+        }
 
         if (!await IsEligibleForAdsAsync(unitOfWork, clinicId, cancellationToken))
             throw new ForbiddenException(localizer[LocalizationKeys.PaymentMessages.AdsNotEligible.Value]);
