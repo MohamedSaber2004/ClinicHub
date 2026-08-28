@@ -99,7 +99,7 @@ public static class AdsOrderProcessor
         {
             PaymobOrderId = payResult.OrderId
         };
-        payment.MarkAsProcessing(payResult.RedirectUrl, "paymob");
+        payment.MarkAsProcessing(payResult.RedirectUrl, PaymentMethodMapper.ToDbString(resolvedMethod));
         payment.SetManualReference(null, $"{package.Name} - {durationDays} days");
 
         await unitOfWork.PaymentRepository.AddAsync(payment);
@@ -122,12 +122,10 @@ public static class AdsOrderProcessor
 
     public static async Task<bool> IsEligibleForAdsAsync(IUnitOfWork unitOfWork, Guid clinicId, CancellationToken cancellationToken)
     {
-        var now = DateTime.Now;
-
-        var subscription = await unitOfWork.GetRepository<Subscription, Guid>()
-            .GetAllAsync(s => s.ClinicId == clinicId && s.Status == SubscriptionStatus.Active && s.EndDate > now)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        return subscription != null;
+        // ADS IS NOW INDEPENDENT FROM SUBSCRIPTION PLANS
+        // Eligibility requires only that the clinic exists and is Active.
+        // Previously: required Active subscription (Premium/Enterprise). Now: standalone.
+        var clinic = await unitOfWork.ClinicRepository.FindByKeyAsync(clinicId, cancellationToken);
+        return clinic != null && clinic.Status == ClinicStatus.Active;
     }
 }

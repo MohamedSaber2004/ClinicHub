@@ -18,13 +18,10 @@ public class GetClinicAdSettingsQueryHandler : IRequestHandler<GetClinicAdSettin
 
     public async Task<List<ClinicAdSettingsDto>> Handle(GetClinicAdSettingsQuery request, CancellationToken cancellationToken)
     {
-        var now = DateTime.Now;
-
-        var clinicsWithSubscription = await _unitOfWork.GetRepository<Subscription, Guid>()
-            .GetAllAsync(s => s.Status == SubscriptionStatus.Active && s.EndDate > now)
-            .Include(s => s.Clinic)
-            .Where(s => s.Clinic != null && s.Clinic.Status == ClinicStatus.Active)
-            .Select(s => new { s.ClinicId, ClinicName = s.Clinic!.Name })
+        // ADS INDEPENDENT: show settings for all Active clinics
+        var clinicsWithSubscription = await _unitOfWork.ClinicRepository
+            .GetAllAsync(c => c.Status == ClinicStatus.Active && !c.IsDeleted)
+            .Select(c => new { ClinicId = c.Id, ClinicName = c.Name })
             .Distinct()
             .ToListAsync(cancellationToken);
 
