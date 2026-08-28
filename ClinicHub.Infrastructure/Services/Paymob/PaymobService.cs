@@ -5,6 +5,7 @@ using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Features.Payment.DTOs;
 using ClinicHub.Application.Localization;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text;
 using System.Text.Json;
@@ -16,16 +17,30 @@ public class PaymobService : IPaymobService
     private readonly HttpClient _httpClient;
     private readonly PaymobSettings _settings;
     private readonly IStringLocalizer<Messages> _localizer;
+    private readonly ILogger<PaymobService> _logger;
     private const string BaseUrl = "https://accept.paymob.com";
 
     public PaymobService(
         HttpClient httpClient,
         IOptions<PaymobSettings> options,
-        IStringLocalizer<Messages> localizer)
+        IStringLocalizer<Messages> localizer,
+        ILogger<PaymobService> logger)
     {
         _httpClient = httpClient;
         _settings = options.Value;
         _localizer = localizer;
+        _logger = logger;
+    }
+
+    private int ResolveIntegrationId(string? rawId, string fallbackRaw)
+    {
+        var candidate = !string.IsNullOrWhiteSpace(rawId) ? rawId : fallbackRaw;
+        if (!int.TryParse(candidate, out var id))
+        {
+            _logger.LogError("Paymob IntegrationId '{Raw}' is not a valid integer. Check PaymobSettings IntegrationId/WalletIntegrationId in appsettings. Placeholder values like YOUR_... will fail.", candidate);
+            throw new BadRequestException($"Paymob IntegrationId '{candidate}' is not configured. Check appsettings PaymobSettings.");
+        }
+        return id;
     }
 
     /// <inheritdoc />
@@ -42,10 +57,7 @@ public class PaymobService : IPaymobService
         string? redirectionUrl = null)
     {
         var amountCents = (int)Math.Round(amount * 100);
-        var walletIntegrationId = int.Parse(
-            !string.IsNullOrWhiteSpace(_settings.WalletIntegrationId)
-                ? _settings.WalletIntegrationId
-                : _settings.IntegrationId);
+        var walletIntegrationId = ResolveIntegrationId(_settings.WalletIntegrationId, _settings.IntegrationId);
 
         // Single API call: Create Intention (new unified flow)
         var (clientSecret, intentionId) = await CreateIntentionAsync(
@@ -78,7 +90,7 @@ public class PaymobService : IPaymobService
         string? redirectionUrl = null)
     {
         var amountCents = (int)Math.Round(amount * 100);
-        var integrationId = int.Parse(_settings.IntegrationId);
+        var integrationId = ResolveIntegrationId(_settings.IntegrationId, _settings.IntegrationId);
 
         // Single API call: Create Intention (new unified flow)
         var (clientSecret, intentionId) = await CreateIntentionAsync(
@@ -165,13 +177,21 @@ public class PaymobService : IPaymobService
         request.Headers.Add("Authorization", $"Token {_settings.SecretKey}");
 
         var response = await _httpClient.SendAsync(request, cancellationToken);
+        var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {
-            throw new BadRequestException(_localizer[LocalizationKeys.PaymentMessages.PaymobOrderFailed.Value]);
+            _logger.LogError("Paymob CreateIntention failed: integrationId={IntegrationId} status={Status} body={Body} amountCents={Amount} currency={Currency}",
+                integrationId, (int)response.StatusCode, responseBody, amountCents, currency);
+            // Surface Paymob's detail when available (e.g., 'Integration ID does not exist')
+            var detail = TryExtractDetail(responseBody);
+            throw new BadRequestException(
+                string.IsNullOrWhiteSpace(detail)
+                    ? _localizer[LocalizationKeys.PaymentMessages.PaymobOrderFailed.Value]
+                    : $"{_localizer[LocalizationKeys.PaymentMessages.PaymobOrderFailed.Value]}: {detail}");
         }
 
-        var json = await response.Content.ReadAsStringAsync(cancellationToken);
+        var json = responseBody;
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
 
@@ -302,6 +322,19 @@ public class PaymobService : IPaymobService
             if (data.TryGetValue(key, out var value))
                 return value ?? "";
         return "";
+    }
+
+    private static string? TryExtractDetail(string json)
+    {
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.TryGetProperty("detail", out var d)) return d.GetString();
+            if (doc.RootElement.TryGetProperty("message", out var m)) return m.GetString();
+            if (doc.RootElement.TryGetProperty("error", out var e)) return e.GetString();
+        }
+        catch { }
+        return null;
     }
 
     /// <summary>
