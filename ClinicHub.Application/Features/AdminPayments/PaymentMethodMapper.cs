@@ -12,7 +12,8 @@ public static class PaymentMethodMapper
         return method.Trim().ToLowerInvariant() switch
         {
             "cash" => PaymentMethod.Cash,
-            "creditcard" or "card" or "credit_card" => PaymentMethod.PaymobCreditCard,
+            "creditcard" or "card" or "credit_card" or "paymob_card" or "visa" or "mastercard" => PaymentMethod.PaymobCreditCard,
+            "wallet" or "paymob_wallet" or "paymob" or "paymobwallet" => PaymentMethod.PaymobWallet,
             _ => PaymentMethod.PaymobWallet
         };
     }
@@ -21,7 +22,7 @@ public static class PaymentMethodMapper
     {
         PaymentMethod.Cash => "cash",
         PaymentMethod.PaymobCreditCard => "paymob_card",
-        _ => "paymob"
+        _ => "paymob_wallet"
     };
 
     public static PaymentStatus ToUiStatus(PaymentStatus status) =>

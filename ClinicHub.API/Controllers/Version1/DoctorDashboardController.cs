@@ -63,9 +63,13 @@ namespace ClinicHub.API.Controllers.Version1
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> AcceptAppointment(Guid id, CancellationToken ct)
+        public async Task<IActionResult> AcceptAppointment(Guid id, [FromQuery] string? paymentMethod, [FromQuery] string? returnUrl, [FromBody(EmptyBodyBehavior = Microsoft.AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Allow)] DoctorAcceptAppointmentCommand? body, CancellationToken ct)
         {
-            var result = await _mediator.Send(new DoctorAcceptAppointmentCommand { AppointmentId = id }, ct);
+            var cmd = body ?? new DoctorAcceptAppointmentCommand();
+            cmd.AppointmentId = id;
+            if (!string.IsNullOrWhiteSpace(paymentMethod)) cmd.PaymentMethod = paymentMethod;
+            if (!string.IsNullOrWhiteSpace(returnUrl)) cmd.ReturnUrl = returnUrl;
+            var result = await _mediator.Send(cmd, ct);
             return Ok(result, LocalizationKeys.AppointmentMessages.AcceptedWithPaymentLink);
         }
 

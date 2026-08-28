@@ -11,5 +11,5 @@ namespace ClinicHub.Application.Common.Interfaces;
 /// </summary>
 public interface IAppointmentAcceptanceService
 {
-    Task<AppointmentAcceptanceResultDto> AcceptAsync(Appointment appointment, CancellationToken cancellationToken);
+    Task<AppointmentAcceptanceResultDto> AcceptAsync(Appointment appointment, CancellationToken cancellationToken, string? paymentMethod = null, string? returnUrl = null);
 }

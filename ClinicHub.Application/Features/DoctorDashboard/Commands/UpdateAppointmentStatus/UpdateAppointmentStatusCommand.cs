@@ -18,5 +18,10 @@ namespace ClinicHub.Application.Features.DoctorDashboard.Commands.UpdateAppointm
 
         /// <summary>Optional notes or cancellation reason (used when Status = 2).</summary>
         public string? Notes { get; set; }
+
+        /// <summary>When Status = 6: "wallet" or "card". Null = card checkout (backward compat).</summary>
+        public string? PaymentMethod { get; set; }
+
+        public string? ReturnUrl { get; set; }
     }
 }

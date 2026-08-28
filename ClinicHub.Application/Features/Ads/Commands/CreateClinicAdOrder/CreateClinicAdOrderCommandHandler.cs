@@ -41,6 +41,7 @@ public class CreateClinicAdOrderCommandHandler : IRequestHandler<CreateClinicAdO
             request.DurationDays,
             request.LogoImageUrl,
             request.ReturnUrl,
+            null,
             cancellationToken);
     }
 }

@@ -113,6 +113,9 @@ namespace ClinicHub.API.Controllers.Version1
 
         /// <summary>
         /// Accept an appointment request by the clinic admin.
+        /// Query params: ?paymentMethod=wallet|card|creditcard|credit_card&returnUrl=https://...
+        /// Body (optional JSON): { "paymentMethod": "wallet", "returnUrl": "..." } — query takes precedence.
+        /// PaymentMethod selects Paymob wallet (Vodafone Cash etc.) vs card checkout, same as subscriptions/ads.
         /// </summary>
         [RoleAuthorize]
         [HttpPut]
@@ -120,9 +123,15 @@ namespace ClinicHub.API.Controllers.Version1
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Accept(Guid id)
+        public async Task<IActionResult> Accept(Guid id, [FromQuery] string? paymentMethod, [FromQuery] string? returnUrl, [FromBody(EmptyBodyBehavior = Microsoft.AspNetCore.Mvc.ModelBinding.EmptyBodyBehavior.Allow)] AcceptAppointmentCommand? body)
         {
-            var command = new AcceptAppointmentCommand { AppointmentId = id };
+            var command = body ?? new AcceptAppointmentCommand();
+            command.AppointmentId = id;
+            // Query string overrides body for explicit mobile/clinic control
+            if (!string.IsNullOrWhiteSpace(paymentMethod))
+                command.PaymentMethod = paymentMethod;
+            if (!string.IsNullOrWhiteSpace(returnUrl))
+                command.ReturnUrl = returnUrl;
             var result = await _mediator.Send(command);
             return Ok(result, LocalizationKeys.AppointmentMessages.AcceptedWithPaymentLink);
         }

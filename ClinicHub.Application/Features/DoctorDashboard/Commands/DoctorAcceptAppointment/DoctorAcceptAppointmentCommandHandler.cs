@@ -36,7 +36,7 @@ namespace ClinicHub.Application.Features.DoctorDashboard.Commands.DoctorAcceptAp
             if (appointment.DoctorId != doctor.Id)
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.NotAuthorizedToRespond.Value);
 
-            return await _acceptanceService.AcceptAsync(appointment, cancellationToken);
+            return await _acceptanceService.AcceptAsync(appointment, cancellationToken, request.PaymentMethod, request.ReturnUrl);
         }
     }
 }

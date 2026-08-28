@@ -6,5 +6,7 @@ namespace ClinicHub.Application.Features.StaffDashboard.Commands.StaffApproveApp
     public class StaffApproveAppointmentCommand : IRequest<AppointmentAcceptanceResultDto>
     {
         public Guid AppointmentId { get; set; }
+        public string? PaymentMethod { get; set; }
+        public string? ReturnUrl { get; set; }
     }
 }
