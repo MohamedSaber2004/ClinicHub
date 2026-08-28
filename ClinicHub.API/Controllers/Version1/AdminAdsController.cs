@@ -4,7 +4,9 @@ using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.AdminPayments.Queries.GetAdPackages;
 using ClinicHub.Application.Features.Ads.Commands.AdPackages;
 using ClinicHub.Application.Features.Ads.Commands.DeactivateAd;
+using ClinicHub.Application.Features.Ads.Commands.UpdateClinicAdSettings;
 using ClinicHub.Application.Features.Ads.Queries.GetAllAds;
+using ClinicHub.Application.Features.Ads.Queries.GetClinicAdSettings;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Enums;
 using MediatR;
@@ -85,5 +87,26 @@ public class AdminAdsController : BaseApiController
     {
         var result = await _mediator.Send(new DeleteAdPackageCommand { Id = id }, ct);
         return Ok(result, _localizer[LocalizationKeys.AdsMessages.PackageDeleted.Value]);
+    }
+
+    [HttpGet]
+    [Route(ApiRoutes.AdminAds.ClinicAdSettings)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetClinicAdSettings(CancellationToken ct)
+    {
+        var result = await _mediator.Send(new GetClinicAdSettingsQuery(), ct);
+        return Ok(result);
+    }
+
+    [HttpPut]
+    [Route(ApiRoutes.AdminAds.ClinicAdSettingsById)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateClinicAdSettings(Guid clinicId, [FromBody] UpdateClinicAdSettingsCommand command, CancellationToken ct)
+    {
+        command.ClinicId = clinicId;
+        var result = await _mediator.Send(command, ct);
+        return Ok(result);
     }
 }

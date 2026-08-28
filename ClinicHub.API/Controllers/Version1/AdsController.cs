@@ -12,7 +12,6 @@ namespace ClinicHub.API.Controllers.Version1;
 
 [ApiVersion("1.0")]
 [RoleAuthorize(nameof(UserType.ClinicOwner))]
-[RequirePlanPermission(SubscriptionPermission.MarketingTools)]
 public class AdsController : BaseApiController
 {
     public AdsController(IMediator mediator) : base(mediator)

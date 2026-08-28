@@ -35,6 +35,8 @@ public class UpdateAdPackageCommandHandler : IRequestHandler<UpdateAdPackageComm
         package.Price = request.Price;
         package.DurationDays = request.DurationDays;
         package.IsActive = request.IsActive;
+        package.MaxAds = request.MaxAds;
+        package.MaxImpressions = request.MaxImpressions;
 
         _unitOfWork.GetRepository<AdPackage, Guid>().Update(package);
         await _unitOfWork.SaveChangesAsync();

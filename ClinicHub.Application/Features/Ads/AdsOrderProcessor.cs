@@ -115,11 +115,8 @@ public static class AdsOrderProcessor
 
         var subscription = await unitOfWork.GetRepository<Subscription, Guid>()
             .GetAllAsync(s => s.ClinicId == clinicId && s.Status == SubscriptionStatus.Active && s.EndDate > now)
-            .Include(s => s.Plan)
-                .ThenInclude(p => p!.Permissions)
             .FirstOrDefaultAsync(cancellationToken);
 
-        return subscription?.Plan != null
-            && subscription.Plan.Permissions.Any(pp => pp.Permission == SubscriptionPermission.AdvancedReports);
+        return subscription != null;
     }
 }

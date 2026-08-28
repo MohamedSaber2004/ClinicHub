@@ -21,7 +21,7 @@ namespace ClinicHub.Persistence.Seeders
             "[\"appointments\",\"patient_records\",\"basic_reports\",\"staff_management\",\"doctor_management\",\"advanced_reports\"]";
 
         private const string EnterpriseFeatures =
-            "[\"appointments\",\"patient_records\",\"basic_reports\",\"staff_management\",\"doctor_management\",\"advanced_reports\",\"marketing_tools\"]";
+            "[\"appointments\",\"patient_records\",\"basic_reports\",\"staff_management\",\"doctor_management\",\"advanced_reports\"]";
 
         public static async Task SeedPlansAsync(this IServiceProvider serviceProvider)
         {
@@ -82,8 +82,7 @@ namespace ClinicHub.Persistence.Seeders
                 SubscriptionPermission.ManageStaff,
                 SubscriptionPermission.ManageDoctors,
                 SubscriptionPermission.OnlineBooking,
-                SubscriptionPermission.AdvancedReports,
-                SubscriptionPermission.MarketingTools);
+                SubscriptionPermission.AdvancedReports);
 
             context.Plans.AddRange(basic, premium, enterprise);
             await context.SaveChangesAsync();

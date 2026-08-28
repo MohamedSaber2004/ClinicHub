@@ -23,12 +23,8 @@ public class GetEligibleAdsClinicsQueryHandler : IRequestHandler<GetEligibleAdsC
         return await _unitOfWork.GetRepository<Subscription, Guid>()
             .GetAllAsync(s => s.Status == SubscriptionStatus.Active && s.EndDate > now)
             .Include(s => s.Clinic)
-            .Include(s => s.Plan)
-                .ThenInclude(p => p!.Permissions)
             .Where(s => s.Clinic != null
-                && s.Clinic.Status == ClinicStatus.Active
-                && s.Plan != null
-                && s.Plan.Permissions.Any(pp => pp.Permission == SubscriptionPermission.MarketingTools))
+                && s.Clinic.Status == ClinicStatus.Active)
             .Select(s => new EligibleClinicDto
             {
                 Id = s.ClinicId,

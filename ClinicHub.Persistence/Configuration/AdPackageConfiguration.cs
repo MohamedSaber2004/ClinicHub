@@ -16,5 +16,7 @@ public class AdPackageConfiguration : IEntityTypeConfiguration<AdPackage>
         builder.Property(p => p.Description).HasMaxLength(500);
         builder.Property(p => p.DescriptionAr).HasMaxLength(500);
         builder.Property(p => p.Price).IsRequired().HasColumnType("decimal(18,2)");
+        builder.Property(p => p.MaxAds).HasDefaultValue(0);
+        builder.Property(p => p.MaxImpressions).HasDefaultValue(0);
     }
 }

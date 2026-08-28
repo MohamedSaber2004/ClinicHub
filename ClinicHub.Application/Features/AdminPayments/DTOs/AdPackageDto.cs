@@ -10,4 +10,6 @@ public class AdPackageDto
     public decimal Price { get; set; }
     public int DurationDays { get; set; }
     public bool IsActive { get; set; }
+    public int MaxAds { get; set; }
+    public int MaxImpressions { get; set; }
 }

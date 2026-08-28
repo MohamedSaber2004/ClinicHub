@@ -34,6 +34,8 @@ public class CreateAdPackageCommandHandler : IRequestHandler<CreateAdPackageComm
             Price = request.Price,
             DurationDays = request.DurationDays,
             IsActive = request.IsActive,
+            MaxAds = request.MaxAds,
+            MaxImpressions = request.MaxImpressions,
             SortOrder = maxSortOrder + 1
         };
 

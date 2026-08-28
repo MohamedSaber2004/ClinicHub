@@ -12,4 +12,6 @@ public class AdPackage : BaseEntity<Guid>
     public int DurationDays { get; set; } = 30;
     public bool IsActive { get; set; } = true;
     public int SortOrder { get; set; }
+    public int MaxAds { get; set; }
+    public int MaxImpressions { get; set; }
 }

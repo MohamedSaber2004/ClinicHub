@@ -12,4 +12,6 @@ public class CreateAdPackageCommand : IRequest<AdPackageDto>
     public decimal Price { get; set; }
     public int DurationDays { get; set; } = 30;
     public bool IsActive { get; set; } = true;
+    public int MaxAds { get; set; }
+    public int MaxImpressions { get; set; }
 }

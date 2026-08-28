@@ -329,6 +329,8 @@ namespace ClinicHub.API.Routes
             public const string Packages = Base + "/admin/ads/packages";
             public const string PackageById = Packages + "/{id:guid}";
             public const string Orders = Base + "/admin/ads/orders";
+            public const string ClinicAdSettings = Base + "/admin/ads/clinic-settings";
+            public const string ClinicAdSettingsById = ClinicAdSettings + "/{clinicId:guid}";
         }
 
         public static class Ads
