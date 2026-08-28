@@ -6,6 +6,7 @@ using ClinicHub.Application.Features.Ads.Queries.GetActiveAdPackages;
 using ClinicHub.Application.Features.Ads.Queries.GetMyAds;
 using ClinicHub.Domain.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicHub.API.Controllers.Version1;
@@ -28,6 +29,7 @@ public class AdsController : BaseApiController
     }
 
     [HttpGet]
+    [AllowAnonymous]
     [Route(ApiRoutes.Ads.Packages)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPackages(CancellationToken ct)
