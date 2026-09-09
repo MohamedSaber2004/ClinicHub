@@ -94,7 +94,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <returns>The updated clinic information.</returns>
         [HttpPut]
         [Route(ApiRoutes.ClinicManagement.Update)]
-        [RoleAuthorize(nameof(UserType.SuperAdmin))]
+        [RoleAuthorize(nameof(UserType.SuperAdmin), nameof(UserType.ClinicOwner))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateClinicCommand request)
@@ -142,7 +142,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <returns>The clinic information.</returns>
         [HttpGet]
         [Route(ApiRoutes.ClinicManagement.GetById)]
-        [RoleAuthorize(nameof(UserType.SuperAdmin))]
+        [RoleAuthorize(nameof(UserType.SuperAdmin), nameof(UserType.ClinicOwner))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById(Guid id)
@@ -157,7 +157,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// </summary>
         [HttpGet]
         [Route(ApiRoutes.ClinicManagement.GetDetails)]
-        [RoleAuthorize(nameof(UserType.SuperAdmin))]
+        [RoleAuthorize(nameof(UserType.SuperAdmin), nameof(UserType.ClinicOwner))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetDetails(Guid id)
