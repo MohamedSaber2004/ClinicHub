@@ -26,7 +26,7 @@ namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
                 .When(x => x.Date.HasValue);
 
             RuleFor(x => x.Date!.Value)
-                .GreaterThanOrEqualTo(DateTime.Now.Date)
+                .Must(d => d.Date >= DateTime.Now.Date)
                 .WithMessage(localizer[LocalizationKeys.BookingMessages.PastDate])
                 .When(x => x.Date.HasValue);
         }

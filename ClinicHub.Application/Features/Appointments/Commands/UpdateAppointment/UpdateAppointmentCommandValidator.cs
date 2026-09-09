@@ -18,7 +18,7 @@ namespace ClinicHub.Application.Features.Appointments.Commands.UpdateAppointment
                 .MustAsync(AppointmentExists).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AppointmentMessages.AppointmentNotFound.Value]));
 
             RuleFor(v => v.Dto.AppointmentDate)
-                .GreaterThanOrEqualTo(DateTime.Now.Date).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidDate.Value]))
+                .Must(d => d!.Value.Date >= DateTime.Now.Date).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidDate.Value]))
                 .When(v => v.Dto.AppointmentDate.HasValue);
 
             RuleFor(v => v.Dto.EndTime)
