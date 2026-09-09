@@ -24,6 +24,11 @@ namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
                 .WithName("Date")
                 .WithMessage(localizer[LocalizationKeys.BookingMessages.InvalidDate])
                 .When(x => x.Date.HasValue);
+
+            RuleFor(x => x.Date!.Value)
+                .GreaterThanOrEqualTo(DateTime.Now.Date)
+                .WithMessage(localizer[LocalizationKeys.BookingMessages.PastDate])
+                .When(x => x.Date.HasValue);
         }
 
         private async Task<bool> IsWithinBookingWindow(Guid clinicId, DateTime? date, CancellationToken cancellationToken)

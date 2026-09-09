@@ -49,7 +49,7 @@ namespace ClinicHub.Application.Features.Appointments.Commands.UpdateAppointment
             var appointment = await _ctx.AppointmentRepository.GetByIdAsync(command.AppointmentId);
             if (appointment == null) return false;
 
-            var dayOfWeek = command.Dto.AppointmentDate.Value.DayOfWeek;
+            var dayOfWeek = command.Dto.AppointmentDate.Value.Date.DayOfWeek;
             var startTime = command.Dto.StartTime.Value;
             var endTime = command.Dto.EndTime.Value;
 
@@ -80,7 +80,8 @@ namespace ClinicHub.Application.Features.Appointments.Commands.UpdateAppointment
             var clinic = await _ctx.ClinicRepository.GetByIdAsync(appointment.ClinicId);
             if (clinic?.WorkingHoursStart is null || clinic.WorkingHoursEnd is null) return true;
 
-            var dayOfWeek = command.Dto.AppointmentDate.Value.DayOfWeek;
+            // Same as create: validated against the REQUESTED slot, never "now".
+            var dayOfWeek = command.Dto.AppointmentDate.Value.Date.DayOfWeek;
             var workingDays = ParseWorkingDays(clinic.WorkingDays);
             if (workingDays.Count > 0 && !workingDays.Contains(dayOfWeek))
                 return false;

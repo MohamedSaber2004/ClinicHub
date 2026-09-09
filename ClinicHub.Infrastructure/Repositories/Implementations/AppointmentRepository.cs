@@ -18,19 +18,25 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations
 
         public async Task<bool> HasOverlappingAppointmentAsync(Guid doctorId, DateTime date, TimeSpan startTime, TimeSpan endTime)
         {
+            var now = DateTime.Now;
             return await _context.Appointments
                 .AnyAsync(a => a.DoctorId == doctorId &&
                                a.AppointmentDate == date.Date &&
                                a.Status != AppointmentStatus.Cancelled &&
+                               a.Status != AppointmentStatus.Rejected &&
+                               !(a.Status == AppointmentStatus.Reserved && a.ExpiresAt != null && a.ExpiresAt <= now) &&
                                a.StartTime < endTime && a.EndTime > startTime);
         }
 
         public async Task<List<Appointment>> GetAppointmentsByDoctorAndDateAsync(Guid doctorId, DateTime date)
         {
+            var now = DateTime.Now;
             return await _context.Appointments
                 .Where(a => a.DoctorId == doctorId &&
                             a.AppointmentDate == date.Date &&
-                            a.Status != AppointmentStatus.Cancelled)
+                            a.Status != AppointmentStatus.Cancelled &&
+                            a.Status != AppointmentStatus.Rejected &&
+                            !(a.Status == AppointmentStatus.Reserved && a.ExpiresAt != null && a.ExpiresAt <= now))
                 .ToListAsync();
         }
 
