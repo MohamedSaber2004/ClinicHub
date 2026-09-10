@@ -1,4 +1,5 @@
-﻿using ClinicHub.Application.Localization;
+﻿using ClinicHub.Application.Common;
+using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +19,7 @@ namespace ClinicHub.Application.Features.Appointments.Commands.UpdateAppointment
                 .MustAsync(AppointmentExists).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AppointmentMessages.AppointmentNotFound.Value]));
 
             RuleFor(v => v.Dto.AppointmentDate)
-                .Must(d => d!.Value.Date >= DateTime.Now.Date).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidDate.Value]))
+                .Must(d => AppDate.ToUnzonedDate(d!.Value) >= AppDate.Today).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidDate.Value]))
                 .When(v => v.Dto.AppointmentDate.HasValue);
 
             RuleFor(v => v.Dto.EndTime)
@@ -49,7 +50,7 @@ namespace ClinicHub.Application.Features.Appointments.Commands.UpdateAppointment
             var appointment = await _ctx.AppointmentRepository.GetByIdAsync(command.AppointmentId);
             if (appointment == null) return false;
 
-            var dayOfWeek = command.Dto.AppointmentDate.Value.Date.DayOfWeek;
+            var dayOfWeek = AppDate.ToUnzonedDate(command.Dto.AppointmentDate.Value).DayOfWeek;
             var startTime = command.Dto.StartTime.Value;
             var endTime = command.Dto.EndTime.Value;
 
@@ -81,7 +82,7 @@ namespace ClinicHub.Application.Features.Appointments.Commands.UpdateAppointment
             if (clinic?.WorkingHoursStart is null || clinic.WorkingHoursEnd is null) return true;
 
             // Same as create: validated against the REQUESTED slot, never "now".
-            var dayOfWeek = command.Dto.AppointmentDate.Value.Date.DayOfWeek;
+            var dayOfWeek = AppDate.ToUnzonedDate(command.Dto.AppointmentDate.Value).DayOfWeek;
             var workingDays = ParseWorkingDays(clinic.WorkingDays);
             if (workingDays.Count > 0 && !workingDays.Contains(dayOfWeek))
                 return false;

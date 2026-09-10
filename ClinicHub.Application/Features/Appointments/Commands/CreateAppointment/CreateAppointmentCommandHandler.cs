@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Appointments.DTOs;
@@ -47,10 +48,11 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
             if (config == null)
                 throw new BadRequestException(LocalizationKeys.BookingMessages.BookingConfigNotFound.Value);
 
-            if (request.AppointmentDate.Date.Add(request.StartTime) <= DateTime.Now)
+            // Timezone-free: unzoned calendar date vs server wall-clock.
+            if (AppDate.ToUnzonedDate(request.AppointmentDate).Add(request.StartTime) <= AppDate.Now)
                 throw new BadRequestException(LocalizationKeys.BookingMessages.PastDate.Value);
 
-            if (request.AppointmentDate.Date > DateTime.Now.Date.AddDays(config.MaxAdvanceBookingDays))
+            if (AppDate.ToUnzonedDate(request.AppointmentDate) > AppDate.Today.AddDays(config.MaxAdvanceBookingDays))
                 throw new BadRequestException(LocalizationKeys.BookingMessages.InvalidDate.Value);
 
             var userId = _currentUserService.UserId;

@@ -54,7 +54,8 @@ namespace ClinicHub.Domain.Entities
             BookedByUserId = bookedByUserId;
             DoctorId = doctorId;
             ClinicId = clinicId;
-            AppointmentDate = appointmentDate.Date;
+            // Timezone-free: keep the calendar date only, Kind=Unspecified.
+            AppointmentDate = new DateTime(appointmentDate.Year, appointmentDate.Month, appointmentDate.Day, 0, 0, 0, DateTimeKind.Unspecified);
             StartTime = startTime;
             EndTime = endTime;
             AppointmentType = appointmentType;
@@ -126,7 +127,7 @@ namespace ClinicHub.Domain.Entities
             string complaint,
             string? chronicDiseases)
         {
-            AppointmentDate = appointmentDate.Date;
+            AppointmentDate = new DateTime(appointmentDate.Year, appointmentDate.Month, appointmentDate.Day, 0, 0, 0, DateTimeKind.Unspecified);
             StartTime = startTime;
             EndTime = endTime;
             Complaint = complaint;

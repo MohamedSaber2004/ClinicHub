@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Features.Availability.DTOs;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
@@ -33,11 +34,12 @@ namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
 
             if (request.Date.HasValue)
             {
-                var requestedDate = request.Date.Value.Date;
+                // Timezone-free: calendar date as written, server wall-clock today.
+                var requestedDate = AppDate.ToUnzonedDate(request.Date.Value);
 
                 // Real booking flow: past dates are never bookable — return an empty grid
                 // instead of slots that would later fail validation.
-                if (requestedDate < DateTime.Now.Date)
+                if (requestedDate < AppDate.Today)
                 {
                     response.RequestedDate = requestedDate.ToString("yyyy-MM-dd");
                     return response;
@@ -151,8 +153,8 @@ namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
                 // Future dates are unaffected — bookable 24/7 regardless of whether
                 // the clinic is currently open.
                 var isElapsed = requestedDate.HasValue
-                    && requestedDate.Value.Date == DateTime.Now.Date
-                    && requestedDate.Value.Date.Add(currentTime) <= DateTime.Now;
+                    && AppDate.ToUnzonedDate(requestedDate.Value) == AppDate.Today
+                    && AppDate.ToUnzonedDate(requestedDate.Value).Add(currentTime) <= AppDate.Now;
 
                 slots.Add(new TimeSlotDto
                 {

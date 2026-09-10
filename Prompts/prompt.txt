@@ -1,2 +1,34 @@
-﻿5690721	-	محفظة	جنية مصرى	اختبار	لا	26 مايو 2026, 11:24 AM
-5671290	wallets	بطاقة ائتمان	جنية مصرى	اختبار	لا	17 مايو 2026, 11:58 AM
+﻿when i try to reserve appointment in sunday with available interval of availability of clinic and clinic doctors then cannot reserve
+  it in the next sunday but can reserve it in the next of next sunday why that occured analyze project correctly to understand what is
+  the problem.
+
+ The failure is from the clinic schedule validation—not doctor availability or a “next Sunday” rule.
+
+  Your failed request is for 2026-09-13, 03:30–04:00, and the API returned “Clinic closed at this time.” That error can only be
+  produced when either:
+
+  - the stored Clinic.WorkingDays does not contain Sunday, or
+  - 03:30–04:00 falls outside the structured WorkingHoursStart / WorkingHoursEnd interval.
+
+  The end boundary is inclusive: for this request, the clinic’s configured closing time must be 04:00 or later.
+
+  Critically, 2026-09-13 and 2026-09-20 are both Sundays. The reservation code only compares appointmentDate.Date.DayOfWeek, so it has
+  no branch that can reject the first Sunday but accept the second at the same time. See /E:/ClinicHub/ClinicHub.Application/Features/
+  Appointments/Commands/CreateAppointment/CreateAppointmentCommandValidator.cs:135.
+
+  The doctor’s availability is checked separately first, and the returned error proves the clinic-level check is what failed. /E:/
+  ClinicHub/ClinicHub.Application/Features/Appointments/Commands/CreateAppointment/CreateAppointmentCommandValidator.cs:93
+
+  Most likely explanations are:
+
+  - the two bookings did not actually send the same startTime / endTime;
+  - the UI displayed a slot from stale data and the clinic schedule was updated before reservation;
+  - the reservation request used a different clinic/environment than the slot request;
+  - the clinic’s structured hours differ from the human-readable WorkingHours text. Booking uses only WorkingDays, WorkingHoursStart,
+    and WorkingHoursEnd.
+
+  The slot endpoint itself also derives availability purely from weekday and the clinic/doctor interval intersection, so the same
+  Sunday slot should be returned and accepted consistently. /E:/ClinicHub/ClinicHub.Application/Features/Availability/Queries/
+  GetAvailableSlots/GetAvailableSlotsQueryHandler.cs:47
+
+  No files were changed.

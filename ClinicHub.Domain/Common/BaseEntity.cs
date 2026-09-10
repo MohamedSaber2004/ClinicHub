@@ -16,25 +16,12 @@ namespace ClinicHub.Domain.Common
         [Timestamp]
         public byte[]? Version { get; internal set; }
 
-        private static readonly TimeZoneInfo AppTimeZone = ResolveAppTimeZone();
-
         /// <summary>
-        /// Wall-clock time in Africa/Cairo regardless of the host server's timezone.
-        /// The production host runs UTC+2 while Egypt observes DST (UTC+3), which made
-        /// DateTime.Now stamps lag an hour behind users' clocks during DST months.
+        /// Platform is timezone-free: all timestamps are plain server wall-clock
+        /// (<see cref="DateTime.Now"/>) with no conversions. The host clock is the
+        /// single source of truth — no per-clinic or Cairo/UTC translation.
         /// </summary>
-        public static DateTime CairoNow => TimeZoneInfo.ConvertTime(DateTime.UtcNow, AppTimeZone);
-
-        private static TimeZoneInfo ResolveAppTimeZone()
-        {
-            foreach (var id in new[] { "Egypt Standard Time", "Africa/Cairo" })
-            {
-                try { return TimeZoneInfo.FindSystemTimeZoneById(id); }
-                catch (TimeZoneNotFoundException) { }
-                catch (InvalidTimeZoneException) { }
-            }
-            return TimeZoneInfo.Local;
-        }
+        public static DateTime AppNow => DateTime.Now;
 
         public void Deactive()
         {
@@ -58,19 +45,19 @@ namespace ClinicHub.Domain.Common
         {
             IsDeleted = true;
             IsActive = false;
-            DeletedAt = CairoNow;
+            DeletedAt = AppNow;
             DeletedBy = deletedBy;
         }
 
         public virtual void MarkAsUpdated(string updatedBy)
         {
-            UpdatedAt = CairoNow;
+            UpdatedAt = AppNow;
             UpdatedBy = updatedBy;
         }
 
         public virtual void MarkAsCreated(string createdBy)
         {
-            CreatedAt = CairoNow;
+            CreatedAt = AppNow;
             CreatedBy = createdBy;
             IsActive = true;
             IsDeleted = false;

@@ -1,4 +1,5 @@
-﻿using ClinicHub.Application.Localization;
+﻿using ClinicHub.Application.Common;
+using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
 using Microsoft.Extensions.Localization;
@@ -26,7 +27,7 @@ namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
                 .When(x => x.Date.HasValue);
 
             RuleFor(x => x.Date!.Value)
-                .Must(d => d.Date >= DateTime.Now.Date)
+                .Must(d => AppDate.ToUnzonedDate(d) >= AppDate.Today)
                 .WithMessage(localizer[LocalizationKeys.BookingMessages.PastDate])
                 .When(x => x.Date.HasValue);
         }
@@ -36,7 +37,7 @@ namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
             if (!date.HasValue) return true;
 
             var config = await _ctx.BookingConfigurationRepository.GetByClinicIdAsync(clinicId);
-            return config == null || date.Value.Date <= DateTime.Now.Date.AddDays(config.MaxAdvanceBookingDays);
+            return config == null || AppDate.ToUnzonedDate(date.Value) <= AppDate.Today.AddDays(config.MaxAdvanceBookingDays);
         }
     }
 }

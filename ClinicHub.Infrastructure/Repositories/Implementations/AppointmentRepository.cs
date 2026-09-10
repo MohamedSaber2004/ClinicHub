@@ -19,9 +19,11 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations
         public async Task<bool> HasOverlappingAppointmentAsync(Guid doctorId, DateTime date, TimeSpan startTime, TimeSpan endTime)
         {
             var now = DateTime.Now;
+            // Timezone-free: compare calendar dates only (Kind=Unspecified midnight).
+            var day = new DateTime(date.Year, date.Month, date.Day, 0, 0, 0, DateTimeKind.Unspecified);
             return await _context.Appointments
                 .AnyAsync(a => a.DoctorId == doctorId &&
-                               a.AppointmentDate == date.Date &&
+                               a.AppointmentDate == day &&
                                a.Status != AppointmentStatus.Cancelled &&
                                a.Status != AppointmentStatus.Rejected &&
                                !(a.Status == AppointmentStatus.Reserved && a.ExpiresAt != null && a.ExpiresAt <= now) &&
@@ -31,9 +33,10 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations
         public async Task<List<Appointment>> GetAppointmentsByDoctorAndDateAsync(Guid doctorId, DateTime date)
         {
             var now = DateTime.Now;
+            var day = new DateTime(date.Year, date.Month, date.Day, 0, 0, 0, DateTimeKind.Unspecified);
             return await _context.Appointments
                 .Where(a => a.DoctorId == doctorId &&
-                            a.AppointmentDate == date.Date &&
+                            a.AppointmentDate == day &&
                             a.Status != AppointmentStatus.Cancelled &&
                             a.Status != AppointmentStatus.Rejected &&
                             !(a.Status == AppointmentStatus.Reserved && a.ExpiresAt != null && a.ExpiresAt <= now))

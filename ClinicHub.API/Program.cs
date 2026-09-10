@@ -70,6 +70,13 @@ namespace ClinicHub.API
 
                     // Hide NET-Tracker controllers from Swagger/Scalar without removing them from routing
                     options.Conventions.Add(new HideNetTrackerControllersConvention());
+                }).AddJsonOptions(json =>
+                {
+                    // Timezone-free platform: incoming dates bind to the calendar date
+                    // exactly as written (offset ignored, Kind=Unspecified) so a Sunday
+                    // can never shift to Saturday during deserialization.
+                    json.JsonSerializerOptions.Converters.Add(new Json.UnspecifiedDateTimeConverter());
+                    json.JsonSerializerOptions.Converters.Add(new Json.UnspecifiedNullableDateTimeConverter());
                 });
 
                 builder.Services.AddApiVersioning(options =>
