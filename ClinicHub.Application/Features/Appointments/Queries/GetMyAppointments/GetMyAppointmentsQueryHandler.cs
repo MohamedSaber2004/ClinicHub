@@ -36,18 +36,6 @@ namespace ClinicHub.Application.Features.Appointments.Queries.GetMyAppointments
                     a => a.Doctor.User,
                     a => a.Payment);
 
-            // Optional status filter: names in any case ("Pending"), numbers ("0" is
-            // Pending, "4" is Reserved), or "All"/empty for every status. Anything
-            // else is a 400 with the valid values instead of a silent empty list.
-            // NOTE: `?status=0` and `?status=Pending` resolve to the same value
-            // (Pending) by construction, so they can never return different rows.
-            // Booking requests always enter as Pending, so `?status=0` returns the
-            // caller's new requests. An always-empty result means no row matches
-            // (owner + status + global filters). Verify with:
-            // SELECT "Status", COUNT(*) FROM "Appointments"
-            // WHERE "BookedByUserId" = '<caller id>' GROUP BY "Status";
-            // (Pending=0, Confirmed=1, Cancelled=2, Completed=3, Reserved=4,
-            //  NoShow=5, Accepted=6, Rejected=7.)
             var statusFilter = ResolveStatusFilter(request.Status);
 
             if (statusFilter.HasValue)

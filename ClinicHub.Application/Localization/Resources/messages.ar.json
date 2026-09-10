@@ -183,7 +183,7 @@
     "NotFound": "الدفع غير موجود",
     "AlreadyPaid": "تم دفع ثمن هذا الموعد بالفعل",
     "AppointmentNotFound": "الموعد غير موجود",
-    "AppointmentNotPending": "يمكن دفع ثمن المواعيد المعلقة فقط",
+    "AppointmentNotPending": "يمكن دفع ثمن المواعيد المعلقة أو المقبولة فقط",
     "AlreadyAcceptedPayment": "تم قبول هذا الحجز مسبقاً",
     "Unauthorized": "أنت غير مصرح لك بالقيام بهذا الإجراء",
     "PaymobOrderFailed": "فشل إنشاء طلب الدفع",

@@ -183,7 +183,7 @@
     "NotFound": "Payment not found",
     "AlreadyPaid": "This appointment is already paid",
     "AppointmentNotFound": "Appointment not found",
-    "AppointmentNotPending": "Only pending appointments can be paid",
+    "AppointmentNotPending": "Only pending or accepted appointments can be paid",
     "AlreadyAcceptedPayment": "This appointment has already been accepted",
     "Unauthorized": "You are not authorized to perform this action",
     "PaymobOrderFailed": "Failed to create payment order",

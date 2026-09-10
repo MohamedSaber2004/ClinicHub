@@ -35,9 +35,9 @@ namespace ClinicHub.Application.Features.Payment.Commands.InitiateBookingPayment
             if (appointment.BookedByUserId != _currentUser.UserId)
                 throw new UnauthorizedAccessException(LocalizationKeys.PaymentMessages.Unauthorized.Value);
 
-            // Booking requests enter as Pending and wait for the staff decision, so
-            // payment initiates from Pending (not Reserved).
-            if (appointment.Status != AppointmentStatus.Pending)
+            // Payable while waiting: Pending (paid upfront before the staff decision)
+            // or Accepted (staff accepted and the request waits for payment).
+            if (appointment.Status != AppointmentStatus.Pending && appointment.Status != AppointmentStatus.Accepted)
                 throw new BadRequestException(LocalizationKeys.PaymentMessages.AppointmentNotPending.Value);
 
             var existingPayment = await _unitOfWork.PaymentRepository.GetByAppointmentIdAsync(request.ReservationId);
