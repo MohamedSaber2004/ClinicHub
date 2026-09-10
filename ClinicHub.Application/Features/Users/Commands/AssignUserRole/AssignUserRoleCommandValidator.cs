@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
@@ -12,7 +13,7 @@ namespace ClinicHub.Application.Features.Users.Commands.AssignUserRole
     {
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public AssignUserRoleCommandValidator(IStringLocalizer<Messages> localizer, UserManager<ApplicationUser> userManager)
+        public AssignUserRoleCommandValidator(IStringLocalizer<Messages> localizer, UserManager<ApplicationUser> userManager, ICurrentUserService currentUserService)
         {
             _userManager = userManager;
 
@@ -21,6 +22,19 @@ namespace ClinicHub.Application.Features.Users.Commands.AssignUserRole
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.UserNotFound.Value]));
 
             RuleFor(x => x.Role).IsInEnum().NotEqual(UserType.None);
+
+            // Clinic-bound roles need a clinic from somewhere: the user's own, or the
+            // acting user's (e.g. a clinic owner granting Staff inherits their clinic).
+            When(x => x.Role is UserType.ClinicOwner or UserType.Doctor or UserType.Staff, () =>
+            {
+                RuleFor(x => x)
+                    .MustAsync(async (command, ct) =>
+                    {
+                        var user = await userManager.FindByIdAsync(command.UserId.ToString());
+                        return user?.ClinicId.HasValue == true || currentUserService.CurrentClinicId.HasValue;
+                    })
+                    .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
+            });
         }
 
         private async Task<bool> UserExists(Guid userId, CancellationToken cancellationToken)

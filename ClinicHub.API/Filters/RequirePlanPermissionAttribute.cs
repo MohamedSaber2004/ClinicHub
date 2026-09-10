@@ -1,11 +1,13 @@
 ﻿using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Common.Models;
+using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 
 namespace ClinicHub.API.Filters
 {
@@ -22,10 +24,11 @@ namespace ClinicHub.API.Filters
         public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
         {
             var currentUserService = context.HttpContext.RequestServices.GetRequiredService<ICurrentUserService>();
+            var localizer = context.HttpContext.RequestServices.GetRequiredService<IStringLocalizer<Messages>>();
 
             if (!currentUserService.CurrentClinicId.HasValue)
             {
-                context.Result = new ObjectResult(ApiResponse<object>.Error("Clinic not found.", 403))
+                context.Result = new ObjectResult(ApiResponse<object>.Error(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ClinicMessages.ClinicNotFound.Value]), 403))
                 {
                     StatusCode = 403
                 };

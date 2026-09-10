@@ -18,10 +18,12 @@ namespace ClinicHub.Application.Features.ClinicStaff.Commands.UpdateStaff
 
             RuleFor(v => v.StaffId)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
-                .MustAsync(async (id, ct) =>
+                .MustAsync(async (command, id, ct) =>
                 {
                     var user = await _userManager.FindByIdAsync(id.ToString());
-                    if (user == null || user.IsDeleted) return false;
+                    if (user == null) return false;
+                    // Soft-deleted (deactivated) staff can only be touched to reactivate them.
+                    if (user.IsDeleted && command.IsActive != true) return false;
                     var roles = await _userManager.GetRolesAsync(user);
                     return roles.Contains(nameof(UserType.Staff));
                 }).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.StaffMessages.NotFound.Value]));
@@ -44,9 +46,22 @@ namespace ClinicHub.Application.Features.ClinicStaff.Commands.UpdateStaff
             });
 
             RuleFor(v => v.Image)
-                .Must(uri => Uri.TryCreate(uri, UriKind.Absolute, out _))
+                .Must(BeValidImageReference)
                 .When(v => !string.IsNullOrWhiteSpace(v.Image))
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidFormat.Value]));
+        }
+
+        private static readonly string[] AllowedImageExtensions = [".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp"];
+
+        // The staff flow stores raw upload filenames (e.g. "1_avatar.jpg"), so accept either
+        // an absolute URL or a filename with a valid image extension — not URLs only.
+        private static bool BeValidImageReference(string? image)
+        {
+            if (string.IsNullOrWhiteSpace(image)) return false;
+            if (Uri.TryCreate(image, UriKind.Absolute, out _)) return true;
+            var extension = Path.GetExtension(image);
+            return !string.IsNullOrEmpty(extension)
+                && AllowedImageExtensions.Contains(extension.ToLowerInvariant());
         }
     }
 }

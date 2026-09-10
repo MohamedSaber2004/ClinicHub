@@ -27,8 +27,17 @@ namespace ClinicHub.Application.Features.ClinicStaff.Commands.UpdateStaff
                 throw new BadRequestException(LocalizationKeys.ExceptionMessages.BadRequest.Value);
 
             var user = await _userManager.FindByIdAsync(request.StaffId.ToString());
-            if (user == null || user.ClinicId != clinicId || user.IsDeleted)
+            if (user == null || user.ClinicId != clinicId)
                 throw new NotFoundException(LocalizationKeys.AuthMessages.UserNotFound.Value);
+
+            // Deactivation soft-deletes the staff row; an explicit reactivation revives it.
+            if (user.IsDeleted)
+            {
+                if (request.IsActive != true)
+                    throw new NotFoundException(LocalizationKeys.AuthMessages.UserNotFound.Value);
+                user.IsDeleted = false;
+                user.IsActive = true;
+            }
 
             var roles = await _userManager.GetRolesAsync(user);
             if (!roles.Contains(nameof(UserType.Staff)))
