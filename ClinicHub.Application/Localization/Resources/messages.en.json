@@ -233,7 +233,8 @@
     "Created": "Booking created successfully",
     "FeeNotConfigured": "Consultation fee is not configured for this clinic",
     "CancellationWindowExpired": "The free cancellation window has expired; this reservation can no longer be cancelled",
-    "ClinicClosed": "The clinic is closed at the requested time"
+    "ClinicClosed": "The clinic is closed at the requested time",
+    "InvalidStatus": "Invalid appointment status. Valid values: Pending, Confirmed, Cancelled, Completed, Reserved, NoShow, Accepted, Rejected, or All"
   },
   "Doctors": {
     "NotFound": "Doctor not found",

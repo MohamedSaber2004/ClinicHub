@@ -68,17 +68,10 @@ namespace ClinicHub.Domain.Entities
             Status = AppointmentStatus.Pending;
         }
 
-        /// <summary>
-        /// Holds the slot as Reserved until clinic staff accepts, rejects, or
-        /// cancels it. There is no automatic expiry: <see cref="ExpiresAt"/> is
-        /// always cleared and no background job may cancel the reservation.
-        /// (<see cref="ExpiresAt"/> is retained only as deprecated storage.)
-        /// </summary>
-        public void Reserve()
-        {
-            Status = AppointmentStatus.Reserved;
-            ExpiresAt = null;
-        }
+        // NOTE: new booking requests always enter as Pending (set by the
+        // constructor) so they land in the staff decision queue. Nothing may
+        // move a request to Reserved on creation.
+        // (<see cref="ExpiresAt"/> is retained only as deprecated storage.)
 
         public void Confirm(Guid paymentId)
         {

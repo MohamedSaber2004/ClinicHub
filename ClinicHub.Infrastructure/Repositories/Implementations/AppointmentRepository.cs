@@ -19,7 +19,7 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations
         public async Task<bool> HasOverlappingAppointmentAsync(Guid doctorId, DateTime date, TimeSpan startTime, TimeSpan endTime)
         {
             // Timezone-free: compare calendar dates only (Kind=Unspecified midnight).
-            // A Reserved appointment holds its slot until staff accepts, rejects, or
+            // A Pending request holds its slot until staff accepts, rejects, or
             // cancels it — there is no automatic expiry.
             var day = new DateTime(date.Year, date.Month, date.Day, 0, 0, 0, DateTimeKind.Unspecified);
             return await _context.Appointments

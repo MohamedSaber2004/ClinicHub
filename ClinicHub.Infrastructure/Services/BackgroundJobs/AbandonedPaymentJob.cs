@@ -34,7 +34,7 @@ public class AbandonedPaymentJob
         foreach (var payment in abandonedPayments)
         {
             // Record the abandoned checkout as failed, but never cancel the appointment:
-            // a Reserved appointment stays in the staff queue until staff accepts,
+            // a Pending request stays in the staff queue until staff accepts,
             // rejects, or cancels it.
             payment.MarkAsFailed("Abandoned - no payment confirmation within 24 hours.");
 

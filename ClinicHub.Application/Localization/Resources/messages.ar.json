@@ -233,7 +233,8 @@
     "Created": "تم إنشاء الحجز بنجاح",
     "FeeNotConfigured": "رسوم الاستشارة غير محددة لهذه العيادة",
     "CancellationWindowExpired": "انتهت مهلة الإلغاء المجاني، لم يعد بإمكانك إلغاء هذا الحجز",
-    "ClinicClosed": "العيادة مغلقة في هذا التوقيت"
+    "ClinicClosed": "العيادة مغلقة في هذا التوقيت",
+    "InvalidStatus": "حالة الموعد غير صالحة. القيم الصالحة: Pending, Confirmed, Cancelled, Completed, Reserved, NoShow, Accepted, Rejected, أو All"
   },
   "Doctors": {
     "NotFound": "الطبيب غير موجود",

@@ -75,12 +75,9 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
                 request.Complaint,
                 request.ChronicDiseases);
 
-            // Clinic with a consultation fee: hold the slot as Reserved until clinic
-            // staff accepts, rejects, or cancels it. Reservations never expire on
-            // their own — staff action is the only decision point.
-            // Free clinics keep the appointment Pending (0) until staff/doctor approves or rejects it.
-            if (config.ConsultationFee > 0)
-                appointment.Reserve();
+            // Every booking request enters as Pending (0) — including paid clinics —
+            // so it lands in the staff decision queue. Staff accepts, rejects, or
+            // cancels it; reservations never expire on their own.
 
             await _unitOfWork.AppointmentRepository.AddAsync(appointment);
             await _unitOfWork.SaveChangesAsync();
