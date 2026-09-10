@@ -31,7 +31,7 @@ namespace ClinicHub.API.Controllers.Version1
 
         [HttpGet]
         [Route(ApiRoutes.Subscriptions.MySubscription)]
-        [RoleAuthorize(nameof(UserType.ClinicOwner))]
+        [RoleAuthorize(nameof(UserType.ClinicOwner), nameof(UserType.Staff))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetMySubscription(CancellationToken ct)
         {
