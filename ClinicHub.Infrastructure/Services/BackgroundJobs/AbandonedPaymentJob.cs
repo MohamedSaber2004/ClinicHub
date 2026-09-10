@@ -1,6 +1,4 @@
-﻿using ClinicHub.Application.Common.Interfaces;
-using ClinicHub.Domain.Entities;
-using ClinicHub.Domain.Enums;
+﻿using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,45 +23,25 @@ public class AbandonedPaymentJob
     {
         await using var scope = _serviceProvider.CreateAsyncScope();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
-        var fcmService = scope.ServiceProvider.GetRequiredService<IFcmService>();
 
         var cutoff = DateTime.Now.Add(-AbandonmentThreshold);
 
         var abandonedPayments = await unitOfWork.PaymentRepository
             .GetAllAsync(p => (p.Status == PaymentStatus.Pending || p.Status == PaymentStatus.Processing)
                 && p.CreatedAt < cutoff)
-            .Include(p => p.Appointment)
-                .ThenInclude(a => a.Clinic)
             .ToListAsync(cancellationToken);
-
-        var cancelledAppointments = new List<Appointment>();
 
         foreach (var payment in abandonedPayments)
         {
+            // Record the abandoned checkout as failed, but never cancel the appointment:
+            // a Reserved appointment stays in the staff queue until staff accepts,
+            // rejects, or cancels it.
             payment.MarkAsFailed("Abandoned - no payment confirmation within 24 hours.");
-
-            if (payment.Type == PaymentType.Appointment
-                && payment.Appointment != null
-                && payment.Appointment.Status == AppointmentStatus.Reserved)
-            {
-                payment.Appointment.ExpireReservation();
-                cancelledAppointments.Add(payment.Appointment);
-            }
 
             _logger.LogInformation("Payment {PaymentId} marked as failed (abandoned checkout).", payment.Id);
         }
 
-        foreach (var appointment in cancelledAppointments)
-        {
-            await fcmService.SendToUserAsync(appointment.BookedByUserId, NotificationType.AppointmentCancellation, new()
-            {
-                ["clinicName"] = appointment.Clinic?.Name ?? "",
-                ["reason"] = "Ù„Ù… ÙŠØªÙ… ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø­Ø¬Ø² Ø®Ù„Ø§Ù„ Ø§Ù„Ù…Ù‡Ù„Ø© Ø§Ù„Ù…Ø­Ø¯Ø¯Ø©"
-            });
-        }
-
-        // Single commit: the failed payments, expired reservations, and the notification
-        // rows are all written in one transaction.
+        // Single commit: all failed-payment rows in one transaction.
         await unitOfWork.SaveChangesAsync();
     }
 }

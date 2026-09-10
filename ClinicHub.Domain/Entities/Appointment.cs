@@ -68,19 +68,16 @@ namespace ClinicHub.Domain.Entities
             Status = AppointmentStatus.Pending;
         }
 
-        public bool IsReservationExpired() =>
-            ExpiresAt.HasValue && Status == AppointmentStatus.Reserved && DateTime.Now >= ExpiresAt.Value;
-
-        public void Reserve(int reservationTtlMinutes)
+        /// <summary>
+        /// Holds the slot as Reserved until clinic staff accepts, rejects, or
+        /// cancels it. There is no automatic expiry: <see cref="ExpiresAt"/> is
+        /// always cleared and no background job may cancel the reservation.
+        /// (<see cref="ExpiresAt"/> is retained only as deprecated storage.)
+        /// </summary>
+        public void Reserve()
         {
             Status = AppointmentStatus.Reserved;
-            ExpiresAt = DateTime.Now.AddMinutes(reservationTtlMinutes);
-        }
-
-        public void ExpireReservation()
-        {
-            if (Status == AppointmentStatus.Reserved)
-                Status = AppointmentStatus.Cancelled;
+            ExpiresAt = null;
         }
 
         public void Confirm(Guid paymentId)

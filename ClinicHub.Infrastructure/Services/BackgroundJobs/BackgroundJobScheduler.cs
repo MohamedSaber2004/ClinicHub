@@ -17,12 +17,6 @@ public class BackgroundJobScheduler : IBackgroundJobScheduler
         return Task.CompletedTask;
     }
 
-    public Task ScheduleReservationExpirationAsync(Guid appointmentId, DateTime expiresAt)
-    {
-        BackgroundJob.Schedule<ReservationExpirationJob>(job => job.ExpireReservationAsync(appointmentId, CancellationToken.None), expiresAt);
-        return Task.CompletedTask;
-    }
-
     public Task ScheduleCancellationWindowCloseAsync(Guid appointmentId, DateTime windowCloseAt)
     {
         BackgroundJob.Schedule<CancellationWindowJob>(job => job.CloseCancellationWindowAsync(appointmentId, CancellationToken.None), windowCloseAt);

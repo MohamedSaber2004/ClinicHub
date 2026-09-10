@@ -35,9 +35,6 @@ namespace ClinicHub.Application.Features.Payment.Commands.InitiateBookingPayment
             if (appointment.BookedByUserId != _currentUser.UserId)
                 throw new UnauthorizedAccessException(LocalizationKeys.PaymentMessages.Unauthorized.Value);
 
-            if (appointment.IsReservationExpired())
-                throw new ConflictException(LocalizationKeys.BookingMessages.ReservationExpired.Value);
-
             if (appointment.Status != AppointmentStatus.Reserved)
                 throw new BadRequestException(LocalizationKeys.PaymentMessages.AppointmentNotPending.Value);
 

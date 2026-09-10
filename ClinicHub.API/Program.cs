@@ -317,8 +317,11 @@ namespace ClinicHub.API
                         job => job.SweepExpiredAsync(CancellationToken.None), Cron.Hourly);
                     RecurringJob.AddOrUpdate<AbandonedPaymentJob>("abandoned-payments",
                         job => job.SweepAsync(CancellationToken.None), Cron.Hourly);
-                    RecurringJob.AddOrUpdate<ReservationExpirationJob>("reservations-expiration",
-                        job => job.SweepExpiredReservationsAsync(CancellationToken.None), Cron.Hourly);
+                    // Staff decides every reservation: the reservations-expiration sweep was
+                    // removed. Also drop the recurring job if it was persisted by an older
+                    // deployment (delayed per-reservation jobs must be deleted from the
+                    // Hangfire dashboard/storage — their target type no longer exists).
+                    RecurringJob.RemoveIfExists("reservations-expiration");
                     RecurringJob.AddOrUpdate<TokenCleanupJob>("token-cleanup",
                         job => job.CleanupAsync(CancellationToken.None), Cron.Daily);
                     RecurringJob.AddOrUpdate<ExpiryReminderJob>("expiry-reminders",

@@ -19,7 +19,6 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
         private readonly IMapper _mapper;
-        private readonly IBackgroundJobScheduler _jobScheduler;
         private readonly IFcmService _fcmService;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly ILogger<CreateAppointmentCommandHandler> _logger;
@@ -28,7 +27,6 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
             IUnitOfWork unitOfWork,
             ICurrentUserService currentUserService,
             IMapper mapper,
-            IBackgroundJobScheduler jobScheduler,
             IFcmService fcmService,
             UserManager<ApplicationUser> userManager,
             ILogger<CreateAppointmentCommandHandler> logger)
@@ -36,7 +34,6 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
             _mapper = mapper;
-            _jobScheduler = jobScheduler;
             _fcmService = fcmService;
             _userManager = userManager;
             _logger = logger;
@@ -55,7 +52,14 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
             if (AppDate.ToUnzonedDate(request.AppointmentDate) > AppDate.Today.AddDays(config.MaxAdvanceBookingDays))
                 throw new BadRequestException(LocalizationKeys.BookingMessages.InvalidDate.Value);
 
+            // Ownership comes from the authenticated user via ICurrentUserService:
+            // whoever calls the endpoint owns the booking, so it always shows up
+            // in their /appointments/my queue. Anonymous callers have no identity
+            // to own the booking (UserId is Empty) and are rejected here even if
+            // they bypass the controller's auth filter.
             var userId = _currentUserService.UserId;
+            if (userId == Guid.Empty)
+                throw new UnauthorizedAccessException(LocalizationKeys.ExceptionMessages.Unauthorized.Value);
 
             var appointment = new Appointment(
                 userId,
@@ -71,35 +75,21 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
                 request.Complaint,
                 request.ChronicDiseases);
 
-            // Clinic with a consultation fee: hold the slot as Reserved until payment is completed
-            // (auto-expired by ReservationExpirationJob when the reservation TTL passes).
+            // Clinic with a consultation fee: hold the slot as Reserved until clinic
+            // staff accepts, rejects, or cancels it. Reservations never expire on
+            // their own — staff action is the only decision point.
             // Free clinics keep the appointment Pending (0) until staff/doctor approves or rejects it.
             if (config.ConsultationFee > 0)
-                appointment.Reserve(config.ReservationTtlMinutes);
+                appointment.Reserve();
 
             await _unitOfWork.AppointmentRepository.AddAsync(appointment);
             await _unitOfWork.SaveChangesAsync();
 
-            if (appointment.ExpiresAt.HasValue)
-            {
-                try
-                {
-                    await _jobScheduler.ScheduleReservationExpirationAsync(appointment.Id, appointment.ExpiresAt.Value);
-                }
-                catch (Exception ex)
-                {
-                    // Never turn a Hangfire scheduling failure into a 500 after the appointment
-                    // is already committed. If the exact-time job was not scheduled, the hourly
-                    // reservations-expiration sweep expires the reservation instead.
-                    _logger.LogWarning(ex, "Failed to schedule reservation expiration for appointment {AppointmentId}; the hourly sweep will handle it.", appointment.Id);
-                }
-            }
-
             await NotifyClinicStaffAsync(appointment, request, cancellationToken);
 
             // Commit the notification rows added by the sends above. The appointment itself
-            // was already committed above (line 79) because the reservation-expiration job
-            // and the staff-notification re-query require the row to exist.
+            // was already committed above because the staff-notification re-query requires
+            // the row to exist.
             await _unitOfWork.SaveChangesAsync();
 
             var dto = _mapper.Map<AppointmentDto>(appointment);
