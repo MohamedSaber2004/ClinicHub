@@ -33,6 +33,9 @@ public class GetAdminPaymentsQueryHandler : IRequestHandler<GetAdminPaymentsQuer
         if (request.Status.HasValue)
             query = query.Where(p => p.Status == request.Status.Value);
 
+        if (request.ClinicId.HasValue)
+            query = query.Where(p => p.ClinicId == request.ClinicId.Value);
+
         if (request.FromDate.HasValue)
             query = query.Where(p => p.CreatedAt >= request.FromDate.Value.Date);
 

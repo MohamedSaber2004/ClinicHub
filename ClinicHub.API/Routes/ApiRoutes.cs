@@ -317,6 +317,7 @@ namespace ClinicHub.API.Routes
             public const string GetAll = BaseRoute;
             public const string GetById = BaseRoute + "/{id:guid}";
             public const string Stats = BaseRoute + "/stats";
+            public const string ClinicsSummary = BaseRoute + "/clinics-summary";
             public const string Manual = BaseRoute + "/manual";
             public const string Refund = BaseRoute + "/{id:guid}/refund";
         }
