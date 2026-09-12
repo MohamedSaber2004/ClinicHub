@@ -70,12 +70,25 @@ namespace ClinicHub.Application.Features.Payment.Commands.InitiateBookingPayment
             else
                 checkout = await _paymobService.InitiateWalletPaymentAsync(amount, currency, billing, billing.PhoneNumber, cancellationToken, request.ReturnUrl);
 
-            var payment = new Domain.Entities.Payment(PaymentType.Appointment, _currentUser.UserId, appointment.ClinicId, amount, currency)
+            // Idempotency: one appointment owns exactly one payment row. A retry refreshes
+            // the existing unpaid row with the new Paymob order instead of inserting
+            // a duplicate (same reuse pattern as InitiatePayment).
+            var payment = existingPayment;
+            if (payment != null)
             {
-                PaymobOrderId = checkout.OrderId
-            };
-            payment.LinkToAppointment(request.ReservationId);
-            payment.MarkAsProcessing(checkout.RedirectUrl, PaymentMethodMapper.ToDbString(resolvedMethod));
+                payment.PaymobOrderId = checkout.OrderId;
+                payment.MarkAsProcessing(checkout.RedirectUrl, PaymentMethodMapper.ToDbString(resolvedMethod));
+            }
+            else
+            {
+                payment = new Domain.Entities.Payment(PaymentType.Appointment, _currentUser.UserId, appointment.ClinicId, amount, currency)
+                {
+                    PaymobOrderId = checkout.OrderId
+                };
+                payment.LinkToAppointment(request.ReservationId);
+                payment.MarkAsProcessing(checkout.RedirectUrl, PaymentMethodMapper.ToDbString(resolvedMethod));
+                await _unitOfWork.PaymentRepository.AddAsync(payment);
+            }
             await _unitOfWork.SaveChangesAsync();
 
             return new BookingPaymentResponseDto
