@@ -44,20 +44,30 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
         {
             var typeOfUser = request.TypeOfUser;
 
-            var user = ApplicationUser.Create(
-                request.FullName,
-                request.Email,
-                request.PhoneNumber,
-                request.BirthDate,
-                request.Gender);
+            var deletedUser = await _userManager.FindByEmailAsync(request.Email);
 
-            var createResult = await _userManager.CreateAsync(user, request.Password);
-            if (!createResult.Succeeded)
-                throw new UnAuthorizedException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ExceptionMessages.Validation.Value]));
+            ApplicationUser user;
+            if (deletedUser is not null && deletedUser.IsDeleted)
+            {
+                user = await RestoreDeletedUserAsync(deletedUser, request);
+            }
+            else
+            {
+                user = ApplicationUser.Create(
+                    request.FullName,
+                    request.Email,
+                    request.PhoneNumber,
+                    request.BirthDate,
+                    request.Gender);
 
-            var roleResult = await _userManager.AddToRoleAsync(user, UserType.User.ToString());
-            if (!roleResult.Succeeded)
-                throw new BadRequestException(_localizer[LocalizationKeys.AuthMessages.RoleAssignmentFailed.Value]);
+                var createResult = await _userManager.CreateAsync(user, request.Password);
+                if (!createResult.Succeeded)
+                    throw new UnAuthorizedException(JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.ExceptionMessages.Validation.Value]));
+
+                var roleResult = await _userManager.AddToRoleAsync(user, UserType.User.ToString());
+                if (!roleResult.Succeeded)
+                    throw new BadRequestException(_localizer[LocalizationKeys.AuthMessages.RoleAssignmentFailed.Value]);
+            }
 
             if (!string.IsNullOrEmpty(request.FcmToken) && request.DevicePlatform.HasValue)
                 await _fcmService.RegisterTokenAsync(user.Id, request.FcmToken, request.DevicePlatform.Value);
@@ -116,6 +126,39 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
                     _localizer[LocalizationKeys.AuthMessages.SignupPendingApproval.Value],
                     IsPendingApproval: true));
             }
+        }
+
+        private async Task<ApplicationUser> RestoreDeletedUserAsync(ApplicationUser deletedUser, SignupCommand request)
+        {
+            deletedUser.UpdateProfile(request.FullName, request.PhoneNumber, request.BirthDate, request.Gender);
+            deletedUser.IsDeleted = false;
+            deletedUser.IsActive = true;
+            deletedUser.DeletedAt = null;
+            deletedUser.DeletedBy = null;
+
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(deletedUser);
+            var passwordResult = await _userManager.ResetPasswordAsync(deletedUser, resetToken, request.Password);
+            if (!passwordResult.Succeeded)
+            {
+                var errors = string.Join(", ", passwordResult.Errors.Select(e => e.Description));
+                throw new BadRequestException(errors);
+            }
+
+            if (!await _userManager.IsInRoleAsync(deletedUser, UserType.User.ToString()))
+            {
+                var roleResult = await _userManager.AddToRoleAsync(deletedUser, UserType.User.ToString());
+                if (!roleResult.Succeeded)
+                    throw new BadRequestException(_localizer[LocalizationKeys.AuthMessages.RoleAssignmentFailed.Value]);
+            }
+
+            var updateResult = await _userManager.UpdateAsync(deletedUser);
+            if (!updateResult.Succeeded)
+            {
+                var errors = string.Join(", ", updateResult.Errors.Select(e => e.Description));
+                throw new BadRequestException(errors);
+            }
+
+            return deletedUser;
         }
     }
 }
