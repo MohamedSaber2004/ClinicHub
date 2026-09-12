@@ -32,6 +32,7 @@ namespace ClinicHub.Domain.Entities
         public string? CancellationReason { get; private set; }
 
         public DateTime? ExpiresAt { get; private set; }
+        public DateTime? CheckedInAt { get; private set; }
         public Guid? PaymentId { get; private set; }
         public Payment? Payment { get; private set; }
 
@@ -105,6 +106,7 @@ namespace ClinicHub.Domain.Entities
         public void CheckIn()
         {
             Status = AppointmentStatus.Confirmed;
+            CheckedInAt = DateTime.Now;
             ExpiresAt = null;
         }
 

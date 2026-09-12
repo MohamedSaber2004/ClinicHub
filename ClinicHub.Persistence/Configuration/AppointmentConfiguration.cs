@@ -27,6 +27,7 @@ namespace ClinicHub.Persistence.Configuration
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.Property(x => x.ExpiresAt);
+            builder.Property(x => x.CheckedInAt);
 
             builder.HasOne(x => x.Clinic)
                 .WithMany()
