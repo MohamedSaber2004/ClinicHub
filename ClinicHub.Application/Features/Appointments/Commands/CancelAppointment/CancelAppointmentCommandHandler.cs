@@ -46,7 +46,8 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
             var appointment = await _unitOfWork.AppointmentRepository
                 .GetFirstWithIncluding(
                     a => a.Id == request.AppointmentId,
-                    a => a.Clinic!)
+                    a => a.Clinic!,
+                    a => a.Doctor)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (appointment == null)
@@ -163,6 +164,31 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to send cancellation notification for appointment {AppointmentId}.", appointment.Id);
+                }
+
+                try
+                {
+                    var recipients = new HashSet<Guid>();
+                    if (appointment.Doctor != null)
+                        recipients.Add(appointment.Doctor.UserId);
+                    if (appointment.Clinic?.ClinicAdminId.HasValue == true)
+                        recipients.Add(appointment.Clinic.ClinicAdminId.Value);
+                    recipients.Remove(appointment.BookedByUserId);
+
+                    foreach (var userId in recipients)
+                    {
+                        await _fcmService.SendToUserAsync(userId, NotificationType.AppointmentCancellation, new()
+                        {
+                            ["clinicName"] = appointment.Clinic?.Name ?? "",
+                            ["reason"] = $"Patient {appointment.PatientFullName} cancelled: {request.CancellationReason}",
+                            ["date"] = appointment.AppointmentDate.ToString("yyyy-MM-dd"),
+                            ["appointmentId"] = appointment.Id.ToString()
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send clinic-side cancellation notification for appointment {AppointmentId}.", appointment.Id);
                 }
 
                 try
