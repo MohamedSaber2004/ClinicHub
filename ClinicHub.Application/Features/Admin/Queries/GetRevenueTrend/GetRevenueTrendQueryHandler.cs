@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Features.Admin.DTOs;
 using ClinicHub.Application.Features.Admin.Queries.Common;
 using ClinicHub.Domain.Entities;
@@ -23,19 +24,23 @@ namespace ClinicHub.Application.Features.Admin.Queries.GetRevenueTrend
             var granularity = GraphPeriodHelper.ParseGranularity(request.Granularity);
             var (fromDate, toDate) = GraphPeriodHelper.NormalizeRange(request.FromDate, request.ToDate);
 
+            var percent = await GetPlatformFeePercentAsync(cancellationToken);
+
             var rows = await _unitOfWork.GetRepository<PaymentEntity, Guid>()
                 .GetAllAsync(p => p.Status == PaymentStatus.Paid
                     && p.PaidAt != null
                     && p.PaidAt >= fromDate
                     && p.PaidAt < toDate)
-                .Select(p => new { p.PaidAt, p.Amount })
+                .Select(p => new { p.PaidAt, p.Amount, p.Type })
                 .ToListAsync(cancellationToken);
 
             var grouped = rows
                 .GroupBy(r => GraphPeriodHelper.BucketStart(r.PaidAt!.Value, granularity))
                 .ToDictionary(
                     g => g.Key,
-                    g => (Revenue: g.Sum(x => x.Amount), Count: g.Count()));
+                    g => (Revenue: g.Sum(x => x.Amount), Count: g.Count(),
+                          Split: AppointmentRevenueSplitter.SumSplits(
+                              g.Where(x => x.Type == PaymentType.Appointment).Select(x => x.Amount), percent)));
 
             return GraphPeriodHelper.BuildBuckets(fromDate, toDate, granularity)
                 .Select(b =>
@@ -45,10 +50,21 @@ namespace ClinicHub.Application.Features.Admin.Queries.GetRevenueTrend
                     {
                         Period = GraphPeriodHelper.FormatBucket(b, granularity),
                         Revenue = v.Revenue,
-                        PaymentsCount = v.Count
+                        PaymentsCount = v.Count,
+                        PlatformFees = v.Split.Fees,
+                        NetRevenue = v.Split.Net
                     };
                 })
                 .ToList();
+        }
+
+        private async Task<decimal> GetPlatformFeePercentAsync(CancellationToken cancellationToken)
+        {
+            var setting = await _unitOfWork.GetRepository<PlatformSetting, Guid>()
+                .GetAllAsync(s => !s.IsDeleted)
+                .OrderBy(s => s.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+            return setting?.AppointmentFeePercent ?? 0m;
         }
     }
 }

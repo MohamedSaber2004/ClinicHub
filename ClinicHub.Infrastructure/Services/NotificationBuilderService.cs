@@ -226,11 +226,14 @@ namespace ClinicHub.Infrastructure.Services
 
                 case NotificationType.PaymentReceived:
                     title = "تم استلام الدفع";
-                    body = $"تم استلام دفعة بقيمة {amount} لحجز {GetParam(parameters, "patientName")} في عيادتك {clinicName}";
+                    body = $"تم استلام دفعة بقيمة {amount} (شامل رسوم المنصة {GetParam(parameters, "platformFee")} بنسبة {GetParam(parameters, "feePercent")}) لحجز {GetParam(parameters, "patientName")} في عيادتك {clinicName} — صافي العيادة {GetParam(parameters, "netAmount")}";
                     data["amount"] = amount;
                     data["patientName"] = GetParam(parameters, "patientName");
                     data["clinicName"] = clinicName;
                     data["appointmentId"] = appointmentId;
+                    data["platformFee"] = GetParam(parameters, "platformFee");
+                    data["feePercent"] = GetParam(parameters, "feePercent");
+                    data["netAmount"] = GetParam(parameters, "netAmount");
                     if (!string.IsNullOrEmpty(appointmentId))
                         link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.AppointmentDetails, appointmentId));
                     else
@@ -239,11 +242,13 @@ namespace ClinicHub.Infrastructure.Services
 
                 case NotificationType.RevenueIncreased:
                     title = "زيادة الإيرادات";
-                    body = $"تم دفع {amount} لحجز في عيادة {clinicName} — إجمالي الإيرادات الآن {GetParam(parameters, "totalRevenue")}";
+                    body = $"تم دفع {amount} لحجز في عيادة {clinicName} — إجمالي الإيرادات الآن {GetParam(parameters, "totalRevenue")} (منها رسوم المنصة {GetParam(parameters, "totalPlatformFees")} وصافي العيادات {GetParam(parameters, "totalNetRevenue")})";
                     data["amount"] = amount;
                     data["clinicName"] = clinicName;
                     data["totalRevenue"] = GetParam(parameters, "totalRevenue");
                     data["appointmentId"] = appointmentId;
+                    data["totalPlatformFees"] = GetParam(parameters, "totalPlatformFees");
+                    data["totalNetRevenue"] = GetParam(parameters, "totalNetRevenue");
                     if (!string.IsNullOrEmpty(appointmentId))
                         link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.AppointmentDetails, appointmentId));
                     else

@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Features.AdminPayments.DTOs;
 using ClinicHub.Domain.Entities;
@@ -52,6 +53,8 @@ public class GetAdminPaymentsQueryHandler : IRequestHandler<GetAdminPaymentsQuer
 
         var payments = await query.ToListAsync(cancellationToken);
 
+        var percent = await GetPlatformFeePercentAsync(cancellationToken);
+
         if (request.Method.HasValue)
             payments = payments.Where(p => PaymentMethodMapper.ToEnum(p.PaymentMethod) == request.Method.Value).ToList();
 
@@ -64,22 +67,39 @@ public class GetAdminPaymentsQueryHandler : IRequestHandler<GetAdminPaymentsQuer
         var items = payments
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Select(p => new AdminPaymentDto
+            .Select(p =>
             {
-                Id = p.Id,
-                Code = p.Code,
-                Type = p.Type,
-                Payer = ResolvePayer(p),
-                Amount = p.Amount,
-                Currency = p.Currency,
-                Method = PaymentMethodMapper.ToEnum(p.PaymentMethod),
-                Status = PaymentMethodMapper.ToUiStatus(p.Status),
-                Date = p.CreatedAt,
-                RefNumber = p.RefNumber
+                var split = p.Type == PaymentType.Appointment
+                    ? AppointmentRevenueSplitter.Split(p.Amount, percent)
+                    : new AppointmentRevenueSplit(p.Amount, 0m, p.Amount);
+                return new AdminPaymentDto
+                {
+                    Id = p.Id,
+                    Code = p.Code,
+                    Type = p.Type,
+                    Payer = ResolvePayer(p),
+                    Amount = p.Amount,
+                    Currency = p.Currency,
+                    Method = PaymentMethodMapper.ToEnum(p.PaymentMethod),
+                    Status = PaymentMethodMapper.ToUiStatus(p.Status),
+                    Date = p.CreatedAt,
+                    RefNumber = p.RefNumber,
+                    PlatformFee = split.PlatformFee,
+                    ClinicNetAmount = split.ClinicNet
+                };
             })
             .ToList();
 
         return new PagginatedResult<AdminPaymentDto>(items, totalCount, pageNumber, pageSize);
+    }
+
+    private async Task<decimal> GetPlatformFeePercentAsync(CancellationToken cancellationToken)
+    {
+        var setting = await _unitOfWork.GetRepository<PlatformSetting, Guid>()
+            .GetAllAsync(s => !s.IsDeleted)
+            .OrderBy(s => s.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+        return setting?.AppointmentFeePercent ?? 0m;
     }
 
     private static string ResolvePayer(ClinicHub.Domain.Entities.Payment payment) =>

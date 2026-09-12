@@ -10,4 +10,6 @@ public class AdminPaymentStatsDto
     public int SuccessCount { get; set; }
     public int FailedCount { get; set; }
     public int RefundedCount { get; set; }
+    public decimal AppointmentsPlatformFees { get; set; }
+    public decimal AppointmentsNetRevenue { get; set; }
 }

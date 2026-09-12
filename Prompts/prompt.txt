@@ -1,1 +1,1 @@
-﻿must implment notificaiton of cancel appointment manual and ensure if the patient is not present in its reservered appointment datetime correctly (time of absent is allow after the datetime with 30 minutes otherwise remove that authomatically) then cancel appointment automatically with hangfire
+﻿ in clinic revenue ensure the clinic notifications and revenue show the total with the percentage of the money of superadmin fees but in superadmin calcualate all total + fees for each appointment
