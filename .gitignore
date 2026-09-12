@@ -377,3 +377,6 @@ appsettings.Production.json
 /ClinicHub.API/error.txt
 /ClinicHub.API/Firebase/firebase-credentials.json
 /ClinicHub.API/Firebase/firebase-credentials.json
+
+# Git worktrees for isolated feature work
+.worktrees/
