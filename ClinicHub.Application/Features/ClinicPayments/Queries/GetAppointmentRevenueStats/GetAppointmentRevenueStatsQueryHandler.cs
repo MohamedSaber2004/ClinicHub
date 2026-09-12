@@ -1,5 +1,7 @@
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.ClinicPayments.DTOs;
+using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
@@ -36,13 +38,43 @@ public class GetAppointmentRevenueStatsQueryHandler
 
         var paid = query.Where(p => p.Status == PaymentStatus.Paid && p.PaidAt != null);
 
-        stats.TodayRevenue = await paid.Where(p => p.PaidAt >= today).SumAsync(p => p.Amount, cancellationToken);
-        stats.MonthRevenue = await paid.Where(p => p.PaidAt >= monthStart).SumAsync(p => p.Amount, cancellationToken);
-        stats.PaidTotal = await paid.SumAsync(p => p.Amount, cancellationToken);
-        stats.PendingTotal = await query
+        var percent = await GetPlatformFeePercentAsync(cancellationToken);
+
+        var todayAmounts = await paid.Where(p => p.PaidAt >= today).Select(p => p.Amount).ToListAsync(cancellationToken);
+        var monthAmounts = await paid.Where(p => p.PaidAt >= monthStart).Select(p => p.Amount).ToListAsync(cancellationToken);
+        var paidAmounts = await paid.Select(p => p.Amount).ToListAsync(cancellationToken);
+        var pendingAmounts = await query
             .Where(p => p.Status == PaymentStatus.Pending || p.Status == PaymentStatus.Processing)
-            .SumAsync(p => p.Amount, cancellationToken);
+            .Select(p => p.Amount).ToListAsync(cancellationToken);
+
+        // Gross totals stay exact; net = total - superadmin platform fees (per-row split, then sum).
+        var (todayFees, todayNet) = AppointmentRevenueSplitter.SumSplits(todayAmounts, percent);
+        var (monthFees, monthNet) = AppointmentRevenueSplitter.SumSplits(monthAmounts, percent);
+        var (paidFees, paidNet) = AppointmentRevenueSplitter.SumSplits(paidAmounts, percent);
+        var (pendingFees, pendingNet) = AppointmentRevenueSplitter.SumSplits(pendingAmounts, percent);
+
+        stats.TodayRevenue = todayAmounts.Sum();
+        stats.TodayPlatformFees = todayFees;
+        stats.TodayNetRevenue = todayNet;
+        stats.MonthRevenue = monthAmounts.Sum();
+        stats.MonthPlatformFees = monthFees;
+        stats.MonthNetRevenue = monthNet;
+        stats.PaidTotal = paidAmounts.Sum();
+        stats.PaidPlatformFees = paidFees;
+        stats.PaidNetTotal = paidNet;
+        stats.PendingTotal = pendingAmounts.Sum();
+        stats.PendingPlatformFees = pendingFees;
+        stats.PendingNetTotal = pendingNet;
 
         return stats;
+    }
+
+    private async Task<decimal> GetPlatformFeePercentAsync(CancellationToken cancellationToken)
+    {
+        var setting = await _unitOfWork.GetRepository<PlatformSetting, Guid>()
+            .GetAllAsync(s => !s.IsDeleted)
+            .OrderBy(s => s.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+        return setting?.AppointmentFeePercent ?? 0m;
     }
 }

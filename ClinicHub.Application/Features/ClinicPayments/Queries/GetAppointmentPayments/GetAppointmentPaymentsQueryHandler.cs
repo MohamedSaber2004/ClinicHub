@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Features.AdminPayments;
@@ -55,25 +56,41 @@ public class GetAppointmentPaymentsQueryHandler
                      : request.PageSize;
 
         var totalCount = payments.Count;
+        var percent = await GetPlatformFeePercentAsync(cancellationToken);
         var items = payments
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Select(ToDto)
+            .Select(p => ToDto(p, percent))
             .ToList();
 
         return new PagginatedResult<AppointmentPaymentDto>(items, totalCount, pageNumber, pageSize);
     }
 
-    private static AppointmentPaymentDto ToDto(PaymentEntity p) => new()
+    private async Task<decimal> GetPlatformFeePercentAsync(CancellationToken cancellationToken)
     {
-        Id = p.Id,
-        PatientName = p.Appointment!.PatientFullName,
-        DoctorName = p.Appointment.Doctor?.User?.FullName ?? string.Empty,
-        AppointmentDate = p.Appointment.AppointmentDate,
-        StartTime = p.Appointment.StartTime.ToString(@"hh\:mm"),
-        Amount = p.Amount,
-        Currency = p.Currency,
-        Method = PaymentMethodMapper.ToEnum(p.PaymentMethod),
-        Status = PaymentMethodMapper.ToUiStatus(p.Status)
-    };
+        var setting = await _unitOfWork.GetRepository<PlatformSetting, Guid>()
+            .GetAllAsync(s => !s.IsDeleted)
+            .OrderBy(s => s.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+        return setting?.AppointmentFeePercent ?? 0m;
+    }
+
+    private static AppointmentPaymentDto ToDto(PaymentEntity p, decimal percent)
+    {
+        var split = AppointmentRevenueSplitter.Split(p.Amount, percent);
+        return new()
+        {
+            Id = p.Id,
+            PatientName = p.Appointment!.PatientFullName,
+            DoctorName = p.Appointment.Doctor?.User?.FullName ?? string.Empty,
+            AppointmentDate = p.Appointment.AppointmentDate,
+            StartTime = p.Appointment.StartTime.ToString(@"hh\:mm"),
+            Amount = p.Amount,
+            Currency = p.Currency,
+            Method = PaymentMethodMapper.ToEnum(p.PaymentMethod),
+            Status = PaymentMethodMapper.ToUiStatus(p.Status),
+            PlatformFee = split.PlatformFee,
+            ClinicNetAmount = split.ClinicNet
+        };
+    }
 }
