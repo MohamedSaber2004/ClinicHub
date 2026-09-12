@@ -1,6 +1,5 @@
 using ClinicHub.Application.Features.Posts.DTOs;
 using ClinicHub.Domain.Entities;
-using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -27,10 +26,7 @@ namespace ClinicHub.Application.Features.Posts.Queries.GetPostById
                 .GetAllAsync(d => d.UserId == post.AuthorId)
                 .FirstOrDefaultAsync(cancellationToken);
             var roles = author != null ? await _userManager.GetRolesAsync(author) : Array.Empty<string>();
-            var userRoles = roles
-                .Where(r => !r.Equals(nameof(UserType.User), StringComparison.OrdinalIgnoreCase))
-                .OrderBy(r => r)
-                .ToList();
+            var userRoles = roles.OrderBy(r => r).ToList();
 
             return new PostDto(
                 post.Id,

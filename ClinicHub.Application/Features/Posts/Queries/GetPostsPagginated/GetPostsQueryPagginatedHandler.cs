@@ -3,7 +3,6 @@ using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Features.Posts.DTOs;
 using ClinicHub.Domain.Entities;
-using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -66,7 +65,6 @@ namespace ClinicHub.Application.Features.Posts.Queries.GetPostsPagginated
                     g => (IReadOnlyList<string>)g
                         .Select(ur => roleIdToName.GetValueOrDefault(ur.RoleId, string.Empty))
                         .Where(name => !string.IsNullOrEmpty(name))
-                        .Where(name => !name.Equals(nameof(UserType.User), StringComparison.OrdinalIgnoreCase))
                         .OrderBy(name => name)
                         .ToList());
 
