@@ -26,6 +26,7 @@ namespace ClinicHub.Application.Features.Posts.Queries.GetPostById
                 .GetAllAsync(d => d.UserId == post.AuthorId)
                 .FirstOrDefaultAsync(cancellationToken);
             var roles = author != null ? await _userManager.GetRolesAsync(author) : Array.Empty<string>();
+            var userRoles = roles.OrderBy(r => r).ToList();
 
             return new PostDto(
                 post.Id,
@@ -38,7 +39,7 @@ namespace ClinicHub.Application.Features.Posts.Queries.GetPostById
                 post.Comments.Count,
                 doctor != null && doctor.IsFreelance,
                 post.Media.Select(m => new MediaDto(m.Id, m.Url, m.Type.ToString())).ToList(),
-                roles.FirstOrDefault()
+                userRoles
             );
         }
     }
