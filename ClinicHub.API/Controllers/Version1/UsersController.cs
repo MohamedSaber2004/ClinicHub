@@ -88,7 +88,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// Soft deletes a user by ID.
         /// </summary>
         [HttpDelete]
-        [RoleAuthorize(nameof(UserType.SuperAdmin))]
+        [RoleAuthorize]
         [Route(ApiRoutes.Users.Delete)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
