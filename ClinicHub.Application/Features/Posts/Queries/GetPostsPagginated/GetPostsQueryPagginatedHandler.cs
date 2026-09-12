@@ -1,22 +1,23 @@
 using ClinicHub.Application.Common.Extensions;
+using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Features.Posts.DTOs;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace ClinicHub.Application.Features.Posts.Queries.GetPostsPagginated
 {
     public class GetPostsQueryPagginatedHandler : IRequestHandler<GetPostsQueryPagginated, PagginatedResult<PostDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IClinicHubContext _context;
 
-        public GetPostsQueryPagginatedHandler(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager)
+        public GetPostsQueryPagginatedHandler(IUnitOfWork unitOfWork, IClinicHubContext context)
         {
             _unitOfWork = unitOfWork;
-            _userManager = userManager;
+            _context = context;
         }
 
         public async Task<PagginatedResult<PostDto>> Handle(GetPostsQueryPagginated request, CancellationToken cancellationToken)
@@ -48,12 +49,24 @@ namespace ClinicHub.Application.Features.Posts.Queries.GetPostsPagginated
                 })
                 .AsPagginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
 
-            var roleLookup = new Dictionary<Guid, string?>();
-            foreach (var author in page.Items.Select(x => x.user).DistinctBy(u => u.Id))
-            {
-                var roles = await _userManager.GetRolesAsync(author);
-                roleLookup[author.Id] = roles.FirstOrDefault();
-            }
+            var authorIds = page.Items.Select(x => x.user.Id).Distinct().ToList();
+
+            var roleIdToName = await _context.Roles
+                .ToDictionaryAsync(r => r.Id, r => r.Name!, cancellationToken);
+
+            var userRoleRows = await _context.UserRoles
+                .Where(ur => authorIds.Contains(ur.UserId))
+                .ToListAsync(cancellationToken);
+
+            var roleLookup = userRoleRows
+                .GroupBy(ur => ur.UserId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => (IReadOnlyList<string>)g
+                        .Select(ur => roleIdToName.GetValueOrDefault(ur.RoleId, string.Empty))
+                        .Where(name => !string.IsNullOrEmpty(name))
+                        .OrderBy(name => name)
+                        .ToList());
 
             var items = page.Items
                 .Select(x => new PostDto(
@@ -67,7 +80,7 @@ namespace ClinicHub.Application.Features.Posts.Queries.GetPostsPagginated
                     x.post.Comments.Count,
                     x.IsFreelanceDoctor,
                     x.post.Media.Select(m => new MediaDto(m.Id, m.Url, m.Type.ToString())).ToList(),
-                    roleLookup.GetValueOrDefault(x.post.AuthorId)
+                    roleLookup.GetValueOrDefault(x.post.AuthorId, Array.Empty<string>())
                 ))
                 .ToList();
 
