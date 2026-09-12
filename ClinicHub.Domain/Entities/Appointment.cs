@@ -119,7 +119,10 @@ namespace ClinicHub.Domain.Entities
             string complaint,
             string? chronicDiseases)
         {
-            AppointmentDate = new DateTime(appointmentDate.Year, appointmentDate.Month, appointmentDate.Day, 0, 0, 0, DateTimeKind.Unspecified);
+            var normalizedDate = new DateTime(appointmentDate.Year, appointmentDate.Month, appointmentDate.Day, 0, 0, 0, DateTimeKind.Unspecified);
+            if (AppointmentDate != normalizedDate || StartTime != startTime || EndTime != endTime)
+                CheckedInAt = null;
+            AppointmentDate = normalizedDate;
             StartTime = startTime;
             EndTime = endTime;
             Complaint = complaint;
