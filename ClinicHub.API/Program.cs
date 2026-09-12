@@ -330,6 +330,8 @@ namespace ClinicHub.API
                         job => job.SweepAsync(CancellationToken.None), Cron.Hourly);
                     RecurringJob.AddOrUpdate<ClinicWorkingHoursValidationJob>("clinic-working-hours-validation",
                         job => job.SweepAsync(CancellationToken.None), Cron.Hourly);
+                    RecurringJob.AddOrUpdate<NoShowSweepJob>("noshow-sweep",
+                        job => job.SweepAsync(CancellationToken.None), Cron.Hourly);
                     Log.Information("Hangfire recurring jobs registered successfully.");
                 }
                 catch (Exception ex)
