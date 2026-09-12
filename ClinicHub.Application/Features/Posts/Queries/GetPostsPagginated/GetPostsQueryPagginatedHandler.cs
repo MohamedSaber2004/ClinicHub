@@ -1,8 +1,10 @@
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Extensions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Features.Posts.DTOs;
 using ClinicHub.Domain.Entities;
+using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -62,11 +64,10 @@ namespace ClinicHub.Application.Features.Posts.Queries.GetPostsPagginated
                 .GroupBy(ur => ur.UserId)
                 .ToDictionary(
                     g => g.Key,
-                    g => (IReadOnlyList<string>)g
+                    g => UserTypeHelper.GetPrimaryRole(g
                         .Select(ur => roleIdToName.GetValueOrDefault(ur.RoleId, string.Empty))
                         .Where(name => !string.IsNullOrEmpty(name))
-                        .OrderBy(name => name)
-                        .ToList());
+                        .ToList()));
 
             var items = page.Items
                 .Select(x => new PostDto(
@@ -80,7 +81,7 @@ namespace ClinicHub.Application.Features.Posts.Queries.GetPostsPagginated
                     x.post.Comments.Count,
                     x.IsFreelanceDoctor,
                     x.post.Media.Select(m => new MediaDto(m.Id, m.Url, m.Type.ToString())).ToList(),
-                    roleLookup.GetValueOrDefault(x.post.AuthorId, Array.Empty<string>())
+                    roleLookup.GetValueOrDefault(x.post.AuthorId, UserType.User.ToString())
                 ))
                 .ToList();
 
