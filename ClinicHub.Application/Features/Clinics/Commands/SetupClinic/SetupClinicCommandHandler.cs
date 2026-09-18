@@ -47,6 +47,48 @@ namespace ClinicHub.Application.Features.Clinics.Commands.SetupClinic
                 ? _currentUserService.UserId.ToString()
                 : "system";
 
+            // A clinic owner coming from the register -> admin-approval flow ALREADY owns
+            // a clinic. Creating another one here orphans the approved record (ghost
+            // duplicate on maps, login resolving a different clinic than the dashboard
+            // uses -> "clinic not found"). Complete the existing clinic in place instead.
+            var existingClinic = await FindOwnerClinicAsync(user, cancellationToken);
+
+            if (existingClinic != null)
+            {
+                var locationPoint = new Point(request.Lng, request.Lat) { SRID = 4326 };
+
+                existingClinic.UpdateDetails(
+                    request.Name,
+                    request.Name,
+                    request.Description,
+                    request.Description,
+                    request.Address,
+                    request.Address,
+                    request.Phone,
+                    request.Email,
+                    request.Website,
+                    request.Logo,
+                    request.WorkingHours,
+                    request.SpecializationId,
+                    createdBy,
+                    request.WorkingHoursStart,
+                    request.WorkingHoursEnd,
+                    request.WorkingDays != null ? string.Join(",", request.WorkingDays) : null,
+                    locationPoint);
+
+                existingClinic.IsSetupComplete = true;
+
+                _unitOfWork.ClinicRepository.Update(existingClinic);
+
+                await EnsureDoctorAndRoleAsync(user, existingClinic.Id, request.SpecializationId, createdBy, cancellationToken);
+
+                user.AssignToClinic(existingClinic.Id);
+
+                await _unitOfWork.SaveChangesAsync();
+
+                return _mapper.Map<ClinicManagementDto>(existingClinic);
+            }
+
             var clinic = new Clinic
             {
                 Name = request.Name,
@@ -73,6 +115,39 @@ namespace ClinicHub.Application.Features.Clinics.Commands.SetupClinic
 
             await _unitOfWork.ClinicRepository.AddAsync(clinic);
 
+            await EnsureDoctorAndRoleAsync(user, clinic.Id, request.SpecializationId, createdBy, cancellationToken);
+
+            clinic.IsSetupComplete = true;
+
+            user.AssignToClinic(clinic.Id);
+
+            await _unitOfWork.SaveChangesAsync();
+
+            var clinicDto = _mapper.Map<ClinicManagementDto>(clinic);
+            return clinicDto;
+        }
+
+        private async Task<Clinic?> FindOwnerClinicAsync(ApplicationUser user, CancellationToken cancellationToken)
+        {
+            // Prefer the clinic already linked to the user, then any non-deleted
+            // clinic they administer (the register -> approval flow sets both).
+            if (user.ClinicId.HasValue)
+            {
+                var linked = await _unitOfWork.ClinicRepository
+                    .GetAllAsync(c => c.Id == user.ClinicId.Value && !c.IsDeleted)
+                    .FirstOrDefaultAsync(cancellationToken);
+                if (linked != null)
+                    return linked;
+            }
+
+            return await _unitOfWork.ClinicRepository
+                .GetAllAsync(c => c.ClinicAdminId == user.Id && !c.IsDeleted)
+                .OrderBy(c => c.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+        }
+
+        private async Task EnsureDoctorAndRoleAsync(ApplicationUser user, Guid clinicId, Guid specializationId, string createdBy, CancellationToken cancellationToken)
+        {
             var existingDoctor = await _unitOfWork.DoctorRepository
                 .GetAllAsync(d => d.UserId == user.Id)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -81,8 +156,8 @@ namespace ClinicHub.Application.Features.Clinics.Commands.SetupClinic
             {
                 var doctor = new Doctor(
                     user.Id,
-                    clinic.Id,
-                    request.SpecializationId,
+                    clinicId,
+                    specializationId,
                     string.Empty,
                     0);
                 doctor.MarkAsCreated(createdBy);
@@ -90,7 +165,7 @@ namespace ClinicHub.Application.Features.Clinics.Commands.SetupClinic
             }
             else
             {
-                existingDoctor.AssignToClinic(clinic.Id);
+                existingDoctor.AssignToClinic(clinicId);
             }
 
             // The clinic owner is also a doctor (الطبيب المسؤول): grant the Doctor role
@@ -102,15 +177,6 @@ namespace ClinicHub.Application.Features.Clinics.Commands.SetupClinic
                 if (!doctorRoleResult.Succeeded)
                     throw new BadRequestException(_localizer[LocalizationKeys.AuthMessages.RoleAssignmentFailed.Value]);
             }
-
-            clinic.IsSetupComplete = true;
-
-            user.AssignToClinic(clinic.Id);
-
-            await _unitOfWork.SaveChangesAsync();
-
-            var clinicDto = _mapper.Map<ClinicManagementDto>(clinic);
-            return clinicDto;
         }
     }
 }

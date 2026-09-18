@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
@@ -9,11 +10,13 @@ namespace ClinicHub.Application.Features.Clinics.Commands.SetupClinic
     {
         private readonly IUnitOfWork _ctx;
         private readonly IStringLocalizer<Messages> _localizer;
+        private readonly ICurrentUserService _currentUserService;
 
-        public SetupClinicCommandValidator(IStringLocalizer<Messages> localizer, IUnitOfWork ctx)
+        public SetupClinicCommandValidator(IStringLocalizer<Messages> localizer, IUnitOfWork ctx, ICurrentUserService currentUserService)
         {
             _localizer = localizer;
             _ctx = ctx;
+            _currentUserService = currentUserService;
 
             RuleFor(x => x.Name)
                 .NotEmpty().WithMessage(localizer[LocalizationKeys.ValidationMessages.Required])
@@ -48,12 +51,16 @@ namespace ClinicHub.Application.Features.Clinics.Commands.SetupClinic
 
         private async Task<bool> BeUniqueClinicEmail(string email, CancellationToken cancellationToken)
         {
-            return !await _ctx.ClinicRepository.ExistsAsync(c => c.Email == email, cancellationToken);
+            // Setup completes the owner's EXISTING clinic in place: its own
+            // contact info must not count as a duplicate.
+            var ownerId = _currentUserService.UserId;
+            return !await _ctx.ClinicRepository.ExistsAsync(c => c.Email == email && c.ClinicAdminId != ownerId, cancellationToken);
         }
 
         private async Task<bool> BeUniqueClinicPhone(string? phone, CancellationToken cancellationToken)
         {
-            return !await _ctx.ClinicRepository.ExistsAsync(c => c.Phone == phone, cancellationToken);
+            var ownerId = _currentUserService.UserId;
+            return !await _ctx.ClinicRepository.ExistsAsync(c => c.Phone == phone && c.ClinicAdminId != ownerId, cancellationToken);
         }
     }
 }
