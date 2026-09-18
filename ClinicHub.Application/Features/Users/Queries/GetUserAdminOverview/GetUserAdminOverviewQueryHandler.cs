@@ -113,6 +113,23 @@ namespace ClinicHub.Application.Features.Users.Queries.GetUserAdminOverview
                 })
                 .ToListAsync(cancellationToken);
 
+            var doctorAffiliation = await _unitOfWork.GetRepository<Doctor, Guid>()
+                .GetAllAsync(d => d.UserId == request.UserId && !d.IsDeleted)
+                .Select(d => new
+                {
+                    d.ClinicId,
+                    ClinicName = d.Clinic != null ? (d.Clinic.NameAr ?? d.Clinic.Name) : null,
+                    d.IsFreelance
+                })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (doctorAffiliation != null)
+            {
+                dto.ClinicId = doctorAffiliation.ClinicId;
+                dto.ClinicName = doctorAffiliation.ClinicName;
+                dto.IsFreelanceDoctor = doctorAffiliation.IsFreelance || doctorAffiliation.ClinicId == null;
+            }
+
             return dto;
         }
     }
