@@ -1,6 +1,8 @@
 using ClinicHub.Application.Common;
+using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Clinics.DTOs;
+using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
@@ -22,7 +24,17 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicDashboardStats
 
         public async Task<ClinicDashboardStatsDto> Handle(GetClinicDashboardStatsQuery request, CancellationToken cancellationToken)
         {
-            var clinicId = _currentUserService.CurrentClinicId;
+            // Basic dashboard stats are free (no subscription gate): resolve the clinic
+            // from the token claim, falling back to the caller's own records when the
+            // claim is missing/stale (e.g. token issued before Setup completed).
+            var clinicId = await ClinicScopeResolver.ResolveClinicIdAsync(
+                _unitOfWork,
+                _currentUserService.UserId,
+                _currentUserService.CurrentClinicId,
+                cancellationToken);
+
+            if (!clinicId.HasValue)
+                throw new ForbiddenException(LocalizationKeys.ClinicMessages.ClinicNotFound.Value);
 
             var now = DateTime.Now;
             var todayStart = now.Date;

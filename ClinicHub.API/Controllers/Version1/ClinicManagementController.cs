@@ -213,11 +213,11 @@ namespace ClinicHub.API.Controllers.Version1
 
         /// <summary>
         /// Returns clinic dashboard statistics with period breakdowns.
+        /// Free for clinic owners: no subscription required.
         /// </summary>
         [HttpGet]
         [Route(ApiRoutes.ClinicManagement.Dashboard)]
         [RoleAuthorize(nameof(UserType.ClinicOwner))]
-        [RequirePlanPermission(SubscriptionPermission.BasicReports)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Dashboard()
         {
@@ -227,11 +227,11 @@ namespace ClinicHub.API.Controllers.Version1
 
         /// <summary>
         /// Clinic-scoped revenue trend buckets (day/week/month) for dashboard graphs.
+        /// Free for clinic owners: no subscription required.
         /// </summary>
         [HttpGet]
         [Route(ApiRoutes.ClinicManagement.DashboardRevenueTrend)]
         [RoleAuthorize(nameof(UserType.ClinicOwner))]
-        [RequirePlanPermission(SubscriptionPermission.BasicReports)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> DashboardRevenueTrend([FromQuery] GetClinicRevenueTrendQuery query, CancellationToken ct)
         {
@@ -241,11 +241,11 @@ namespace ClinicHub.API.Controllers.Version1
 
         /// <summary>
         /// Clinic-scoped appointments status summary buckets (day/week/month) for dashboard graphs.
+        /// Free for clinic owners: no subscription required.
         /// </summary>
         [HttpGet]
         [Route(ApiRoutes.ClinicManagement.DashboardAppointmentsSummary)]
         [RoleAuthorize(nameof(UserType.ClinicOwner))]
-        [RequirePlanPermission(SubscriptionPermission.BasicReports)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> DashboardAppointmentsSummary([FromQuery] GetClinicAppointmentsSummaryQuery query, CancellationToken ct)
         {
