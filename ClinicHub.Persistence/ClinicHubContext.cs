@@ -69,9 +69,9 @@ namespace ClinicHub.Persistence
             builder.ApplyConfigurationsFromAssembly(typeof(ClinicHubContext).Assembly,
                 type => type.Namespace is not null && type.Namespace.EndsWith("Configuration"));
 
-            builder.HasDefaultSchema("public");
-
-            builder.HasPostgresExtension("postgis");
+            // SQL Server provider: default schema is dbo (matches the historical
+            // SqlServer migrations). No PostGIS extension needed — spatial queries
+            // use the built-in geography type with NetTopologySuite.
 
             foreach (var entityType in builder.Model.GetEntityTypes()
                 .Where(e => typeof(IClinicScopedEntity).IsAssignableFrom(e.ClrType)))

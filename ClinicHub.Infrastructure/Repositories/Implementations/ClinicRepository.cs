@@ -38,8 +38,8 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations
         public async Task<IEnumerable<Clinic>> GetWithinDistanceAsync(Point userLocation, double distanceInMeters, Guid? specializationId, CancellationToken cancellationToken)
         {
             // Only approved (Active) clinics are visible on maps/search.
-            // NOTE: Location is a PostGIS geometry (SRID 4326), so ST_DWithin expects
-            // degrees. Callers convert meters to degrees before calling.
+            // NOTE: Location is a SQL Server geography column (SRID 4326), so
+            // IsWithinDistance takes meters. Callers pass meters directly.
             var query = _context.Clinics
                 .Where(c => c.IsActive && !c.IsDeleted && c.Status == ClinicStatus.Active && c.Location.IsWithinDistance(userLocation, distanceInMeters));
 

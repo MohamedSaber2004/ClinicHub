@@ -57,11 +57,12 @@ namespace ClinicHub.Persistence.Configuration
                 .HasMaxLength(200);
 
             builder.Property(x => x.Location)
-                .HasColumnType("geometry (point)");
+                .HasColumnType("geography");
 
-            builder.HasIndex(x => x.Location)
-                .HasDatabaseName("IX_Clinics_Location")
-                .HasMethod("GIST");
+            // NOTE: no HasIndex on Location here. SQL Server cannot b-tree index a
+            // geography column — the spatial index is created with raw SQL
+            // (CREATE SPATIAL INDEX ... USING GEOGRAPHY_AUTO_GRID) in the migration,
+            // mirroring the historical SqlServer migrations.
 
             builder.Property(x => x.IsRegistered)
                 .HasDefaultValue(true);

@@ -32,10 +32,6 @@ namespace ClinicHub.API
     {
         public static async Task Main(string[] args)
         {
-            // Npgsql: the app uses DateTime.Now (Kind=Local) throughout; legacy timestamp
-            // behavior keeps DateTime <-> timestamp mappings without UTC enforcement.
-            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-
             try
             {
                 var builder = WebApplication.CreateBuilder(args);

@@ -250,10 +250,9 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
             if (request.UserLat.HasValue && request.UserLng.HasValue && request.RadiusInKm > 0)
             {
                 var userPoint = new Point(request.UserLng.Value, request.UserLat.Value) { SRID = 4326 };
-                // Location is a PostGIS geometry (SRID 4326): ST_DWithin takes degrees,
-                // not meters. 1 degree ~= 111.32 km.
-                var radiusInDegrees = request.RadiusInKm * 1000 / 111320.0;
-                var nearby = await _unitOfWork.ClinicRepository.GetWithinDistanceAsync(userPoint, radiusInDegrees, specializationId, cancellationToken);
+                // Location is a SQL Server geography column: ST_DWithin takes meters.
+                var radiusInMeters = request.RadiusInKm * 1000;
+                var nearby = await _unitOfWork.ClinicRepository.GetWithinDistanceAsync(userPoint, radiusInMeters, specializationId, cancellationToken);
 
                 // SearchText was previously ignored on the map path, so a text search
                 // combined with a location returned everything nearby. Apply it here
