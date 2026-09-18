@@ -1,4 +1,5 @@
 using ClinicHub.Domain.Entities;
+using ClinicHub.Domain.Enums;
 using ClinicHub.Domain.Repositories.Interfaces;
 using ClinicHub.Infrastructure.Repositories.Implementations.Base;
 using ClinicHub.Persistence;
@@ -18,8 +19,9 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations
 
         public async Task<IEnumerable<Clinic>> GetNearestAsync(Point userLocation, int count, Guid? specializationId, CancellationToken cancellationToken)
         {
+            // Only approved (Active) clinics are visible on maps/search.
             var query = _context.Clinics
-                .Where(c => c.IsActive && !c.IsDeleted);
+                .Where(c => c.IsActive && !c.IsDeleted && c.Status == ClinicStatus.Active);
 
             if (specializationId.HasValue)
             {
@@ -35,8 +37,11 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations
 
         public async Task<IEnumerable<Clinic>> GetWithinDistanceAsync(Point userLocation, double distanceInMeters, Guid? specializationId, CancellationToken cancellationToken)
         {
+            // Only approved (Active) clinics are visible on maps/search.
+            // NOTE: Location is a PostGIS geometry (SRID 4326), so ST_DWithin expects
+            // degrees. Callers convert meters to degrees before calling.
             var query = _context.Clinics
-                .Where(c => c.IsActive && !c.IsDeleted && c.Location.IsWithinDistance(userLocation, distanceInMeters));
+                .Where(c => c.IsActive && !c.IsDeleted && c.Status == ClinicStatus.Active && c.Location.IsWithinDistance(userLocation, distanceInMeters));
 
             if (specializationId.HasValue)
             {

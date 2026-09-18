@@ -2,6 +2,7 @@ using AutoMapper;
 using ClinicHub.Application.Common.Extensions;
 using ClinicHub.Application.Features.Clinics.DTOs;
 using ClinicHub.Domain.Entities;
+using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.Services.Interfaces;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
@@ -95,19 +96,26 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
 
             _logger.LogDebug("Internal clinics: {Count}", internalClinics.Count());
 
+            // Internal (registered) clinics win over external results. Dedup by Id so two
+            // distinct clinics that share a (normalized) name can never hide each other.
+            // internalNames tracks their names for external-vs-internal dedup below.
+            var internalNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var clinic in internalClinics)
             {
+                if (clinic.Location == null)
+                {
+                    _logger.LogWarning("GetHybridSearch: skipping clinic {ClinicId} with null location.", clinic.Id);
+                    continue;
+                }
+
                 var dto = _mapper.Map<ClinicDto>(clinic);
                 if (userPoint != null)
                 {
                     dto.Distance = CalculateDistance(userPoint.Y, userPoint.X, clinic.Location.Y, clinic.Location.X);
                 }
 
-                var dedupKey = clinic.Name.NormalizeArabic();
-                if (!finalResultsMap.ContainsKey(dedupKey))
-                {
-                    finalResultsMap[dedupKey] = dto;
-                }
+                internalNames.Add(clinic.Name.NormalizeArabic());
+                finalResultsMap["id:" + clinic.Id] = dto;
             }
 
             int externalAdded = 0;
@@ -132,7 +140,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
                     }
 
                     var dedupKey = external.Name.NormalizeArabic();
-                    if (finalResultsMap.ContainsKey(dedupKey))
+                    if (internalNames.Contains(dedupKey) || finalResultsMap.ContainsKey(dedupKey))
                     {
                         externalDuplicates++;
                         continue;
@@ -236,15 +244,34 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
 
         private async Task<IEnumerable<Clinic>> GetInternalClinicsAsync(GetHybridSearchQuery request, string? normalizedSearchText, Guid? specializationId, CancellationToken cancellationToken)
         {
+            // Only approved clinics are visible on maps/search. PendingApproval rows
+            // (e.g. freshly registered, waiting for admin) must not leak, and newly
+            // approved (Active) rows must be included.
             if (request.UserLat.HasValue && request.UserLng.HasValue && request.RadiusInKm > 0)
             {
                 var userPoint = new Point(request.UserLng.Value, request.UserLat.Value) { SRID = 4326 };
-                var radiusInMeters = request.RadiusInKm * 1000;
-                return await _unitOfWork.ClinicRepository.GetWithinDistanceAsync(userPoint, radiusInMeters, specializationId, cancellationToken);
+                // Location is a PostGIS geometry (SRID 4326): ST_DWithin takes degrees,
+                // not meters. 1 degree ~= 111.32 km.
+                var radiusInDegrees = request.RadiusInKm * 1000 / 111320.0;
+                var nearby = await _unitOfWork.ClinicRepository.GetWithinDistanceAsync(userPoint, radiusInDegrees, specializationId, cancellationToken);
+
+                // SearchText was previously ignored on the map path, so a text search
+                // combined with a location returned everything nearby. Apply it here
+                // in memory (normalized + case-insensitive) when provided.
+                if (string.IsNullOrEmpty(normalizedSearchText))
+                    return nearby;
+
+                var searchText = request.SearchText!;
+                return nearby.Where(c =>
+                    c.Name.ContainsArabic(searchText) ||
+                    (c.NameAr != null && c.NameAr.ContainsArabic(searchText)) ||
+                    (c.Specialization != null &&
+                        (c.Specialization.Name.ContainsArabic(searchText) ||
+                         c.Specialization.ArName.ContainsArabic(searchText))));
             }
 
             var internalQuery = _unitOfWork.ClinicRepository.GetAllWithIncluding(
-                c => c.IsActive && !c.IsDeleted &&
+                c => c.IsActive && !c.IsDeleted && c.Status == ClinicStatus.Active &&
                      (string.IsNullOrEmpty(normalizedSearchText) ||
                       c.Name.Contains(request.SearchText!) ||
                       (c.NameAr != null && c.NameAr.Contains(request.SearchText!)) ||

@@ -26,7 +26,9 @@ namespace ClinicHub.Application.Features.Clinics
                         ? src.WorkingDays.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                             .Select(d => new WorkingDayDto
                             {
-                                DayOfWeek = Enum.Parse<DayOfWeek>(d).ToString(),
+                                // Same guard as ClinicProfile: never throw on unexpected
+                                // stored values (lowercase/localized day names).
+                                DayOfWeek = WorkingDayDto.ToDayLabel(d),
                                 StartTime = src.WorkingHoursStart!.Value,
                                 EndTime = src.WorkingHoursEnd!.Value
                             }).ToList()
