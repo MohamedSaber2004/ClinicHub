@@ -35,6 +35,11 @@ namespace ClinicHub.Application.Features.Availability.Commands.CreateNewAvailabi
                 .MustAsync(WithinClinicSchedule)
                 .WithName("Availability")
                 .WithMessage(localizer[LocalizationKeys.BookingMessages.ClinicClosed]);
+
+            RuleFor(x => x)
+                .MustAsync(NoOverlap)
+                .WithName("Availability")
+                .WithMessage(localizer[LocalizationKeys.AvailabilityMessages.Overlap]);
         }
 
         private async Task<bool> DoctorExists(Guid doctorId, CancellationToken cancellationToken)
@@ -50,6 +55,17 @@ namespace ClinicHub.Application.Features.Availability.Commands.CreateNewAvailabi
 
             var clinic = await _ctx.ClinicRepository.GetByIdAsync(doctor.ClinicId.Value);
             return ClinicScheduleGuard.IsWithinClinicSchedule(clinic, command.DayOfWeek, command.StartTime, command.EndTime);
+        }
+
+        private async Task<bool> NoOverlap(CreateNewAvailabilityCommand command, CancellationToken cancellationToken)
+        {
+            return !await _ctx.DoctorAvailabilityRepository.ExistsAsync(a =>
+                !a.IsDeleted &&
+                a.DoctorId == command.DoctorId &&
+                a.DayOfWeek == command.DayOfWeek &&
+                a.StartTime < command.EndTime &&
+                a.EndTime > command.StartTime,
+                cancellationToken);
         }
     }
 }

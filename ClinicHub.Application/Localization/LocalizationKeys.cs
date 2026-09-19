@@ -185,6 +185,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString Restored = new("Availability.Restored");
             public static readonly KeyString DoctorNotAssignedToClinic = new("Availability.DoctorNotAssignedToClinic");
             public static readonly KeyString NotOwnedByDoctor = new("Availability.NotOwnedByDoctor");
+            public static readonly KeyString Overlap = new("Availability.Overlap");
         }
 
         public static class RatingMessages
