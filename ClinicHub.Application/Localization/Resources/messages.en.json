@@ -228,6 +228,7 @@
     "InvalidDate": "Date exceeds maximum booking window",
     "ConfigNotFound": "Booking configuration not found",
     "ConfigCreated": "Booking configuration created successfully",
+    "ConfigAlreadyExists": "Booking configuration already exists for this clinic. Update it instead.",
     "ConfigUpdated": "Booking configuration updated successfully",
     "ConfigDeleted": "Booking configuration deleted successfully",
     "Created": "Booking created successfully",

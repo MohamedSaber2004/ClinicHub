@@ -285,6 +285,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString BookingConfigCreated = new("Booking.ConfigCreated");
             public static readonly KeyString BookingConfigUpdated = new("Booking.ConfigUpdated");
             public static readonly KeyString BookingConfigDeleted = new("Booking.ConfigDeleted");
+            public static readonly KeyString BookingConfigAlreadyExists = new("Booking.ConfigAlreadyExists");
             public static readonly KeyString BookingCreated = new("Booking.Created");
             public static readonly KeyString FeeNotConfigured = new("Booking.FeeNotConfigured");
             public static readonly KeyString CancellationWindowExpired = new("Booking.CancellationWindowExpired");

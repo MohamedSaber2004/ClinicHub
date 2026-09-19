@@ -24,7 +24,11 @@ namespace ClinicHub.Application.Features.Booking.BookingConfig.Commands.CreateBo
         {
             var clinic = await _unitOfWork.ClinicRepository.GetByIdAsync(request.ClinicId);
             if (clinic.ClinicAdminId != _currentUser.UserId)
-                throw new UnauthorizedAccessException(LocalizationKeys.ExceptionMessages.Unauthorized.Value);
+                throw new ForbiddenException(LocalizationKeys.ExceptionMessages.Unauthorized.Value);
+
+            var existing = await _unitOfWork.BookingConfigurationRepository.GetByClinicIdAsync(request.ClinicId);
+            if (existing != null)
+                throw new BadRequestException(LocalizationKeys.BookingMessages.BookingConfigAlreadyExists.Value);
 
             var dto = request.Dto;
             var config = new BookingConfiguration(
