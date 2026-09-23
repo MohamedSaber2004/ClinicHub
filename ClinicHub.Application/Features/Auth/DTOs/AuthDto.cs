@@ -32,5 +32,6 @@ namespace ClinicHub.Application.Features.Auth.DTOs
         string? ProfilePictureUrl,
         LanguageCode Language,
         string Roles,
-        bool IsFreelanceDoctor = false);
+        bool IsFreelanceDoctor = false,
+        bool? IsCompleteProfile = null);
 }
