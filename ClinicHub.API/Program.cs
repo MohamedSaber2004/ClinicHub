@@ -64,13 +64,9 @@ namespace ClinicHub.API
                     options.Filters.Add(new RoleAuthorizeAttribute());
                     options.MaxModelValidationErrors = 50;
 
-                    // Hide NET-Tracker controllers from Swagger/Scalar without removing them from routing
                     options.Conventions.Add(new HideNetTrackerControllersConvention());
                 }).AddJsonOptions(json =>
                 {
-                    // Timezone-free platform: incoming dates bind to the calendar date
-                    // exactly as written (offset ignored, Kind=Unspecified) so a Sunday
-                    // can never shift to Saturday during deserialization.
                     json.JsonSerializerOptions.Converters.Add(new Json.UnspecifiedDateTimeConverter());
                     json.JsonSerializerOptions.Converters.Add(new Json.UnspecifiedNullableDateTimeConverter());
                 });
@@ -96,8 +92,6 @@ namespace ClinicHub.API
                     options.SubstituteApiVersionInUrl = true;
                 });
 
-                // Register OpenAPI documents for all known versions without premature BuildServiceProvider
-                // Versions are discovered post-build from IApiVersionDescriptionProvider
                 builder.Services.AddOpenApi("v1", options =>
                 {
                     options.AddOperationTransformer<LanguageHeaderOperationTransformer>();
@@ -117,7 +111,6 @@ namespace ClinicHub.API
                 builder.Services.AddPersistenceServices(builder.Configuration);
                 builder.Services.AddInfrastructureServices(builder.Configuration);
 
-                // Add NET-Tracker Services
                 builder.Services.AddNetTracker(builder.Configuration);
 
                 builder.Services.Configure<Microsoft.Extensions.Caching.Memory.MemoryCacheOptions>(options =>
@@ -125,7 +118,6 @@ namespace ClinicHub.API
                     options.SizeLimit = null;
                 });
 
-                // Rate limiting configuration
                 builder.Services.AddMemoryCache();
 
                 builder.Services.AddInMemoryRateLimiting();
@@ -192,7 +184,6 @@ namespace ClinicHub.API
 
                 var app = builder.Build();
 
-                // --- NetTracker Table Creation Workaround ---
                 using (var scope = app.Services.CreateScope())
                 {
                     var trackerDb = scope.ServiceProvider.GetRequiredService<NET_Tracker.Data.ApplicationDbContext>();
@@ -204,7 +195,6 @@ namespace ClinicHub.API
                     }
                     catch (Exception)
                     {
-                        // Ignore exception if the table already exists
                     }
                 }
 
@@ -235,13 +225,10 @@ namespace ClinicHub.API
                 }).ExcludeFromDescription();
 
 
-                // Seed specializations first (fast, single batch) then roles (slow, per-role round trips)
-                // so the most important reference data is persisted even if the host is stopped early.
                 _ = Task.Run(async () =>
                 {
                     try
                     {
-                        // Small delay to allow the host to finish starting before seeding
                         await Task.Delay(TimeSpan.FromSeconds(5));
                         using var scope = app.Services.CreateScope();
                         var services = scope.ServiceProvider;
