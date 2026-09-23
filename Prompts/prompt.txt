@@ -1,1 +1,1 @@
-﻿ in clinic revenue ensure the clinic notifications and revenue show the total with the percentage of the money of superadmin fees but in superadmin calcualate all total + fees for each appointment
+﻿also want to seed the base data such as admin account with email superadmin@gmail.com and password is Mo@123456 and subscription plans and all needed in deploy server i the first time i guess that also 

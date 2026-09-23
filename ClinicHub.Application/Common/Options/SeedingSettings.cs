@@ -6,6 +6,7 @@ namespace ClinicHub.Application.Common.Options
     public class SeedingSettings
     {
         public bool Enabled { get; set; }
+        public bool SeedSpecializations { get; set; } = true;
         public int UserCount { get; set; } = 5;
         public int PostCount { get; set; } = 20;
         public int CommentsPerPost { get; set; } = 3;

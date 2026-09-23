@@ -21,6 +21,12 @@ namespace ClinicHub.Persistence.Seeders
                 return;
             }
 
+            if (!settings.SeedSpecializations)
+            {
+                logger.LogInformation("Specialization seeding skipped (SeedingSettings.SeedSpecializations = false).");
+                return;
+            }
+
             var context = serviceProvider.GetRequiredService<ClinicHubContext>();
 
             var jsonPath = Path.Combine(AppContext.BaseDirectory, "SeedData", "specializations.json");
