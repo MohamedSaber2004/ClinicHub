@@ -225,24 +225,33 @@ namespace ClinicHub.API
                 }).ExcludeFromDescription();
 
 
-                _ = Task.Run(async () =>
+                // Seeders run ONLY in Development and Test. Production data comes
+                // exclusively from the manual scripts in scripts/prod-seed/.
+                if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
                 {
-                    try
+                    _ = Task.Run(async () =>
                     {
-                        await Task.Delay(TimeSpan.FromSeconds(5));
-                        using var scope = app.Services.CreateScope();
-                        var services = scope.ServiceProvider;
-                        await services.SeedSpecializationsAsync();
-                        await services.SeedRolesAsync();
-                        await services.SeedPlansAsync();
-                        await services.SeedSuperAdminAsync();
-                        Log.Information("Database seeding completed successfully.");
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "An error occurred during the database seeding process.");
-                    }
-                });
+                        try
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(5));
+                            using var scope = app.Services.CreateScope();
+                            var services = scope.ServiceProvider;
+                            await services.SeedSpecializationsAsync();
+                            await services.SeedRolesAsync();
+                            await services.SeedPlansAsync();
+                            await services.SeedSuperAdminAsync();
+                            Log.Information("Database seeding completed successfully.");
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "An error occurred during the database seeding process.");
+                        }
+                    });
+                }
+                else
+                {
+                    Log.Information("Database seeding skipped (environment: {Environment}). Production is seeded via scripts/prod-seed only.", app.Environment.EnvironmentName);
+                }
 
                 app.UseXContentTypeOptions();
                 app.UseXXssProtection(options => options.EnabledWithBlockMode());
