@@ -202,31 +202,31 @@ namespace ClinicHub.API
 
                 app.UseHsts();
 
-                app.MapOpenApi("/openapi/{documentName}.json");
-
-                var apiVersionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
-
-                foreach (var description in apiVersionProvider.ApiVersionDescriptions)
+                if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
                 {
-                    var name = description.GroupName;
+                    app.MapOpenApi("/openapi/{documentName}.json");
 
-                    app.MapScalarApiReference($"/scalar/{name}", options =>
+                    var apiVersionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
+                    foreach (var description in apiVersionProvider.ApiVersionDescriptions)
                     {
-                        options.WithTitle($"ClinicHub API {name}")
-                               .WithTheme(ScalarTheme.BluePlanet)
-                               .WithOpenApiRoutePattern($"/openapi/{name}.json");
-                    });
+                        var name = description.GroupName;
+
+                        app.MapScalarApiReference($"/scalar/{name}", options =>
+                        {
+                            options.WithTitle($"ClinicHub API {name}")
+                                   .WithTheme(ScalarTheme.BluePlanet)
+                                   .WithOpenApiRoutePattern($"/openapi/{name}.json");
+                        });
+                    }
+
+                    app.MapGet("/", (IApiVersionDescriptionProvider provider) =>
+                    {
+                        var lastVersion = provider.ApiVersionDescriptions.Last().GroupName;
+                        return Results.Redirect($"/scalar/{lastVersion}");
+                    }).ExcludeFromDescription();
                 }
 
-                app.MapGet("/", (IApiVersionDescriptionProvider provider) =>
-                {
-                    var lastVersion = provider.ApiVersionDescriptions.Last().GroupName;
-                    return Results.Redirect($"/scalar/{lastVersion}");
-                }).ExcludeFromDescription();
-
-
-                // Seeders run ONLY in Development and Test. Production data comes
-                // exclusively from the manual scripts in scripts/prod-seed/.
                 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
                 {
                     _ = Task.Run(async () =>
@@ -337,7 +337,7 @@ namespace ClinicHub.API
                 {
                     FileProvider = new CustomFileProvider(app.Environment.WebRootPath),
                     RequestPath = "/files"
-                });;
+                }); ;
 
                 app.MapHealthChecks("/health", new HealthCheckOptions
                 {
