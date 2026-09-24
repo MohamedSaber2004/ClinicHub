@@ -41,4 +41,8 @@
     </None>
   </ItemGroup>
 
+  <Target Name="EnsureAppOfflineBeforePublish" BeforeTargets="BeforePublish" Condition="'$(WebPublishMethod)' == 'MSDeploy'">
+    <Message Text="Ensuring app_offline.htm is deployed first to prevent DLL locks during Web Deploy" Importance="high" />
+  </Target>
+
 </Project>
