@@ -380,3 +380,4 @@ appsettings.Production.json
 
 # Git worktrees for isolated feature work
 .worktrees/
+/ClinicHub.API/web.config
