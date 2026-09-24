@@ -35,13 +35,4 @@
     <Folder Include="wwwroot\js\" />
   </ItemGroup>
 
-  <Target Name="EnsureAppOfflineBeforePublish" BeforeTargets="BeforePublish" Condition="'$(WebPublishMethod)' == 'MSDeploy'">
-    <Message Text="Ensuring app_offline.htm is deployed first to prevent DLL locks during Web Deploy" Importance="high" />
-  </Target>
-
-  <Target Name="RemoveAppOfflineAfterPublish" AfterTargets="Publish">
-    <Delete File="$(OutDir)$(ProjectName)\app_offline.htm" Condition="Exists('$(OutDir)$(ProjectName)\app_offline.htm')" />
-    <Delete File="$(PublishUrl)app_offline.htm" Condition="Exists('$(PublishUrl)app_offline.htm')" />
-  </Target>
-
 </Project>
