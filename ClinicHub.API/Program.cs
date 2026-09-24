@@ -35,6 +35,18 @@ namespace ClinicHub.API
             try
             {
                 var builder = WebApplication.CreateBuilder(args);
+
+                // Root fix for shared-host port conflicts: when IIS/ANCM launches the
+                // app it assigns a random port (ASPNETCORE_PORT) and that always wins.
+                // Only when NO port comes from the host (direct `dotnet *.dll` launch)
+                // fall back to this site's own loopback port, so the API (:5001) and
+                // the dashboard (:5000) can never collide with each other.
+                if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_PORT"))
+                    && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_URLS")))
+                {
+                    builder.WebHost.UseUrls("http://127.0.0.1:5001");
+                }
+
                 var env = builder.Environment;
 
                 builder.Configuration.Sources.Clear();
