@@ -221,29 +221,36 @@ namespace ClinicHub.API
 
                 app.UseHsts();
 
-                // Enable OpenAPI, Scalar API documentation, and root redirect in all environments
-                // so opening the site URL (e.g. in production) renders the API documentation correctly.
-                app.MapOpenApi("/openapi/{documentName}.json");
-
-                var apiVersionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
-
-                foreach (var description in apiVersionProvider.ApiVersionDescriptions)
+                if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
                 {
-                    var name = description.GroupName;
+                    app.MapOpenApi("/openapi/{documentName}.json");
 
-                    app.MapScalarApiReference($"/scalar/{name}", options =>
+                    var apiVersionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
+                    foreach (var description in apiVersionProvider.ApiVersionDescriptions)
                     {
-                        options.WithTitle($"ClinicHub API {name}")
-                               .WithTheme(ScalarTheme.BluePlanet)
-                               .WithOpenApiRoutePattern($"/openapi/{name}.json");
-                    });
-                }
+                        var name = description.GroupName;
 
-                app.MapGet("/", (IApiVersionDescriptionProvider provider) =>
+                        app.MapScalarApiReference($"/scalar/{name}", options =>
+                        {
+                            options.WithTitle($"ClinicHub API {name}")
+                                   .WithTheme(ScalarTheme.BluePlanet)
+                                   .WithOpenApiRoutePattern($"/openapi/{name}.json");
+                        });
+                    }
+
+                    app.MapGet("/", (IApiVersionDescriptionProvider provider) =>
+                    {
+                        var lastVersion = provider.ApiVersionDescriptions.Last().GroupName;
+                        return Results.Redirect($"/scalar/{lastVersion}");
+                    }).ExcludeFromDescription();
+                }
+                else
                 {
-                    var lastVersion = provider.ApiVersionDescriptions.Last().GroupName;
-                    return Results.Redirect($"/scalar/{lastVersion}");
-                }).ExcludeFromDescription();
+                    // In Production: do not expose OpenAPI / Scalar API documentation.
+                    // Directly display NetTracker logger dashboard.
+                    app.MapGet("/", () => Results.Redirect("/net-tracker/dashboard")).ExcludeFromDescription();
+                }
 
                 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
                 {
