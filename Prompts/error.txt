@@ -1,25 +1,82 @@
-﻿{
-  "success": false,
-  "errors": {
-    "Appointment": [
-      "العيادة مغلقة في هذا التوقيت"
-    ]
-  },
-  "data": null,
-  "message": "فشل التحقق",
-  "statusCode": 400
-}
-
-{
-  "doctorId": "f03b5293-b78e-41e2-90b1-1757cff6a8ff",
-  "clinicId": "d0bab1ce-36a3-42a5-8c52-730c7ba1bedc",
-  "appointmentDate": "2026-09-13T00:00:00.000",
-  "startTime": "03:30",
-  "endTime": "04:00",
-  "appointmentType": 0,
-  "patientFullName": "مريض",
-  "patientAge": "10",
-  "patientGender": 1,
-  "complaint": "فقث",
-  "chronicDiseases": null
-}
+﻿2026-09-25 01:20:00.000 +03:00 [INF] ClinicHub API is starting up and connecting to Seq at "2026-09-25T01:19:59.9929040+03:00"
+2026-09-25 01:20:04.490 +03:00 [ERR] Failed executing DbCommand (274ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [HttpTransactions] (
+    [Id] uniqueidentifier NOT NULL,
+    [RequestId] nvarchar(100) NOT NULL,
+    [Method] nvarchar(10) NOT NULL,
+    [Url] nvarchar(2000) NOT NULL,
+    [QueryString] nvarchar(2000) NULL,
+    [RequestHeaders] nvarchar(max) NULL,
+    [RequestBody] nvarchar(max) NULL,
+    [ContentType] nvarchar(256) NULL,
+    [RequestSize] int NOT NULL,
+    [StatusCode] int NOT NULL,
+    [ResponseHeaders] nvarchar(max) NULL,
+    [ResponseBody] nvarchar(max) NULL,
+    [ResponseSize] int NOT NULL,
+    [Timestamp] datetime2 NOT NULL,
+    [DurationMs] bigint NOT NULL,
+    [IpAddress] nvarchar(45) NULL,
+    [UserAgent] nvarchar(500) NULL,
+    [UserId] nvarchar(256) NULL,
+    [Success] bit NOT NULL,
+    [ErrorMessage] nvarchar(max) NULL,
+    [StackTrace] nvarchar(max) NULL,
+    CONSTRAINT [PK_HttpTransactions] PRIMARY KEY ([Id])
+);
+DECLARE @defaultSchema AS sysname;
+SET @defaultSchema = SCHEMA_NAME();
+DECLARE @description AS sql_variant;
+SET @description = N'HTTP request/response transaction logs for debugging and monitoring.';
+EXEC sp_addextendedproperty 'MS_Description', @description, 'SCHEMA', @defaultSchema, 'TABLE', N'HttpTransactions';
+2026-09-25 01:20:04.541 +03:00 [INF] Database seeding skipped (environment: Production). Production is seeded via scripts/prod-seed only.
+2026-09-25 01:20:04.583 +03:00 [INF] Start installing Hangfire SQL objects...
+2026-09-25 01:20:06.798 +03:00 [INF] Hangfire SQL objects installed.
+2026-09-25 01:20:14.348 +03:00 [INF] Hangfire recurring jobs registered successfully.
+2026-09-25 01:20:14.902 +03:00 [INF] User profile is available. Using 'C:\Users\ALQasem\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2026-09-25 01:20:14.988 +03:00 [INF] HTTP Logs Cleanup Service started. Retention policy: 30 days
+2026-09-25 01:20:15.141 +03:00 [INF] Now listening on: http://127.0.0.1:5091
+2026-09-25 01:20:15.176 +03:00 [INF] Application started. Press Ctrl+C to shut down.
+2026-09-25 01:20:15.176 +03:00 [INF] Hosting environment: Production
+2026-09-25 01:20:15.176 +03:00 [INF] Content root path: E:\ClinicHub Api Production\ClinicHub\ClinicHub.API\bin\Release\net10.0\publish
+2026-09-25 01:20:22.971 +03:00 [WRN] Entity 'Clinic' has a global query filter defined and is the required end of a relationship with the entity 'ClinicAdSettings'. This may lead to unexpected results when the required entity is filtered out. Either configure the navigation as optional, or define matching query filters for both entities in the navigation. See https://go.microsoft.com/fwlink/?linkid=2131316 for more information.
+2026-09-25 01:20:23.165 +03:00 [WRN] The 'MessageStatus' property 'Status' on entity type 'Message' is configured with a database-generated default, but has no configured sentinel value. The database-generated default will always be used for inserts when the property has the value '0', since this is the CLR default for the 'MessageStatus' type. Consider using a nullable type, using a nullable backing field, or setting the sentinel value for the property to ensure the database default is used when, and only when, appropriate. See https://aka.ms/efcore-docs-default-values for more information.
+2026-09-25 01:20:25.286 +03:00 [INF] Executed DbCommand (355ms) [Parameters=[@ef_filter__p1='?' (DbType = Boolean), @cutoff='?' (DbType = DateTime2)], CommandType='"Text"', CommandTimeout='30']
+SELECT [p].[Id], [p].[Amount], [p].[AppointmentId], [p].[ClinicId], [p].[Code], [p].[CreatedAt], [p].[CreatedBy], [p].[Currency], [p].[DeletedAt], [p].[DeletedBy], [p].[FailureReason], [p].[IsActive], [p].[IsDeleted], [p].[Notes], [p].[PaidAt], [p].[PaymentMethod], [p].[PaymobOrderId], [p].[PaymobTransactionId], [p].[PlanId], [p].[RedirectUrl], [p].[RefNumber], [p].[RefundReason], [p].[RefundedAt], [p].[Status], [p].[SubscriptionId], [p].[SubscriptionPeriod], [p].[TransactionId], [p].[Type], [p].[UpdatedAt], [p].[UpdatedBy], [p].[UserId], [p].[Version]
+FROM [Payments] AS [p]
+WHERE [p].[IsDeleted] = CAST(0 AS bit) AND @ef_filter__p1 = CAST(1 AS bit) AND [p].[Status] IN (0, 4) AND [p].[CreatedAt] < @cutoff
+2026-09-25 01:20:26.215 +03:00 [INF] Executed DbCommand (270ms) [Parameters=[@ef_filter__p1='?' (DbType = Boolean)], CommandType='"Text"', CommandTimeout='30']
+SELECT [a].[Id], [a].[AdPackageId], [a].[AmountPaid], [a].[ClinicId], [a].[CreatedAt], [a].[CreatedBy], [a].[Currency], [a].[DeletedAt], [a].[DeletedBy], [a].[DurationDays], [a].[EndDate], [a].[ImageUrl], [a].[IsActive], [a].[IsDeleted], [a].[PaymentId], [a].[StartDate], [a].[Status], [a].[TargetUrl], [a].[Title], [a].[UpdatedAt], [a].[UpdatedBy], [a].[Version]
+FROM [Advertisements] AS [a]
+WHERE [a].[IsDeleted] = CAST(0 AS bit) AND (@ef_filter__p1 = CAST(1 AS bit) OR [a].[ClinicId] IS NULL) AND [a].[Status] = 1 AND [a].[EndDate] <= GETDATE()
+2026-09-25 01:21:04.197 +03:00 [INF] ClinicHub API is starting up and connecting to Seq at "2026-09-25T01:21:04.1889718+03:00"
+2026-09-25 01:21:09.056 +03:00 [ERR] Failed executing DbCommand (300ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+CREATE TABLE [HttpTransactions] (
+    [Id] uniqueidentifier NOT NULL,
+    [RequestId] nvarchar(100) NOT NULL,
+    [Method] nvarchar(10) NOT NULL,
+    [Url] nvarchar(2000) NOT NULL,
+    [QueryString] nvarchar(2000) NULL,
+    [RequestHeaders] nvarchar(max) NULL,
+    [RequestBody] nvarchar(max) NULL,
+    [ContentType] nvarchar(256) NULL,
+    [RequestSize] int NOT NULL,
+    [StatusCode] int NOT NULL,
+    [ResponseHeaders] nvarchar(max) NULL,
+    [ResponseBody] nvarchar(max) NULL,
+    [ResponseSize] int NOT NULL,
+    [Timestamp] datetime2 NOT NULL,
+    [DurationMs] bigint NOT NULL,
+    [IpAddress] nvarchar(45) NULL,
+    [UserAgent] nvarchar(500) NULL,
+    [UserId] nvarchar(256) NULL,
+    [Success] bit NOT NULL,
+    [ErrorMessage] nvarchar(max) NULL,
+    [StackTrace] nvarchar(max) NULL,
+    CONSTRAINT [PK_HttpTransactions] PRIMARY KEY ([Id])
+);
+DECLARE @defaultSchema AS sysname;
+SET @defaultSchema = SCHEMA_NAME();
+DECLARE @description AS sql_variant;
+SET @description = N'HTTP request/response transaction logs for debugging and monitoring.';
+EXEC sp_addextendedproperty 'MS_Description', @description, 'SCHEMA', @defaultSchema, 'TABLE', N'HttpTransactions';

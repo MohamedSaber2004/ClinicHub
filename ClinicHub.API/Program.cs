@@ -37,12 +37,12 @@ namespace ClinicHub.API
                 var builder = WebApplication.CreateBuilder(args);
 
                 // Root fix for shared-host port conflicts: when IIS/ANCM launches the
-                // app it assigns a random port (ASPNETCORE_PORT) and that always wins.
-                // Only when NO port comes from the host (direct `dotnet *.dll` launch)
-                // fall back to this site's own loopback port, so the API (:5001) and
-                // the dashboard (:5000) can never collide with each other.
+                // app it assigns a random port (ASPNETCORE_PORT) or hosts in-process (APP_POOL_ID)
+                // and that always wins. Only when NO port or host context comes from the environment
+                // (direct `dotnet *.dll` launch) fall back to this site's own loopback port.
                 if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_PORT"))
-                    && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_URLS")))
+                    && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_URLS"))
+                    && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("APP_POOL_ID")))
                 {
                     builder.WebHost.UseUrls("http://127.0.0.1:5001");
                 }
@@ -202,11 +202,18 @@ namespace ClinicHub.API
                     var dbCreator = trackerDb.Database.GetService<Microsoft.EntityFrameworkCore.Storage.IRelationalDatabaseCreator>();
                     try
                     {
-                        await dbCreator.CreateTablesAsync();
-                        Log.Information("NetTracker HttpTransactions table created successfully.");
+                        if (dbCreator is Microsoft.EntityFrameworkCore.Storage.RelationalDatabaseCreator relationalCreator)
+                        {
+                            if (!await relationalCreator.HasTablesAsync())
+                            {
+                                await dbCreator.CreateTablesAsync();
+                                Log.Information("NetTracker HttpTransactions table created successfully.");
+                            }
+                        }
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
+                        Log.Warning(ex, "Failed to verify or create NetTracker tables.");
                     }
                 }
 
@@ -214,30 +221,29 @@ namespace ClinicHub.API
 
                 app.UseHsts();
 
-                if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
+                // Enable OpenAPI, Scalar API documentation, and root redirect in all environments
+                // so opening the site URL (e.g. in production) renders the API documentation correctly.
+                app.MapOpenApi("/openapi/{documentName}.json");
+
+                var apiVersionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
+                foreach (var description in apiVersionProvider.ApiVersionDescriptions)
                 {
-                    app.MapOpenApi("/openapi/{documentName}.json");
+                    var name = description.GroupName;
 
-                    var apiVersionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
-
-                    foreach (var description in apiVersionProvider.ApiVersionDescriptions)
+                    app.MapScalarApiReference($"/scalar/{name}", options =>
                     {
-                        var name = description.GroupName;
-
-                        app.MapScalarApiReference($"/scalar/{name}", options =>
-                        {
-                            options.WithTitle($"ClinicHub API {name}")
-                                   .WithTheme(ScalarTheme.BluePlanet)
-                                   .WithOpenApiRoutePattern($"/openapi/{name}.json");
-                        });
-                    }
-
-                    app.MapGet("/", (IApiVersionDescriptionProvider provider) =>
-                    {
-                        var lastVersion = provider.ApiVersionDescriptions.Last().GroupName;
-                        return Results.Redirect($"/scalar/{lastVersion}");
-                    }).ExcludeFromDescription();
+                        options.WithTitle($"ClinicHub API {name}")
+                               .WithTheme(ScalarTheme.BluePlanet)
+                               .WithOpenApiRoutePattern($"/openapi/{name}.json");
+                    });
                 }
+
+                app.MapGet("/", (IApiVersionDescriptionProvider provider) =>
+                {
+                    var lastVersion = provider.ApiVersionDescriptions.Last().GroupName;
+                    return Results.Redirect($"/scalar/{lastVersion}");
+                }).ExcludeFromDescription();
 
                 if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
                 {
