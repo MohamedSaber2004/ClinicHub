@@ -9,11 +9,13 @@ public static class PaymentMethodMapper
         if (string.IsNullOrWhiteSpace(method))
             return PaymentMethod.PaymobWallet;
 
-        return method.Trim().ToLowerInvariant() switch
+        // Normalize so "PaymobWallet", "paymob_wallet", "Paymob Wallet" all map identically.
+        var normalized = method.Trim().ToLowerInvariant().Replace("_", "").Replace(" ", "");
+        return normalized switch
         {
             "cash" => PaymentMethod.Cash,
-            "creditcard" or "card" or "credit_card" or "paymob_card" or "paymobcreditcard" or "paymob_creditcard" or "paymobcredit_card" or "visa" or "mastercard" => PaymentMethod.PaymobCreditCard,
-            "wallet" or "paymob_wallet" or "paymob" or "paymobwallet" or "paymob_wallet" => PaymentMethod.PaymobWallet,
+            "creditcard" or "card" or "paymobcard" or "paymobcreditcard" or "visa" or "mastercard" => PaymentMethod.PaymobCreditCard,
+            "wallet" or "paymobwallet" or "paymob" => PaymentMethod.PaymobWallet,
             _ => PaymentMethod.PaymobWallet
         };
     }

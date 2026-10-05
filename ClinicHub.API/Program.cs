@@ -153,6 +153,13 @@ namespace ClinicHub.API
                         catch (FormatException) { return false; }
                     }, "IdProtectionSettings.Key must be a base64-encoded AES key of 16, 24 or 32 bytes.")
                     .ValidateOnStart();
+                builder.Services.AddOptions<PaymobSettings>()
+                    .Bind(builder.Configuration.GetSection(nameof(PaymobSettings)))
+                    .Validate(s => !string.IsNullOrWhiteSpace(s.SecretKey), "PaymobSettings.SecretKey is required.")
+                    .Validate(s => !string.IsNullOrWhiteSpace(s.PublicKey), "PaymobSettings.PublicKey is required.")
+                    .Validate(s => int.TryParse(s.IntegrationId, out _), "PaymobSettings.IntegrationId must be a numeric integration ID from Paymob dashboard (Developers → Payment Integrations).")
+                    .Validate(s => string.IsNullOrWhiteSpace(s.WalletIntegrationId) || int.TryParse(s.WalletIntegrationId, out _), "PaymobSettings.WalletIntegrationId must be numeric when set.")
+                    .ValidateOnStart();
                 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
                 builder.Services.Configure<SeedingSettings>(builder.Configuration.GetSection("SeedingSettings"));
                 builder.Services.Configure<IpRateLimitOptions>(builder.Configuration.GetSection("IpRateLimiting"));

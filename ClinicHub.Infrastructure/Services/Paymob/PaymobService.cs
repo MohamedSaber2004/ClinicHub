@@ -32,15 +32,22 @@ public class PaymobService : IPaymobService
         _logger = logger;
     }
 
-    private int ResolveIntegrationId(string? rawId, string fallbackRaw)
+    private int ResolveIntegrationId(string? rawId, string fallbackRaw, string settingName)
     {
         var candidate = !string.IsNullOrWhiteSpace(rawId) ? rawId : fallbackRaw;
         if (!int.TryParse(candidate, out var id))
         {
-            _logger.LogError("Paymob IntegrationId '{Raw}' is not a valid integer. Check PaymobSettings IntegrationId/WalletIntegrationId in appsettings. Placeholder values like YOUR_... will fail.", candidate);
-            throw new BadRequestException($"Paymob IntegrationId '{candidate}' is not configured. Check appsettings PaymobSettings.");
+            _logger.LogError("Paymob IntegrationId '{Raw}' (setting {Setting}) is not a valid integer. Check PaymobSettings IntegrationId/WalletIntegrationId in appsettings. Placeholder values like YOUR_... will fail.", candidate, settingName);
+            throw new BadRequestException($"Paymob IntegrationId '{candidate}' is not configured. Check appsettings PaymobSettings ({settingName}).");
         }
         return id;
+    }
+
+    private string SafeKeyPrefix(string? key, int visibleChars = 12)
+    {
+        if (string.IsNullOrWhiteSpace(key) || key.Length <= visibleChars)
+            return "missing";
+        return key.Substring(0, visibleChars) + "...";
     }
 
     /// <inheritdoc />
@@ -57,7 +64,7 @@ public class PaymobService : IPaymobService
         string? redirectionUrl = null)
     {
         var amountCents = (int)Math.Round(amount * 100);
-        var walletIntegrationId = ResolveIntegrationId(_settings.WalletIntegrationId, _settings.IntegrationId);
+        var walletIntegrationId = ResolveIntegrationId(_settings.WalletIntegrationId, _settings.IntegrationId, nameof(PaymobSettings.WalletIntegrationId));
 
         // Single API call: Create Intention (new unified flow)
         var (clientSecret, intentionId) = await CreateIntentionAsync(
@@ -90,7 +97,7 @@ public class PaymobService : IPaymobService
         string? redirectionUrl = null)
     {
         var amountCents = (int)Math.Round(amount * 100);
-        var integrationId = ResolveIntegrationId(_settings.IntegrationId, _settings.IntegrationId);
+        var integrationId = ResolveIntegrationId(_settings.IntegrationId, _settings.IntegrationId, nameof(PaymobSettings.IntegrationId));
 
         // Single API call: Create Intention (new unified flow)
         var (clientSecret, intentionId) = await CreateIntentionAsync(
@@ -181,8 +188,12 @@ public class PaymobService : IPaymobService
 
         if (!response.IsSuccessStatusCode)
         {
-            _logger.LogError("Paymob CreateIntention failed: integrationId={IntegrationId} status={Status} body={Body} amountCents={Amount} currency={Currency}",
-                integrationId, (int)response.StatusCode, responseBody, amountCents, currency);
+            // Log key prefix (not the secret) so account mismatch is diagnosable:
+            // the IntegrationId must belong to the merchant owning SecretKey/PublicKey.
+            // "Integration ID does not exist" almost always means the ID is from another
+            // account, a typo, or the integration was deleted in the dashboard.
+            _logger.LogError("Paymob CreateIntention failed: integrationId={IntegrationId} status={Status} body={Body} amountCents={Amount} currency={Currency} secretPrefix={SecretPrefix} publicPrefix={PublicPrefix}",
+                integrationId, (int)response.StatusCode, responseBody, amountCents, currency, SafeKeyPrefix(_settings.SecretKey), SafeKeyPrefix(_settings.PublicKey));
             // Surface Paymob's detail when available (e.g., 'Integration ID does not exist')
             var detail = TryExtractDetail(responseBody);
             throw new BadRequestException(

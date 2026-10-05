@@ -1,2 +1,57 @@
-﻿Web deployment task failed. (Web Deploy cannot modify the file 'ClinicHub.App.dll' on the destination because it is locked by an external process.  In order to allow the publish operation to succeed, you may need to either restart your application to release the lock, or use the AppOffline rule handler for .Net applications on your next publish attempt.
-  Learn more at: http://go.microsoft.com/fwlink/?LinkId=221672#ERROR_FILE_IN_USE.  Learn more at: https://go.microsoft.com/fwlink/?LinkId=221672#ERROR_FILE_IN_USE.)
+﻿Transaction: 1de8c53c-8a09-4902-92c1-f7611d2d2548
+✕
+Overview
+Request ID
+1de8c53c-8a09-4902-92c1-f7611d2d2548
+Status Code
+400
+Method
+POST
+Duration
+797ms
+Timestamp
+10/5/2026, 12:00:00 AM
+Success
+✗ No
+IP Address
+188.40.211.9
+User Agent
+—
+URL
+https://api.doctoryconnect.online/api/v1/subscriptions/initiate-payment
+Request Headers
+{
+  "Accept-Language": "ar",
+  "Authorization": "***MASKED***",
+  "Content-Length": "206",
+  "Content-Type": "application/json; charset=utf-8",
+  "Host": "api.doctoryconnect.online",
+  "X-ClinicId": "51cac9f7-5b6c-4a14-8da8-20c12a60c359",
+  "traceparent": "00-93c64acf6e53533ca8b36dc5ec97fd2f-a09581ea3ca31c90-00",
+  "X-REWRITE-URL": "/api/v1/subscriptions/initiate-payment"
+}
+Request Body (206 bytes)
+{
+  "planId": "a3333333-3333-3333-3333-333333333333",
+  "period": 0,
+  "returnUrl": "https://doctory-care.runasp.net/Home/PaymentResult",
+  "clinicId": "51cac9f7-5b6c-4a14-8da8-20c12a60c359",
+  "paymentMethod": "PaymobWallet"
+}
+Response Headers
+{
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+  "X-Content-Type-Options": "nosniff",
+  "X-XSS-Protection": "1; mode=block",
+  "X-Frame-Options": "Deny",
+  "Referrer-Policy": "no-referrer-when-downgrade",
+  "Content-Type": "application/json; charset=utf-8"
+}
+Response Body (277 bytes)
+{
+  "success": false,
+  "errors": {},
+  "data": null,
+  "message": "فشل إنشاء طلب الدفع: Integration ID/Name does not exist in our system . You can find the list of Integration ID’/Names from Merchant Dashboard under Developers → Payment Integrations Tab",
+  "statusCode": 400
+}
