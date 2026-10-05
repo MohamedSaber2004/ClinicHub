@@ -263,8 +263,7 @@ namespace ClinicHub.API
                 app.UseReferrerPolicy(options => options.NoReferrerWhenDowngrade());
 
                 app.UseIpRateLimiting();
-
-                if (app.Environment.IsDevelopment()) app.UseHttpsRedirection();
+                app.UseHttpsRedirection();
 
                 app.UseSerilogRequestLogging(options =>
                 {
