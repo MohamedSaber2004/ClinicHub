@@ -35,6 +35,18 @@ namespace ClinicHub.API
             try
             {
                 var builder = WebApplication.CreateBuilder(args);
+
+                // Root fix for shared-host port conflicts: when IIS/ANCM launches the
+                // app it assigns a random port (ASPNETCORE_PORT) or hosts in-process (APP_POOL_ID)
+                // and that always wins. Only when NO port or host context comes from the environment
+                // (direct `dotnet *.dll` launch) fall back to this site's own loopback port.
+                if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_PORT"))
+                    && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_URLS"))
+                    && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("APP_POOL_ID")))
+                {
+                    builder.WebHost.UseUrls("http://127.0.0.1:5001");
+                }
+
                 var env = builder.Environment;
 
                 builder.Configuration.Sources.Clear();
@@ -64,13 +76,9 @@ namespace ClinicHub.API
                     options.Filters.Add(new RoleAuthorizeAttribute());
                     options.MaxModelValidationErrors = 50;
 
-                    // Hide NET-Tracker controllers from Swagger/Scalar without removing them from routing
                     options.Conventions.Add(new HideNetTrackerControllersConvention());
                 }).AddJsonOptions(json =>
                 {
-                    // Timezone-free platform: incoming dates bind to the calendar date
-                    // exactly as written (offset ignored, Kind=Unspecified) so a Sunday
-                    // can never shift to Saturday during deserialization.
                     json.JsonSerializerOptions.Converters.Add(new Json.UnspecifiedDateTimeConverter());
                     json.JsonSerializerOptions.Converters.Add(new Json.UnspecifiedNullableDateTimeConverter());
                 });
@@ -96,8 +104,6 @@ namespace ClinicHub.API
                     options.SubstituteApiVersionInUrl = true;
                 });
 
-                // Register OpenAPI documents for all known versions without premature BuildServiceProvider
-                // Versions are discovered post-build from IApiVersionDescriptionProvider
                 builder.Services.AddOpenApi("v1", options =>
                 {
                     options.AddOperationTransformer<LanguageHeaderOperationTransformer>();
@@ -117,7 +123,6 @@ namespace ClinicHub.API
                 builder.Services.AddPersistenceServices(builder.Configuration);
                 builder.Services.AddInfrastructureServices(builder.Configuration);
 
-                // Add NET-Tracker Services
                 builder.Services.AddNetTracker(builder.Configuration);
 
                 builder.Services.Configure<Microsoft.Extensions.Caching.Memory.MemoryCacheOptions>(options =>
@@ -125,7 +130,6 @@ namespace ClinicHub.API
                     options.SizeLimit = null;
                 });
 
-                // Rate limiting configuration
                 builder.Services.AddMemoryCache();
 
                 builder.Services.AddInMemoryRateLimiting();
@@ -192,19 +196,24 @@ namespace ClinicHub.API
 
                 var app = builder.Build();
 
-                // --- NetTracker Table Creation Workaround ---
                 using (var scope = app.Services.CreateScope())
                 {
                     var trackerDb = scope.ServiceProvider.GetRequiredService<NET_Tracker.Data.ApplicationDbContext>();
                     var dbCreator = trackerDb.Database.GetService<Microsoft.EntityFrameworkCore.Storage.IRelationalDatabaseCreator>();
                     try
                     {
-                        await dbCreator.CreateTablesAsync();
-                        Log.Information("NetTracker HttpTransactions table created successfully.");
+                        if (dbCreator is Microsoft.EntityFrameworkCore.Storage.RelationalDatabaseCreator relationalCreator)
+                        {
+                            if (!await relationalCreator.HasTablesAsync())
+                            {
+                                await dbCreator.CreateTablesAsync();
+                                Log.Information("NetTracker HttpTransactions table created successfully.");
+                            }
+                        }
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        // Ignore exception if the table already exists
+                        Log.Warning(ex, "Failed to verify or create NetTracker tables.");
                     }
                 }
 
@@ -212,50 +221,62 @@ namespace ClinicHub.API
 
                 app.UseHsts();
 
-                app.MapOpenApi("/openapi/{documentName}.json");
-
-                var apiVersionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
-
-                foreach (var description in apiVersionProvider.ApiVersionDescriptions)
+                if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
                 {
-                    var name = description.GroupName;
+                    app.MapOpenApi("/openapi/{documentName}.json");
 
-                    app.MapScalarApiReference($"/scalar/{name}", options =>
+                    var apiVersionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
+                    foreach (var description in apiVersionProvider.ApiVersionDescriptions)
                     {
-                        options.WithTitle($"ClinicHub API {name}")
-                               .WithTheme(ScalarTheme.BluePlanet)
-                               .WithOpenApiRoutePattern($"/openapi/{name}.json");
-                    });
+                        var name = description.GroupName;
+
+                        app.MapScalarApiReference($"/scalar/{name}", options =>
+                        {
+                            options.WithTitle($"ClinicHub API {name}")
+                                   .WithTheme(ScalarTheme.BluePlanet)
+                                   .WithOpenApiRoutePattern($"/openapi/{name}.json");
+                        });
+                    }
+
+                    app.MapGet("/", (IApiVersionDescriptionProvider provider) =>
+                    {
+                        var lastVersion = provider.ApiVersionDescriptions.Last().GroupName;
+                        return Results.Redirect($"/scalar/{lastVersion}");
+                    }).ExcludeFromDescription();
+                }
+                else
+                {
+                    // In Production: do not expose OpenAPI / Scalar API documentation.
+                    // Directly display NetTracker logger dashboard.
+                    app.MapGet("/", () => Results.Redirect("/net-tracker/dashboard")).ExcludeFromDescription();
                 }
 
-                app.MapGet("/", (IApiVersionDescriptionProvider provider) =>
+                if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
                 {
-                    var lastVersion = provider.ApiVersionDescriptions.Last().GroupName;
-                    return Results.Redirect($"/scalar/{lastVersion}");
-                }).ExcludeFromDescription();
-
-
-                // Seed specializations first (fast, single batch) then roles (slow, per-role round trips)
-                // so the most important reference data is persisted even if the host is stopped early.
-                _ = Task.Run(async () =>
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(5));
+                            using var scope = app.Services.CreateScope();
+                            var services = scope.ServiceProvider;
+                            await services.SeedSpecializationsAsync();
+                            await services.SeedRolesAsync();
+                            await services.SeedPlansAsync();
+                            await services.SeedSuperAdminAsync();
+                            Log.Information("Database seeding completed successfully.");
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "An error occurred during the database seeding process.");
+                        }
+                    });
+                }
+                else
                 {
-                    try
-                    {
-                        // Small delay to allow the host to finish starting before seeding
-                        await Task.Delay(TimeSpan.FromSeconds(5));
-                        using var scope = app.Services.CreateScope();
-                        var services = scope.ServiceProvider;
-                        await services.SeedSpecializationsAsync();
-                        await services.SeedRolesAsync();
-                        await services.SeedPlansAsync();
-                        await services.SeedSuperAdminAsync();
-                        Log.Information("Database seeding completed successfully.");
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "An error occurred during the database seeding process.");
-                    }
-                });
+                    Log.Information("Database seeding skipped (environment: {Environment}). Production is seeded via scripts/prod-seed only.", app.Environment.EnvironmentName);
+                }
 
                 app.UseXContentTypeOptions();
                 app.UseXXssProtection(options => options.EnabledWithBlockMode());
@@ -339,7 +360,7 @@ namespace ClinicHub.API
                 {
                     FileProvider = new CustomFileProvider(app.Environment.WebRootPath),
                     RequestPath = "/files"
-                });;
+                }); ;
 
                 app.MapHealthChecks("/health", new HealthCheckOptions
                 {
