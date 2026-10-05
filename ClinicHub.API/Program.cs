@@ -277,7 +277,6 @@ namespace ClinicHub.API
                     };
                 });
 
-                // NET-Tracker middleware — exclude background polling, docs, static files, and public deeplink pages to prevent DB connection pool exhaustion
                 app.UseWhen(context => !context.Request.Path.StartsWithSegments("/hangfire")
                                     && !context.Request.Path.StartsWithSegments("/scalar")
                                     && !context.Request.Path.StartsWithSegments("/openapi")
