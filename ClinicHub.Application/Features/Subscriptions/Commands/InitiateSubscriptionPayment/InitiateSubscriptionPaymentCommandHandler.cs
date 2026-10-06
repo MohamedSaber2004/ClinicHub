@@ -82,7 +82,8 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.InitiateSubscrip
             }
             else
             {
-                payResult = await _paymobService.InitiateWalletPaymentAsync(amount, currency, billing, billing.PhoneNumber, cancellationToken, request.ReturnUrl);
+                var walletNumber = !string.IsNullOrWhiteSpace(request.WalletPhoneNumber) ? request.WalletPhoneNumber : billing.PhoneNumber;
+                payResult = await _paymobService.InitiateWalletPaymentAsync(amount, currency, billing, walletNumber, cancellationToken, request.ReturnUrl);
             }
 
             var payment = new Domain.Entities.Payment(PaymentType.Subscription, _currentUser.UserId, clinicId.Value, amount, currency)

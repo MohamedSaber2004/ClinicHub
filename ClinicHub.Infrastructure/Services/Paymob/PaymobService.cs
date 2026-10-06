@@ -66,20 +66,185 @@ public class PaymobService : IPaymobService
         var amountCents = (int)Math.Round(amount * 100);
         var walletIntegrationId = ResolveIntegrationId(_settings.WalletIntegrationId, _settings.IntegrationId, nameof(PaymobSettings.WalletIntegrationId));
 
-        // Single API call: Create Intention (new unified flow)
-        var (clientSecret, intentionId) = await CreateIntentionAsync(
+        // 1. Try Intention API first (if wallet integration is supported by Intention microservice)
+        try
+        {
+            var (clientSecret, intentionId) = await CreateIntentionAsync(
+                amountCents, currency, walletIntegrationId,
+                billing, walletPhoneNumber, cancellationToken, redirectionUrl);
+
+            var redirectUrl = $"{BaseUrl}/unifiedcheckout/" +
+                              $"?publicKey={_settings.PublicKey}" +
+                              $"&clientSecret={clientSecret}";
+
+            return new WalletPaymentResultDto
+            {
+                OrderId = intentionId,
+                PaymentKey = clientSecret,
+                RedirectUrl = redirectUrl
+            };
+        }
+        catch (BadRequestException ex) when (ex.Message.Contains("Integration ID") || ex.Message.Contains("does not exist in our system"))
+        {
+            _logger.LogWarning("Paymob Intention API does not support UIG wallet integration {IntegrationId}. Falling back to standard Paymob Acceptance Wallet flow.", walletIntegrationId);
+        }
+
+        // 2. Fallback to standard Paymob Acceptance Wallet API flow (works for all UIG mobile wallet integrations)
+        return await InitiateAcceptanceWalletPaymentAsync(
             amountCents, currency, walletIntegrationId,
             billing, walletPhoneNumber, cancellationToken, redirectionUrl);
+    }
 
-        // Build redirect URL using Public Key + Client Secret
-        var redirectUrl = $"{BaseUrl}/unifiedcheckout/" +
-                          $"?publicKey={_settings.PublicKey}" +
-                          $"&clientSecret={clientSecret}";
+    private async Task<WalletPaymentResultDto> InitiateAcceptanceWalletPaymentAsync(
+        int amountCents,
+        string currency,
+        int walletIntegrationId,
+        PaymentBillingData billing,
+        string walletPhoneNumber,
+        CancellationToken cancellationToken,
+        string? redirectionUrl = null)
+    {
+        if (string.IsNullOrWhiteSpace(_settings.ApiKey))
+        {
+            throw new BadRequestException("Paymob ApiKey is not configured. Cannot process wallet payment.");
+        }
+
+        // Step 1: Authentication token
+        var authPayload = new { api_key = _settings.ApiKey };
+        var authRequest = new HttpRequestMessage(HttpMethod.Post, $"{BaseUrl}/api/auth/tokens")
+        {
+            Content = new StringContent(JsonSerializer.Serialize(authPayload), Encoding.UTF8, "application/json")
+        };
+        var authResponse = await _httpClient.SendAsync(authRequest, cancellationToken);
+        var authBody = await authResponse.Content.ReadAsStringAsync(cancellationToken);
+        if (!authResponse.IsSuccessStatusCode)
+        {
+            _logger.LogError("Paymob Auth Token failed: {Status} {Body}", (int)authResponse.StatusCode, authBody);
+            throw new BadRequestException(_localizer[LocalizationKeys.PaymentMessages.PaymobOrderFailed.Value]);
+        }
+        using var authDoc = JsonDocument.Parse(authBody);
+        var token = authDoc.RootElement.GetProperty("token").GetString()
+            ?? throw new InvalidOperationException("Failed to obtain Paymob auth token");
+
+        // Step 2: Order registration
+        var orderPayload = new
+        {
+            auth_token = token,
+            delivery_needed = "false",
+            amount_cents = amountCents.ToString(),
+            currency = currency,
+            items = Array.Empty<object>()
+        };
+        var orderRequest = new HttpRequestMessage(HttpMethod.Post, $"{BaseUrl}/api/ecommerce/orders")
+        {
+            Content = new StringContent(JsonSerializer.Serialize(orderPayload), Encoding.UTF8, "application/json")
+        };
+        var orderResponse = await _httpClient.SendAsync(orderRequest, cancellationToken);
+        var orderBody = await orderResponse.Content.ReadAsStringAsync(cancellationToken);
+        if (!orderResponse.IsSuccessStatusCode)
+        {
+            _logger.LogError("Paymob Order creation failed: {Status} {Body}", (int)orderResponse.StatusCode, orderBody);
+            throw new BadRequestException(_localizer[LocalizationKeys.PaymentMessages.PaymobOrderFailed.Value]);
+        }
+        using var orderDoc = JsonDocument.Parse(orderBody);
+        var orderId = orderDoc.RootElement.GetProperty("id").GetInt64().ToString();
+
+        // Step 3: Payment Key
+        var effectivePhone = !string.IsNullOrWhiteSpace(walletPhoneNumber) ? walletPhoneNumber : billing.PhoneNumber;
+        var formattedPhone = (effectivePhone ?? "01000000000").ToPaymobFormat();
+        var walletIdentifier = formattedPhone.StartsWith("+20") && formattedPhone.Length == 13
+            ? "0" + formattedPhone.Substring(3)
+            : formattedPhone;
+
+        var keyPayload = new
+        {
+            auth_token = token,
+            amount_cents = amountCents.ToString(),
+            expiration = 3600,
+            order_id = orderId,
+            billing_data = new
+            {
+                apartment = string.IsNullOrWhiteSpace(billing.Apartment) ? "NA" : billing.Apartment,
+                email = string.IsNullOrWhiteSpace(billing.Email) ? "patient@clinichub.com" : billing.Email,
+                floor = string.IsNullOrWhiteSpace(billing.Floor) ? "NA" : billing.Floor,
+                first_name = string.IsNullOrWhiteSpace(billing.FirstName) ? "Clinic" : billing.FirstName,
+                street = string.IsNullOrWhiteSpace(billing.Street) ? "NA" : billing.Street,
+                building = string.IsNullOrWhiteSpace(billing.Building) ? "NA" : billing.Building,
+                phone_number = formattedPhone,
+                postal_code = string.IsNullOrWhiteSpace(billing.PostalCode) ? "NA" : billing.PostalCode,
+                extra_description = "NA",
+                city = string.IsNullOrWhiteSpace(billing.City) ? "Cairo" : billing.City,
+                country = string.IsNullOrWhiteSpace(billing.Country) ? "EG" : billing.Country,
+                last_name = string.IsNullOrWhiteSpace(billing.LastName) ? "User" : billing.LastName,
+                state = string.IsNullOrWhiteSpace(billing.State) ? "Cairo" : billing.State
+            },
+            currency = currency,
+            integration_id = walletIntegrationId
+        };
+        var keyRequest = new HttpRequestMessage(HttpMethod.Post, $"{BaseUrl}/api/acceptance/payment_keys")
+        {
+            Content = new StringContent(JsonSerializer.Serialize(keyPayload), Encoding.UTF8, "application/json")
+        };
+        var keyResponse = await _httpClient.SendAsync(keyRequest, cancellationToken);
+        var keyBody = await keyResponse.Content.ReadAsStringAsync(cancellationToken);
+        if (!keyResponse.IsSuccessStatusCode)
+        {
+            _logger.LogError("Paymob Payment Key generation failed: {Status} {Body}", (int)keyResponse.StatusCode, keyBody);
+            throw new BadRequestException(_localizer[LocalizationKeys.PaymentMessages.PaymobKeyFailed.Value]);
+        }
+        using var keyDoc = JsonDocument.Parse(keyBody);
+        var paymentKey = keyDoc.RootElement.GetProperty("token").GetString()
+            ?? throw new InvalidOperationException("Failed to obtain Paymob payment key");
+
+        // Step 4: Wallet Pay Request
+        var payPayload = new
+        {
+            source = new
+            {
+                identifier = walletIdentifier,
+                subtype = "WALLET"
+            },
+            payment_token = paymentKey
+        };
+        var payRequest = new HttpRequestMessage(HttpMethod.Post, $"{BaseUrl}/api/acceptance/payments/pay")
+        {
+            Content = new StringContent(JsonSerializer.Serialize(payPayload), Encoding.UTF8, "application/json")
+        };
+        var payResponse = await _httpClient.SendAsync(payRequest, cancellationToken);
+        var payBody = await payResponse.Content.ReadAsStringAsync(cancellationToken);
+
+        using var payDoc = JsonDocument.Parse(payBody);
+        var payRoot = payDoc.RootElement;
+
+        string redirectUrl = string.Empty;
+        if (payRoot.TryGetProperty("redirect_url", out var rUrl) && !string.IsNullOrWhiteSpace(rUrl.GetString()))
+        {
+            redirectUrl = rUrl.GetString()!;
+        }
+        else if (payRoot.TryGetProperty("iframe_redirection_url", out var iframeUrl) && !string.IsNullOrWhiteSpace(iframeUrl.GetString()))
+        {
+            redirectUrl = iframeUrl.GetString()!;
+        }
+
+        if (payRoot.TryGetProperty("data", out var dataElem) && dataElem.TryGetProperty("message", out var msgElem))
+        {
+            var msg = msgElem.GetString();
+            if (msg == "Receiver is not registered")
+            {
+                throw new BadRequestException("رقم الهاتف غير مسجل في خدمة المحافظ الإلكترونية. يرجى إدخال رقم محفظة إلكترونية صحيح ومسجل (فودافون كاش، اتصالات كاش، أورنج كاش، وي باي).");
+            }
+        }
+
+        if (string.IsNullOrWhiteSpace(redirectUrl))
+        {
+            _logger.LogError("Paymob Wallet Pay response did not contain redirect URL: {Body}", payBody);
+            throw new BadRequestException("تعذر استخراج رابط تأكيد المحفظة من Paymob.");
+        }
 
         return new WalletPaymentResultDto
         {
-            OrderId = intentionId,
-            PaymentKey = clientSecret,
+            OrderId = orderId,
+            PaymentKey = paymentKey,
             RedirectUrl = redirectUrl
         };
     }

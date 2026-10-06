@@ -1,4 +1,4 @@
-using ClinicHub.Application.Features.Subscriptions.DTOs;
+﻿using ClinicHub.Application.Features.Subscriptions.DTOs;
 using ClinicHub.Domain.Enums;
 using MediatR;
 
@@ -10,5 +10,6 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.InitiateSubscrip
         public SubscriptionPlan Period { get; set; }
         public string? ReturnUrl { get; set; }
         public string? PaymentMethod { get; set; }
+        public string? WalletPhoneNumber { get; set; }
     }
 }
