@@ -179,7 +179,8 @@ public class PaymobService : IPaymobService
                 state = string.IsNullOrWhiteSpace(billing.State) ? "Cairo" : billing.State
             },
             currency = currency,
-            integration_id = walletIntegrationId
+            integration_id = walletIntegrationId,
+            redirection_url = !string.IsNullOrWhiteSpace(redirectionUrl) ? redirectionUrl : _settings.RedirectionUrl
         };
         var keyRequest = new HttpRequestMessage(HttpMethod.Post, $"{BaseUrl}/api/acceptance/payment_keys")
         {
