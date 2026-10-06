@@ -1,16 +1,16 @@
-﻿Transaction: 1de8c53c-8a09-4902-92c1-f7611d2d2548
+﻿Transaction: d5578b90-77f0-4d80-8a72-1bb7911dc7c6
 ✕
 Overview
 Request ID
-1de8c53c-8a09-4902-92c1-f7611d2d2548
+d5578b90-77f0-4d80-8a72-1bb7911dc7c6
 Status Code
 400
 Method
 POST
 Duration
-797ms
+890ms
 Timestamp
-10/5/2026, 12:00:00 AM
+10/6/2026, 12:00:00 AM
 Success
 ✗ No
 IP Address
@@ -27,7 +27,7 @@ Request Headers
   "Content-Type": "application/json; charset=utf-8",
   "Host": "api.doctoryconnect.online",
   "X-ClinicId": "51cac9f7-5b6c-4a14-8da8-20c12a60c359",
-  "traceparent": "00-93c64acf6e53533ca8b36dc5ec97fd2f-a09581ea3ca31c90-00",
+  "traceparent": "00-fac5c21a2629a3ad34b9b9c190e0d99e-74755464a8d38fa8-00",
   "X-REWRITE-URL": "/api/v1/subscriptions/initiate-payment"
 }
 Request Body (206 bytes)
