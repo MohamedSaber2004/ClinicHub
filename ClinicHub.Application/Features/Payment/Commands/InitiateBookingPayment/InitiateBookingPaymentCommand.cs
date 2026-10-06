@@ -9,5 +9,6 @@ namespace ClinicHub.Application.Features.Payment.Commands.InitiateBookingPayment
         /// <summary>Paymob method: "wallet" (PaymobWallet) or "card"/"creditcard" (PaymobCreditCard). Null = wallet (backward compat for /payments/initiate) or card for legacy booking. Handlers default gracefully.</summary>
         public string? PaymentMethod { get; set; }
         public string? ReturnUrl { get; set; }
+        public string? WalletPhoneNumber { get; set; }
     }
 }
