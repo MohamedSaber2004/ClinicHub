@@ -1,4 +1,4 @@
-using ClinicHub.Application.Common.Exceptions;
+﻿using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.AdminPayments.DTOs;
 using ClinicHub.Application.Localization;
@@ -42,6 +42,7 @@ public class CreateClinicAdOrderCommandHandler : IRequestHandler<CreateClinicAdO
             request.LogoImageUrl,
             request.ReturnUrl,
             request.PaymentMethod,
-            cancellationToken);
+            cancellationToken,
+            request.WalletPhoneNumber);
     }
 }

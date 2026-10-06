@@ -1,4 +1,4 @@
-using ClinicHub.Application.Common;
+﻿using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.AdminPayments;
@@ -66,9 +66,14 @@ namespace ClinicHub.Application.Features.Payment.Commands.InitiateBookingPayment
                 : PaymentMethod.PaymobCreditCard; // legacy default for POST /payments
             WalletPaymentResultDto checkout;
             if (resolvedMethod == PaymentMethod.PaymobCreditCard)
+            {
                 checkout = await _paymobService.InitiateCheckoutPaymentAsync(amount, currency, billing, cancellationToken, request.ReturnUrl);
+            }
             else
-                checkout = await _paymobService.InitiateWalletPaymentAsync(amount, currency, billing, billing.PhoneNumber, cancellationToken, request.ReturnUrl);
+            {
+                var walletNumber = !string.IsNullOrWhiteSpace(request.WalletPhoneNumber) ? request.WalletPhoneNumber : billing.PhoneNumber;
+                checkout = await _paymobService.InitiateWalletPaymentAsync(amount, currency, billing, walletNumber, cancellationToken, request.ReturnUrl);
+            }
 
             // Idempotency: one appointment owns exactly one payment row. A retry refreshes
             // the existing unpaid row with the new Paymob order instead of inserting
