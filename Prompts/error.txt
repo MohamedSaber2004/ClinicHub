@@ -1,16 +1,16 @@
-﻿Transaction: b9441139-f1aa-489f-abf5-3ab95830ac8c
+﻿Transaction: d2b331ee-e42e-457d-b090-ae6b69367730
 ✕
 Overview
 Request ID
-b9441139-f1aa-489f-abf5-3ab95830ac8c
+d2b331ee-e42e-457d-b090-ae6b69367730
 Status Code
 500
 Method
-GET
+POST
 Duration
-11ms
+3746ms
 Timestamp
-10/13/2026, 12:00:00 AM
+10/21/2026, 12:00:00 AM
 Success
 ✗ No
 IP Address
@@ -18,14 +18,26 @@ IP Address
 User Agent
 —
 URL
-https://api.doctoryconnect.online/api/v1/admin/dashboard/appointments-summary?granularity=day&fromDate=2026-09-13&toDate=2026-10-14
+https://api.doctoryconnect.online/api/v1/subscriptions/initiate-payment
 Request Headers
 {
   "Accept-Language": "ar",
   "Authorization": "***MASKED***",
+  "Content-Length": "240",
+  "Content-Type": "application/json; charset=utf-8",
   "Host": "api.doctoryconnect.online",
-  "traceparent": "00-6024e0a8700386aaab03d1208a939aa6-00e08989a0e9466b-00",
-  "X-REWRITE-URL": "/api/v1/admin/dashboard/appointments-summary?granularity=day&fromDate=2026-09-13&toDate=2026-10-14"
+  "X-ClinicId": "51cac9f7-5b6c-4a14-8da8-20c12a60c359",
+  "traceparent": "00-f09a8f6da655f6f031b307ef97604d9c-d61cf739a5d19f1a-00",
+  "X-REWRITE-URL": "/api/v1/subscriptions/initiate-payment"
+}
+Request Body (240 bytes)
+{
+  "planId": "a1111111-1111-1111-1111-111111111111",
+  "period": 0,
+  "returnUrl": "https://doctory-care.runasp.net/Home/PaymentResult",
+  "clinicId": "51cac9f7-5b6c-4a14-8da8-20c12a60c359",
+  "paymentMethod": "PaymobWallet",
+  "walletPhoneNumber": "01010101010"
 }
 Response Headers
 {
