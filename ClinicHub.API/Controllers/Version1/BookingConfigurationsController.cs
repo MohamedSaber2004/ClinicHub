@@ -5,7 +5,6 @@ using ClinicHub.Application.Features.Booking.BookingConfig.Commands.CreateBookin
 using ClinicHub.Application.Features.Booking.BookingConfig.Commands.UpdateBookingConfig;
 using ClinicHub.Application.Features.Booking.BookingConfig.DTOs;
 using ClinicHub.Application.Features.Booking.BookingConfig.Queries;
-using ClinicHub.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -44,7 +43,6 @@ namespace ClinicHub.API.Controllers.Version1
         /// <returns>The created booking configuration.</returns>
 [HttpPost]
         [RoleAuthorize]
-        [RequirePlanPermission(SubscriptionPermission.OnlineBooking)]
         [Route(ApiRoutes.BookingConfig.Create)]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -62,7 +60,6 @@ namespace ClinicHub.API.Controllers.Version1
         /// <returns>The updated booking configuration.</returns>
         [HttpPut]
         [RoleAuthorize]
-        [RequirePlanPermission(SubscriptionPermission.OnlineBooking)]
         [Route(ApiRoutes.BookingConfig.Update)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

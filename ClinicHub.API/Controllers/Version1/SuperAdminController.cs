@@ -212,9 +212,12 @@ namespace ClinicHub.API.Controllers.Version1
         [Route(ApiRoutes.AdminDashboardExt.RevokeSubscription)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> RevokeSubscription(Guid id, CancellationToken ct)
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> RevokeSubscription(Guid id, [FromBody] RevokeSubscriptionCommand? command, CancellationToken ct)
         {
-            var result = await _mediator.Send(new RevokeSubscriptionCommand { SubscriptionId = id }, ct);
+            var request = command ?? new RevokeSubscriptionCommand();
+            request.SubscriptionId = id;
+            var result = await _mediator.Send(request, ct);
             return Ok(result);
         }
 

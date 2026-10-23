@@ -57,6 +57,17 @@ namespace ClinicHub.Application.Features.Clinics.Commands.RegisterClinic
             RuleFor(v => v.Gender)
                 .NotNull().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
                 .IsInEnum().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidEnumValue.Value]));
+
+
+            RuleFor(v => v.Lat)
+                .InclusiveBetween(-90, 90)
+                .When(v => v.Lat.HasValue)
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ClinicMessages.InvalidLatitude.Value]));
+
+            RuleFor(v => v.Lng)
+                .InclusiveBetween(-180, 180)
+                .When(v => v.Lng.HasValue)
+                .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ClinicMessages.InvalidLongitude.Value]));
         }
     }
 }

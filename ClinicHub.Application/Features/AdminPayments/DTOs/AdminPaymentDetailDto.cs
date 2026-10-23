@@ -19,5 +19,7 @@ public class AdminPaymentDetailDto
     public PaymentStatus Status { get; set; }
     public DateTime Date { get; set; }
     public string? Notes { get; set; }
+    public decimal RefundedAmount { get; set; }
+    public PaymentRefundStatus RefundStatus { get; set; } = PaymentRefundStatus.None;
     public List<PaymentTimelineEntryDto> Timeline { get; set; } = new();
 }

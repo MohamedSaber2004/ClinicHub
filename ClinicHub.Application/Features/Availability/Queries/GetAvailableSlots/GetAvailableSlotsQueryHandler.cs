@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Features.Availability.DTOs;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
@@ -33,15 +34,26 @@ namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
 
             if (request.Date.HasValue)
             {
-                response.RequestedDate = request.Date.Value.ToString("yyyy-MM-dd");
-                var dayOfWeek = request.Date.Value.DayOfWeek;
+                // Timezone-free: calendar date as written, server wall-clock today.
+                var requestedDate = AppDate.ToUnzonedDate(request.Date.Value);
+
+                // Real booking flow: past dates are never bookable — return an empty grid
+                // instead of slots that would later fail validation.
+                if (requestedDate < AppDate.Today)
+                {
+                    response.RequestedDate = requestedDate.ToString("yyyy-MM-dd");
+                    return response;
+                }
+
+                response.RequestedDate = requestedDate.ToString("yyyy-MM-dd");
+                var dayOfWeek = requestedDate.DayOfWeek;
 
                 var dayAvailabilities = allAvailabilities
                     .Where(a => a.DayOfWeek == dayOfWeek)
                     .ToList();
 
                 var bookedAppointments = await _unitOfWork.AppointmentRepository
-                    .GetAppointmentsByDoctorAndDateAsync(request.DoctorId, request.Date.Value);
+                    .GetAppointmentsByDoctorAndDateAsync(request.DoctorId, requestedDate);
 
                 foreach (var availability in dayAvailabilities)
                 {
@@ -49,7 +61,7 @@ namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
                     if (window is null)
                         continue;
 
-                    response.Days.Add(BuildDayAvailability(availability, window.Value, dayOfWeek.ToString(), bookedAppointments));
+                    response.Days.Add(BuildDayAvailability(availability, window.Value, dayOfWeek.ToString(), bookedAppointments, requestedDate));
                 }
             }
             else
@@ -112,7 +124,8 @@ namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
             Domain.Entities.DoctorAvailability availability,
             (TimeSpan Start, TimeSpan End) window,
             string dayOfWeek,
-            List<Domain.Entities.Appointment> bookedAppointments)
+            List<Domain.Entities.Appointment> bookedAppointments,
+            DateTime? requestedDate = null)
         {
             var slotDurationMinutes = availability.SlotDurationMinutes > 0 ? availability.SlotDurationMinutes : 30;
             var slotDuration = TimeSpan.FromMinutes(slotDurationMinutes);
@@ -135,12 +148,20 @@ namespace ClinicHub.Application.Features.Availability.Queries.GetAvailableSlots
                 var isBooked = bookedAppointments.Any(a =>
                     a.StartTime < slotEndTime && a.EndTime > currentTime);
 
+                // Real booking flow: a same-day slot that already started (or is starting
+                // right now) cannot be booked, even though the clinic may open later.
+                // Future dates are unaffected — bookable 24/7 regardless of whether
+                // the clinic is currently open.
+                var isElapsed = requestedDate.HasValue
+                    && AppDate.ToUnzonedDate(requestedDate.Value) == AppDate.Today
+                    && AppDate.ToUnzonedDate(requestedDate.Value).Add(currentTime) <= AppDate.Now;
+
                 slots.Add(new TimeSlotDto
                 {
                     Id = Guid.NewGuid(),
                     StartTime = currentTime.ToString(@"hh\:mm"),
                     EndTime = slotEndTime.ToString(@"hh\:mm"),
-                    IsAvailable = !isBooked
+                    IsAvailable = !isBooked && !isElapsed
                 });
 
                 currentTime = slotEndTime;

@@ -42,17 +42,35 @@ namespace ClinicHub.Application.Features.Auth.Commands.RefreshToken
                 .GetAllWithIncluding(t => t.Token == request.RefreshToken, t => t.User)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            var user = tokenEntity!.User;
-            if (!user.IsActive)
+            if (tokenEntity?.User is null || !tokenEntity.IsValid)
+                throw new UnAuthorizedException(_localizer[LocalizationKeys.AuthMessages.RefreshTokenInvalid.Value]);
+
+            var user = tokenEntity.User;
+            if (user.IsDeleted || !user.IsActive)
                 throw new UnAuthorizedException(_localizer[LocalizationKeys.AuthMessages.AccountPendingApproval.Value]);
 
             tokenEntity.Revoke();
 
             var roles = await _userManager.GetRolesAsync(user);
-            var clinicId = await _unitOfWork.ClinicRepository
-                .GetAllAsync(c => c.ClinicAdminId == user.Id && !c.IsDeleted)
-                .Select(c => (Guid?)c.Id)
-                .FirstOrDefaultAsync(cancellationToken);
+            // Same 3-step clinic resolution as login: without it, refreshed tokens for
+            // staff/doctors lose the ClinicId claim and every clinic-scoped call 403s.
+            var clinicId = user.ClinicId;
+            if (!clinicId.HasValue)
+            {
+                clinicId = await _unitOfWork.ClinicRepository
+                    .GetAllAsync(c => c.ClinicAdminId == user.Id && !c.IsDeleted)
+                    .Select(c => (Guid?)c.Id)
+                    .FirstOrDefaultAsync(cancellationToken);
+            }
+
+            if (!clinicId.HasValue)
+            {
+                clinicId = await _unitOfWork.DoctorRepository
+                    .GetAllAsync(d => d.UserId == user.Id && d.ClinicId != null && !d.IsDeleted)
+                    .Select(d => (Guid?)d.ClinicId)
+                    .FirstOrDefaultAsync(cancellationToken);
+            }
+
             var hasActiveSubscription = clinicId.HasValue
                 && await _unitOfWork.GetRepository<Subscription, Guid>()
                     .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > DateTime.Now, cancellationToken);

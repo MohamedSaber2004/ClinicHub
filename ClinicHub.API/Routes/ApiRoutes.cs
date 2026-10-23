@@ -272,6 +272,7 @@ namespace ClinicHub.API.Routes
             public const string InitiatePayment = BaseRoute + "/initiate-payment";
             public const string MySubscription = BaseRoute + "/my";
             public const string CancelMySubscription = BaseRoute + "/my/cancel";
+            public const string CancellationQuote = BaseRoute + "/my/cancellation-quote";
         }
 
         public static class Plans
@@ -317,6 +318,7 @@ namespace ClinicHub.API.Routes
             public const string GetAll = BaseRoute;
             public const string GetById = BaseRoute + "/{id:guid}";
             public const string Stats = BaseRoute + "/stats";
+            public const string ClinicsSummary = BaseRoute + "/clinics-summary";
             public const string Manual = BaseRoute + "/manual";
             public const string Refund = BaseRoute + "/{id:guid}/refund";
         }

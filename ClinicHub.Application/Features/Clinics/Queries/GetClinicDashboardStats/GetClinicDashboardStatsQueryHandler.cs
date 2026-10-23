@@ -1,5 +1,9 @@
+using ClinicHub.Application.Common;
+using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Clinics.DTOs;
+using ClinicHub.Application.Localization;
+using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
@@ -20,7 +24,17 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicDashboardStats
 
         public async Task<ClinicDashboardStatsDto> Handle(GetClinicDashboardStatsQuery request, CancellationToken cancellationToken)
         {
-            var clinicId = _currentUserService.CurrentClinicId;
+            // Basic dashboard stats are free (no subscription gate): resolve the clinic
+            // from the token claim, falling back to the caller's own records when the
+            // claim is missing/stale (e.g. token issued before Setup completed).
+            var clinicId = await ClinicScopeResolver.ResolveClinicIdAsync(
+                _unitOfWork,
+                _currentUserService.UserId,
+                _currentUserService.CurrentClinicId,
+                cancellationToken);
+
+            if (!clinicId.HasValue)
+                throw new ForbiddenException(LocalizationKeys.ClinicMessages.ClinicNotFound.Value);
 
             var now = DateTime.Now;
             var todayStart = now.Date;
@@ -39,6 +53,8 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicDashboardStats
                     && p.Status == PaymentStatus.Paid
                     && p.PaidAt != null);
 
+            var percent = await GetPlatformFeePercentAsync(cancellationToken);
+
             var todayVisits = await appointmentsQuery
                 .CountAsync(a => a.AppointmentDate >= todayStart && a.AppointmentDate < todayEnd
                     && a.Status == AppointmentStatus.Completed, cancellationToken);
@@ -55,21 +71,31 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicDashboardStats
                 .CountAsync(a => a.AppointmentDate >= yearStart && a.AppointmentDate < todayEnd
                     && a.Status == AppointmentStatus.Completed, cancellationToken);
 
-            var todayIncome = await paymentsQuery
+            var todayAmounts = await paymentsQuery
                 .Where(p => p.PaidAt >= todayStart && p.PaidAt < todayEnd)
-                .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0;
-
-            var weeklyIncome = await paymentsQuery
+                .Select(p => p.Amount)
+                .ToListAsync(cancellationToken);
+            var weeklyAmounts = await paymentsQuery
                 .Where(p => p.PaidAt >= weekStart && p.PaidAt < todayEnd)
-                .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0;
-
-            var monthlyIncome = await paymentsQuery
+                .Select(p => p.Amount)
+                .ToListAsync(cancellationToken);
+            var monthlyAmounts = await paymentsQuery
                 .Where(p => p.PaidAt >= monthStart && p.PaidAt < todayEnd)
-                .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0;
-
-            var yearlyIncome = await paymentsQuery
+                .Select(p => p.Amount)
+                .ToListAsync(cancellationToken);
+            var yearlyAmounts = await paymentsQuery
                 .Where(p => p.PaidAt >= yearStart && p.PaidAt < todayEnd)
-                .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0;
+                .Select(p => p.Amount)
+                .ToListAsync(cancellationToken);
+
+            var todayIncome = todayAmounts.Sum();
+            var (todayFees, todayNet) = AppointmentRevenueSplitter.SumSplits(todayAmounts, percent);
+            var weeklyIncome = weeklyAmounts.Sum();
+            var (weeklyFees, weeklyNet) = AppointmentRevenueSplitter.SumSplits(weeklyAmounts, percent);
+            var monthlyIncome = monthlyAmounts.Sum();
+            var (monthlyFees, monthlyNet) = AppointmentRevenueSplitter.SumSplits(monthlyAmounts, percent);
+            var yearlyIncome = yearlyAmounts.Sum();
+            var (yearlyFees, yearlyNet) = AppointmentRevenueSplitter.SumSplits(yearlyAmounts, percent);
 
             var pendingActions = await appointmentsQuery
                 .CountAsync(a => a.Status == AppointmentStatus.Pending, cancellationToken);
@@ -78,14 +104,31 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicDashboardStats
             {
                 TodayVisits = todayVisits,
                 TodayIncome = todayIncome,
+                TodayPlatformFees = todayFees,
+                TodayNetIncome = todayNet,
                 WeeklyVisits = weeklyVisits,
                 WeeklyIncome = weeklyIncome,
+                WeeklyPlatformFees = weeklyFees,
+                WeeklyNetIncome = weeklyNet,
                 MonthlyVisits = monthlyVisits,
                 MonthlyIncome = monthlyIncome,
+                MonthlyPlatformFees = monthlyFees,
+                MonthlyNetIncome = monthlyNet,
                 YearlyVisits = yearlyVisits,
                 YearlyIncome = yearlyIncome,
+                YearlyPlatformFees = yearlyFees,
+                YearlyNetIncome = yearlyNet,
                 PendingActions = pendingActions
             };
+        }
+
+        private async Task<decimal> GetPlatformFeePercentAsync(CancellationToken cancellationToken)
+        {
+            var setting = await _unitOfWork.GetRepository<PlatformSetting, Guid>()
+                .GetAllAsync(s => !s.IsDeleted)
+                .OrderBy(s => s.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+            return setting?.AppointmentFeePercent ?? 0m;
         }
     }
 }

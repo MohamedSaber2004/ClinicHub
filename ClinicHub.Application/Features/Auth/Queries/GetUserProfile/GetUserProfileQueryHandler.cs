@@ -2,6 +2,7 @@ using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Auth.DTOs;
 using ClinicHub.Domain.Entities;
+using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
@@ -35,6 +36,47 @@ namespace ClinicHub.Application.Features.Auth.Queries.GetUserProfile
                 .Select(d => (bool?)d.IsFreelance)
                 .FirstOrDefaultAsync(cancellationToken) ?? false;
 
+            bool? isCompleteProfile = null;
+
+            if (roles.Contains(UserType.ClinicOwner.ToString()))
+            {
+                var clinicId = user!.ClinicId;
+
+                if (!clinicId.HasValue)
+                {
+                    clinicId = await _unitOfWork.ClinicRepository
+                        .GetAllAsync(c => c.ClinicAdminId == user.Id && !c.IsDeleted)
+                        .Select(c => (Guid?)c.Id)
+                        .FirstOrDefaultAsync(cancellationToken);
+                }
+
+                if (!clinicId.HasValue)
+                {
+                    clinicId = await _unitOfWork.DoctorRepository
+                        .GetAllAsync(d => d.UserId == user.Id && d.ClinicId != null && !d.IsDeleted)
+                        .Select(d => (Guid?)d.ClinicId)
+                        .FirstOrDefaultAsync(cancellationToken);
+                }
+
+                if (!clinicId.HasValue)
+                    clinicId = _currentUserService.CurrentClinicId;
+
+                if (!clinicId.HasValue)
+                {
+                    isCompleteProfile = false;
+                }
+                else
+                {
+                    var hasBookingConfiguration = await _unitOfWork.BookingConfigurationRepository
+                        .ExistsAsync(bc => bc.ClinicId == clinicId.Value && !bc.IsDeleted, cancellationToken);
+
+                    var hasClinicAvailability = await _unitOfWork.DoctorAvailabilityRepository
+                        .ExistsAsync(a => a.ClinicId == clinicId.Value && !a.IsDeleted, cancellationToken);
+
+                    isCompleteProfile = hasBookingConfiguration && hasClinicAvailability;
+                }
+            }
+
             return new UserProfileDto(
                 user!.Id,
                 user.FullName,
@@ -45,7 +87,8 @@ namespace ClinicHub.Application.Features.Auth.Queries.GetUserProfile
                 user.ProfilePictureUrl,
                 user.Language,
                 UserTypeHelper.GetPrimaryRole(roles),
-                isFreelanceDoctor);
+                isFreelanceDoctor,
+                isCompleteProfile);
         }
     }
 }

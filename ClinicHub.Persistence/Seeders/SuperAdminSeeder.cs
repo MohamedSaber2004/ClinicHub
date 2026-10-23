@@ -21,36 +21,63 @@ namespace ClinicHub.Persistence.Seeders
                 return;
             }
 
-            var email = settings.SuperAdminEmail;
-            if (string.IsNullOrWhiteSpace(email))
+            // No hardcoded credentials: production seeding is disabled by default
+            // (see scripts/prod-seed). Dev/Test provide values via appsettings or
+            // SeedingSettings__SuperAdminPassword environment variable.
+            if (string.IsNullOrWhiteSpace(settings.SuperAdminEmail) ||
+                string.IsNullOrWhiteSpace(settings.SuperAdminPassword))
             {
-                logger.LogInformation("SuperAdmin seeding skipped (SeedingSettings.SuperAdminEmail is not configured).");
+                logger.LogInformation("SuperAdmin seeding skipped (SuperAdminEmail/Password not configured).");
                 return;
             }
+
+            var email = settings.SuperAdminEmail.Trim();
+            var password = settings.SuperAdminPassword;
 
             var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
 
-            if (await userManager.FindByEmailAsync(email) is not null)
+            var roleName = UserType.SuperAdmin.ToString();
+            if (!await roleManager.RoleExistsAsync(roleName))
             {
-                logger.LogInformation("SuperAdmin already exists ({Email}). Nothing to create.", email);
-                return;
+                var roleResult = await roleManager.CreateAsync(new IdentityRole<Guid>(roleName));
+                if (!roleResult.Succeeded)
+                {
+                    logger.LogError("Failed to create SuperAdmin role: {Errors}", string.Join("; ", roleResult.Errors.Select(e => e.Description)));
+                    return;
+                }
             }
 
-            if (!await roleManager.RoleExistsAsync(UserType.SuperAdmin.ToString()))
+            var existing = await userManager.FindByEmailAsync(email);
+            if (existing is not null)
             {
-                logger.LogWarning("SuperAdmin role does not exist yet. Run role seeding first.");
+                if (!await userManager.IsInRoleAsync(existing, roleName))
+                {
+                    await userManager.AddToRoleAsync(existing, roleName);
+                    logger.LogInformation("SuperAdmin already exists ({Email}). Added missing role {Role}.", email, roleName);
+                }
+                else
+                {
+                    logger.LogInformation("SuperAdmin already exists ({Email}). Nothing to create.", email);
+                }
+
+                if (!existing.EmailConfirmed || !existing.IsActive || existing.IsDeleted)
+                {
+                    existing.EmailConfirmed = true;
+                    existing.IsActive = true;
+                    existing.IsDeleted = false;
+                    await userManager.UpdateAsync(existing);
+                }
                 return;
             }
 
             var user = ApplicationUser.Create(
-                settings.SuperAdminFullName ?? "Super Admin",
+                string.IsNullOrWhiteSpace(settings.SuperAdminFullName) ? "Super Admin" : settings.SuperAdminFullName!,
                 email,
                 settings.SuperAdminPhoneNumber ?? string.Empty,
                 null,
                 null);
 
-            var password = settings.SuperAdminPassword ?? "SuperAdmin@123";
             var result = await userManager.CreateAsync(user, password);
             if (!result.Succeeded)
             {
@@ -58,7 +85,7 @@ namespace ClinicHub.Persistence.Seeders
                 return;
             }
 
-            await userManager.AddToRoleAsync(user, UserType.SuperAdmin.ToString());
+            await userManager.AddToRoleAsync(user, roleName);
             logger.LogInformation("SuperAdmin created ({Email}) with role {Role}.", email, UserType.SuperAdmin);
         }
     }

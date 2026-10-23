@@ -1,4 +1,5 @@
-﻿using ClinicHub.Application.Common.Interfaces;
+﻿using ClinicHub.Application.Common;
+using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
@@ -147,6 +148,8 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
 
     private async Task NotifyClinicOwnerAndSuperAdminsAsync(Appointment appointment, ClinicHub.Domain.Entities.Payment payment)
     {
+        var percent = await GetPlatformFeePercentAsync(CancellationToken.None);
+        var split = AppointmentRevenueSplitter.Split(payment.Amount, percent);
         var amount = $"{payment.Amount:N2} EGP";
 
         if (appointment.Clinic?.ClinicAdminId.HasValue == true)
@@ -156,17 +159,23 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
                 ["amount"] = amount,
                 ["patientName"] = appointment.PatientFullName ?? "",
                 ["clinicName"] = appointment.Clinic.Name,
-                ["appointmentId"] = appointment.Id.ToString()
+                ["appointmentId"] = appointment.Id.ToString(),
+                ["platformFee"] = $"{split.PlatformFee:N2} EGP",
+                ["feePercent"] = $"{percent:N2}%",
+                ["netAmount"] = $"{split.ClinicNet:N2} EGP"
             });
         }
 
         // The current payment was only marked Paid in memory and is committed later by the
-        // handler's SaveChangesAsync, so the DB sum below does not include it yet. Add it
-        // manually so the notification reports the total AFTER this deposit. No double-count:
-        // the idempotency guard above rejects payments already stored as Paid/Refunded.
-        var totalRevenue = (await _unitOfWork.PaymentRepository
+        // handler's SaveChangesAsync, so the DB sums below do not include it yet. Add its
+        // split manually so the notification reports the totals AFTER this deposit.
+        var paidAmounts = await _unitOfWork.PaymentRepository
             .GetAllAsync(p => p.Status == PaymentStatus.Paid && p.Type == PaymentType.Appointment)
-            .SumAsync(p => (decimal?)p.Amount) ?? 0m) + payment.Amount;
+            .Select(p => p.Amount)
+            .ToListAsync();
+        paidAmounts.Add(payment.Amount);
+        var totalRevenue = paidAmounts.Sum();
+        var (totalFees, totalNet) = AppointmentRevenueSplitter.SumSplits(paidAmounts, percent);
 
         var superAdmins = await _userManager.GetUsersInRoleAsync(UserType.SuperAdmin.ToString());
         foreach (var admin in superAdmins.Where(a => !a.IsDeleted))
@@ -176,9 +185,20 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
                 ["amount"] = amount,
                 ["clinicName"] = appointment.Clinic?.Name ?? "",
                 ["totalRevenue"] = $"{totalRevenue:N2} EGP",
-                ["appointmentId"] = appointment.Id.ToString()
+                ["appointmentId"] = appointment.Id.ToString(),
+                ["totalPlatformFees"] = $"{totalFees:N2} EGP",
+                ["totalNetRevenue"] = $"{totalNet:N2} EGP"
             });
         }
+    }
+
+    private async Task<decimal> GetPlatformFeePercentAsync(CancellationToken cancellationToken)
+    {
+        var setting = await _unitOfWork.GetRepository<PlatformSetting, Guid>()
+            .GetAllAsync(s => !s.IsDeleted)
+            .OrderBy(s => s.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+        return setting?.AppointmentFeePercent ?? 0m;
     }
 
     private static Dictionary<string, string> TransactionToDictionary(PaymobTransaction transaction)

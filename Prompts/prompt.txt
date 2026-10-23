@@ -1,2 +1,1 @@
-﻿5690721	-	محفظة	جنية مصرى	اختبار	لا	26 مايو 2026, 11:24 AM
-5671290	wallets	بطاقة ائتمان	جنية مصرى	اختبار	لا	17 مايو 2026, 11:58 AM
+﻿Web deployment task failed. (Web Deploy cannot modify the file 'ClinicHub.API.dll' on the destination because it is locked by an external process.  In order to allow the publish operation to succeed, you may need to either restart your application to release the lock, or use the AppOffline rule handler for .Net applications on your next publish attempt. ...

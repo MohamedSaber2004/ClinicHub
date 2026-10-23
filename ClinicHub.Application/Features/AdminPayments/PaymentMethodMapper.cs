@@ -12,7 +12,6 @@ public static class PaymentMethodMapper
         return method.Trim().ToLowerInvariant() switch
         {
             "cash" => PaymentMethod.Cash,
-            // Frontend sends PaymobCreditCard (no underscore) + PaymobWallet — handle all variants
             "creditcard" or "card" or "credit_card" or "paymob_card" or "paymobcreditcard" or "paymob_creditcard" or "paymobcredit_card" or "visa" or "mastercard" => PaymentMethod.PaymobCreditCard,
             "wallet" or "paymob_wallet" or "paymob" or "paymobwallet" or "paymob_wallet" => PaymentMethod.PaymobWallet,
             _ => PaymentMethod.PaymobWallet

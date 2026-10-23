@@ -22,10 +22,16 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.FailureReason).HasMaxLength(500);
         builder.Property(p => p.TransactionId).HasMaxLength(100);
         builder.Property(p => p.RefundReason).HasMaxLength(500);
+        builder.Property(p => p.RefundStatus).IsRequired().HasConversion<int>();
+        builder.Property(p => p.RefundAmount).IsRequired().HasColumnType("decimal(18,2)").HasDefaultValue(0m);
+        builder.Property(p => p.RefundedAmount).IsRequired().HasColumnType("decimal(18,2)").HasDefaultValue(0m);
+        builder.Property(p => p.RefundId).HasMaxLength(100);
+        builder.Property(p => p.RefundFailureReason).HasMaxLength(500);
         builder.Property(p => p.Notes).HasMaxLength(500);
         builder.HasIndex(p => p.AppointmentId);
         builder.HasIndex(p => p.Type);
-        builder.HasIndex(p => p.RefNumber).IsUnique().HasFilter("\"RefNumber\" IS NOT NULL");
+        builder.HasIndex(p => p.RefundStatus);
+        builder.HasIndex(p => p.RefNumber).IsUnique().HasFilter("[RefNumber] IS NOT NULL");
 
         builder.HasOne(p => p.Appointment)
             .WithMany()
@@ -38,6 +44,6 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(p => p.ClinicId);
-        builder.HasIndex(p => p.SubscriptionId).IsUnique().HasFilter("\"SubscriptionId\" IS NOT NULL");
+        builder.HasIndex(p => p.SubscriptionId).IsUnique().HasFilter("[SubscriptionId] IS NOT NULL");
     }
 }
