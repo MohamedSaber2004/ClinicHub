@@ -23,5 +23,6 @@ namespace ClinicHub.Domain.Enums
         AppointmentAccepted = 19,
         SubscriptionActivated = 20,
         AppointmentNoShow = 21,
+        SubscriptionCancelled = 22,
     }
 }

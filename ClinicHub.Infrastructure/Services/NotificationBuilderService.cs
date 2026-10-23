@@ -37,6 +37,7 @@ namespace ClinicHub.Infrastructure.Services
             var appointmentId = GetParam(parameters, "appointmentId");
             var paymentUrl = GetParam(parameters, "paymentUrl");
             var senderUserIdParam = GetParam(parameters, "SenderUserId");
+            var refundStatus = GetParam(parameters, "refundStatus");
 
             switch (type)
             {
@@ -276,6 +277,23 @@ namespace ClinicHub.Infrastructure.Services
                     data["clinicName"] = clinicName;
                     data["planName"] = GetParam(parameters, "planName");
                     data["amount"] = amount;
+                    link = _deepLinkService.GenerateLink(DeepLinkRoutes.Notifications);
+                    break;
+
+                case NotificationType.SubscriptionCancelled:
+                    title = "تم إلغاء الاشتراك";
+                    body = (refundStatus ?? string.Empty).Trim().ToLowerInvariant() switch
+                    {
+                        "completed" => $"تم إلغاء اشتراك عيادة {clinicName} — تم استرداد مبلغ {amount}",
+                        "pending" => $"تم إلغاء اشتراك عيادة {clinicName} — استمرت معالجة استرداد مبلغ {amount}",
+                        "processing" => $"تم إلغاء اشتراك عيادة {clinicName} — استمرت معالجة استرداد مبلغ {amount}",
+                        "failed" => $"تم إلغاء اشتراك عيادة {clinicName} — فشل استرداد مبلغ {amount}",
+                        "needsreview" => $"تم إلغاء اشتراك عيادة {clinicName} — يحتاج استرداد مبلغ {amount} إلى مراجعة يدوية",
+                        _ => $"تم إلغاء اشتراك عيادة {clinicName} — تم إصدار استرداد مبلغ {amount}"
+                    };
+                    data["clinicName"] = clinicName;
+                    data["amount"] = amount;
+                    data["refundStatus"] = refundStatus ?? string.Empty;
                     link = _deepLinkService.GenerateLink(DeepLinkRoutes.Notifications);
                     break;
 

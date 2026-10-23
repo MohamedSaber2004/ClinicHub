@@ -16,4 +16,6 @@ public class AdminPaymentDto
     public string? RefNumber { get; set; }
     public decimal PlatformFee { get; set; }
     public decimal ClinicNetAmount { get; set; }
+    public decimal RefundedAmount { get; set; }
+    public PaymentRefundStatus RefundStatus { get; set; } = PaymentRefundStatus.None;
 }

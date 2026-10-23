@@ -36,8 +36,9 @@ public class GetClinicsPaymentsSummaryQueryHandler
             .Select(c => new { c.Id, c.Name })
             .ToListAsync(cancellationToken);
 
+        // PartiallyRefunded payments remain, net of the refunded amount.
         var paymentsQuery = _unitOfWork.PaymentRepository
-            .GetAllAsync(p => p.Status == PaymentStatus.Paid);
+            .GetAllAsync(p => p.Status == PaymentStatus.Paid || p.Status == PaymentStatus.PartiallyRefunded);
 
         if (request.FromDate.HasValue)
             paymentsQuery = paymentsQuery.Where(p => p.PaidAt.HasValue && p.PaidAt.Value.Date >= request.FromDate.Value.Date);
@@ -47,7 +48,7 @@ public class GetClinicsPaymentsSummaryQueryHandler
 
         // One round-trip: per-clinic rows grouped in memory, split per appointment row then summed.
         var rows = await paymentsQuery
-            .Select(p => new { p.ClinicId, p.Amount, p.Type })
+            .Select(p => new { p.ClinicId, p.Amount, p.RefundedAmount, p.Type })
             .ToListAsync(cancellationToken);
 
         var percent = await GetPlatformFeePercentAsync(cancellationToken);
@@ -59,8 +60,8 @@ public class GetClinicsPaymentsSummaryQueryHandler
                 g =>
                 {
                     var (fees, net) = AppointmentRevenueSplitter.SumSplits(
-                        g.Where(x => x.Type == PaymentType.Appointment).Select(x => x.Amount), percent);
-                    return (Count: g.Count(), Gross: g.Sum(x => x.Amount), Fees: fees, Net: net);
+                        g.Where(x => x.Type == PaymentType.Appointment).Select(x => x.Amount - x.RefundedAmount), percent);
+                    return (Count: g.Count(), Gross: g.Sum(x => x.Amount - x.RefundedAmount), Fees: fees, Net: net);
                 });
 
         var pageNumber = request.PageNumber < 1 ? PagginatedResult<ClinicPaymentsSummaryDto>.DefaultPageNumber : request.PageNumber;

@@ -1497,9 +1497,36 @@ namespace ClinicHub.Persistence.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<decimal>("RefundAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<int>("RefundAttemptCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RefundFailureReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("RefundId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("RefundReason")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("RefundRequestedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("RefundStatus")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("RefundedAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
 
                     b.Property<DateTime?>("RefundedAt")
                         .HasColumnType("datetime2");
@@ -1543,6 +1570,8 @@ namespace ClinicHub.Persistence.Migrations
                     b.HasIndex("RefNumber")
                         .IsUnique()
                         .HasFilter("[RefNumber] IS NOT NULL");
+
+                    b.HasIndex("RefundStatus");
 
                     b.HasIndex("SubscriptionId")
                         .IsUnique()
@@ -2030,6 +2059,19 @@ namespace ClinicHub.Persistence.Migrations
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("CancellationSource")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CancelledByUserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("ClinicId")
                         .HasColumnType("uniqueidentifier");
 
@@ -2070,6 +2112,11 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.Property<Guid?>("PlanId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("RefundAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");

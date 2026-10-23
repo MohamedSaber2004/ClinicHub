@@ -18,6 +18,9 @@ public class SubscriptionConfiguration : IEntityTypeConfiguration<Subscription>
         builder.Property(x => x.Status).IsRequired().HasConversion<int>();
         builder.Property(x => x.Amount).IsRequired().HasColumnType("decimal(18,2)");
         builder.Property(x => x.Notes).HasMaxLength(500);
+        builder.Property(x => x.CancellationSource).HasConversion<int>();
+        builder.Property(x => x.CancellationReason).HasMaxLength(500);
+        builder.Property(x => x.RefundAmount).IsRequired().HasColumnType("decimal(18,2)").HasDefaultValue(0m);
 
         builder.HasOne(x => x.Clinic)
             .WithMany(c => c.Subscriptions)

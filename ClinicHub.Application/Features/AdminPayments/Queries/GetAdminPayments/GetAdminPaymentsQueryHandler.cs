@@ -88,7 +88,9 @@ public class GetAdminPaymentsQueryHandler : IRequestHandler<GetAdminPaymentsQuer
                     Date = p.CreatedAt,
                     RefNumber = p.RefNumber,
                     PlatformFee = split.PlatformFee,
-                    ClinicNetAmount = split.ClinicNet
+                    ClinicNetAmount = split.ClinicNet,
+                    RefundedAmount = p.RefundedAmount,
+                    RefundStatus = p.RefundStatus
                 };
             })
             .ToList();

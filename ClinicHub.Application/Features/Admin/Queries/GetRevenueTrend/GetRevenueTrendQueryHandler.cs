@@ -26,21 +26,22 @@ namespace ClinicHub.Application.Features.Admin.Queries.GetRevenueTrend
 
             var percent = await GetPlatformFeePercentAsync(cancellationToken);
 
+            // PartiallyRefunded payments remain in the trend, net of the refunded amount.
             var rows = await _unitOfWork.GetRepository<PaymentEntity, Guid>()
-                .GetAllAsync(p => p.Status == PaymentStatus.Paid
+                .GetAllAsync(p => (p.Status == PaymentStatus.Paid || p.Status == PaymentStatus.PartiallyRefunded)
                     && p.PaidAt != null
                     && p.PaidAt >= fromDate
                     && p.PaidAt < toDate)
-                .Select(p => new { p.PaidAt, p.Amount, p.Type })
+                .Select(p => new { p.PaidAt, p.Amount, p.RefundedAmount, p.Type })
                 .ToListAsync(cancellationToken);
 
             var grouped = rows
                 .GroupBy(r => GraphPeriodHelper.BucketStart(r.PaidAt!.Value, granularity))
                 .ToDictionary(
                     g => g.Key,
-                    g => (Revenue: g.Sum(x => x.Amount), Count: g.Count(),
+                    g => (Revenue: g.Sum(x => x.Amount - x.RefundedAmount), Count: g.Count(),
                           Split: AppointmentRevenueSplitter.SumSplits(
-                              g.Where(x => x.Type == PaymentType.Appointment).Select(x => x.Amount), percent)));
+                              g.Where(x => x.Type == PaymentType.Appointment).Select(x => x.Amount - x.RefundedAmount), percent)));
 
             return GraphPeriodHelper.BuildBuckets(fromDate, toDate, granularity)
                 .Select(b =>

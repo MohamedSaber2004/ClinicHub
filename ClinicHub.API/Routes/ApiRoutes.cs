@@ -272,6 +272,7 @@ namespace ClinicHub.API.Routes
             public const string InitiatePayment = BaseRoute + "/initiate-payment";
             public const string MySubscription = BaseRoute + "/my";
             public const string CancelMySubscription = BaseRoute + "/my/cancel";
+            public const string CancellationQuote = BaseRoute + "/my/cancellation-quote";
         }
 
         public static class Plans

@@ -263,6 +263,8 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString AdsOrderCreated = new("Payments.AdsOrderCreated");
             public static readonly KeyString AdPackageNotFound = new("Payments.AdPackageNotFound");
             public static readonly KeyString AdPackageNotActive = new("Payments.AdPackageNotActive");
+            public static readonly KeyString RefundInProgress = new("Payments.RefundInProgress");
+            public static readonly KeyString RefundNeedsReview = new("Payments.RefundNeedsReview");
         }
 
         public static class DoctorMessages
@@ -325,6 +327,15 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString DoctorLimitReached = new("Subscriptions.DoctorLimitReached");
             public static readonly KeyString StaffLimitReached = new("Subscriptions.StaffLimitReached");
             public static readonly KeyString NoActiveSubscription = new("Subscriptions.NoActiveSubscription");
+            public static readonly KeyString OnlyOnlineCanCancel = new("Subscriptions.OnlyOnlineCanCancel");
+            public static readonly KeyString ExpiredCannotCancel = new("Subscriptions.ExpiredCannotCancel");
+            public static readonly KeyString NoPaymentLinked = new("Subscriptions.NoPaymentLinked");
+            public static readonly KeyString AlreadyCancelled = new("Subscriptions.AlreadyCancelled");
+            public static readonly KeyString RefundExceedsPaid = new("Subscriptions.RefundExceedsPaid");
+            public static readonly KeyString CancelledWithRefund = new("Subscriptions.CancelledWithRefund");
+            public static readonly KeyString CancelledNoRefund = new("Subscriptions.CancelledNoRefund");
+            public static readonly KeyString RefundPending = new("Subscriptions.RefundPending");
+            public static readonly KeyString RefundNeedsReview = new("Subscriptions.RefundNeedsReview");
         }
 
         public static class AdsMessages

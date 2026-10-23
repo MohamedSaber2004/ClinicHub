@@ -45,6 +45,7 @@ namespace ClinicHub.Application
 
             services.AddScoped<IAppointmentAcceptanceService, AppointmentAcceptanceService>();
             services.AddScoped<ISubscriptionPaymentCompleter, SubscriptionPaymentCompleter>();
+            services.AddScoped<ISubscriptionCancellationService, SubscriptionCancellationService>();
 
             services.Configure<GoogleMapsSettings>(configuration.GetSection("GoogleMaps"));
 
