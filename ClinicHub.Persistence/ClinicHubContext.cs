@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Domain.Common;
 using ClinicHub.Domain.Common.Interfaces;
@@ -33,6 +33,7 @@ namespace ClinicHub.Persistence
         public DbSet<Doctor> Doctors { get; set; }
         public DbSet<DoctorAvailability> DoctorAvailabilities { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
+        public DbSet<PatientAssessment> PatientAssessments { get; set; }
         public DbSet<UserFbToken> UserFbTokens { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<UserRefreshToken> UserRefreshTokens { get; set; }
@@ -70,7 +71,7 @@ namespace ClinicHub.Persistence
                 type => type.Namespace is not null && type.Namespace.EndsWith("Configuration"));
 
             // SQL Server provider: default schema is dbo (matches the historical
-            // SqlServer migrations). No PostGIS extension needed — spatial queries
+            // SqlServer migrations). No PostGIS extension needed â€” spatial queries
             // use the built-in geography type with NetTopologySuite.
 
             foreach (var entityType in builder.Model.GetEntityTypes()
@@ -138,3 +139,4 @@ namespace ClinicHub.Persistence
         }
     }
 }
+

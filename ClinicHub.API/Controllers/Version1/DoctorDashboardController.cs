@@ -1,4 +1,4 @@
-using Asp.Versioning;
+﻿using Asp.Versioning;
 using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.DoctorDashboard.Availability.Commands.CreateMyAvailability;
@@ -14,6 +14,8 @@ using ClinicHub.Application.Features.DoctorDashboard.Queries.GetDoctorAppointmen
 using ClinicHub.Application.Features.DoctorDashboard.Queries.GetDoctorDashboardStats;
 using ClinicHub.Application.Features.DoctorDashboard.Queries.GetDoctorPatients;
 using ClinicHub.Application.Features.DoctorDashboard.Queries.GetPatientHistory;
+using ClinicHub.Application.Features.DoctorDashboard.Queries.GetPatientAssessment;
+using ClinicHub.Application.Features.DoctorDashboard.Commands.SavePatientAssessment;
 using ClinicHub.Application.Features.DoctorDashboard.Queries.GetRecentAppointments;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Enums;
@@ -207,3 +209,4 @@ namespace ClinicHub.API.Controllers.Version1
         }
     }
 }
+
