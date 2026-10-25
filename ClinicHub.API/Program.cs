@@ -341,6 +341,11 @@ namespace ClinicHub.API
                         job => job.SweepExpiredAsync(CancellationToken.None), Cron.Hourly);
                     RecurringJob.AddOrUpdate<AbandonedPaymentJob>("abandoned-payments",
                         job => job.SweepAsync(CancellationToken.None), Cron.Hourly);
+                    RecurringJob.AddOrUpdate<PaymentAmountReconciliationJob>("payment-amount-reconciliation",
+                        job => job.ReconcileAsync(CancellationToken.None), Cron.Daily);
+                    // Run once on startup so amounts that drifted before this fix are corrected
+                    // immediately instead of waiting for the next scheduled sweep.
+                    BackgroundJob.Enqueue<PaymentAmountReconciliationJob>(job => job.ReconcileAsync(CancellationToken.None));
                     // Staff decides every reservation: the reservations-expiration sweep was
                     // removed. Also drop the recurring job if it was persisted by an older
                     // deployment (delayed per-reservation jobs must be deleted from the

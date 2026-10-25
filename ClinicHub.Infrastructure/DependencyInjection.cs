@@ -101,6 +101,7 @@ namespace ClinicHub.Infrastructure
             services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.AdExpirationJob>();
             services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.SubscriptionExpirationJob>();
             services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.AbandonedPaymentJob>();
+            services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.PaymentAmountReconciliationJob>();
             services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.TokenCleanupJob>();
             services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.CancellationWindowJob>();
             services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.ExpiryReminderJob>();
