@@ -70,6 +70,13 @@ public class Payment : BaseEntity<Guid>, IClinicScopedEntity
             Status = PaymentStatus.Processing;
         }
 
+        public void RefreshChargedAmount(decimal amount, string? currency = null)
+        {
+            Amount = amount;
+            if (!string.IsNullOrWhiteSpace(currency))
+                Currency = currency;
+        }
+
         public void SetPaymobCheckout(string redirectUrl)
         {
             RedirectUrl = redirectUrl;

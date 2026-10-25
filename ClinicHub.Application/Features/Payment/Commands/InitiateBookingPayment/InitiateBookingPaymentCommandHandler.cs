@@ -82,6 +82,7 @@ namespace ClinicHub.Application.Features.Payment.Commands.InitiateBookingPayment
             if (payment != null)
             {
                 payment.PaymobOrderId = checkout.OrderId;
+                payment.RefreshChargedAmount(amount, currency);
                 payment.MarkAsProcessing(checkout.RedirectUrl, PaymentMethodMapper.ToDbString(resolvedMethod));
             }
             else

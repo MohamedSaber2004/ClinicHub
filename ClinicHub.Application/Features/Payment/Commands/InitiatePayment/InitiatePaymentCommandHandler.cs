@@ -83,6 +83,7 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
 
             // Update existing payment with new Paymob Order ID + refresh redirect/method
             payment.PaymobOrderId = payResult.OrderId;
+            payment.RefreshChargedAmount(amount, "EGP");
             payment.MarkAsProcessing(payResult.RedirectUrl, PaymentMethodMapper.ToDbString(resolvedMethod));
         }
         else

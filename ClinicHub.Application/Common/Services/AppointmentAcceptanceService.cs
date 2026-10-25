@@ -91,7 +91,9 @@ public class AppointmentAcceptanceService : IAppointmentAcceptanceService
         else
         {
             // Refresh an earlier unpaid checkout (e.g. a leftover pre-accept payment record).
+            // The amount must be re-synced too: the clinic fee may have changed since that row was created.
             existingPayment.PaymobOrderId = checkout.OrderId;
+            existingPayment.RefreshChargedAmount(amount, currency);
             existingPayment.MarkAsProcessing(checkout.RedirectUrl, dbMethod);
         }
         appointment.Accept();

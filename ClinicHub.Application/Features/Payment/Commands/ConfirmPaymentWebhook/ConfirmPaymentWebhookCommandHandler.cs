@@ -79,6 +79,12 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
 
         if (transaction.Success)
         {
+            // Paymob is the source of truth for what was actually collected. The payment row can
+            // carry a stale amount if the clinic changed its consultation fee after the row was
+            // created, so sync it before the amount is used in receipts and notifications.
+            if (transaction.AmountCents > 0)
+                payment.RefreshChargedAmount(transaction.AmountCents / 100m, transaction.Currency);
+
             payment.MarkAsPaid(transaction.Id.ToString(), transaction.SourceData?.SubType ?? "Unknown");
 
             if (payment.Type == PaymentType.Appointment && payment.AppointmentId.HasValue)
