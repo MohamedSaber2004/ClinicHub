@@ -1,4 +1,4 @@
-namespace ClinicHub.API.Routes
+﻿namespace ClinicHub.API.Routes
 {
     public static class ApiRoutes
     {
@@ -244,6 +244,7 @@ namespace ClinicHub.API.Routes
             public const string CompleteAppointment = BaseRoute + "/appointments/{id:guid}/complete";
             public const string Patients = BaseRoute + "/patients";
             public const string PatientHistory = BaseRoute + "/patients/{patientId:guid}/history";
+            public const string PatientAssessment = BaseRoute + "/patients/{patientId:guid}/assessment";
             public const string Availability = BaseRoute + "/availability";
             public const string UpdateAvailability = BaseRoute + "/availability/{id:guid}";
             public const string DeleteAvailability = BaseRoute + "/availability/{id:guid}";
@@ -272,7 +273,6 @@ namespace ClinicHub.API.Routes
             public const string InitiatePayment = BaseRoute + "/initiate-payment";
             public const string MySubscription = BaseRoute + "/my";
             public const string CancelMySubscription = BaseRoute + "/my/cancel";
-            public const string CancellationQuote = BaseRoute + "/my/cancellation-quote";
         }
 
         public static class Plans
@@ -378,3 +378,4 @@ namespace ClinicHub.API.Routes
         }
     }
 }
+
