@@ -47,7 +47,7 @@ public class GetClinicsPaymentsSummaryQueryHandler
 
         // One round-trip: per-clinic rows grouped in memory, split per appointment row then summed.
         var rows = await paymentsQuery
-            .Select(p => new { p.ClinicId, p.Amount, p.Type })
+            .Select(p => new { p.ClinicId, p.Amount, p.Type, p.PlatformFeeAmount, p.ClinicNetAmount })
             .ToListAsync(cancellationToken);
 
         var percent = await GetPlatformFeePercentAsync(cancellationToken);
@@ -58,8 +58,10 @@ public class GetClinicsPaymentsSummaryQueryHandler
                 g => g.Key,
                 g =>
                 {
-                    var (fees, net) = AppointmentRevenueSplitter.SumSplits(
-                        g.Where(x => x.Type == PaymentType.Appointment).Select(x => x.Amount), percent);
+                    var (fees, net) = PaymentRevenueResolver.SumResolved(
+                        g.Where(x => x.Type == PaymentType.Appointment)
+                            .Select(x => (x.Amount, x.PlatformFeeAmount, x.ClinicNetAmount)),
+                        percent);
                     return (Count: g.Count(), Gross: g.Sum(x => x.Amount), Fees: fees, Net: net);
                 });
 

@@ -381,3 +381,6 @@ appsettings.Production.json
 # Git worktrees for isolated feature work
 .worktrees/
 /ClinicHub.API/web.config
+
+# DataProtection keys encrypting payout account numbers and national ids
+.payout-keys/

@@ -11,4 +11,6 @@ public interface IBackgroundJobScheduler
     Task ScheduleNoShowMarkingAsync(Guid appointmentId, DateTime checkAt);
 
     Task ScheduleRefundRetryAsync(Guid paymentId);
+
+    Task SchedulePayoutExecutionAsync(Guid batchId);
 }

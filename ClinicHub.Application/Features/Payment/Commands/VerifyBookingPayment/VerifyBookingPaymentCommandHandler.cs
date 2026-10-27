@@ -2,6 +2,7 @@
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Payment.DTOs;
 using ClinicHub.Application.Localization;
+using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
@@ -13,11 +14,13 @@ namespace ClinicHub.Application.Features.Payment.Commands.VerifyBookingPayment
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IBackgroundJobScheduler _jobScheduler;
+        private readonly IClinicLedgerService _clinicLedgerService;
 
-        public VerifyBookingPaymentCommandHandler(IUnitOfWork unitOfWork, IBackgroundJobScheduler jobScheduler)
+        public VerifyBookingPaymentCommandHandler(IUnitOfWork unitOfWork, IBackgroundJobScheduler jobScheduler, IClinicLedgerService clinicLedgerService)
         {
             _unitOfWork = unitOfWork;
             _jobScheduler = jobScheduler;
+            _clinicLedgerService = clinicLedgerService;
         }
 
         public async Task<BookingPaymentResponseDto> Handle(VerifyBookingPaymentCommand request, CancellationToken cancellationToken)
@@ -38,6 +41,9 @@ namespace ClinicHub.Application.Features.Payment.Commands.VerifyBookingPayment
             if (payment.Status is PaymentStatus.Processing or PaymentStatus.Pending)
             {
                 payment.MarkAsPaid(request.TransactionId, payment.PaymentMethod ?? "cash");
+
+                var platformFeePercent = await GetPlatformFeePercentAsync(cancellationToken);
+                await _clinicLedgerService.AccrueAppointmentEarningAsync(payment, platformFeePercent, cancellationToken);
 
                 if (!payment.AppointmentId.HasValue)
                 {
@@ -72,6 +78,15 @@ namespace ClinicHub.Application.Features.Payment.Commands.VerifyBookingPayment
             }
 
             throw new BadRequestException(LocalizationKeys.PaymentMessages.PaymentFailed.Value);
+        }
+
+        private async Task<decimal> GetPlatformFeePercentAsync(CancellationToken cancellationToken)
+        {
+            var setting = await _unitOfWork.GetRepository<PlatformSetting, Guid>()
+                .GetAllAsync(s => !s.IsDeleted)
+                .OrderBy(s => s.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+            return setting?.AppointmentFeePercent ?? 0m;
         }
 
         private static BookingPaymentResponseDto BuildResponse(Domain.Entities.Payment payment, Domain.Entities.Appointment? appointment)

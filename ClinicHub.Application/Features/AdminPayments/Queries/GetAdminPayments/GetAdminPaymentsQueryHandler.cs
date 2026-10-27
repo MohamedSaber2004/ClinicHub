@@ -73,7 +73,7 @@ public class GetAdminPaymentsQueryHandler : IRequestHandler<GetAdminPaymentsQuer
             .Select(p =>
             {
                 var split = p.Type == PaymentType.Appointment
-                    ? AppointmentRevenueSplitter.Split(p.Amount, percent)
+                    ? PaymentRevenueResolver.Resolve(p, percent)
                     : new AppointmentRevenueSplit(p.Amount, 0m, p.Amount);
                 return new AdminPaymentDto
                 {

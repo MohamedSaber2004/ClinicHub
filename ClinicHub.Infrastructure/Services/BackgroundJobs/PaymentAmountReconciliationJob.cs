@@ -1,4 +1,6 @@
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Interfaces;
+using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -42,6 +44,9 @@ public class PaymentAmountReconciliationJob
             .ToListAsync(cancellationToken);
 
         var reconciled = 0;
+        var percent = await GetPlatformFeePercentAsync(unitOfWork, cancellationToken);
+        var ledgerRepository = unitOfWork.GetRepository<ClinicLedgerEntry, Guid>();
+
         foreach (var payment in payments)
         {
             var order = await paymob.GetOrderPaymentStatusAsync(payment.PaymobOrderId!, cancellationToken);
@@ -57,10 +62,30 @@ public class PaymentAmountReconciliationJob
                 payment.Id, payment.PaymobOrderId, payment.Amount, collected);
 
             payment.RefreshChargedAmount(collected);
+
+            // The ledger is what payouts are computed from, so a corrected amount must
+            // re-snapshot the split and revalue the (not yet reserved) earning row.
+            var split = AppointmentRevenueSplitter.Split(collected, percent);
+            payment.SnapshotRevenueSplit(split.PlatformFee, split.ClinicNet);
+
+            var earning = await ledgerRepository
+                .GetAllAsync(e => e.PaymentId == payment.Id && e.Type == LedgerEntryType.Earning)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            earning?.TryRevalue(split.ClinicNet);
             reconciled++;
         }
 
         if (reconciled > 0)
             await unitOfWork.SaveChangesAsync();
+    }
+
+    private static async Task<decimal> GetPlatformFeePercentAsync(IUnitOfWork unitOfWork, CancellationToken cancellationToken)
+    {
+        var setting = await unitOfWork.GetRepository<PlatformSetting, Guid>()
+            .GetAllAsync(s => !s.IsDeleted)
+            .OrderBy(s => s.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+        return setting?.AppointmentFeePercent ?? 0m;
     }
 }

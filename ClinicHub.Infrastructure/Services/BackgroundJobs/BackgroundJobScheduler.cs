@@ -34,4 +34,10 @@ public class BackgroundJobScheduler : IBackgroundJobScheduler
         BackgroundJob.Schedule<RefundRetryJob>(job => job.RetryRefundAsync(paymentId, 1, CancellationToken.None), TimeSpan.FromHours(2));
         return Task.CompletedTask;
     }
+
+    public Task SchedulePayoutExecutionAsync(Guid batchId)
+    {
+        BackgroundJob.Enqueue<PayoutExecutionJob>(job => job.ExecuteAsync(batchId, CancellationToken.None));
+        return Task.CompletedTask;
+    }
 }

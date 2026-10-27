@@ -295,5 +295,24 @@
     "NotActive": "This plan is not active",
     "PlanIdRequired": "Plan ID is required",
     "InvalidPeriod": "Invalid subscription period"
+  },
+  "Payouts": {
+    "AccountNotFound": "Payout account not found",
+    "InvalidBankCode": "Unsupported bank code",
+    "InvalidAccountNumber": "Account number must contain 8 to 20 digits",
+    "InvalidTransactionType": "Unsupported bank transaction type",
+    "RejectionReasonRequired": "A rejection reason is required",
+    "AccountSaved": "Payout account saved and pending verification",
+    "AccountVerified": "Payout account verified",
+    "AccountRejected": "Payout account rejected",
+    "InvalidNationalId": "The national ID must be 14 digits",
+    "NoEligibleClinics": "No clinic is eligible for a payout right now",
+    "BatchNotFound": "Payout batch not found",
+    "BatchNotApprovable": "This batch cannot be approved — check its items and the two-man approval rule",
+    "BatchNotExecutable": "The batch must be approved before it can be executed",
+    "BatchNotCancellable": "This batch cannot be cancelled because it already started or finished",
+    "ItemNotFound": "Payout item not found",
+    "ItemNotRetryable": "This payout item cannot be retried",
+    "InsufficientBudget": "The Paymob budget is too small to execute this batch"
   }
 }

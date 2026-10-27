@@ -39,16 +39,14 @@ public class GetAdminPaymentStatsQueryHandler : IRequestHandler<GetAdminPaymentS
                 && (hasDateRange || (p.PaidAt.HasValue && p.PaidAt.Value >= today)))
             .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0;
 
-        var appointmentsRevenue = await query
+        var appointmentRows = await query
             .Where(p => p.Type == PaymentType.Appointment && p.Status == PaymentStatus.Paid)
-            .SumAsync(p => (decimal?)p.Amount, cancellationToken) ?? 0;
-
-        var appointmentAmounts = await query
-            .Where(p => p.Type == PaymentType.Appointment && p.Status == PaymentStatus.Paid)
-            .Select(p => p.Amount)
+            .Select(p => new { p.Amount, p.PlatformFeeAmount, p.ClinicNetAmount })
             .ToListAsync(cancellationToken);
+        var appointmentsRevenue = appointmentRows.Sum(p => p.Amount);
         var percent = await GetPlatformFeePercentAsync(cancellationToken);
-        var (appointmentsFees, appointmentsNet) = AppointmentRevenueSplitter.SumSplits(appointmentAmounts, percent);
+        var (appointmentsFees, appointmentsNet) = PaymentRevenueResolver.SumResolved(
+            appointmentRows.Select(p => (p.Amount, p.PlatformFeeAmount, p.ClinicNetAmount)), percent);
 
         var subscriptionsRevenue = await query
             .Where(p => p.Type == PaymentType.Subscription && p.Status == PaymentStatus.Paid)
