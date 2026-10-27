@@ -272,6 +272,7 @@
             public const string Create = BaseRoute;
             public const string InitiatePayment = BaseRoute + "/initiate-payment";
             public const string MySubscription = BaseRoute + "/my";
+            public const string CancellationQuote = BaseRoute + "/my/cancellation-quote";
             public const string CancelMySubscription = BaseRoute + "/my/cancel";
         }
 
