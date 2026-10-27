@@ -306,5 +306,24 @@
     "NotActive": "هذه الباقة غير نشطة",
     "PlanIdRequired": "معرف الباقة مطلوب",
     "InvalidPeriod": "فترة الاشتراك غير صالحة"
+  },
+  "Payouts": {
+    "AccountNotFound": "الحساب البنكي للعيادة غير موجود",
+    "InvalidBankCode": "كود البنك غير مدعوم",
+    "InvalidAccountNumber": "رقم الحساب يجب أن يتكون من 8 إلى 20 رقمًا",
+    "InvalidTransactionType": "نوع التحويل البنكي غير مدعوم",
+    "RejectionReasonRequired": "سبب الرفض مطلوب",
+    "AccountSaved": "تم حفظ الحساب البنكي وسيتم مراجعته",
+    "AccountVerified": "تم اعتماد الحساب البنكي",
+    "AccountRejected": "تم رفض الحساب البنكي",
+    "InvalidNationalId": "الرقم القومي يجب أن يتكون من 14 رقمًا",
+    "NoEligibleClinics": "لا توجد عيادات مؤهلة للتحويل في الوقت الحالي",
+    "BatchNotFound": "دفعة التحويل غير موجودة",
+    "BatchNotApprovable": "لا يمكن اعتماد دفعة التحويل — تأكد من بنودها وأن المعتمد غير منشئ الدفعة",
+    "BatchNotExecutable": "يجب اعتماد دفعة التحويل قبل تنفيذها",
+    "BatchNotCancellable": "لا يمكن إلغاء هذه الدفعة لأنها بدأت التنفيذ أو انتهت",
+    "ItemNotFound": "بند التحويل غير موجود",
+    "ItemNotRetryable": "لا يمكن إعادة محاولة هذا البند",
+    "InsufficientBudget": "رصيد Paymob غير كافٍ لتنفيذ الدفعة"
   }
 }

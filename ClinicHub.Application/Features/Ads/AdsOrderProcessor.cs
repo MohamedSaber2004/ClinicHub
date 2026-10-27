@@ -1,4 +1,4 @@
-using ClinicHub.Application.Common.Exceptions;
+﻿using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.AdminPayments;
 using ClinicHub.Application.Features.AdminPayments.DTOs;
@@ -24,7 +24,8 @@ public static class AdsOrderProcessor
         string? logoImageUrl,
         string? returnUrl,
         string? paymentMethod,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? walletPhoneNumber = null)
     {
         var clinic = await unitOfWork.ClinicRepository.FindByKeyAsync(clinicId, cancellationToken);
         if (clinic == null)
@@ -87,7 +88,8 @@ public static class AdsOrderProcessor
         }
         else
         {
-            payResult = await paymobService.InitiateWalletPaymentAsync(amount, "EGP", billing, billing.PhoneNumber, cancellationToken, returnUrl);
+            var walletNumber = !string.IsNullOrWhiteSpace(walletPhoneNumber) ? walletPhoneNumber : billing.PhoneNumber;
+            payResult = await paymobService.InitiateWalletPaymentAsync(amount, "EGP", billing, walletNumber, cancellationToken, returnUrl);
         }
 
         var advertisement = new Advertisement

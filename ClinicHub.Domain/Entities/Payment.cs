@@ -21,6 +21,12 @@ public class Payment : BaseEntity<Guid>, IClinicScopedEntity
     public SubscriptionPlan? SubscriptionPeriod { get; set; }
     public decimal Amount { get; private set; }
     public string Currency { get; private set; } = "EGP";
+
+    /// <summary>Platform fee retained at collection time. Null for legacy rows not yet backfilled.</summary>
+    public decimal? PlatformFeeAmount { get; private set; }
+
+    /// <summary>Clinic net at collection time. Payouts are derived from this value, never recomputed.</summary>
+    public decimal? ClinicNetAmount { get; private set; }
     public string? PaymobOrderId { get; set; }
     public string? PaymobTransactionId { get; private set; }
     public PaymentStatus Status { get; private set; } = PaymentStatus.Pending;
@@ -75,6 +81,19 @@ public class Payment : BaseEntity<Guid>, IClinicScopedEntity
             RedirectUrl = redirectUrl;
             PaymentMethod = paymentMethod;
             Status = PaymentStatus.Processing;
+        }
+
+        public void RefreshChargedAmount(decimal amount, string? currency = null)
+        {
+            Amount = amount;
+            if (!string.IsNullOrWhiteSpace(currency))
+                Currency = currency;
+        }
+
+        public void SnapshotRevenueSplit(decimal platformFeeAmount, decimal clinicNetAmount)
+        {
+            PlatformFeeAmount = platformFeeAmount;
+            ClinicNetAmount = clinicNetAmount;
         }
 
         public void SetPaymobCheckout(string redirectUrl)

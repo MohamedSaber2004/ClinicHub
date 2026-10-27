@@ -40,29 +40,41 @@ public class GetAppointmentRevenueStatsQueryHandler
 
         var percent = await GetPlatformFeePercentAsync(cancellationToken);
 
-        var todayAmounts = await paid.Where(p => p.PaidAt >= today).Select(p => p.Amount).ToListAsync(cancellationToken);
-        var monthAmounts = await paid.Where(p => p.PaidAt >= monthStart).Select(p => p.Amount).ToListAsync(cancellationToken);
-        var paidAmounts = await paid.Select(p => p.Amount).ToListAsync(cancellationToken);
-        var pendingAmounts = await query
+        var todayRows = await paid.Where(p => p.PaidAt >= today)
+            .Select(p => new { p.Amount, p.PlatformFeeAmount, p.ClinicNetAmount })
+            .ToListAsync(cancellationToken);
+        var monthRows = await paid.Where(p => p.PaidAt >= monthStart)
+            .Select(p => new { p.Amount, p.PlatformFeeAmount, p.ClinicNetAmount })
+            .ToListAsync(cancellationToken);
+        var paidRows = await paid
+            .Select(p => new { p.Amount, p.PlatformFeeAmount, p.ClinicNetAmount })
+            .ToListAsync(cancellationToken);
+        var pendingRows = await query
             .Where(p => p.Status == PaymentStatus.Pending || p.Status == PaymentStatus.Processing)
-            .Select(p => p.Amount).ToListAsync(cancellationToken);
+            .Select(p => new { p.Amount, p.PlatformFeeAmount, p.ClinicNetAmount })
+            .ToListAsync(cancellationToken);
 
-        // Gross totals stay exact; net = total - superadmin platform fees (per-row split, then sum).
-        var (todayFees, todayNet) = AppointmentRevenueSplitter.SumSplits(todayAmounts, percent);
-        var (monthFees, monthNet) = AppointmentRevenueSplitter.SumSplits(monthAmounts, percent);
-        var (paidFees, paidNet) = AppointmentRevenueSplitter.SumSplits(paidAmounts, percent);
-        var (pendingFees, pendingNet) = AppointmentRevenueSplitter.SumSplits(pendingAmounts, percent);
+        // Gross totals stay exact; net uses the split captured at collection time, falling
+        // back to the live percent only for legacy rows without a snapshot.
+        var (todayFees, todayNet) = PaymentRevenueResolver.SumResolved(
+            todayRows.Select(p => (p.Amount, p.PlatformFeeAmount, p.ClinicNetAmount)), percent);
+        var (monthFees, monthNet) = PaymentRevenueResolver.SumResolved(
+            monthRows.Select(p => (p.Amount, p.PlatformFeeAmount, p.ClinicNetAmount)), percent);
+        var (paidFees, paidNet) = PaymentRevenueResolver.SumResolved(
+            paidRows.Select(p => (p.Amount, p.PlatformFeeAmount, p.ClinicNetAmount)), percent);
+        var (pendingFees, pendingNet) = PaymentRevenueResolver.SumResolved(
+            pendingRows.Select(p => (p.Amount, p.PlatformFeeAmount, p.ClinicNetAmount)), percent);
 
-        stats.TodayRevenue = todayAmounts.Sum();
+        stats.TodayRevenue = todayRows.Sum(p => p.Amount);
         stats.TodayPlatformFees = todayFees;
         stats.TodayNetRevenue = todayNet;
-        stats.MonthRevenue = monthAmounts.Sum();
+        stats.MonthRevenue = monthRows.Sum(p => p.Amount);
         stats.MonthPlatformFees = monthFees;
         stats.MonthNetRevenue = monthNet;
-        stats.PaidTotal = paidAmounts.Sum();
+        stats.PaidTotal = paidRows.Sum(p => p.Amount);
         stats.PaidPlatformFees = paidFees;
         stats.PaidNetTotal = paidNet;
-        stats.PendingTotal = pendingAmounts.Sum();
+        stats.PendingTotal = pendingRows.Sum(p => p.Amount);
         stats.PendingPlatformFees = pendingFees;
         stats.PendingNetTotal = pendingNet;
 

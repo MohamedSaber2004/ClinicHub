@@ -324,6 +324,36 @@
             public const string Refund = BaseRoute + "/{id:guid}/refund";
         }
 
+        public static class ClinicPayouts
+        {
+            public const string Account = Base + "/clinic/payout-account";
+            public const string Summary = Base + "/clinic/payouts/summary";
+            public const string History = Base + "/clinic/payouts/history";
+        }
+
+        public static class AdminPayouts
+        {
+            public const string Preview = Base + "/admin/payouts/preview";
+            public const string Budget = Base + "/admin/payouts/budget";
+            public const string Accounts = Base + "/admin/payout-accounts";
+            public const string VerifyAccount = Accounts + "/{id:guid}/verify";
+            public const string RejectAccount = Accounts + "/{id:guid}/reject";
+
+            public const string Batches = Base + "/admin/payout-batches";
+            public const string CreateBatch = Batches;
+            public const string BatchById = Batches + "/{id:guid}";
+            public const string ApproveBatch = BatchById + "/approve";
+            public const string ExecuteBatch = BatchById + "/execute";
+            public const string CancelBatch = BatchById + "/cancel";
+            public const string RetryItem = Base + "/admin/payout-items/{id:guid}/retry";
+        }
+
+        public static class PayoutWebhook
+        {
+            /// <summary>Paymob's payout callback cannot sign its body, so the secret is the unguessable path segment.</summary>
+            public const string Receive = Base + "/payouts/callback/{token}";
+        }
+
         public static class AdminAds
         {
             public const string GetAll = Base + "/admin/ads";

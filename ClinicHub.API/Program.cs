@@ -121,7 +121,7 @@ namespace ClinicHub.API
 
                 builder.Services.AddApplicationServices(builder.Configuration);
                 builder.Services.AddPersistenceServices(builder.Configuration);
-                builder.Services.AddInfrastructureServices(builder.Configuration);
+                builder.Services.AddInfrastructureServices(builder.Configuration, builder.Environment.ContentRootPath);
 
                 builder.Services.AddNetTracker(builder.Configuration);
 
@@ -152,6 +152,22 @@ namespace ClinicHub.API
                         }
                         catch (FormatException) { return false; }
                     }, "IdProtectionSettings.Key must be a base64-encoded AES key of 16, 24 or 32 bytes.")
+                    .ValidateOnStart();
+                builder.Services.AddOptions<PaymobSettings>()
+                    .Bind(builder.Configuration.GetSection(nameof(PaymobSettings)))
+                    .Validate(s => !string.IsNullOrWhiteSpace(s.SecretKey), "PaymobSettings.SecretKey is required.")
+                    .Validate(s => !string.IsNullOrWhiteSpace(s.PublicKey), "PaymobSettings.PublicKey is required.")
+                    .Validate(s => int.TryParse(s.IntegrationId, out _), "PaymobSettings.IntegrationId must be a numeric integration ID from Paymob dashboard (Developers → Payment Integrations).")
+                    .Validate(s => string.IsNullOrWhiteSpace(s.WalletIntegrationId) || int.TryParse(s.WalletIntegrationId, out _), "PaymobSettings.WalletIntegrationId must be numeric when set.")
+                    .ValidateOnStart();
+                builder.Services.AddOptions<PayoutSettings>()
+                    .Bind(builder.Configuration.GetSection(nameof(PayoutSettings)))
+                    .Validate(s => !string.IsNullOrWhiteSpace(s.BaseUrl) && Uri.IsWellFormedUriString(s.BaseUrl, UriKind.Absolute),
+                        "PayoutSettings.BaseUrl must be an absolute URL (https://payouts.paymobsolutions.com in production).")
+                    .Validate(s => s.MinimumTransactionAmount >= 112m,
+                        "PayoutSettings.MinimumTransactionAmount cannot be below Paymob's 112 EGP transaction floor.")
+                    .Validate(s => s.MaxRetriesPerItem is >= 0 and <= 3,
+                        "PayoutSettings.MaxRetriesPerItem must be between 0 and 3 — each retry risks sending the same money twice.")
                     .ValidateOnStart();
                 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
                 builder.Services.Configure<SeedingSettings>(builder.Configuration.GetSection("SeedingSettings"));
@@ -332,6 +348,11 @@ namespace ClinicHub.API
                         job => job.SweepExpiredAsync(CancellationToken.None), Cron.Hourly);
                     RecurringJob.AddOrUpdate<AbandonedPaymentJob>("abandoned-payments",
                         job => job.SweepAsync(CancellationToken.None), Cron.Hourly);
+                    RecurringJob.AddOrUpdate<PaymentAmountReconciliationJob>("payment-amount-reconciliation",
+                        job => job.ReconcileAsync(CancellationToken.None), Cron.Daily);
+                    // Run once on startup so amounts that drifted before this fix are corrected
+                    // immediately instead of waiting for the next scheduled sweep.
+                    BackgroundJob.Enqueue<PaymentAmountReconciliationJob>(job => job.ReconcileAsync(CancellationToken.None));
                     // Staff decides every reservation: the reservations-expiration sweep was
                     // removed. Also drop the recurring job if it was persisted by an older
                     // deployment (delayed per-reservation jobs must be deleted from the
@@ -346,6 +367,10 @@ namespace ClinicHub.API
                     RecurringJob.AddOrUpdate<ClinicWorkingHoursValidationJob>("clinic-working-hours-validation",
                         job => job.SweepAsync(CancellationToken.None), Cron.Hourly);
                     RecurringJob.AddOrUpdate<NoShowSweepJob>("noshow-sweep",
+                        job => job.SweepAsync(CancellationToken.None), Cron.Hourly);
+                    // Paymob's payout callback is unsigned and wallets never call back at all,
+                    // so the inquiry sweep — not the callback — is what settles disbursements.
+                    RecurringJob.AddOrUpdate<PayoutStatusReconciliationJob>("payout-status-reconciliation",
                         job => job.SweepAsync(CancellationToken.None), Cron.Hourly);
                     Log.Information("Hangfire recurring jobs registered successfully.");
                 }

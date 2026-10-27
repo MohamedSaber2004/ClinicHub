@@ -40,18 +40,15 @@ public class GetAdminPaymentStatsQueryHandler : IRequestHandler<GetAdminPaymentS
                 && (hasDateRange || (p.PaidAt.HasValue && p.PaidAt.Value >= today)))
             .SumAsync(p => (decimal?)(p.Amount - p.RefundedAmount), cancellationToken) ?? 0;
 
-        var appointmentsRevenue = await query
+        var appointmentRows = await query
             .Where(p => p.Type == PaymentType.Appointment
                 && (p.Status == PaymentStatus.Paid || p.Status == PaymentStatus.PartiallyRefunded))
-            .SumAsync(p => (decimal?)(p.Amount - p.RefundedAmount), cancellationToken) ?? 0;
-
-        var appointmentAmounts = await query
-            .Where(p => p.Type == PaymentType.Appointment
-                && (p.Status == PaymentStatus.Paid || p.Status == PaymentStatus.PartiallyRefunded))
-            .Select(p => p.Amount - p.RefundedAmount)
+            .Select(p => new { p.Amount, p.RefundedAmount, p.PlatformFeeAmount, p.ClinicNetAmount })
             .ToListAsync(cancellationToken);
+        var appointmentsRevenue = appointmentRows.Sum(p => p.Amount - p.RefundedAmount);
         var percent = await GetPlatformFeePercentAsync(cancellationToken);
-        var (appointmentsFees, appointmentsNet) = AppointmentRevenueSplitter.SumSplits(appointmentAmounts, percent);
+        var (appointmentsFees, appointmentsNet) = PaymentRevenueResolver.SumResolved(
+            appointmentRows.Select(p => (p.Amount, p.RefundedAmount, p.PlatformFeeAmount, p.ClinicNetAmount)), percent);
 
         var subscriptionsRevenue = await query
             .Where(p => p.Type == PaymentType.Subscription

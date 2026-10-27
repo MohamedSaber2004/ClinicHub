@@ -51,7 +51,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicRevenueTrend
                     && p.PaidAt != null
                     && p.PaidAt >= fromDate
                     && p.PaidAt < toDate)
-                .Select(p => new { p.PaidAt, p.Amount })
+                .Select(p => new { p.PaidAt, p.Amount, p.PlatformFeeAmount, p.ClinicNetAmount })
                 .ToListAsync(cancellationToken);
 
             var grouped = rows
@@ -59,7 +59,8 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicRevenueTrend
                 .ToDictionary(
                     g => g.Key,
                     g => (Revenue: g.Sum(x => x.Amount), Count: g.Count(),
-                          Split: AppointmentRevenueSplitter.SumSplits(g.Select(x => x.Amount), percent)));
+                          Split: PaymentRevenueResolver.SumResolved(
+                              g.Select(x => (x.Amount, x.PlatformFeeAmount, x.ClinicNetAmount)), percent)));
 
             return GraphPeriodHelper.BuildBuckets(fromDate, toDate, granularity)
                 .Select(b =>

@@ -15,6 +15,8 @@ public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
         builder.Property(p => p.RefNumber).HasMaxLength(50);
         builder.Property(p => p.Type).IsRequired().HasConversion<int>();
         builder.Property(p => p.Amount).IsRequired().HasColumnType("decimal(18,2)");
+        builder.Property(p => p.PlatformFeeAmount).HasColumnType("decimal(18,2)");
+        builder.Property(p => p.ClinicNetAmount).HasColumnType("decimal(18,2)");
         builder.Property(p => p.Currency).IsRequired().HasMaxLength(3);
         builder.Property(p => p.Status).IsRequired().HasConversion<int>();
         builder.Property(p => p.PaymentMethod).HasMaxLength(50);

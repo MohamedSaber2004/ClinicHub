@@ -68,12 +68,11 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicAppointmentsSu
                 .GroupBy(r => GraphPeriodHelper.BucketStart(r.AppointmentDate, granularity))
                 .ToDictionary(
                     g => g.Key,
-                    g => new
-                    {
-                        Completed = g.Count(x => x.Status == AppointmentStatus.Completed),
-                        Cancelled = g.Count(x => CancelledLike.Contains(x.Status)),
-                        Pending = g.Count(x => PendingLike.Contains(x.Status))
-                    });
+                    g => (
+                        Completed: g.Count(x => x.Status == AppointmentStatus.Completed),
+                        Cancelled: g.Count(x => CancelledLike.Contains(x.Status)),
+                        Pending: g.Count(x => PendingLike.Contains(x.Status))
+                    ));
 
             return GraphPeriodHelper.BuildBuckets(fromDate, toDate, granularity)
                 .Select(b =>

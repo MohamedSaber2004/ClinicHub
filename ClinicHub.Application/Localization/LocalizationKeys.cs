@@ -267,6 +267,27 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString RefundNeedsReview = new("Payments.RefundNeedsReview");
         }
 
+        public static class PayoutMessages
+        {
+            public static readonly KeyString AccountNotFound = new("Payouts.AccountNotFound");
+            public static readonly KeyString InvalidBankCode = new("Payouts.InvalidBankCode");
+            public static readonly KeyString InvalidAccountNumber = new("Payouts.InvalidAccountNumber");
+            public static readonly KeyString InvalidTransactionType = new("Payouts.InvalidTransactionType");
+            public static readonly KeyString RejectionReasonRequired = new("Payouts.RejectionReasonRequired");
+            public static readonly KeyString AccountSaved = new("Payouts.AccountSaved");
+            public static readonly KeyString AccountVerified = new("Payouts.AccountVerified");
+            public static readonly KeyString AccountRejected = new("Payouts.AccountRejected");
+            public static readonly KeyString InvalidNationalId = new("Payouts.InvalidNationalId");
+            public static readonly KeyString NoEligibleClinics = new("Payouts.NoEligibleClinics");
+            public static readonly KeyString BatchNotFound = new("Payouts.BatchNotFound");
+            public static readonly KeyString BatchNotApprovable = new("Payouts.BatchNotApprovable");
+            public static readonly KeyString BatchNotExecutable = new("Payouts.BatchNotExecutable");
+            public static readonly KeyString BatchNotCancellable = new("Payouts.BatchNotCancellable");
+            public static readonly KeyString ItemNotFound = new("Payouts.ItemNotFound");
+            public static readonly KeyString ItemNotRetryable = new("Payouts.ItemNotRetryable");
+            public static readonly KeyString InsufficientBudget = new("Payouts.InsufficientBudget");
+        }
+
         public static class DoctorMessages
         {
             public static readonly KeyString NotFound = new("Doctors.NotFound");

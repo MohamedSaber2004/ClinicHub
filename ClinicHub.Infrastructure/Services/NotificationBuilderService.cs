@@ -297,6 +297,29 @@ namespace ClinicHub.Infrastructure.Services
                     link = _deepLinkService.GenerateLink(DeepLinkRoutes.Notifications);
                     break;
 
+                case NotificationType.PayoutAccountApproved:
+                    title = "تم اعتماد الحساب البنكي";
+                    body = $"تم اعتماد الحساب البنكي لعيادة {clinicName} — أصبحت المستحقات قابلة للتحويل";
+                    data["clinicName"] = clinicName;
+                    link = _deepLinkService.GenerateLink(DeepLinkRoutes.Notifications);
+                    break;
+
+                case NotificationType.PayoutAccountRejected:
+                    title = "تم رفض الحساب البنكي";
+                    body = $"عذرًا، تم رفض الحساب البنكي لعيادة {clinicName}: {reason}";
+                    data["clinicName"] = clinicName;
+                    data["reason"] = reason;
+                    link = _deepLinkService.GenerateLink(DeepLinkRoutes.Notifications);
+                    break;
+
+                case NotificationType.PayoutReceived:
+                    title = "تم تحويل مستحقاتك";
+                    body = $"تم تحويل {amount} إلى الحساب البنكي لعيادة {clinicName}";
+                    data["clinicName"] = clinicName;
+                    data["amount"] = amount;
+                    link = _deepLinkService.GenerateLink(DeepLinkRoutes.Notifications);
+                    break;
+
                 default:
                     title = "إشعار";
                     body = "لديك إشعار جديد";

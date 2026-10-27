@@ -77,7 +77,7 @@ public class GetAppointmentPaymentsQueryHandler
 
     private static AppointmentPaymentDto ToDto(PaymentEntity p, decimal percent)
     {
-        var split = AppointmentRevenueSplitter.Split(p.Amount, percent);
+        var split = PaymentRevenueResolver.Resolve(p, percent);
         return new()
         {
             Id = p.Id,

@@ -54,6 +54,11 @@ namespace ClinicHub.Persistence
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<UserVerification> UserVerifications { get; set; }
         public DbSet<PlatformSetting> PlatformSettings { get; set; }
+        public DbSet<ClinicPayoutAccount> ClinicPayoutAccounts { get; set; }
+        public DbSet<ClinicLedgerEntry> ClinicLedgerEntries { get; set; }
+        public DbSet<PayoutBatch> PayoutBatches { get; set; }
+        public DbSet<PayoutItem> PayoutItems { get; set; }
+        public DbSet<PayoutWebhookEvent> PayoutWebhookEvents { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder builder)
         {

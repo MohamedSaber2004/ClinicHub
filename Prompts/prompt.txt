@@ -1,1 +1,57 @@
-﻿Web deployment task failed. (Web Deploy cannot modify the file 'ClinicHub.API.dll' on the destination because it is locked by an external process.  In order to allow the publish operation to succeed, you may need to either restart your application to release the lock, or use the AppOffline rule handler for .Net applications on your next publish attempt. ...
+﻿Transaction: d5578b90-77f0-4d80-8a72-1bb7911dc7c6
+✕
+Overview
+Request ID
+d5578b90-77f0-4d80-8a72-1bb7911dc7c6
+Status Code
+400
+Method
+POST
+Duration
+890ms
+Timestamp
+10/6/2026, 12:00:00 AM
+Success
+✗ No
+IP Address
+188.40.211.9
+User Agent
+—
+URL
+https://api.doctoryconnect.online/api/v1/subscriptions/initiate-payment
+Request Headers
+{
+  "Accept-Language": "ar",
+  "Authorization": "***MASKED***",
+  "Content-Length": "206",
+  "Content-Type": "application/json; charset=utf-8",
+  "Host": "api.doctoryconnect.online",
+  "X-ClinicId": "51cac9f7-5b6c-4a14-8da8-20c12a60c359",
+  "traceparent": "00-fac5c21a2629a3ad34b9b9c190e0d99e-74755464a8d38fa8-00",
+  "X-REWRITE-URL": "/api/v1/subscriptions/initiate-payment"
+}
+Request Body (206 bytes)
+{
+  "planId": "a3333333-3333-3333-3333-333333333333",
+  "period": 0,
+  "returnUrl": "https://doctory-care.runasp.net/Home/PaymentResult",
+  "clinicId": "51cac9f7-5b6c-4a14-8da8-20c12a60c359",
+  "paymentMethod": "PaymobWallet"
+}
+Response Headers
+{
+  "Strict-Transport-Security": "max-age=31536000; includeSubDomains; preload",
+  "X-Content-Type-Options": "nosniff",
+  "X-XSS-Protection": "1; mode=block",
+  "X-Frame-Options": "Deny",
+  "Referrer-Policy": "no-referrer-when-downgrade",
+  "Content-Type": "application/json; charset=utf-8"
+}
+Response Body (277 bytes)
+{
+  "success": false,
+  "errors": {},
+  "data": null,
+  "message": "فشل إنشاء طلب الدفع: Integration ID/Name does not exist in our system . You can find the list of Integration ID’/Names from Merchant Dashboard under Developers → Payment Integrations Tab",
+  "statusCode": 400
+}
