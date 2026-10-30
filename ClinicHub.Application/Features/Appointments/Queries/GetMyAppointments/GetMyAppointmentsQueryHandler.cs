@@ -1,7 +1,5 @@
-using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.Appointments.DTOs;
-using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
@@ -36,7 +34,7 @@ namespace ClinicHub.Application.Features.Appointments.Queries.GetMyAppointments
                     a => a.Doctor.User,
                     a => a.Payment);
 
-            var statusFilter = ResolveStatusFilter(request.Status);
+            AppointmentStatusFilter.TryResolve(request.Status, out var statusFilter);
 
             if (statusFilter.HasValue)
                 query = query.Where(a => a.Status == statusFilter.Value);
@@ -70,19 +68,6 @@ namespace ClinicHub.Application.Features.Appointments.Queries.GetMyAppointments
                     }
                 };
             }).ToList();
-        }
-
-        private static AppointmentStatus? ResolveStatusFilter(string? status)
-        {
-            if (string.IsNullOrWhiteSpace(status)
-                || status.Equals("All", StringComparison.OrdinalIgnoreCase))
-                return null;
-
-            if (Enum.TryParse<AppointmentStatus>(status.Trim(), ignoreCase: true, out var parsed)
-                && Enum.IsDefined(typeof(AppointmentStatus), parsed))
-                return parsed;
-
-            throw new BadRequestException(LocalizationKeys.BookingMessages.InvalidStatus.Value);
         }
     }
 }
