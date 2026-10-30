@@ -4,9 +4,11 @@ using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.AdminPayouts.Commands.ApprovePayoutBatch;
 using ClinicHub.Application.Features.AdminPayouts.Commands.CancelPayoutBatch;
 using ClinicHub.Application.Features.AdminPayouts.Commands.CreatePayoutBatch;
+using ClinicHub.Application.Features.AdminPayouts.Commands.CreditClinicLedger;
 using ClinicHub.Application.Features.AdminPayouts.Commands.ExecutePayoutBatch;
 using ClinicHub.Application.Features.AdminPayouts.Commands.RejectPayoutAccount;
 using ClinicHub.Application.Features.AdminPayouts.Commands.RetryPayoutItem;
+using ClinicHub.Application.Features.AdminPayouts.Commands.UpsertPayoutAccountAsAdmin;
 using ClinicHub.Application.Features.AdminPayouts.Commands.VerifyPayoutAccount;
 using ClinicHub.Application.Features.AdminPayouts.Queries.GetPayoutBatchDetails;
 using ClinicHub.Application.Features.AdminPayouts.Queries.GetPayoutBatches;
@@ -63,6 +65,29 @@ public class AdminPayoutsController : BaseApiController
     public async Task<IActionResult> RejectAccount(Guid id, [FromBody] RejectPayoutAccountCommand command, CancellationToken ct)
     {
         command.AccountId = id;
+        var result = await _mediator.Send(command, ct);
+        return Ok(result);
+    }
+
+    [HttpPut]
+    [Route(ApiRoutes.AdminPayouts.UpsertClinicAccount)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpsertClinicAccount(Guid clinicId, [FromBody] UpsertPayoutAccountAsAdminCommand command, CancellationToken ct)
+    {
+        command.ClinicId = clinicId;
+        var result = await _mediator.Send(command, ct);
+        return Ok(result);
+    }
+
+    [HttpPost]
+    [Route(ApiRoutes.AdminPayouts.CreditClinic)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> CreditClinic([FromBody] CreditClinicLedgerCommand command, CancellationToken ct)
+    {
         var result = await _mediator.Send(command, ct);
         return Ok(result);
     }

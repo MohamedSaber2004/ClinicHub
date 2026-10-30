@@ -58,6 +58,24 @@ public class ClinicLedgerEntry : BaseEntity<Guid>, IClinicScopedEntity
         PaymentId = paymentId
     };
 
+    /// <summary>
+    /// Manual correction of what the platform owes a clinic (goodwill credit, data fix).
+    /// Always immediately available: it is not tied to a payment, so no refund hold applies.
+    /// </summary>
+    public static ClinicLedgerEntry CreateAdjustment(
+        Guid clinicId,
+        decimal amount,
+        string currency,
+        string? notes) => new()
+    {
+        ClinicId = clinicId,
+        Type = LedgerEntryType.Adjustment,
+        Amount = Math.Abs(amount),
+        Currency = string.IsNullOrWhiteSpace(currency) ? "EGP" : currency,
+        AvailableAt = DateTime.Now,
+        Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim()
+    };
+
     /// <summary>Money-out row written only once the transfer is confirmed by Paymob.</summary>
     public static ClinicLedgerEntry CreatePayout(
         Guid clinicId,

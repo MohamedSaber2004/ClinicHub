@@ -338,6 +338,8 @@
             public const string Accounts = Base + "/admin/payout-accounts";
             public const string VerifyAccount = Accounts + "/{id:guid}/verify";
             public const string RejectAccount = Accounts + "/{id:guid}/reject";
+            public const string UpsertClinicAccount = Accounts + "/clinics/{clinicId:guid}";
+            public const string CreditClinic = Base + "/admin/payout-ledger/credit";
 
             public const string Batches = Base + "/admin/payout-batches";
             public const string CreateBatch = Batches;
