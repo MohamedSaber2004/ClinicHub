@@ -17,6 +17,7 @@ using ClinicHub.Application.Features.DoctorDashboard.Queries.GetPatientHistory;
 using ClinicHub.Application.Features.DoctorDashboard.Queries.GetPatientAssessment;
 using ClinicHub.Application.Features.DoctorDashboard.Commands.SavePatientAssessment;
 using ClinicHub.Application.Features.DoctorDashboard.Queries.GetRecentAppointments;
+using ClinicHub.Application.Features.StaffDashboard.Commands.RegisterWalkInPatient;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Enums;
 using MediatR;
@@ -123,6 +124,16 @@ namespace ClinicHub.API.Controllers.Version1
         {
             var result = await _mediator.Send(query, ct);
             return Ok(result);
+        }
+
+        [HttpPost]
+        [Route(ApiRoutes.DoctorDashboard.RegisterPatient)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> RegisterPatient([FromBody] RegisterWalkInPatientCommand command, CancellationToken ct)
+        {
+            var result = await _mediator.Send(command, ct);
+            return Created(ApiRoutes.DoctorDashboard.RegisterPatient, result);
         }
 
         [HttpGet]

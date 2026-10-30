@@ -243,6 +243,7 @@
             public const string RejectAppointment = BaseRoute + "/appointments/{id:guid}/reject";
             public const string CompleteAppointment = BaseRoute + "/appointments/{id:guid}/complete";
             public const string Patients = BaseRoute + "/patients";
+            public const string RegisterPatient = BaseRoute + "/patients/register";
             public const string PatientHistory = BaseRoute + "/patients/{patientId:guid}/history";
             public const string PatientAssessment = BaseRoute + "/patients/{patientId:guid}/assessment";
             public const string Availability = BaseRoute + "/availability";
