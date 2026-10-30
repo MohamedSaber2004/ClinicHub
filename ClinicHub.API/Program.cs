@@ -370,8 +370,11 @@ namespace ClinicHub.API
                         job => job.SweepAsync(CancellationToken.None), Cron.Hourly);
                     // Paymob's payout callback is unsigned and wallets never call back at all,
                     // so the inquiry sweep — not the callback — is what settles disbursements.
+                    // Bank settlement takes minutes, so an hourly sweep would leave runs showing
+                    // Processing long after Paymob has an answer. The sweep only calls Paymob
+                    // when a batch actually has unresolved items, so a short interval is cheap.
                     RecurringJob.AddOrUpdate<PayoutStatusReconciliationJob>("payout-status-reconciliation",
-                        job => job.SweepAsync(CancellationToken.None), Cron.Hourly);
+                        job => job.SweepAsync(CancellationToken.None), Cron.MinuteInterval(5));
                     Log.Information("Hangfire recurring jobs registered successfully.");
                 }
                 catch (Exception ex)
