@@ -14,8 +14,6 @@ public class PayoutPreviewItemDto
     public Guid ClinicId { get; set; }
     public string ClinicName { get; set; } = string.Empty;
     public decimal AvailableBalance { get; set; }
-    public decimal PendingBalance { get; set; }
-    public decimal ReservedBalance { get; set; }
     public string Currency { get; set; } = "EGP";
     public bool Eligible { get; set; }
     public string? IneligibilityReason { get; set; }

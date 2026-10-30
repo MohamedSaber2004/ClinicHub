@@ -326,10 +326,6 @@
     "ItemNotRetryable": "لا يمكن إعادة محاولة هذا البند",
     "InsufficientBudget": "رصيد Paymob غير كافٍ لتنفيذ الدفعة",
     "InvalidFeePercent": "نسبة رسوم المنصة يجب أن تكون بين 0 و 100",
-    "MinimumBelowPaymobFloor": "الحد الأدنى للتحويل لا يقل عن {0} ج.م — الحد الذي يقبله بايمن لكل تحويل",
-    "IneligibleNoAccount": "لا يوجد حساب بنكي مسجل للعيادة",
-    "IneligibleAccountNotVerified": "الحساب البنكي للعيادة لم يُعتمد بعد",
-    "IneligibleNoBalance": "لا يوجد رصيد متاح للتحويل حتى الآن",
-    "IneligibleBelowMinimum": "الرصيد المتاح أقل من الحد الأدنى {0} ج.م"
+    "MinimumBelowPaymobFloor": "الحد الأدنى للتحويل لا يقل عن {0} ج.م — الحد الذي يقبله بايمن لكل تحويل"
   }
 }

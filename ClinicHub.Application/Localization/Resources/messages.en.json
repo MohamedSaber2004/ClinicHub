@@ -326,10 +326,6 @@
     "ItemNotRetryable": "This payout item cannot be retried",
     "InsufficientBudget": "The Paymob budget is too small to execute this batch",
     "InvalidFeePercent": "The platform fee percentage must be between 0 and 100",
-    "MinimumBelowPaymobFloor": "The minimum payout amount cannot be below {0} EGP — Paymob's floor for each transfer",
-    "IneligibleNoAccount": "No payout account is registered for this clinic",
-    "IneligibleAccountNotVerified": "The clinic's payout account has not been verified yet",
-    "IneligibleNoBalance": "No available balance to transfer yet",
-    "IneligibleBelowMinimum": "Available balance is below the minimum of {0} EGP"
+    "MinimumBelowPaymobFloor": "The minimum payout amount cannot be below {0} EGP — Paymob's floor for each transfer"
   }
 }
