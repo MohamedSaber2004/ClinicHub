@@ -6,11 +6,11 @@ public interface IBackgroundJobScheduler
 
     Task ScheduleSubscriptionExpirationAsync(Guid subscriptionId, DateTime endDate);
 
-    Task ScheduleReservationExpirationAsync(Guid appointmentId, DateTime expiresAt);
-
     Task ScheduleCancellationWindowCloseAsync(Guid appointmentId, DateTime windowCloseAt);
 
     Task ScheduleNoShowMarkingAsync(Guid appointmentId, DateTime checkAt);
 
     Task ScheduleRefundRetryAsync(Guid paymentId);
+
+    Task SchedulePayoutExecutionAsync(Guid batchId);
 }

@@ -1,4 +1,4 @@
-using Asp.Versioning;
+﻿using Asp.Versioning;
 using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.DoctorDashboard.Availability.Commands.CreateMyAvailability;
@@ -14,7 +14,10 @@ using ClinicHub.Application.Features.DoctorDashboard.Queries.GetDoctorAppointmen
 using ClinicHub.Application.Features.DoctorDashboard.Queries.GetDoctorDashboardStats;
 using ClinicHub.Application.Features.DoctorDashboard.Queries.GetDoctorPatients;
 using ClinicHub.Application.Features.DoctorDashboard.Queries.GetPatientHistory;
+using ClinicHub.Application.Features.DoctorDashboard.Queries.GetPatientAssessment;
+using ClinicHub.Application.Features.DoctorDashboard.Commands.SavePatientAssessment;
 using ClinicHub.Application.Features.DoctorDashboard.Queries.GetRecentAppointments;
+using ClinicHub.Application.Features.StaffDashboard.Commands.RegisterWalkInPatient;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Enums;
 using MediatR;
@@ -123,6 +126,16 @@ namespace ClinicHub.API.Controllers.Version1
             return Ok(result);
         }
 
+        [HttpPost]
+        [Route(ApiRoutes.DoctorDashboard.RegisterPatient)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> RegisterPatient([FromBody] RegisterWalkInPatientCommand command, CancellationToken ct)
+        {
+            var result = await _mediator.Send(command, ct);
+            return Created(ApiRoutes.DoctorDashboard.RegisterPatient, result);
+        }
+
         [HttpGet]
         [Route(ApiRoutes.DoctorDashboard.PatientHistory)]
         [RequirePlanPermission(SubscriptionPermission.PatientRecords)]
@@ -207,3 +220,4 @@ namespace ClinicHub.API.Controllers.Version1
         }
     }
 }
+

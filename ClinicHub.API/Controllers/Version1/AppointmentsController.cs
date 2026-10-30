@@ -30,6 +30,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <summary>
         /// Get all appointments with filters.
         /// </summary>
+        [RoleAuthorize]
         [HttpGet]
         [Route(ApiRoutes.Appointments.GetAll)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -42,7 +43,9 @@ namespace ClinicHub.API.Controllers.Version1
 
         /// <summary>
         /// Get the current user's (patient) appointment requests with payment info.
+        /// Requires authentication: the queue is resolved from the bearer token via CurrentUserService.
         /// </summary>
+        [RoleAuthorize]
         [HttpGet]
         [Route(ApiRoutes.Appointments.My)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -56,6 +59,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <summary>
         /// Get appointment by ID.
         /// </summary>
+        [RoleAuthorize]
         [HttpGet]
         [Route(ApiRoutes.Appointments.GetById)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -68,8 +72,11 @@ namespace ClinicHub.API.Controllers.Version1
         }
 
         /// <summary>
-        /// Create a new appointment.
+        /// Create a new appointment. Requires authentication: the booking is owned by
+        /// the bearer token's user (CurrentUserService), so it always appears in
+        /// that user's /appointments/my queue.
         /// </summary>
+        [RoleAuthorize]
         [HttpPost]
         [Route(ApiRoutes.Appointments.Create)]
         [Route(ApiRoutes.Appointments.CreateAdminDashboard)]
@@ -84,6 +91,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <summary>
         /// Update an existing appointment.
         /// </summary>
+        [RoleAuthorize]
         [HttpPut]
         [Route(ApiRoutes.Appointments.Update)]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -99,6 +107,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <summary>
         /// Delete an appointment.
         /// </summary>
+        [RoleAuthorize]
         [HttpDelete]
         [Route(ApiRoutes.Appointments.Delete)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -155,6 +164,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <summary>
         /// Cancel an appointment by the booking user.
         /// </summary>
+        [RoleAuthorize]
         [HttpPut]
         [Route(ApiRoutes.Appointments.Cancel)]
         [ProducesResponseType(StatusCodes.Status200OK)]

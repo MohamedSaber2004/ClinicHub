@@ -21,6 +21,11 @@ namespace ClinicHub.Domain.Enums
         PaymentReceived = 17,
         RevenueIncreased = 18,
         AppointmentAccepted = 19,
-        SubscriptionActivated = 20
+        SubscriptionActivated = 20,
+        AppointmentNoShow = 21,
+        SubscriptionCancelled = 22,
+        PayoutAccountApproved = 23,
+        PayoutAccountRejected = 24,
+        PayoutReceived = 25,
     }
 }

@@ -1,4 +1,4 @@
-using ClinicHub.Application.Common;
+﻿using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.AdminPayments;
@@ -40,7 +40,7 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
         if (appointment.BookedByUserId != currentUserId)
             throw new UnauthorizedAccessException(LocalizationKeys.PaymentMessages.Unauthorized.Value);
         
-        if (appointment.Status != AppointmentStatus.Pending && appointment.Status != AppointmentStatus.Reserved)
+        if (appointment.Status != AppointmentStatus.Pending && appointment.Status != AppointmentStatus.Reserved && appointment.Status != AppointmentStatus.Accepted)
             throw new BadRequestException(LocalizationKeys.PaymentMessages.AppointmentNotPending.Value);
 
         var doctor = await _unitOfWork.DoctorRepository.GetByIdAsync(appointment.DoctorId);
@@ -63,9 +63,14 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
         var resolvedMethod = PaymentMethodMapper.ToEnum(request.PaymentMethod);
         WalletPaymentResultDto payResult;
         if (resolvedMethod == PaymentMethod.PaymobCreditCard)
+        {
             payResult = await _paymobService.InitiateCheckoutPaymentAsync(amount, "EGP", billing, cancellationToken, request.ReturnUrl);
+        }
         else
-            payResult = await _paymobService.InitiateWalletPaymentAsync(amount, "EGP", billing, billing.PhoneNumber, cancellationToken, request.ReturnUrl);
+        {
+            var walletNumber = !string.IsNullOrWhiteSpace(request.WalletPhoneNumber) ? request.WalletPhoneNumber : billing.PhoneNumber;
+            payResult = await _paymobService.InitiateWalletPaymentAsync(amount, "EGP", billing, walletNumber, cancellationToken, request.ReturnUrl);
+        }
 
         var payment = await _unitOfWork.PaymentRepository.GetByAppointmentIdAsync(request.AppointmentId);
         
@@ -78,6 +83,7 @@ public class InitiatePaymentCommandHandler : IRequestHandler<InitiatePaymentComm
 
             // Update existing payment with new Paymob Order ID + refresh redirect/method
             payment.PaymobOrderId = payResult.OrderId;
+            payment.RefreshChargedAmount(amount, "EGP");
             payment.MarkAsProcessing(payResult.RedirectUrl, PaymentMethodMapper.ToDbString(resolvedMethod));
         }
         else

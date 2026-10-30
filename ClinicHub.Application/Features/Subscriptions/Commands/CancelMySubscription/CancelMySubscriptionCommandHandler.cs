@@ -1,5 +1,6 @@
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
+using ClinicHub.Application.Features.Subscriptions.DTOs;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
@@ -9,34 +10,50 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ClinicHub.Application.Features.Subscriptions.Commands.CancelMySubscription
 {
-    public class CancelMySubscriptionCommandHandler : IRequestHandler<CancelMySubscriptionCommand, bool>
+    /// <summary>
+    /// Thin wrapper over the shared cancellation engine. The owner can only
+    /// self-cancel an online-paid subscription; the engine enforces that.
+    /// </summary>
+    public class CancelMySubscriptionCommandHandler : IRequestHandler<CancelMySubscriptionCommand, CancelSubscriptionResponseDto>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
+        private readonly ISubscriptionCancellationService _cancellationService;
 
-        public CancelMySubscriptionCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+        public CancelMySubscriptionCommandHandler(
+            IUnitOfWork unitOfWork,
+            ICurrentUserService currentUserService,
+            ISubscriptionCancellationService cancellationService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
+            _cancellationService = cancellationService;
         }
 
-        public async Task<bool> Handle(CancelMySubscriptionCommand request, CancellationToken cancellationToken)
+        public async Task<CancelSubscriptionResponseDto> Handle(CancelMySubscriptionCommand request, CancellationToken cancellationToken)
         {
             var clinicId = _currentUserService.CurrentClinicId;
             if (clinicId == null)
                 throw new BadRequestException(LocalizationKeys.ExceptionMessages.BadRequest.Value);
 
-            var subscription = await _unitOfWork.GetRepository<Subscription, Guid>()
-                .GetFirstAsync(s => s.ClinicId == clinicId && s.Status == SubscriptionStatus.Active, cancellationToken);
+            var subscriptionId = await _unitOfWork.GetRepository<Subscription, Guid>()
+                .GetAllAsync(s => s.ClinicId == clinicId && s.Status == SubscriptionStatus.Active)
+                .AsNoTracking()
+                .Select(s => (Guid?)s.Id)
+                .FirstOrDefaultAsync(cancellationToken);
 
-            if (subscription == null)
-                throw new NotFoundException("No active subscription found.");
+            if (subscriptionId == null)
+                throw new NotFoundException(LocalizationKeys.SubscriptionMessages.NoActiveSubscription.Value);
 
-            subscription.Status = SubscriptionStatus.Cancelled;
-            _unitOfWork.GetRepository<Subscription, Guid>().Update(subscription);
-            await _unitOfWork.SaveChangesAsync();
-
-            return true;
+            return await _cancellationService.CancelAsync(
+                subscriptionId.Value,
+                clinicId,
+                SubscriptionCancellationSource.ClinicOwner,
+                _currentUserService.UserId,
+                refundAmountOverride: null,
+                request.Reason,
+                requireOnlinePayment: true,
+                cancellationToken);
         }
     }
 }

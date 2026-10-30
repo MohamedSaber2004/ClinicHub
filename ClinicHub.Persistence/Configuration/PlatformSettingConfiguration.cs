@@ -16,6 +16,11 @@ namespace ClinicHub.Persistence.Configuration
                 .IsRequired()
                 .HasColumnType("decimal(5,2)")
                 .HasDefaultValue(0m);
+
+            builder.Property(x => x.MinimumPayoutAmount)
+                .IsRequired()
+                .HasColumnType("decimal(18,2)")
+                .HasDefaultValue(120m);
         }
     }
 }

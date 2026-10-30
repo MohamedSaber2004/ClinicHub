@@ -1,4 +1,6 @@
-﻿using ClinicHub.Application.Common.Interfaces;
+﻿using ClinicHub.Application.Common;
+using ClinicHub.Application.Common.Interfaces;
+using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
@@ -23,6 +25,11 @@ namespace ClinicHub.Application.Features.Availability.Commands.DeleteAvailabilit
         {
             var repo = _unitOfWork.DoctorAvailabilityRepository;
             var availability = await repo.GetByIdAsync(request.Id);
+
+            var scopeClinicId = await ClinicScopeResolver.ResolveClinicIdAsync(
+                _unitOfWork, _currentUserService.UserId, _currentUserService.CurrentClinicId, cancellationToken);
+            if (!scopeClinicId.HasValue || availability.ClinicId != scopeClinicId.Value)
+                throw new ForbiddenException(LocalizationKeys.ClinicMessages.ClinicNotFound.Value);
 
             availability.MarkAsDeleted(_currentUserService.UserId.ToString());
             repo.Update(availability);

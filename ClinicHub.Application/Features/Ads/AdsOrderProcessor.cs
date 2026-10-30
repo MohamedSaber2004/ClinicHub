@@ -24,7 +24,8 @@ public static class AdsOrderProcessor
         string? logoImageUrl,
         string? returnUrl,
         string? paymentMethod,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? walletPhoneNumber = null)
     {
         var clinic = await unitOfWork.ClinicRepository.FindByKeyAsync(clinicId, cancellationToken);
         if (clinic == null)
@@ -39,6 +40,15 @@ public static class AdsOrderProcessor
 
         if (durationDays <= 0 || durationDays % package.DurationDays != 0)
             throw new BadRequestException(localizer[LocalizationKeys.AdsMessages.InvalidDuration.Value]);
+
+        if (!string.IsNullOrWhiteSpace(logoImageUrl))
+        {
+            var logoCount = logoImageUrl.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Length;
+            if (package.MaxAds > 0 && logoCount > package.MaxAds)
+            {
+                throw new BadRequestException($"الباقة المختارة تسمح برفع حتى {package.MaxAds} شعارات/صور كحد أقصى.");
+            }
+        }
 
         if (!await IsEligibleForAdsAsync(unitOfWork, clinicId, cancellationToken))
             throw new ForbiddenException(localizer[LocalizationKeys.PaymentMessages.AdsNotEligible.Value]);
@@ -78,7 +88,8 @@ public static class AdsOrderProcessor
         }
         else
         {
-            payResult = await paymobService.InitiateWalletPaymentAsync(amount, "EGP", billing, billing.PhoneNumber, cancellationToken, returnUrl);
+            var walletNumber = !string.IsNullOrWhiteSpace(walletPhoneNumber) ? walletPhoneNumber : billing.PhoneNumber;
+            payResult = await paymobService.InitiateWalletPaymentAsync(amount, "EGP", billing, walletNumber, cancellationToken, returnUrl);
         }
 
         var advertisement = new Advertisement

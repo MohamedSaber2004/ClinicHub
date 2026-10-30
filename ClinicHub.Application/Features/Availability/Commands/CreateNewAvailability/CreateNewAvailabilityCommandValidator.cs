@@ -30,11 +30,42 @@ namespace ClinicHub.Application.Features.Availability.Commands.CreateNewAvailabi
             RuleFor(x => x.SlotDurationMinutes)
                 .GreaterThan(0).WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidFormat])
                 .LessThanOrEqualTo(480).WithMessage(localizer[LocalizationKeys.ValidationMessages.InvalidFormat]);
+
+            RuleFor(x => x)
+                .MustAsync(WithinClinicSchedule)
+                .WithName("Availability")
+                .WithMessage(localizer[LocalizationKeys.BookingMessages.ClinicClosed]);
+
+            RuleFor(x => x)
+                .MustAsync(NoOverlap)
+                .WithName("Availability")
+                .WithMessage(localizer[LocalizationKeys.AvailabilityMessages.Overlap]);
         }
 
         private async Task<bool> DoctorExists(Guid doctorId, CancellationToken cancellationToken)
         {
             return await _ctx.DoctorRepository.ExistsAsync(d => d.Id == doctorId, cancellationToken);
+        }
+
+        private async Task<bool> WithinClinicSchedule(CreateNewAvailabilityCommand command, CancellationToken cancellationToken)
+        {
+            var doctor = await _ctx.DoctorRepository.GetByIdAsync(command.DoctorId);
+            if (doctor?.ClinicId is null)
+                return true; // Handled by the handler (doctor must be assigned to a clinic).
+
+            var clinic = await _ctx.ClinicRepository.GetByIdAsync(doctor.ClinicId.Value);
+            return ClinicScheduleGuard.IsWithinClinicSchedule(clinic, command.DayOfWeek, command.StartTime, command.EndTime);
+        }
+
+        private async Task<bool> NoOverlap(CreateNewAvailabilityCommand command, CancellationToken cancellationToken)
+        {
+            return !await _ctx.DoctorAvailabilityRepository.ExistsAsync(a =>
+                !a.IsDeleted &&
+                a.DoctorId == command.DoctorId &&
+                a.DayOfWeek == command.DayOfWeek &&
+                a.StartTime < command.EndTime &&
+                a.EndTime > command.StartTime,
+                cancellationToken);
         }
     }
 }

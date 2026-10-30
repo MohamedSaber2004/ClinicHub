@@ -34,8 +34,10 @@ namespace ClinicHub.Application.Features.Appointments.Queries.GetMyAppointments
                     a => a.Doctor.User,
                     a => a.Payment);
 
-            if (request.Status.HasValue)
-                query = query.Where(a => a.Status == request.Status.Value);
+            AppointmentStatusFilter.TryResolve(request.Status, out var statusFilter);
+
+            if (statusFilter.HasValue)
+                query = query.Where(a => a.Status == statusFilter.Value);
 
             query = query.OrderByDescending(a => a.AppointmentDate).ThenBy(a => a.StartTime);
 

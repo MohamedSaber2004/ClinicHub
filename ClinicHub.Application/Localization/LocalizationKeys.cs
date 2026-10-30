@@ -185,6 +185,7 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString Restored = new("Availability.Restored");
             public static readonly KeyString DoctorNotAssignedToClinic = new("Availability.DoctorNotAssignedToClinic");
             public static readonly KeyString NotOwnedByDoctor = new("Availability.NotOwnedByDoctor");
+            public static readonly KeyString Overlap = new("Availability.Overlap");
         }
 
         public static class RatingMessages
@@ -262,6 +263,31 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString AdsOrderCreated = new("Payments.AdsOrderCreated");
             public static readonly KeyString AdPackageNotFound = new("Payments.AdPackageNotFound");
             public static readonly KeyString AdPackageNotActive = new("Payments.AdPackageNotActive");
+            public static readonly KeyString RefundInProgress = new("Payments.RefundInProgress");
+            public static readonly KeyString RefundNeedsReview = new("Payments.RefundNeedsReview");
+        }
+
+        public static class PayoutMessages
+        {
+            public static readonly KeyString AccountNotFound = new("Payouts.AccountNotFound");
+            public static readonly KeyString InvalidBankCode = new("Payouts.InvalidBankCode");
+            public static readonly KeyString InvalidAccountNumber = new("Payouts.InvalidAccountNumber");
+            public static readonly KeyString InvalidTransactionType = new("Payouts.InvalidTransactionType");
+            public static readonly KeyString RejectionReasonRequired = new("Payouts.RejectionReasonRequired");
+            public static readonly KeyString AccountSaved = new("Payouts.AccountSaved");
+            public static readonly KeyString AccountVerified = new("Payouts.AccountVerified");
+            public static readonly KeyString AccountRejected = new("Payouts.AccountRejected");
+            public static readonly KeyString InvalidNationalId = new("Payouts.InvalidNationalId");
+            public static readonly KeyString NoEligibleClinics = new("Payouts.NoEligibleClinics");
+            public static readonly KeyString BatchNotFound = new("Payouts.BatchNotFound");
+            public static readonly KeyString BatchNotApprovable = new("Payouts.BatchNotApprovable");
+            public static readonly KeyString BatchNotExecutable = new("Payouts.BatchNotExecutable");
+            public static readonly KeyString BatchNotCancellable = new("Payouts.BatchNotCancellable");
+            public static readonly KeyString ItemNotFound = new("Payouts.ItemNotFound");
+            public static readonly KeyString ItemNotRetryable = new("Payouts.ItemNotRetryable");
+            public static readonly KeyString InsufficientBudget = new("Payouts.InsufficientBudget");
+            public static readonly KeyString InvalidFeePercent = new("Payouts.InvalidFeePercent");
+            public static readonly KeyString MinimumBelowPaymobFloor = new("Payouts.MinimumBelowPaymobFloor");
         }
 
         public static class DoctorMessages
@@ -285,10 +311,12 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString BookingConfigCreated = new("Booking.ConfigCreated");
             public static readonly KeyString BookingConfigUpdated = new("Booking.ConfigUpdated");
             public static readonly KeyString BookingConfigDeleted = new("Booking.ConfigDeleted");
+            public static readonly KeyString BookingConfigAlreadyExists = new("Booking.ConfigAlreadyExists");
             public static readonly KeyString BookingCreated = new("Booking.Created");
             public static readonly KeyString FeeNotConfigured = new("Booking.FeeNotConfigured");
             public static readonly KeyString CancellationWindowExpired = new("Booking.CancellationWindowExpired");
             public static readonly KeyString ClinicClosed = new("Booking.ClinicClosed");
+            public static readonly KeyString InvalidStatus = new("Booking.InvalidStatus");
         }
 
         public static class StaffMessages
@@ -322,6 +350,15 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString DoctorLimitReached = new("Subscriptions.DoctorLimitReached");
             public static readonly KeyString StaffLimitReached = new("Subscriptions.StaffLimitReached");
             public static readonly KeyString NoActiveSubscription = new("Subscriptions.NoActiveSubscription");
+            public static readonly KeyString OnlyOnlineCanCancel = new("Subscriptions.OnlyOnlineCanCancel");
+            public static readonly KeyString ExpiredCannotCancel = new("Subscriptions.ExpiredCannotCancel");
+            public static readonly KeyString NoPaymentLinked = new("Subscriptions.NoPaymentLinked");
+            public static readonly KeyString AlreadyCancelled = new("Subscriptions.AlreadyCancelled");
+            public static readonly KeyString RefundExceedsPaid = new("Subscriptions.RefundExceedsPaid");
+            public static readonly KeyString CancelledWithRefund = new("Subscriptions.CancelledWithRefund");
+            public static readonly KeyString CancelledNoRefund = new("Subscriptions.CancelledNoRefund");
+            public static readonly KeyString RefundPending = new("Subscriptions.RefundPending");
+            public static readonly KeyString RefundNeedsReview = new("Subscriptions.RefundNeedsReview");
         }
 
         public static class AdsMessages

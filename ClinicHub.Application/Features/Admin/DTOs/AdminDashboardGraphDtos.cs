@@ -5,6 +5,8 @@ namespace ClinicHub.Application.Features.Admin.DTOs
         public string Period { get; set; } = string.Empty;
         public decimal Revenue { get; set; }
         public int PaymentsCount { get; set; }
+        public decimal PlatformFees { get; set; }
+        public decimal NetRevenue { get; set; }
     }
 
     public class ClinicsGrowthPointDto

@@ -17,12 +17,6 @@ public class BackgroundJobScheduler : IBackgroundJobScheduler
         return Task.CompletedTask;
     }
 
-    public Task ScheduleReservationExpirationAsync(Guid appointmentId, DateTime expiresAt)
-    {
-        BackgroundJob.Schedule<ReservationExpirationJob>(job => job.ExpireReservationAsync(appointmentId, CancellationToken.None), expiresAt);
-        return Task.CompletedTask;
-    }
-
     public Task ScheduleCancellationWindowCloseAsync(Guid appointmentId, DateTime windowCloseAt)
     {
         BackgroundJob.Schedule<CancellationWindowJob>(job => job.CloseCancellationWindowAsync(appointmentId, CancellationToken.None), windowCloseAt);
@@ -38,6 +32,12 @@ public class BackgroundJobScheduler : IBackgroundJobScheduler
     public Task ScheduleRefundRetryAsync(Guid paymentId)
     {
         BackgroundJob.Schedule<RefundRetryJob>(job => job.RetryRefundAsync(paymentId, 1, CancellationToken.None), TimeSpan.FromHours(2));
+        return Task.CompletedTask;
+    }
+
+    public Task SchedulePayoutExecutionAsync(Guid batchId)
+    {
+        BackgroundJob.Enqueue<PayoutExecutionJob>(job => job.ExecuteAsync(batchId, CancellationToken.None));
         return Task.CompletedTask;
     }
 }

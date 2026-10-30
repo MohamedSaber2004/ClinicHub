@@ -1,4 +1,4 @@
-using ClinicHub.Application.Common;
+﻿using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Features.AdminPayments;
@@ -35,10 +35,9 @@ namespace ClinicHub.Application.Features.Payment.Commands.InitiateBookingPayment
             if (appointment.BookedByUserId != _currentUser.UserId)
                 throw new UnauthorizedAccessException(LocalizationKeys.PaymentMessages.Unauthorized.Value);
 
-            if (appointment.IsReservationExpired())
-                throw new ConflictException(LocalizationKeys.BookingMessages.ReservationExpired.Value);
-
-            if (appointment.Status != AppointmentStatus.Reserved)
+            // Payable while waiting: Pending (paid upfront before the staff decision)
+            // or Accepted (staff accepted and the request waits for payment).
+            if (appointment.Status != AppointmentStatus.Pending && appointment.Status != AppointmentStatus.Accepted)
                 throw new BadRequestException(LocalizationKeys.PaymentMessages.AppointmentNotPending.Value);
 
             var existingPayment = await _unitOfWork.PaymentRepository.GetByAppointmentIdAsync(request.ReservationId);
@@ -67,16 +66,35 @@ namespace ClinicHub.Application.Features.Payment.Commands.InitiateBookingPayment
                 : PaymentMethod.PaymobCreditCard; // legacy default for POST /payments
             WalletPaymentResultDto checkout;
             if (resolvedMethod == PaymentMethod.PaymobCreditCard)
-                checkout = await _paymobService.InitiateCheckoutPaymentAsync(amount, currency, billing, cancellationToken, request.ReturnUrl);
-            else
-                checkout = await _paymobService.InitiateWalletPaymentAsync(amount, currency, billing, billing.PhoneNumber, cancellationToken, request.ReturnUrl);
-
-            var payment = new Domain.Entities.Payment(PaymentType.Appointment, _currentUser.UserId, appointment.ClinicId, amount, currency)
             {
-                PaymobOrderId = checkout.OrderId
-            };
-            payment.LinkToAppointment(request.ReservationId);
-            payment.MarkAsProcessing(checkout.RedirectUrl, PaymentMethodMapper.ToDbString(resolvedMethod));
+                checkout = await _paymobService.InitiateCheckoutPaymentAsync(amount, currency, billing, cancellationToken, request.ReturnUrl);
+            }
+            else
+            {
+                var walletNumber = !string.IsNullOrWhiteSpace(request.WalletPhoneNumber) ? request.WalletPhoneNumber : billing.PhoneNumber;
+                checkout = await _paymobService.InitiateWalletPaymentAsync(amount, currency, billing, walletNumber, cancellationToken, request.ReturnUrl);
+            }
+
+            // Idempotency: one appointment owns exactly one payment row. A retry refreshes
+            // the existing unpaid row with the new Paymob order instead of inserting
+            // a duplicate (same reuse pattern as InitiatePayment).
+            var payment = existingPayment;
+            if (payment != null)
+            {
+                payment.PaymobOrderId = checkout.OrderId;
+                payment.RefreshChargedAmount(amount, currency);
+                payment.MarkAsProcessing(checkout.RedirectUrl, PaymentMethodMapper.ToDbString(resolvedMethod));
+            }
+            else
+            {
+                payment = new Domain.Entities.Payment(PaymentType.Appointment, _currentUser.UserId, appointment.ClinicId, amount, currency)
+                {
+                    PaymobOrderId = checkout.OrderId
+                };
+                payment.LinkToAppointment(request.ReservationId);
+                payment.MarkAsProcessing(checkout.RedirectUrl, PaymentMethodMapper.ToDbString(resolvedMethod));
+                await _unitOfWork.PaymentRepository.AddAsync(payment);
+            }
             await _unitOfWork.SaveChangesAsync();
 
             return new BookingPaymentResponseDto

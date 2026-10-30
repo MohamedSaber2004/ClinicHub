@@ -18,7 +18,9 @@ public class PaymentRepository : GenericRepository<Payment, Guid>, IPaymentRepos
     public async Task<Payment?> GetByAppointmentIdAsync(Guid appointmentId)
     {
         return await _context.Payments
-            .FirstOrDefaultAsync(p => p.AppointmentId == appointmentId);
+            .Where(p => p.AppointmentId == appointmentId)
+            .OrderByDescending(p => p.CreatedAt)
+            .FirstOrDefaultAsync();
     }
 
     public async Task<Payment?> GetByPaymobOrderIdAsync(string paymobOrderId)

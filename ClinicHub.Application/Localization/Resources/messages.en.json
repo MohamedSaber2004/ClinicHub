@@ -150,7 +150,8 @@
     "Deleted": "Availability deleted successfully",
     "Restored": "Availability restored successfully",
     "DoctorNotAssignedToClinic": "Doctor must be assigned to a clinic to manage availability",
-    "NotOwnedByDoctor": "This availability slot does not belong to you"
+    "NotOwnedByDoctor": "This availability slot does not belong to you",
+    "Overlap": "This time window overlaps an existing availability for this doctor on the same day."
   },
   "RealTime": {
     "MissingSocketInfo": "Missing socket_id or channel_name",
@@ -183,7 +184,7 @@
     "NotFound": "Payment not found",
     "AlreadyPaid": "This appointment is already paid",
     "AppointmentNotFound": "Appointment not found",
-    "AppointmentNotPending": "Only pending appointments can be paid",
+    "AppointmentNotPending": "Only pending or accepted appointments can be paid",
     "AlreadyAcceptedPayment": "This appointment has already been accepted",
     "Unauthorized": "You are not authorized to perform this action",
     "PaymobOrderFailed": "Failed to create payment order",
@@ -217,7 +218,9 @@
     "AdsNotEligible": "Ads services can only be purchased on the Advanced plan",
     "AdsOrderCreated": "Ads order created successfully",
     "AdPackageNotFound": "Ads package not found",
-    "AdPackageNotActive": "This ads package is not available"
+    "AdPackageNotActive": "This ads package is not available",
+    "RefundInProgress": "A refund for this payment is already in progress.",
+    "RefundNeedsReview": "A refund for this payment requires manual review. Please resolve it before taking further action."
   },
   "Booking": {
     "SlotNotFound": "Time slot not found",
@@ -228,12 +231,14 @@
     "InvalidDate": "Date exceeds maximum booking window",
     "ConfigNotFound": "Booking configuration not found",
     "ConfigCreated": "Booking configuration created successfully",
+    "ConfigAlreadyExists": "Booking configuration already exists for this clinic. Update it instead.",
     "ConfigUpdated": "Booking configuration updated successfully",
     "ConfigDeleted": "Booking configuration deleted successfully",
     "Created": "Booking created successfully",
     "FeeNotConfigured": "Consultation fee is not configured for this clinic",
     "CancellationWindowExpired": "The free cancellation window has expired; this reservation can no longer be cancelled",
-    "ClinicClosed": "The clinic is closed at the requested time"
+    "ClinicClosed": "The clinic is closed at the requested time",
+    "InvalidStatus": "Invalid appointment status. Valid values: All, Pending, AwaitingPayment, Confirmed, Completed, Cancelled, Rejected (enum names and numbers are also accepted)"
   },
   "Doctors": {
     "NotFound": "Doctor not found",
@@ -269,7 +274,16 @@
     "LoginRequiresSubscription": "An active subscription is required to access the dashboard. Please subscribe to continue.",
     "DoctorLimitReached": "Doctor limit reached for your current plan. Your plan allows up to {0} doctors.",
     "StaffLimitReached": "Staff limit reached for your current plan. Your plan allows up to {0} staff members.",
-    "NoActiveSubscription": "No active subscription. Please subscribe to a plan to add doctors and staff."
+    "NoActiveSubscription": "No active subscription. Please subscribe to a plan to add doctors and staff.",
+    "OnlyOnlineCanCancel": "Only online-paid subscriptions can be cancelled from the dashboard. Please contact support.",
+    "ExpiredCannotCancel": "This subscription has already expired and cannot be cancelled.",
+    "NoPaymentLinked": "No payment is linked to this subscription, so it cannot be refunded automatically. Please contact support.",
+    "AlreadyCancelled": "This subscription has already been cancelled.",
+    "RefundExceedsPaid": "The refund amount exceeds the remaining paid amount for this subscription.",
+    "CancelledWithRefund": "Subscription cancelled. A refund of {0} {1} has been issued and may take 5–7 business days to appear.",
+    "CancelledNoRefund": "Subscription cancelled. No refund is due for this cancellation.",
+    "RefundPending": "Subscription cancelled. Your refund is being processed and may take 5–7 business days to appear.",
+    "RefundNeedsReview": "Subscription cancelled. Your refund requires manual review and our team will contact you."
   },
   "Ads": {
     "NotFound": "Advertisement not found",
@@ -292,5 +306,26 @@
     "NotActive": "This plan is not active",
     "PlanIdRequired": "Plan ID is required",
     "InvalidPeriod": "Invalid subscription period"
+  },
+  "Payouts": {
+    "AccountNotFound": "Payout account not found",
+    "InvalidBankCode": "Unsupported bank code",
+    "InvalidAccountNumber": "Account number must contain 8 to 20 digits",
+    "InvalidTransactionType": "Unsupported bank transaction type",
+    "RejectionReasonRequired": "A rejection reason is required",
+    "AccountSaved": "Payout account saved and pending verification",
+    "AccountVerified": "Payout account verified",
+    "AccountRejected": "Payout account rejected",
+    "InvalidNationalId": "The national ID must be 14 digits",
+    "NoEligibleClinics": "No clinic is eligible for a payout right now",
+    "BatchNotFound": "Payout batch not found",
+    "BatchNotApprovable": "This batch cannot be approved — check its items and the two-man approval rule",
+    "BatchNotExecutable": "The batch must be approved before it can be executed",
+    "BatchNotCancellable": "This batch cannot be cancelled because it already started or finished",
+    "ItemNotFound": "Payout item not found",
+    "ItemNotRetryable": "This payout item cannot be retried",
+    "InsufficientBudget": "The Paymob budget is too small to execute this batch",
+    "InvalidFeePercent": "The platform fee percentage must be between 0 and 100",
+    "MinimumBelowPaymobFloor": "The minimum payout amount cannot be below {0} EGP — Paymob's floor for each transfer"
   }
 }

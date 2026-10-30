@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <!-- Ignore transitive NuGet audit warnings so Package Manager Console does not halt on stderr warnings -->
+    <NoWarn>$(NoWarn);NU1902;NU1903</NoWarn>
+  </PropertyGroup>
+</Project>
