@@ -48,9 +48,11 @@ namespace ClinicHub.Application.Features.Users.Commands.AddUser
                 .NotNull().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
                 .IsInEnum().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidEnumValue.Value]));
 
+            // SuperAdmin stays creatable from the admin users page: the two-man payout
+            // approval needs a second admin account to exist.
             RuleFor(x => x.Role)
                 .IsInEnum().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidEnumValue.Value]))
-                .Must(role => role != UserType.None && role != UserType.SuperAdmin)
+                .Must(role => role != UserType.None)
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidRole.Value]));
 
             When(x => x.Role is UserType.ClinicOwner or UserType.Doctor or UserType.Staff, () =>
