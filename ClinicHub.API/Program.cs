@@ -121,7 +121,7 @@ namespace ClinicHub.API
 
                 builder.Services.AddApplicationServices(builder.Configuration);
                 builder.Services.AddPersistenceServices(builder.Configuration);
-                builder.Services.AddInfrastructureServices(builder.Configuration, builder.Environment.ContentRootPath);
+                builder.Services.AddInfrastructureServices(builder.Configuration);
 
                 builder.Services.AddNetTracker(builder.Configuration);
 

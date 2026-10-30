@@ -10,13 +10,6 @@ public class PayoutSettings
     public string CallbackUrl { get; set; } = string.Empty;
     public string CallbackSecret { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Folder holding the ASP.NET DataProtection keys that encrypt stored account numbers and
-    /// national ids. Relative paths resolve against the content root, so the keys live inside the
-    /// project; keys lost on a full redeploy make every saved payout account undecryptable.
-    /// </summary>
-    public string KeysDirectory { get; set; } = string.Empty;
-
     public string DefaultBankTransactionType { get; set; } = "cash_transfer";
 
     /// <summary>Smallest amount worth a payout cycle (keeps the batch economical).</summary>

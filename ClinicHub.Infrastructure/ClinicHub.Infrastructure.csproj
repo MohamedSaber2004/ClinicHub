@@ -12,6 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Pinned above the 10.0.6 the EF DataProtection provider pulls in (NU1904 advisory). -->
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection" Version="10.0.14" />
     <PackageReference Include="Google.Apis.Auth" Version="1.73.0" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.8.24" />
     <PackageReference Include="Hangfire.Core" Version="1.8.24" />
@@ -20,6 +22,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" Version="8.0.26" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.26" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="10.0.6" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.7" />
     <PackageReference Include="MimeKit" Version="4.16.0" />
     <PackageReference Include="PusherServer" Version="5.0.0" />

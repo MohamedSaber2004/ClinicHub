@@ -4,6 +4,7 @@ using ClinicHub.Domain.Common;
 using ClinicHub.Domain.Common.Interfaces;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +14,7 @@ namespace ClinicHub.Persistence
 {
     public class ClinicHubContext: IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid,
         IdentityUserClaim<Guid>, IdentityUserRole<Guid>, IdentityUserLogin<Guid>,
-        IdentityRoleClaim<Guid>, IdentityUserToken<Guid>>, IClinicHubContext
+        IdentityRoleClaim<Guid>, IdentityUserToken<Guid>>, IClinicHubContext, IDataProtectionKeyContext
     {
         private readonly ICurrentUserService? _currentUserService;
         private readonly Guid? _currentClinicId;
@@ -59,6 +60,7 @@ namespace ClinicHub.Persistence
         public DbSet<PayoutBatch> PayoutBatches { get; set; }
         public DbSet<PayoutItem> PayoutItems { get; set; }
         public DbSet<PayoutWebhookEvent> PayoutWebhookEvents { get; set; }
+        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder builder)
         {

@@ -29,7 +29,7 @@ namespace ClinicHub.Infrastructure
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration, string? contentRootPath = null)
+        public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
         {
 
             services.AddHttpClient();
@@ -82,36 +82,14 @@ namespace ClinicHub.Infrastructure
             services.AddScoped<INotificationBuilder, NotificationBuilderService>();
             services.Configure<FirebaseSettings>(configuration.GetSection(nameof(FirebaseSettings)));
 
-            services.AddDataProtection().SetApplicationName("ClinicHub");
-
-            // Payout account numbers and national ids are encrypted with these keys. Without a
-            // shared ring they are regenerated on every deploy, which would silently make
-            // every stored destination undecryptable — and unrecoverable.
-            var payoutOptions = new PayoutSettings();
-            configuration.GetSection(nameof(PayoutSettings)).Bind(payoutOptions);
+            // Payout account numbers and national ids are encrypted with these keys. The ring
+            // lives in the database, not the deployment folder: a recycled app pool or a second
+            // instance otherwise generates a fresh ring, and every stored destination becomes
+            // undecryptable (PO-2026-10-30-04 failed exactly that way).
             services.Configure<PayoutSettings>(configuration.GetSection(nameof(PayoutSettings)));
-            // A relative KeysDirectory lands under the content root, i.e. inside the deployed
-            // project folder; Development and Test share one database, so they must share one ring.
-            var keysRoot = contentRootPath ?? AppContext.BaseDirectory;
-            var keysDirectory = string.IsNullOrWhiteSpace(payoutOptions.KeysDirectory)
-                ? Path.Combine(keysRoot, ".payout-keys")
-                : Path.IsPathRooted(payoutOptions.KeysDirectory)
-                    ? payoutOptions.KeysDirectory
-                    : Path.Combine(keysRoot, payoutOptions.KeysDirectory);
-            try
-            {
-                Directory.CreateDirectory(keysDirectory);
-                services.AddDataProtection().PersistKeysToFileSystem(new DirectoryInfo(keysDirectory));
-            }
-            catch (Exception ex)
-            {
-                // A read-only or missing folder must not take the whole API down. The payout
-                // code refuses to disburse when a stored destination cannot be decrypted, so
-                // the fallback ring costs re-entry of bank details, never money.
-                Console.Error.WriteLine(
-                    $"Payout DataProtection keys could not be persisted to '{keysDirectory}'; " +
-                    $"using the ephemeral key ring. Saved payout accounts will need re-entry. {ex.Message}");
-            }
+            services.AddDataProtection()
+                .SetApplicationName("ClinicHub")
+                .PersistKeysToDbContext<ClinicHubContext>();
 
             services.AddSingleton<IPayoutAccountProtector, Services.Payouts.DataProtectionPayoutAccountProtector>();
 
