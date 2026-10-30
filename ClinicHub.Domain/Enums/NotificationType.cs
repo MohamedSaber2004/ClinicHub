@@ -23,7 +23,7 @@ namespace ClinicHub.Domain.Enums
         AppointmentAccepted = 19,
         SubscriptionActivated = 20,
         AppointmentNoShow = 21,
-        SubscriptionCancelled = 22,
+        // 22 is SubscriptionCancelled on the fix/push-main-block branch — do not reuse it.
         PayoutAccountApproved = 23,
         PayoutAccountRejected = 24,
         PayoutReceived = 25,

@@ -6,9 +6,9 @@ namespace ClinicHub.Application.Features.Appointments.Queries.GetMyAppointments
     public class GetMyAppointmentsQuery : IRequest<List<MyAppointmentDto>>
     {
         /// <summary>
-        /// Optional status filter: enum name in any case (Pending, Reserved, ...),
-        /// enum number (0-7, where 0 is Pending), or "All"/empty for no filtering.
-        /// Omit it to get every status.
+        /// Optional status filter matching the mobile tabs: All (or empty), Pending,
+        /// AwaitingPayment (same as Accepted), Confirmed, Completed, Cancelled, Rejected.
+        /// Enum names in any case and enum numbers (0-7) are also accepted.
         /// </summary>
         public string? Status { get; set; }
     }

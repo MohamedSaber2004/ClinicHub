@@ -173,7 +173,7 @@ Prefix `api/v{version:apiVersion}` → `api/v1`. Routes defined in `ClinicHub.AP
 | **C** | Pay generic (Pending/Reserved/Accepted) | `POST` | `Payments.Initiate` `POST /api/v1/payments/initiate` `ApiRoutes.cs:180` | `PaymentsController.cs:29` | `Bearer` owner |
 | **D** | Poll payment status | `GET` | `Payments.GetStatus` `GET /api/v1/payments/status/{appointmentId}` `ApiRoutes.cs:184` | `PaymentsController.cs:107` | `Bearer` owner |
 | **E** | Manual verify (fallback) | `POST` | `Payments.VerifyBooking` `POST /api/v1/payments/verify` `ApiRoutes.cs:182` | `PaymentsController.cs:51` | `Bearer` |
-| **F** | My appointments (patient list with payment) | `GET` | `Appointments.My` `GET /api/v1/appointments/my?PageNumber=&PageSize=` `ApiRoutes.cs:141` | `AppointmentsController.cs:50` | `Bearer` |
+| **F** | My appointments (patient list with payment) | `GET` | `Appointments.My` `GET /api/v1/appointments/my?Status=&PageNumber=&PageSize=` `ApiRoutes.cs:141` | `AppointmentsController.cs:50` | `Bearer` |
 | **G** | Available slots (before booking) | `GET` | `Slots.GetByDoctor` `GET /api/v1/clinics/{clinicId}/doctors/{doctorId}/slots?date=YYYY-MM-DD` + `GetByDoctorAdminDashboard` `ApiRoutes.cs:160` | `SlotsController.cs:17` | `Auth` |
 | **H1** | Clinic admin accept → generate payment link | `PUT` | `Appointments.Accept` `PUT /api/v1/appointments/{id}/accept?paymentMethod=&returnUrl=` `ApiRoutes.cs:146` | `AppointmentsController.cs:122` | `ClinicOwner` (`RoleAuthorize`) |
 | **H2** | Staff approve | `PUT` | `StaffDashboard.ApproveAppointment` `PUT /api/v1/staff/appointments/{id}/approve?paymentMethod=&returnUrl=` `ApiRoutes.cs:258` | `StaffController.cs:53` | `Staff` |
@@ -446,7 +446,9 @@ Wrapped in `ApiResponse` with message `AcceptedWithPaymentLink`. `amount` includ
 ```
 **Response `200` `BookingPaymentResponseDto`** with `status:1 Paid` and `completedAt`. If already `Paid` returns current. If `Failed` → `400 PaymentFailed`.
 
-### 6.7 My appointments `GET /api/v1/appointments/my?PageNumber=1&PageSize=20`
+### 6.7 My appointments `GET /api/v1/appointments/my?Status=&PageNumber=1&PageSize=20`
+
+`status` (optional) matches the mobile tabs: `All`/empty, `Pending`, `AwaitingPayment` (maps to `Accepted`), `Confirmed`, `Completed`, `Cancelled`, `Rejected`. Enum names and numbers (0–7) are also accepted; anything else returns `400 InvalidStatus`.
 
 **Response `200` `PaginatedResult<MyAppointmentDto>`:**
 ```json
