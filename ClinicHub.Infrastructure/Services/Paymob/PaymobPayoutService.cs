@@ -209,7 +209,13 @@ public class PaymobPayoutService : IPayoutService
         IReadOnlyCollection<string> ids,
         CancellationToken cancellationToken)
     {
-        var payload = new Dictionary<string, object> { [listField] = ids };
+        // Paymob's inquiry defaults to wallet transactions and silently returns an empty list
+        // for bank disbursements unless this flag is set, which makes settled payouts look lost.
+        var payload = new Dictionary<string, object>
+        {
+            [listField] = ids,
+            ["bank_transactions"] = true
+        };
         var content = new StringContent(
             JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
 
@@ -359,7 +365,10 @@ public class PaymobPayoutService : IPayoutService
     private static PayoutTransactionStatus MapTransaction(JsonElement element) => new()
     {
         TransactionId = ReadString(element, "transaction_id") ?? ReadString(element, "id") ?? string.Empty,
-        ClientReferenceId = ReadString(element, "client_reference_id") ?? ReadString(element, "client_reference"),
+        ClientReferenceId = ReadString(element, "client_reference_id")
+            ?? ReadString(element, "client_reference")
+            // The inquiry echoes the reference we sent as client_reference_id under this name.
+            ?? ReadString(element, "client_transaction_reference"),
         DisbursementStatus = ReadString(element, "disbursement_status") ?? ReadString(element, "status"),
         StatusCode = ReadString(element, "status_code"),
         StatusDescription = ReadString(element, "status_description"),

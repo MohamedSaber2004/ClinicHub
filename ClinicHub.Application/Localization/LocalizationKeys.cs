@@ -288,6 +288,10 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString InsufficientBudget = new("Payouts.InsufficientBudget");
             public static readonly KeyString InvalidFeePercent = new("Payouts.InvalidFeePercent");
             public static readonly KeyString MinimumBelowPaymobFloor = new("Payouts.MinimumBelowPaymobFloor");
+            public static readonly KeyString IneligibleNoAccount = new("Payouts.IneligibleNoAccount");
+            public static readonly KeyString IneligibleAccountNotVerified = new("Payouts.IneligibleAccountNotVerified");
+            public static readonly KeyString IneligibleNoBalance = new("Payouts.IneligibleNoBalance");
+            public static readonly KeyString IneligibleBelowMinimum = new("Payouts.IneligibleBelowMinimum");
         }
 
         public static class DoctorMessages
