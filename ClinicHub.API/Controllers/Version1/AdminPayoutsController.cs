@@ -6,6 +6,7 @@ using ClinicHub.Application.Features.AdminPayouts.Commands.CancelPayoutBatch;
 using ClinicHub.Application.Features.AdminPayouts.Commands.CreatePayoutBatch;
 using ClinicHub.Application.Features.AdminPayouts.Commands.CreditClinicLedger;
 using ClinicHub.Application.Features.AdminPayouts.Commands.ExecutePayoutBatch;
+using ClinicHub.Application.Features.AdminPayouts.Commands.ReconcilePayoutBatch;
 using ClinicHub.Application.Features.AdminPayouts.Commands.RejectPayoutAccount;
 using ClinicHub.Application.Features.AdminPayouts.Commands.RetryPayoutItem;
 using ClinicHub.Application.Features.AdminPayouts.Commands.UpsertPayoutAccountAsAdmin;
@@ -160,6 +161,16 @@ public class AdminPayoutsController : BaseApiController
     public async Task<IActionResult> CancelBatch(Guid id, CancellationToken ct)
     {
         var result = await _mediator.Send(new CancelPayoutBatchCommand { BatchId = id }, ct);
+        return Ok(result);
+    }
+
+    [HttpPost]
+    [Route(ApiRoutes.AdminPayouts.ReconcileBatch)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ReconcileBatch(Guid id, CancellationToken ct)
+    {
+        var result = await _mediator.Send(new ReconcilePayoutBatchCommand { BatchId = id }, ct);
         return Ok(result);
     }
 

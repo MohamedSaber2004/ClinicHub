@@ -347,6 +347,7 @@
             public const string ApproveBatch = BatchById + "/approve";
             public const string ExecuteBatch = BatchById + "/execute";
             public const string CancelBatch = BatchById + "/cancel";
+            public const string ReconcileBatch = BatchById + "/reconcile";
             public const string RetryItem = Base + "/admin/payout-items/{id:guid}/retry";
         }
 
