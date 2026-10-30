@@ -26,8 +26,11 @@ namespace ClinicHub.API.Controllers.Version1;
 [RoleAuthorize(nameof(UserType.SuperAdmin))]
 public class AdminPayoutsController : BaseApiController
 {
-    public AdminPayoutsController(IMediator mediator) : base(mediator)
+    private readonly IWebHostEnvironment _environment;
+
+    public AdminPayoutsController(IMediator mediator, IWebHostEnvironment environment) : base(mediator)
     {
+        _environment = environment;
     }
 
     [HttpGet]
@@ -89,6 +92,11 @@ public class AdminPayoutsController : BaseApiController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> CreditClinic([FromBody] CreditClinicLedgerCommand command, CancellationToken ct)
     {
+        // Manual dues exist so payout flows can be tested without a real clinic payment;
+        // in production money must only arrive through the real earning pipeline.
+        if (_environment.IsProduction())
+            return NotFound();
+
         var result = await _mediator.Send(command, ct);
         return Ok(result);
     }
