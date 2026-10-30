@@ -2372,6 +2372,11 @@ namespace ClinicHub.Persistence.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<decimal>("MinimumPayoutAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(120m);
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 

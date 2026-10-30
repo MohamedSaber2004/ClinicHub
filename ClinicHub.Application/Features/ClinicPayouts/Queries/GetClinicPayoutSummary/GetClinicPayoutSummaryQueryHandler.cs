@@ -48,6 +48,11 @@ public class GetClinicPayoutSummaryQueryHandler
             .Select(a => (PayoutAccountStatus?)a.Status)
             .FirstOrDefaultAsync(cancellationToken);
 
+        var setting = await _unitOfWork.GetRepository<PlatformSetting, Guid>()
+            .GetAllAsync(s => !s.IsDeleted)
+            .OrderBy(s => s.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
         return new ClinicPayoutSummaryDto
         {
             AvailableBalance = entries
@@ -62,7 +67,7 @@ public class GetClinicPayoutSummaryQueryHandler
             PaidTotal = Math.Abs(entries
                 .Where(e => e.Type == LedgerEntryType.Payout && e.Status == LedgerEntryStatus.Settled)
                 .Sum(e => e.Amount)),
-            MinimumPayoutAmount = _payoutSettings.MinimumPayoutAmount,
+            MinimumPayoutAmount = setting?.MinimumPayoutAmount ?? _payoutSettings.MinimumPayoutAmount,
             AccountStatus = accountStatus,
             IsPayoutEnabled = accountStatus == PayoutAccountStatus.Verified
         };

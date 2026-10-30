@@ -25,7 +25,14 @@ public class GetPayoutPreviewQueryHandler
         GetPayoutPreviewQuery request,
         CancellationToken cancellationToken)
     {
-        var minimum = request.MinimumAmount ?? _payoutSettings.MinimumPayoutAmount;
+        var setting = await _unitOfWork.GetRepository<PlatformSetting, Guid>()
+            .GetAllAsync(s => !s.IsDeleted)
+            .OrderBy(s => s.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var configuredMinimum = setting?.MinimumPayoutAmount ?? _payoutSettings.MinimumPayoutAmount;
+
+        var minimum = request.MinimumAmount ?? configuredMinimum;
         if (minimum < _payoutSettings.MinimumTransactionAmount)
             minimum = _payoutSettings.MinimumTransactionAmount;
 

@@ -324,6 +324,8 @@
     "BatchNotCancellable": "This batch cannot be cancelled because it already started or finished",
     "ItemNotFound": "Payout item not found",
     "ItemNotRetryable": "This payout item cannot be retried",
-    "InsufficientBudget": "The Paymob budget is too small to execute this batch"
+    "InsufficientBudget": "The Paymob budget is too small to execute this batch",
+    "InvalidFeePercent": "The platform fee percentage must be between 0 and 100",
+    "MinimumBelowPaymobFloor": "The minimum payout amount cannot be below {0} EGP — Paymob's floor for each transfer"
   }
 }

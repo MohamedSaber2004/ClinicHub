@@ -286,6 +286,8 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString ItemNotFound = new("Payouts.ItemNotFound");
             public static readonly KeyString ItemNotRetryable = new("Payouts.ItemNotRetryable");
             public static readonly KeyString InsufficientBudget = new("Payouts.InsufficientBudget");
+            public static readonly KeyString InvalidFeePercent = new("Payouts.InvalidFeePercent");
+            public static readonly KeyString MinimumBelowPaymobFloor = new("Payouts.MinimumBelowPaymobFloor");
         }
 
         public static class DoctorMessages
