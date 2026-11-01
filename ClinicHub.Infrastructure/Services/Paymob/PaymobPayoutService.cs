@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 
 namespace ClinicHub.Infrastructure.Services.Paymob;
@@ -76,7 +77,8 @@ public class PaymobPayoutService : IPayoutService
         PayoutBankDisbursementRequest request,
         CancellationToken cancellationToken = default)
     {
-        var payload = new Dictionary<string, string>
+        // customer_bears_fees must reach Paymob as a JSON boolean, hence the node payload.
+        var payload = new JsonObject
         {
             ["issuer"] = "bank_card",
             ["amount"] = request.Amount.ToString("0.00", CultureInfo.InvariantCulture),
@@ -85,11 +87,12 @@ public class PaymobPayoutService : IPayoutService
             ["bank_code"] = request.BankCode,
             ["bank_transaction_type"] = request.BankTransactionType,
             ["national_id"] = request.NationalId,
+            ["customer_bears_fees"] = request.CustomerBearsFees,
             ["client_reference_id"] = request.ClientReferenceId.ToString()
         };
 
         HttpContent content = new StringContent(
-            JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+            payload.ToJsonString(), Encoding.UTF8, "application/json");
 
         HttpResponseMessage? response;
         try

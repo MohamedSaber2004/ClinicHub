@@ -30,6 +30,12 @@ public class PayoutBankDisbursementRequest
     public required string BankTransactionType { get; set; }
     public required string NationalId { get; set; }
 
+    /// <summary>
+    /// Paymob's fee bearer switch: true debits the transfer fee + VAT out of <see cref="Amount"/>
+    /// (the clinic receives the net), false charges them on top to the platform payout budget.
+    /// </summary>
+    public bool CustomerBearsFees { get; set; }
+
     /// <summary>Stable uuid4 per payout item (our own id) — the idempotency anchor.</summary>
     public required Guid ClientReferenceId { get; set; }
 }

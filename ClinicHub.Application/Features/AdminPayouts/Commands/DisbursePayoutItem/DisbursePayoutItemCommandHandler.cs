@@ -91,6 +91,9 @@ public class DisbursePayoutItemCommandHandler
             BankCode = item.PayoutAccount.BankCode,
             BankTransactionType = item.PayoutAccount.BankTransactionType,
             NationalId = nationalId,
+            // The clinic's recorded amount is what the platform spends: Paymob takes its fee and
+            // VAT out of this transfer, so the clinic is credited net of them.
+            CustomerBearsFees = true,
             ClientReferenceId = item.Id
         }, cancellationToken);
 
