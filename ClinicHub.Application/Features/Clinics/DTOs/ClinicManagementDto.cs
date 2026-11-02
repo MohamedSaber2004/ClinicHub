@@ -76,6 +76,9 @@ namespace ClinicHub.Application.Features.Clinics.DTOs
         public DateTime? UpdatedAt { get; set; }
         public string CreatedBy { get; set; } = string.Empty;
         public string? UpdatedBy { get; set; }
+        public decimal ConsultationFee { get; set; }
+        public decimal ExaminationFee { get; set; }
+        public string Currency { get; set; } = "EGP";
         public List<ClinicDoctorDto>? Doctors { get; set; }
     }
 }

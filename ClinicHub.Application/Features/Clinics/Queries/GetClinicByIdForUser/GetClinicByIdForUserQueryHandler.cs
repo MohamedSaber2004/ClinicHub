@@ -2,6 +2,7 @@
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Features.Clinics.DTOs;
 using ClinicHub.Application.Localization;
+using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -22,7 +23,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicByIdForUser
         public async Task<ClinicManagementDto> Handle(GetClinicByIdForUserQuery request, CancellationToken cancellationToken)
         {
             var clinic = await _unitOfWork.ClinicRepository
-                .GetAllAsync(c => c.Id == request.Id)
+                .GetAllAsync(c => c.Id == request.Id && !c.IsDeleted && c.IsActive && c.Status == ClinicStatus.Active)
                 .Include(c => c.Specialization)
                 .Include(c => c.ClinicAdmin)
                 .FirstOrDefaultAsync(cancellationToken);
@@ -33,6 +34,12 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicByIdForUser
             var dto = _mapper.Map<ClinicManagementDto>(clinic);
             dto.Rating = await _unitOfWork.RatingRepository.GetClinicAverageRatingAsync(request.Id);
             dto.ReviewsCount = await _unitOfWork.RatingRepository.GetClinicRatingsCountAsync(request.Id);
+
+            // Same source and defaults as GetClinicSettings: one non-deleted row per clinic.
+            var bookingConfig = await _unitOfWork.BookingConfigurationRepository.GetByClinicIdAsync(request.Id);
+            dto.ConsultationFee = bookingConfig?.ConsultationFee ?? 0;
+            dto.ExaminationFee = dto.ConsultationFee;
+            dto.Currency = bookingConfig?.Currency ?? "EGP";
 
             var doctors = await _unitOfWork.DoctorRepository
                 .GetAllAsync(d => d.ClinicId == request.Id && !d.IsDeleted)
