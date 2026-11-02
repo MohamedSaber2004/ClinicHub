@@ -74,6 +74,20 @@ namespace ClinicHub.Infrastructure.Repositories.Implementations
                 .CountAsync(r => r.Type == RatingType.Clinic && r.ClinicId == clinicId && !r.IsDeleted);
         }
 
+        public async Task<Dictionary<Guid, (double? Average, int Count)>> GetClinicRatingSummariesAsync(IReadOnlyCollection<Guid> clinicIds)
+        {
+            if (clinicIds.Count == 0)
+                return new Dictionary<Guid, (double? Average, int Count)>();
+
+            var rows = await _context.Set<Rating>()
+                .Where(r => r.Type == RatingType.Clinic && !r.IsDeleted && r.ClinicId != null && clinicIds.Contains(r.ClinicId.Value))
+                .GroupBy(r => r.ClinicId!.Value)
+                .Select(g => new { ClinicId = g.Key, Average = g.Average(r => (double)r.Value), Count = g.Count() })
+                .ToListAsync();
+
+            return rows.ToDictionary(r => r.ClinicId, r => ((double?)r.Average, r.Count));
+        }
+
         public Task<Rating?> GetUserRatingForDoctorAsync(Guid userId, Guid doctorId)
         {
             return _context.Set<Rating>()
