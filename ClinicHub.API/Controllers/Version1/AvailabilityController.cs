@@ -22,7 +22,7 @@ namespace ClinicHub.API.Controllers.Version1
         /// <summary>
         /// Get All Availability for a doctor (all days of week with slots)
         /// </summary>
-        [Authorize]
+        [RoleAuthorize]
         [HttpGet]
         [Route(ApiRoutes.Availability.GetAllAvailability)]
         [ProducesResponseType(StatusCodes.Status200OK)]

@@ -4,6 +4,7 @@ using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Subscriptions.Commands.CancelMySubscription;
 using ClinicHub.Application.Features.Subscriptions.Commands.CreateSubscription;
 using ClinicHub.Application.Features.Subscriptions.Commands.InitiateSubscriptionPayment;
+using ClinicHub.Application.Features.Subscriptions.Queries.GetMyCancellationQuote;
 using ClinicHub.Application.Features.Subscriptions.Queries.GetMyClinicSubscription;
 using ClinicHub.Domain.Enums;
 using MediatR;
@@ -31,7 +32,7 @@ namespace ClinicHub.API.Controllers.Version1
 
         [HttpGet]
         [Route(ApiRoutes.Subscriptions.MySubscription)]
-        [RoleAuthorize(nameof(UserType.ClinicOwner))]
+        [RoleAuthorize(nameof(UserType.ClinicOwner), nameof(UserType.Staff))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetMySubscription(CancellationToken ct)
         {
@@ -39,14 +40,26 @@ namespace ClinicHub.API.Controllers.Version1
             return Ok(result);
         }
 
-        [HttpPost]
-        [Route(ApiRoutes.Subscriptions.CancelMySubscription)]
+        [HttpGet]
+        [Route(ApiRoutes.Subscriptions.CancellationQuote)]
         [RoleAuthorize(nameof(UserType.ClinicOwner))]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> CancelMySubscription(CancellationToken ct)
+        public async Task<IActionResult> GetCancellationQuote(CancellationToken ct)
         {
-            var result = await _mediator.Send(new CancelMySubscriptionCommand(), ct);
+            var result = await _mediator.Send(new GetMyCancellationQuoteQuery(), ct);
+            return Ok(result);
+        }
+
+        [HttpPost]
+        [Route(ApiRoutes.Subscriptions.CancelMySubscription)]
+        [RoleAuthorize(nameof(UserType.ClinicOwner))]
+        [ProducesResponseType(typeof(ClinicHub.Application.Features.Subscriptions.DTOs.CancelSubscriptionResponseDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> CancelMySubscription([FromBody] CancelMySubscriptionCommand? command, CancellationToken ct)
+        {
+            var result = await _mediator.Send(command ?? new CancelMySubscriptionCommand(), ct);
             return Ok(result);
         }
 

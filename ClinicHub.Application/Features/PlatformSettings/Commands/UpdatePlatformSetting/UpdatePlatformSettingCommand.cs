@@ -5,7 +5,8 @@ namespace ClinicHub.Application.Features.PlatformSettings.Commands.UpdatePlatfor
 {
     public class UpdatePlatformSettingCommand : IRequest<PlatformSettingDto>
     {
-        public decimal AppointmentFeePercent { get; set; }
+        public decimal? AppointmentFeePercent { get; set; }
+        public decimal? MinimumPayoutAmount { get; set; }
         public string UpdatedBy { get; set; } = string.Empty;
     }
 }

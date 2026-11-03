@@ -1,4 +1,4 @@
-namespace ClinicHub.API.Routes
+﻿namespace ClinicHub.API.Routes
 {
     public static class ApiRoutes
     {
@@ -243,7 +243,9 @@ namespace ClinicHub.API.Routes
             public const string RejectAppointment = BaseRoute + "/appointments/{id:guid}/reject";
             public const string CompleteAppointment = BaseRoute + "/appointments/{id:guid}/complete";
             public const string Patients = BaseRoute + "/patients";
+            public const string RegisterPatient = BaseRoute + "/patients/register";
             public const string PatientHistory = BaseRoute + "/patients/{patientId:guid}/history";
+            public const string PatientAssessment = BaseRoute + "/patients/{patientId:guid}/assessment";
             public const string Availability = BaseRoute + "/availability";
             public const string UpdateAvailability = BaseRoute + "/availability/{id:guid}";
             public const string DeleteAvailability = BaseRoute + "/availability/{id:guid}";
@@ -271,6 +273,7 @@ namespace ClinicHub.API.Routes
             public const string Create = BaseRoute;
             public const string InitiatePayment = BaseRoute + "/initiate-payment";
             public const string MySubscription = BaseRoute + "/my";
+            public const string CancellationQuote = BaseRoute + "/my/cancellation-quote";
             public const string CancelMySubscription = BaseRoute + "/my/cancel";
         }
 
@@ -317,8 +320,42 @@ namespace ClinicHub.API.Routes
             public const string GetAll = BaseRoute;
             public const string GetById = BaseRoute + "/{id:guid}";
             public const string Stats = BaseRoute + "/stats";
+            public const string ClinicsSummary = BaseRoute + "/clinics-summary";
             public const string Manual = BaseRoute + "/manual";
             public const string Refund = BaseRoute + "/{id:guid}/refund";
+        }
+
+        public static class ClinicPayouts
+        {
+            public const string Account = Base + "/clinic/payout-account";
+            public const string Summary = Base + "/clinic/payouts/summary";
+            public const string History = Base + "/clinic/payouts/history";
+        }
+
+        public static class AdminPayouts
+        {
+            public const string Preview = Base + "/admin/payouts/preview";
+            public const string Budget = Base + "/admin/payouts/budget";
+            public const string Accounts = Base + "/admin/payout-accounts";
+            public const string VerifyAccount = Accounts + "/{id:guid}/verify";
+            public const string RejectAccount = Accounts + "/{id:guid}/reject";
+            public const string UpsertClinicAccount = Accounts + "/clinics/{clinicId:guid}";
+            public const string CreditClinic = Base + "/admin/payout-ledger/credit";
+
+            public const string Batches = Base + "/admin/payout-batches";
+            public const string CreateBatch = Batches;
+            public const string BatchById = Batches + "/{id:guid}";
+            public const string ApproveBatch = BatchById + "/approve";
+            public const string ExecuteBatch = BatchById + "/execute";
+            public const string CancelBatch = BatchById + "/cancel";
+            public const string ReconcileBatch = BatchById + "/reconcile";
+            public const string RetryItem = Base + "/admin/payout-items/{id:guid}/retry";
+        }
+
+        public static class PayoutWebhook
+        {
+            /// <summary>Paymob's payout callback cannot sign its body, so the secret is the unguessable path segment.</summary>
+            public const string Receive = Base + "/payouts/callback/{token}";
         }
 
         public static class AdminAds
@@ -376,3 +413,4 @@ namespace ClinicHub.API.Routes
         }
     }
 }
+

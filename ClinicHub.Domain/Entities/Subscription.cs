@@ -20,5 +20,20 @@ namespace ClinicHub.Domain.Entities
         public Guid? PaymentId { get; set; }
         public Payment? Payment { get; set; }
         public string? Notes { get; set; }
+
+        /// <summary>When the subscription was cancelled (null while active).</summary>
+        public DateTime? CancelledAt { get; set; }
+
+        /// <summary>Who cancelled it: the clinic owner, an admin, or the system.</summary>
+        public SubscriptionCancellationSource? CancellationSource { get; set; }
+
+        /// <summary>User who performed the cancellation (owner or admin).</summary>
+        public Guid? CancelledByUserId { get; set; }
+
+        /// <summary>Human-readable cancellation reason.</summary>
+        public string? CancellationReason { get; set; }
+
+        /// <summary>Pro-rated refund amount issued (or to be issued) for this subscription.</summary>
+        public decimal RefundAmount { get; set; }
     }
 }

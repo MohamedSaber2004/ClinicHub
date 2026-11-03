@@ -19,6 +19,20 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.RevokeSubscripti
                 .MustAsync(async (id, ct) =>
                     await _ctx.GetRepository<Subscription, Guid>().ExistsAsync(s => s.Id == id, ct))
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.SubscriptionMessages.NotFound.Value]));
+
+            When(v => v.RefundAmount.HasValue, () =>
+            {
+                RuleFor(v => v.RefundAmount)
+                    .GreaterThanOrEqualTo(0)
+                    .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MustBeGreaterThanZero.Value]));
+            });
+
+            When(v => !string.IsNullOrWhiteSpace(v.Reason), () =>
+            {
+                RuleFor(v => v.Reason)
+                    .MaximumLength(500)
+                    .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
+            });
         }
     }
 }

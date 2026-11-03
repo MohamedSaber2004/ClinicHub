@@ -3,9 +3,9 @@ using System;
 using ClinicHub.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NetTopologySuite.Geometries;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
@@ -18,166 +18,164 @@ namespace ClinicHub.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("public")
                 .HasAnnotation("ProductVersion", "10.0.6")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+                .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.AdPackage", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("DescriptionAr")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("DurationDays")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<int>("MaxAds")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
+                        .HasColumnType("int")
                         .HasDefaultValue(0);
 
                     b.Property<int>("MaxImpressions")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
+                        .HasColumnType("int")
                         .HasDefaultValue(0);
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("NameAr")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("Price")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("SortOrder")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
-                    b.ToTable("AdPackages", "public");
+                    b.ToTable("AdPackages", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Advertisement", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("AdPackageId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("AmountPaid")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid?>("ClinicId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Currency")
                         .IsRequired()
                         .HasMaxLength(3)
-                        .HasColumnType("character varying(3)");
+                        .HasColumnType("nvarchar(3)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("DurationDays")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("EndDate")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("ImageUrl")
                         .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<Guid?>("PaymentId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("StartDate")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<string>("TargetUrl")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Title")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
@@ -187,135 +185,135 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.HasIndex("PaymentId")
                         .IsUnique()
-                        .HasFilter("\"PaymentId\" IS NOT NULL");
+                        .HasFilter("[PaymentId] IS NOT NULL");
 
                     b.HasIndex("ClinicId", "Status");
 
-                    b.ToTable("Advertisements", "public");
+                    b.ToTable("Advertisements", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.ApplicationUser", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("AccessFailedCount")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("BirthDate")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<Guid?>("ClinicId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<bool>("EmailConfirmed")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<string>("FacebookUserId")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int?>("Gender")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<string>("GoogleUserId")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<string>("Language")
                         .IsRequired()
                         .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<bool>("LockoutEnabled")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("NormalizedUserName")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("PasswordHash")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PasswordResetToken")
                         .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<DateTime?>("PasswordResetTokenExpiry")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("PhoneNumber")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<bool>("PhoneNumberConfirmed")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<string>("ProfilePictureUrl")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("SecurityStamp")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("TwoFactorEnabled")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("VerificationCode")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("VerificationCodeExpiry")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -326,96 +324,100 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
-                        .HasDatabaseName("UserNameIndex");
+                        .HasDatabaseName("UserNameIndex")
+                        .HasFilter("[NormalizedUserName] IS NOT NULL");
 
-                    b.ToTable("Users", "public");
+                    b.ToTable("Users", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Appointment", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("AppointmentDate")
                         .HasColumnType("date");
 
                     b.Property<int>("AppointmentType")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<Guid>("BookedByUserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("CancellationReason")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("CheckedInAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("ChronicDiseases")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("ClinicId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Complaint")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("DoctorId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<TimeSpan>("EndTime")
-                        .HasColumnType("interval");
+                        .HasColumnType("time");
 
                     b.Property<DateTime?>("ExpiresAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<int>("PatientAge")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<string>("PatientFullName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("PatientGender")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<Guid?>("PaymentId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<TimeSpan>("StartTime")
-                        .HasColumnType("interval");
+                        .HasColumnType("time");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
@@ -427,73 +429,73 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.HasIndex("PaymentId");
 
-                    b.ToTable("Appointments", "public");
+                    b.ToTable("Appointments", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.AuditLog", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Action")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<Guid?>("ClinicId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("EntityId")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("EntityType")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<string>("NewValues")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OldValues")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("Timestamp")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
@@ -501,202 +503,202 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AuditLogs", "public");
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.BookingConfiguration", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("CancellationWindowMinutes")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
+                        .HasColumnType("int")
                         .HasDefaultValue(120);
 
                     b.Property<Guid>("ClinicId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("ConsultationFee")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Currency")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(3)
-                        .HasColumnType("character varying(3)")
+                        .HasColumnType("nvarchar(3)")
                         .HasDefaultValue("EGP");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<int>("MaxAdvanceBookingDays")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
+                        .HasColumnType("int")
                         .HasDefaultValue(30);
 
                     b.Property<int>("ReservationTtlMinutes")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
+                        .HasColumnType("int")
                         .HasDefaultValue(10);
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ClinicId")
                         .IsUnique();
 
-                    b.ToTable("BookingConfigurations", "public");
+                    b.ToTable("BookingConfigurations", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Clinic", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Address")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("AddressAr")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("ArDescription")
                         .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<Guid?>("ClinicAdminId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
                         .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("ImageUrl")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsRegistered")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
+                        .HasColumnType("bit")
                         .HasDefaultValue(true);
 
                     b.Property<bool>("IsSetupComplete")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<Point>("Location")
                         .IsRequired()
-                        .HasColumnType("geometry (point)");
+                        .HasColumnType("geography");
 
                     b.Property<string>("Logo")
                         .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("ManagerName")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("NameAr")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<double?>("Rating")
-                        .HasColumnType("double precision");
+                        .HasColumnType("float");
 
                     b.Property<string>("ResponsibleDoctor")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("SpecializationId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Status")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
+                        .HasColumnType("nvarchar(20)")
                         .HasDefaultValue("Active");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.Property<string>("Website")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("WorkingDays")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("WorkingHours")
                         .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<TimeOnly?>("WorkingHoursEnd")
                         .HasColumnType("time");
@@ -708,122 +710,295 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.HasIndex("ClinicAdminId");
 
-                    b.HasIndex("Location")
-                        .HasDatabaseName("IX_Clinics_Location");
-
-                    NpgsqlIndexBuilderExtensions.HasMethod(b.HasIndex("Location"), "GIST");
-
                     b.HasIndex("SpecializationId");
 
-                    b.ToTable("Clinics", "public");
+                    b.ToTable("Clinics", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.ClinicAdSettings", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("ClinicId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<int>("MaxAds")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
+                        .HasColumnType("int")
                         .HasDefaultValue(0);
 
                     b.Property<int>("MaxImpressions")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
+                        .HasColumnType("int")
                         .HasDefaultValue(0);
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ClinicId")
                         .IsUnique();
 
-                    b.ToTable("ClinicAdSettings", "public");
+                    b.ToTable("ClinicAdSettings", (string)null);
+                });
+
+            modelBuilder.Entity("ClinicHub.Domain.Entities.ClinicLedgerEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("AvailableAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("ClinicId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid?>("PaymentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("PayoutItemId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicId");
+
+                    b.HasIndex("PaymentId")
+                        .IsUnique()
+                        .HasFilter("[PaymentId] IS NOT NULL AND [Type] = 0");
+
+                    b.HasIndex("PayoutItemId")
+                        .IsUnique()
+                        .HasFilter("[PayoutItemId] IS NOT NULL AND [Type] = 2");
+
+                    b.HasIndex("ClinicId", "Status", "AvailableAt");
+
+                    b.ToTable("ClinicLedgerEntries", (string)null);
+                });
+
+            modelBuilder.Entity("ClinicHub.Domain.Entities.ClinicPayoutAccount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("AccountLast4")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("nvarchar(4)");
+
+                    b.Property<string>("AccountNumberEncrypted")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("BankCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("BankTransactionType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<Guid>("ClinicId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("HolderName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("NationalIdEncrypted")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("NationalIdLast4")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("nvarchar(4)");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("VerifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("VerifiedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClinicId")
+                        .IsUnique();
+
+                    b.ToTable("ClinicPayoutAccounts", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Comment", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("AuthorId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<Guid?>("ParentCommentId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("PostId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
@@ -831,199 +1006,199 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.HasIndex("PostId");
 
-                    b.ToTable("Comments", "public");
+                    b.ToTable("Comments", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Conversation", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("CreatedByUserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("GroupPhotoUrl")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("InitiatorId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsGroup")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
+                        .HasColumnType("bit")
                         .HasDefaultValue(false);
 
                     b.Property<string>("LastMessageContent")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("LastMessageDate")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<Guid>("RecipientId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Conversations", "public");
+                    b.ToTable("Conversations", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.ConversationParticipant", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("ConversationId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsArchived")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
+                        .HasColumnType("bit")
                         .HasDefaultValue(false);
 
                     b.Property<bool>("IsBlocked")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
+                        .HasColumnType("bit")
                         .HasDefaultValue(false);
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsMuted")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
+                        .HasColumnType("bit")
                         .HasDefaultValue(false);
 
                     b.Property<DateTime>("JoinedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ConversationId", "UserId")
                         .IsUnique();
 
-                    b.ToTable("ConversationParticipants", "public");
+                    b.ToTable("ConversationParticipants", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Doctor", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Bio")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("ClinicId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsFreelance")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("SpecializationId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.Property<int>("YearsOfExperience")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -1034,64 +1209,64 @@ namespace ClinicHub.Persistence.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("Doctors", "public");
+                    b.ToTable("Doctors", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.DoctorAvailability", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("ClinicId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("DayOfWeek")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("DoctorId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<TimeSpan>("EndTime")
-                        .HasColumnType("interval");
+                        .HasColumnType("time");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<int>("SlotDurationMinutes")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
+                        .HasColumnType("int")
                         .HasDefaultValue(30);
 
                     b.Property<TimeSpan>("StartTime")
-                        .HasColumnType("interval");
+                        .HasColumnType("time");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
@@ -1099,58 +1274,58 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.HasIndex("DoctorId");
 
-                    b.ToTable("DoctorAvailabilities", "public");
+                    b.ToTable("DoctorAvailabilities", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Media", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("CommentId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<Guid?>("PostId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Type")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Url")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
@@ -1158,77 +1333,77 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.HasIndex("PostId");
 
-                    b.ToTable("Media", "public");
+                    b.ToTable("Media", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Message", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasMaxLength(5000)
-                        .HasColumnType("character varying(5000)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("ConversationId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("EditedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsEdited")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
+                        .HasColumnType("bit")
                         .HasDefaultValue(false);
 
                     b.Property<bool>("IsRead")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<DateTime?>("ReadAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<Guid?>("ReplyToMessageId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("SenderId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Status")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
+                        .HasColumnType("int")
                         .HasDefaultValue(1);
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
@@ -1236,183 +1411,183 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.HasIndex("ReplyToMessageId");
 
-                    b.ToTable("Messages", "public");
+                    b.ToTable("Messages", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.MessageMedia", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FileName")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<int>("MediaType")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<Guid>("MessageId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
                     b.HasIndex("MessageId");
 
-                    b.ToTable("MessageMedia", "public");
+                    b.ToTable("MessageMedia", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.MessageReaction", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("MessageId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("ReactionType")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
                     b.HasIndex("MessageId", "UserId")
                         .IsUnique();
 
-                    b.ToTable("MessageReactions", "public");
+                    b.ToTable("MessageReactions", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Notification", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("BodyAr")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("BodyEn")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("ClinicId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsRead")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<Guid?>("SenderUserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("TitleAr")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<string>("TitleEn")
                         .IsRequired()
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<int>("Type")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
@@ -1422,120 +1597,330 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications", "public");
+                    b.ToTable("Notifications", (string)null);
+                });
+
+            modelBuilder.Entity("ClinicHub.Domain.Entities.PatientAssessment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<int?>("Age")
+                        .HasColumnType("int");
+
+                    b.Property<Guid?>("AppointmentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AssessmentDate")
+                        .HasColumnType("date");
+
+                    b.Property<double?>("Bmi")
+                        .HasColumnType("float");
+
+                    b.Property<string>("ChiefComplaint")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<Guid?>("ClinicId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContactNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("CourseOfSymptoms")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DateAndTypeOfSurgery")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("DateOfAdmission")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Diagnosis")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("DiagnosticImagingAndLab")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<Guid>("DoctorId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("DurationOfSymptoms")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("FamilyHistory")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("FollowUpNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<int?>("Gender")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Handedness")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<double?>("HeightCm")
+                        .HasColumnType("float");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("MechanismOfInjury")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("MedicalHistory")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Medications")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Occupation")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("OnsetOfSymptoms")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PatientName")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("PhysicalTherapy")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("PreviousTreatment")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("SpecialHabits")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("SpecialPrecautions")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("TreatmentDuration")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("TreatmentPlan")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<double?>("WeightKg")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.HasIndex("AssessmentDate");
+
+                    b.HasIndex("ClinicId");
+
+                    b.HasIndex("DoctorId");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("PatientAssessments", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Payment", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<Guid?>("AppointmentId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("ClinicId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("ClinicNetAmount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Code")
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Currency")
                         .IsRequired()
                         .HasMaxLength(3)
-                        .HasColumnType("character varying(3)");
+                        .HasColumnType("nvarchar(3)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FailureReason")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime?>("PaidAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("PaymentMethod")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("PaymobOrderId")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PaymobTransactionId")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("PlanId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("PlatformFeeAmount")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("RedirectUrl")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("RefNumber")
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("RefundAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<int>("RefundAttemptCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RefundFailureReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("RefundId")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("RefundReason")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("RefundRequestedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("RefundStatus")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("RefundedAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
 
                     b.Property<DateTime?>("RefundedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<Guid?>("SubscriptionId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int?>("SubscriptionPeriod")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<string>("TransactionId")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("Type")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
@@ -1545,68 +1930,340 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.HasIndex("RefNumber")
                         .IsUnique()
-                        .HasFilter("\"RefNumber\" IS NOT NULL");
+                        .HasFilter("[RefNumber] IS NOT NULL");
+
+                    b.HasIndex("RefundStatus");
 
                     b.HasIndex("SubscriptionId")
                         .IsUnique()
-                        .HasFilter("\"SubscriptionId\" IS NOT NULL");
+                        .HasFilter("[SubscriptionId] IS NOT NULL");
 
                     b.HasIndex("Type");
 
-                    b.ToTable("Payments", "public");
+                    b.ToTable("Payments", (string)null);
+                });
+
+            modelBuilder.Entity("ClinicHub.Domain.Entities.PayoutBatch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ApprovedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("BudgetAfter")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("BudgetBefore")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("ExecutedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FailureNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ItemsCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("PeriodFrom")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("PeriodTo")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("PayoutBatches", (string)null);
+                });
+
+            modelBuilder.Entity("ClinicHub.Domain.Entities.PayoutItem", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Attempts")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("BatchId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ClinicId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasColumnType("nvarchar(3)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DisbursementStatusRaw")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LastAttemptAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LastError")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("PaymobStatusCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("PaymobTransactionId")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<Guid>("PayoutAccountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("SentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("SettledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BatchId");
+
+                    b.HasIndex("PaymobTransactionId")
+                        .IsUnique()
+                        .HasFilter("[PaymobTransactionId] IS NOT NULL");
+
+                    b.HasIndex("PayoutAccountId");
+
+                    b.HasIndex("ClinicId", "Status");
+
+                    b.ToTable("PayoutItems", (string)null);
+                });
+
+            modelBuilder.Entity("ClinicHub.Domain.Entities.PayoutWebhookEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DisbursementStatus")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Issuer")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("PaymobTransactionId")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime?>("ProcessedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RawPayload")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ReceivedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("StatusCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PaymobTransactionId")
+                        .IsUnique();
+
+                    b.HasIndex("ProcessedAt");
+
+                    b.ToTable("PayoutWebhookEvents", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Plan", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("DescriptionAr")
                         .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Features")
                         .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<int?>("MaxDoctors")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<int?>("MaxStaff")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("NameAr")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<decimal>("PriceMonthly")
                         .HasColumnType("decimal(18,2)");
@@ -1615,81 +2272,81 @@ namespace ClinicHub.Persistence.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("SortOrder")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
                     b.HasIndex("SortOrder");
 
-                    b.ToTable("Plans", "public");
+                    b.ToTable("Plans", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.PlanPermission", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<int>("Permission")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<Guid>("PlanId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
                     b.HasIndex("PlanId", "Permission")
                         .IsUnique();
 
-                    b.ToTable("PlanPermissions", "public");
+                    b.ToTable("PlanPermissions", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.PlatformSetting", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("AppointmentFeePercent")
                         .ValueGeneratedOnAdd()
@@ -1697,143 +2354,148 @@ namespace ClinicHub.Persistence.Migrations
                         .HasDefaultValue(0m);
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("MinimumPayoutAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(120m);
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
-                    b.ToTable("PlatformSettings", "public");
+                    b.ToTable("PlatformSettings", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Post", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("AuthorId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasMaxLength(2000)
-                        .HasColumnType("character varying(2000)");
+                        .HasColumnType("nvarchar(2000)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Posts", "public");
+                    b.ToTable("Posts", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Rating", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("ClinicId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("DoctorId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<string>("Review")
                         .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<int>("Type")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Value")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
@@ -1843,62 +2505,62 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.HasIndex("UserId", "ClinicId", "Type")
                         .IsUnique()
-                        .HasFilter("\"ClinicId\" IS NOT NULL AND \"IsDeleted\" = false");
+                        .HasFilter("[ClinicId] IS NOT NULL AND [IsDeleted] = 0");
 
                     b.HasIndex("UserId", "DoctorId", "Type")
                         .IsUnique()
-                        .HasFilter("\"DoctorId\" IS NOT NULL AND \"IsDeleted\" = false");
+                        .HasFilter("[DoctorId] IS NOT NULL AND [IsDeleted] = 0");
 
-                    b.ToTable("Ratings", "public");
+                    b.ToTable("Ratings", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Reaction", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("AuthorId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("CommentId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<Guid?>("PostId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Type")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
@@ -1906,190 +2568,208 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.HasIndex("PostId");
 
-                    b.ToTable("Reactions", "public");
+                    b.ToTable("Reactions", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.ReadReceipt", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<Guid>("MessageId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("ReadAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
                     b.HasIndex("MessageId", "UserId")
                         .IsUnique();
 
-                    b.ToTable("ReadReceipts", "public");
+                    b.ToTable("ReadReceipts", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Specialization", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ArName")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("IconUrl")
                         .HasMaxLength(255)
-                        .HasColumnType("character varying(255)");
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsFamous")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Specializations", "public");
+                    b.ToTable("Specializations", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Subscription", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int?>("CancellationSource")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CancelledByUserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid>("ClinicId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("EndDate")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime?>("PaidAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<Guid?>("PaymentId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Period")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<Guid?>("PlanId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal>("RefundAmount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
 
                     b.Property<DateTime>("StartDate")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
@@ -2097,209 +2777,209 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.HasIndex("PaymentId")
                         .IsUnique()
-                        .HasFilter("\"PaymentId\" IS NOT NULL");
+                        .HasFilter("[PaymentId] IS NOT NULL");
 
                     b.HasIndex("PlanId");
 
-                    b.ToTable("Subscriptions", "public");
+                    b.ToTable("Subscriptions", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.UserFbToken", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("DevicePlatform")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<string>("Token")
                         .IsRequired()
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
                     b.HasIndex("Token")
                         .IsUnique()
-                        .HasFilter("\"IsDeleted\" = false");
+                        .HasFilter("[IsDeleted] = 0");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserFbTokens", "public");
+                    b.ToTable("UserFbTokens", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.UserRefreshToken", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("ExpiryDate")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsRevoked")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<string>("Token")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserRefreshTokens", "public");
+                    b.ToTable("UserRefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.UserVerification", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Bio")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("CreatedBy")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("DeletedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("DeletedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DoctorImage")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("boolean");
+                        .HasColumnType("bit");
 
                     b.Property<string>("Notes")
                         .HasMaxLength(1000)
-                        .HasColumnType("character varying(1000)");
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("ProfessionalPracticeCardImage")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime>("RequestedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("RequestedRole")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("ReviewedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<Guid?>("ReviewedByUserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("SpecializationId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Status")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.Property<string>("TaxCardImage")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("UnionIdCardImage")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("timestamp without time zone");
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UpdatedBy")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("bytea");
+                        .HasColumnType("rowversion");
 
                     b.Property<int?>("YearsOfExperience")
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -2309,137 +2989,157 @@ namespace ClinicHub.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserVerifications", "public");
+                    b.ToTable("UserVerifications", (string)null);
+                });
+
+            modelBuilder.Entity("Microsoft.AspNetCore.DataProtection.EntityFrameworkCore.DataProtectionKey", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FriendlyName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Xml")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DataProtectionKeys");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("NormalizedName")
                         .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
+                        .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("NormalizedName")
                         .IsUnique()
-                        .HasDatabaseName("RoleNameIndex");
+                        .HasDatabaseName("RoleNameIndex")
+                        .HasFilter("[NormalizedName] IS NOT NULL");
 
-                    b.ToTable("AspNetRoles", "public");
+                    b.ToTable("AspNetRoles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("RoleId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetRoleClaims", "public");
+                    b.ToTable("AspNetRoleClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
+                        .HasColumnType("int");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserClaims", "public");
+                    b.ToTable("AspNetUserClaims", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderKey")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProviderDisplayName")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("LoginProvider", "ProviderKey");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AspNetUserLogins", "public");
+                    b.ToTable("AspNetUserLogins", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
                 {
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("RoleId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("UserId", "RoleId");
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("AspNetUserRoles", "public");
+                    b.ToTable("AspNetUserRoles", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
                     b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Value")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("AspNetUserTokens", "public");
+                    b.ToTable("AspNetUserTokens", (string)null);
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Advertisement", b =>
@@ -2562,6 +3262,27 @@ namespace ClinicHub.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("ClinicId")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Clinic");
+                });
+
+            modelBuilder.Entity("ClinicHub.Domain.Entities.ClinicLedgerEntry", b =>
+                {
+                    b.HasOne("ClinicHub.Domain.Entities.Payment", "Payment")
+                        .WithMany()
+                        .HasForeignKey("PaymentId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Payment");
+                });
+
+            modelBuilder.Entity("ClinicHub.Domain.Entities.ClinicPayoutAccount", b =>
+                {
+                    b.HasOne("ClinicHub.Domain.Entities.Clinic", "Clinic")
+                        .WithMany()
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Clinic");
@@ -2720,6 +3441,39 @@ namespace ClinicHub.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ClinicHub.Domain.Entities.PatientAssessment", b =>
+                {
+                    b.HasOne("ClinicHub.Domain.Entities.Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ClinicHub.Domain.Entities.Clinic", "Clinic")
+                        .WithMany()
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("ClinicHub.Domain.Entities.Doctor", "Doctor")
+                        .WithMany()
+                        .HasForeignKey("DoctorId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ClinicHub.Domain.Entities.ApplicationUser", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
+
+                    b.Navigation("Clinic");
+
+                    b.Navigation("Doctor");
+
+                    b.Navigation("Patient");
+                });
+
             modelBuilder.Entity("ClinicHub.Domain.Entities.Payment", b =>
                 {
                     b.HasOne("ClinicHub.Domain.Entities.Appointment", "Appointment")
@@ -2736,6 +3490,33 @@ namespace ClinicHub.Persistence.Migrations
                     b.Navigation("Appointment");
 
                     b.Navigation("Clinic");
+                });
+
+            modelBuilder.Entity("ClinicHub.Domain.Entities.PayoutItem", b =>
+                {
+                    b.HasOne("ClinicHub.Domain.Entities.PayoutBatch", "Batch")
+                        .WithMany("Items")
+                        .HasForeignKey("BatchId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ClinicHub.Domain.Entities.Clinic", "Clinic")
+                        .WithMany()
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ClinicHub.Domain.Entities.ClinicPayoutAccount", "PayoutAccount")
+                        .WithMany()
+                        .HasForeignKey("PayoutAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Batch");
+
+                    b.Navigation("Clinic");
+
+                    b.Navigation("PayoutAccount");
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.PlanPermission", b =>
@@ -2965,6 +3746,11 @@ namespace ClinicHub.Persistence.Migrations
             modelBuilder.Entity("ClinicHub.Domain.Entities.Payment", b =>
                 {
                     b.Navigation("Subscription");
+                });
+
+            modelBuilder.Entity("ClinicHub.Domain.Entities.PayoutBatch", b =>
+                {
+                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("ClinicHub.Domain.Entities.Plan", b =>

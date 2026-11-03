@@ -37,6 +37,7 @@ namespace ClinicHub.Infrastructure.Services
             var appointmentId = GetParam(parameters, "appointmentId");
             var paymentUrl = GetParam(parameters, "paymentUrl");
             var senderUserIdParam = GetParam(parameters, "SenderUserId");
+            var refundStatus = GetParam(parameters, "refundStatus");
 
             switch (type)
             {
@@ -91,6 +92,20 @@ namespace ClinicHub.Infrastructure.Services
                     data["clinicName"] = clinicName;
                     data["reason"] = reason;
                     link = _deepLinkService.GenerateLink(DeepLinkRoutes.Appointments);
+                    break;
+
+                case NotificationType.AppointmentNoShow:
+                    title = "تسجيل عدم حضور";
+                    body = $"تغيب {GetParam(parameters, "patientName")} عن موعده في {clinicName} بتاريخ {date} الساعة {time}";
+                    data["patientName"] = GetParam(parameters, "patientName");
+                    data["clinicName"] = clinicName;
+                    data["date"] = date;
+                    data["time"] = time;
+                    data["appointmentId"] = appointmentId;
+                    if (!string.IsNullOrEmpty(appointmentId))
+                        link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.AppointmentDetails, appointmentId));
+                    else
+                        link = _deepLinkService.GenerateLink(DeepLinkRoutes.Appointments);
                     break;
 
                 case NotificationType.SystemAnnouncement:
@@ -212,11 +227,14 @@ namespace ClinicHub.Infrastructure.Services
 
                 case NotificationType.PaymentReceived:
                     title = "تم استلام الدفع";
-                    body = $"تم استلام دفعة بقيمة {amount} لحجز {GetParam(parameters, "patientName")} في عيادتك {clinicName}";
+                    body = $"تم استلام دفعة بقيمة {amount} (شامل رسوم المنصة {GetParam(parameters, "platformFee")} بنسبة {GetParam(parameters, "feePercent")}) لحجز {GetParam(parameters, "patientName")} في عيادتك {clinicName} — صافي العيادة {GetParam(parameters, "netAmount")}";
                     data["amount"] = amount;
                     data["patientName"] = GetParam(parameters, "patientName");
                     data["clinicName"] = clinicName;
                     data["appointmentId"] = appointmentId;
+                    data["platformFee"] = GetParam(parameters, "platformFee");
+                    data["feePercent"] = GetParam(parameters, "feePercent");
+                    data["netAmount"] = GetParam(parameters, "netAmount");
                     if (!string.IsNullOrEmpty(appointmentId))
                         link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.AppointmentDetails, appointmentId));
                     else
@@ -225,11 +243,13 @@ namespace ClinicHub.Infrastructure.Services
 
                 case NotificationType.RevenueIncreased:
                     title = "زيادة الإيرادات";
-                    body = $"تم دفع {amount} لحجز في عيادة {clinicName} — إجمالي الإيرادات الآن {GetParam(parameters, "totalRevenue")}";
+                    body = $"تم دفع {amount} لحجز في عيادة {clinicName} — إجمالي الإيرادات الآن {GetParam(parameters, "totalRevenue")} (منها رسوم المنصة {GetParam(parameters, "totalPlatformFees")} وصافي العيادات {GetParam(parameters, "totalNetRevenue")})";
                     data["amount"] = amount;
                     data["clinicName"] = clinicName;
                     data["totalRevenue"] = GetParam(parameters, "totalRevenue");
                     data["appointmentId"] = appointmentId;
+                    data["totalPlatformFees"] = GetParam(parameters, "totalPlatformFees");
+                    data["totalNetRevenue"] = GetParam(parameters, "totalNetRevenue");
                     if (!string.IsNullOrEmpty(appointmentId))
                         link = _deepLinkService.GenerateLink(string.Format(DeepLinkRoutes.AppointmentDetails, appointmentId));
                     else
@@ -256,6 +276,46 @@ namespace ClinicHub.Infrastructure.Services
                     body = $"تم تفعيل اشتراك عيادة {clinicName} في باقة {GetParam(parameters, "planName")} بقيمة {amount}";
                     data["clinicName"] = clinicName;
                     data["planName"] = GetParam(parameters, "planName");
+                    data["amount"] = amount;
+                    link = _deepLinkService.GenerateLink(DeepLinkRoutes.Notifications);
+                    break;
+
+                case NotificationType.SubscriptionCancelled:
+                    title = "تم إلغاء الاشتراك";
+                    body = (refundStatus ?? string.Empty).Trim().ToLowerInvariant() switch
+                    {
+                        "completed" => $"تم إلغاء اشتراك عيادة {clinicName} — تم استرداد مبلغ {amount}",
+                        "pending" => $"تم إلغاء اشتراك عيادة {clinicName} — استمرت معالجة استرداد مبلغ {amount}",
+                        "processing" => $"تم إلغاء اشتراك عيادة {clinicName} — استمرت معالجة استرداد مبلغ {amount}",
+                        "failed" => $"تم إلغاء اشتراك عيادة {clinicName} — فشل استرداد مبلغ {amount}",
+                        "needsreview" => $"تم إلغاء اشتراك عيادة {clinicName} — يحتاج استرداد مبلغ {amount} إلى مراجعة يدوية",
+                        _ => $"تم إلغاء اشتراك عيادة {clinicName} — تم إصدار استرداد مبلغ {amount}"
+                    };
+                    data["clinicName"] = clinicName;
+                    data["amount"] = amount;
+                    data["refundStatus"] = refundStatus ?? string.Empty;
+                    link = _deepLinkService.GenerateLink(DeepLinkRoutes.Notifications);
+                    break;
+
+                case NotificationType.PayoutAccountApproved:
+                    title = "تم اعتماد الحساب البنكي";
+                    body = $"تم اعتماد الحساب البنكي لعيادة {clinicName} — أصبحت المستحقات قابلة للتحويل";
+                    data["clinicName"] = clinicName;
+                    link = _deepLinkService.GenerateLink(DeepLinkRoutes.Notifications);
+                    break;
+
+                case NotificationType.PayoutAccountRejected:
+                    title = "تم رفض الحساب البنكي";
+                    body = $"عذرًا، تم رفض الحساب البنكي لعيادة {clinicName}: {reason}";
+                    data["clinicName"] = clinicName;
+                    data["reason"] = reason;
+                    link = _deepLinkService.GenerateLink(DeepLinkRoutes.Notifications);
+                    break;
+
+                case NotificationType.PayoutReceived:
+                    title = "تم تحويل مستحقاتك";
+                    body = $"تم تحويل {amount} إلى الحساب البنكي لعيادة {clinicName}";
+                    data["clinicName"] = clinicName;
                     data["amount"] = amount;
                     link = _deepLinkService.GenerateLink(DeepLinkRoutes.Notifications);
                     break;

@@ -23,7 +23,7 @@ namespace ClinicHub.Application.Features.Subscriptions.Queries.GetAllSubscriptio
         public async Task<PagginatedResult<SubscriptionDto>> Handle(GetAllSubscriptionsQuery request, CancellationToken cancellationToken)
         {
             var query = _unitOfWork.GetRepository<Subscription, Guid>()
-                .GetAllWithIncluding(s => true, s => s.Clinic, s => s.Plan)
+                .GetAllWithIncluding(s => true, s => s.Clinic, s => s.Plan, s => s.Payment)
                 .AsQueryable();
 
             if (request.Status.HasValue)

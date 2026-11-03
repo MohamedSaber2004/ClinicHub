@@ -17,5 +17,11 @@ namespace ClinicHub.Application.Features.Subscriptions.DTOs
         public DateTime? PaidAt { get; set; }
         public bool IsActive => Status == SubscriptionStatus.Active && EndDate > DateTime.Now;
         public List<string>? Permissions { get; set; }
+
+        // Cancellation & refund history
+        public DateTime? CancelledAt { get; set; }
+        public SubscriptionCancellationSource? CancellationSource { get; set; }
+        public decimal RefundAmount { get; set; }
+        public PaymentRefundStatus RefundStatus { get; set; } = PaymentRefundStatus.None;
     }
 }

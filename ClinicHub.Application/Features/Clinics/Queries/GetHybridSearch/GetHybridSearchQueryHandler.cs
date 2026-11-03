@@ -1,12 +1,16 @@
 using AutoMapper;
+using ClinicHub.Application.Common;
 using ClinicHub.Application.Common.Extensions;
+using ClinicHub.Application.Features.Availability;
 using ClinicHub.Application.Features.Clinics.DTOs;
 using ClinicHub.Domain.Entities;
+using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.Services.Interfaces;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Globalization;
 using NetTopologySuite.Geometries;
 
 namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
@@ -89,25 +93,58 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
                     request.IsNearest, hasSearchText, userPoint != null, request.SpecializationId);
             }
 
-            var internalClinics = await internalTask;
-
+            var internalClinics = (await internalTask).ToList();
             await Task.WhenAll(externalTasks);
 
-            _logger.LogDebug("Internal clinics: {Count}", internalClinics.Count());
+            _logger.LogDebug("Internal clinics: {Count}", internalClinics.Count);
 
+            // Fees and ratings sit outside the Clinic aggregate, so load them for the
+            // whole page in two queries instead of one per clinic.
+            var clinicIds = internalClinics.Select(c => c.Id).ToList();
+            var bookingConfigs = await _unitOfWork.BookingConfigurationRepository
+                .GetAllAsync(bc => clinicIds.Contains(bc.ClinicId))
+                .ToDictionaryAsync(bc => bc.ClinicId, cancellationToken);
+            var ratingSummaries = await _unitOfWork.RatingRepository.GetClinicRatingSummariesAsync(clinicIds);
+            var now = AppDate.Now;
+
+            // Internal (registered) clinics win over external results. Dedup by Id so two
+            // distinct clinics that share a (normalized) name can never hide each other.
+            // internalNames tracks their names for external-vs-internal dedup below.
+            var internalNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var clinic in internalClinics)
             {
+                if (clinic.Location == null)
+                {
+                    _logger.LogWarning("GetHybridSearch: skipping clinic {ClinicId} with null location.", clinic.Id);
+                    continue;
+                }
+
                 var dto = _mapper.Map<ClinicDto>(clinic);
                 if (userPoint != null)
                 {
                     dto.Distance = CalculateDistance(userPoint.Y, userPoint.X, clinic.Location.Y, clinic.Location.X);
                 }
 
-                var dedupKey = clinic.Name.NormalizeArabic();
-                if (!finalResultsMap.ContainsKey(dedupKey))
+                // A clinic without a booking configuration has an unknown fee, so both fee
+                // keys are omitted; 0 is reserved for "free" and currency is always sent.
+                if (bookingConfigs.TryGetValue(clinic.Id, out var bookingConfig))
                 {
-                    finalResultsMap[dedupKey] = dto;
+                    dto.ConsultationFee = bookingConfig.ConsultationFee;
+                    dto.ExaminationFee = bookingConfig.ConsultationFee;
+                    dto.Currency = bookingConfig.Currency;
                 }
+
+                if (ratingSummaries.TryGetValue(clinic.Id, out var ratingSummary))
+                {
+                    dto.Rating = ratingSummary.Average;
+                    dto.ReviewsCount = ratingSummary.Count;
+                }
+
+                dto.OperatingHours = BuildOperatingHours(clinic);
+                dto.IsOpen = ComputeIsOpen(clinic, now);
+
+                internalNames.Add(clinic.Name.NormalizeArabic());
+                finalResultsMap["id:" + clinic.Id] = dto;
             }
 
             int externalAdded = 0;
@@ -132,7 +169,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
                     }
 
                     var dedupKey = external.Name.NormalizeArabic();
-                    if (finalResultsMap.ContainsKey(dedupKey))
+                    if (internalNames.Contains(dedupKey) || finalResultsMap.ContainsKey(dedupKey))
                     {
                         externalDuplicates++;
                         continue;
@@ -161,6 +198,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
                         Lng = external.Lng,
                         IsRegistered = false,
                         Distance = distance,
+                        Rating = external.Rating,
                         SpecializationName = null,
                         SpecializationNameAr = null
                     };
@@ -173,7 +211,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
                 "Merge results: internal={InternalCount}, externalAdded={ExternalAdded}, " +
                 "filteredByDistance={FilteredByDistance}, " +
                 "duplicates={Duplicates}, totalUnique={Total}",
-                internalClinics.Count(), externalAdded,
+                internalClinics.Count, externalAdded,
                 externalFilteredByDistance,
                 externalDuplicates, finalResultsMap.Count);
 
@@ -236,15 +274,33 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
 
         private async Task<IEnumerable<Clinic>> GetInternalClinicsAsync(GetHybridSearchQuery request, string? normalizedSearchText, Guid? specializationId, CancellationToken cancellationToken)
         {
+            // Only approved clinics are visible on maps/search. PendingApproval rows
+            // (e.g. freshly registered, waiting for admin) must not leak, and newly
+            // approved (Active) rows must be included.
             if (request.UserLat.HasValue && request.UserLng.HasValue && request.RadiusInKm > 0)
             {
                 var userPoint = new Point(request.UserLng.Value, request.UserLat.Value) { SRID = 4326 };
+                // Location is a SQL Server geography column: ST_DWithin takes meters.
                 var radiusInMeters = request.RadiusInKm * 1000;
-                return await _unitOfWork.ClinicRepository.GetWithinDistanceAsync(userPoint, radiusInMeters, specializationId, cancellationToken);
+                var nearby = await _unitOfWork.ClinicRepository.GetWithinDistanceAsync(userPoint, radiusInMeters, specializationId, cancellationToken);
+
+                // SearchText was previously ignored on the map path, so a text search
+                // combined with a location returned everything nearby. Apply it here
+                // in memory (normalized + case-insensitive) when provided.
+                if (string.IsNullOrEmpty(normalizedSearchText))
+                    return nearby;
+
+                var searchText = request.SearchText!;
+                return nearby.Where(c =>
+                    c.Name.ContainsArabic(searchText) ||
+                    (c.NameAr != null && c.NameAr.ContainsArabic(searchText)) ||
+                    (c.Specialization != null &&
+                        (c.Specialization.Name.ContainsArabic(searchText) ||
+                         c.Specialization.ArName.ContainsArabic(searchText))));
             }
 
             var internalQuery = _unitOfWork.ClinicRepository.GetAllWithIncluding(
-                c => c.IsActive && !c.IsDeleted &&
+                c => c.IsActive && !c.IsDeleted && c.Status == ClinicStatus.Active &&
                      (string.IsNullOrEmpty(normalizedSearchText) ||
                       c.Name.Contains(request.SearchText!) ||
                       (c.NameAr != null && c.NameAr.Contains(request.SearchText!)) ||
@@ -309,6 +365,40 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetHybridSearch
             var c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
 
             return r * c;
+        }
+
+        /// <summary>
+        /// English weekday name -> "HH:mm - HH:mm". Days are listed Sunday first; a clinic
+        /// with no working-day list covers all seven, matching ClinicScheduleGuard.
+        /// </summary>
+        private static Dictionary<string, string>? BuildOperatingHours(Clinic clinic)
+        {
+            if (clinic.WorkingHoursStart is null || clinic.WorkingHoursEnd is null)
+                return null;
+
+            var start = clinic.WorkingHoursStart.Value.ToString("HH:mm", CultureInfo.InvariantCulture);
+            var end = clinic.WorkingHoursEnd.Value.ToString("HH:mm", CultureInfo.InvariantCulture);
+            var range = $"{start} - {end}";
+
+            var configuredDays = ClinicScheduleGuard.ParseWorkingDays(clinic.WorkingDays);
+            IEnumerable<DayOfWeek> days = configuredDays.Count > 0
+                ? configuredDays
+                : Enum.GetValues<DayOfWeek>();
+
+            return days.OrderBy(d => (int)d).ToDictionary(d => d.ToString(), _ => range);
+        }
+
+        private static bool? ComputeIsOpen(Clinic clinic, DateTime now)
+        {
+            if (clinic.WorkingHoursStart is null || clinic.WorkingHoursEnd is null)
+                return null;
+
+            var currentTime = TimeOnly.FromDateTime(now);
+            if (currentTime < clinic.WorkingHoursStart.Value || currentTime > clinic.WorkingHoursEnd.Value)
+                return false;
+
+            var configuredDays = ClinicScheduleGuard.ParseWorkingDays(clinic.WorkingDays);
+            return configuredDays.Count == 0 || configuredDays.Contains(now.DayOfWeek);
         }
     }
 }

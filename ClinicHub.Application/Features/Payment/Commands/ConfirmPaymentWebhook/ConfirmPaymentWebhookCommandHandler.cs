@@ -1,4 +1,5 @@
-﻿using ClinicHub.Application.Common.Interfaces;
+﻿using ClinicHub.Application.Common;
+using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
@@ -18,8 +19,9 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
     private readonly IBackgroundJobScheduler _jobScheduler;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly ISubscriptionPaymentCompleter _subscriptionPaymentCompleter;
+    private readonly IClinicLedgerService _clinicLedgerService;
 
-    public ConfirmPaymentWebhookCommandHandler(IUnitOfWork unitOfWork, IPaymobService paymobService, ILogger<ConfirmPaymentWebhookCommandHandler> logger, IFcmService fcmService, IBackgroundJobScheduler jobScheduler, UserManager<ApplicationUser> userManager, ISubscriptionPaymentCompleter subscriptionPaymentCompleter)
+    public ConfirmPaymentWebhookCommandHandler(IUnitOfWork unitOfWork, IPaymobService paymobService, ILogger<ConfirmPaymentWebhookCommandHandler> logger, IFcmService fcmService, IBackgroundJobScheduler jobScheduler, UserManager<ApplicationUser> userManager, ISubscriptionPaymentCompleter subscriptionPaymentCompleter, IClinicLedgerService clinicLedgerService)
     {
         _unitOfWork = unitOfWork;
         _paymobService = paymobService;
@@ -28,6 +30,7 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
         _jobScheduler = jobScheduler;
         _userManager = userManager;
         _subscriptionPaymentCompleter = subscriptionPaymentCompleter;
+        _clinicLedgerService = clinicLedgerService;
     }
 
     public async Task<bool> Handle(ConfirmPaymentWebhookCommand request, CancellationToken cancellationToken)
@@ -78,10 +81,20 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
 
         if (transaction.Success)
         {
+            // Paymob is the source of truth for what was actually collected. The payment row can
+            // carry a stale amount if the clinic changed its consultation fee after the row was
+            // created, so sync it before the amount is used in receipts and notifications.
+            if (transaction.AmountCents > 0)
+                payment.RefreshChargedAmount(transaction.AmountCents / 100m, transaction.Currency);
+
             payment.MarkAsPaid(transaction.Id.ToString(), transaction.SourceData?.SubType ?? "Unknown");
 
             if (payment.Type == PaymentType.Appointment && payment.AppointmentId.HasValue)
             {
+                // Capture the split and append the clinic's earning before any notification uses it.
+                var platformFeePercent = await GetPlatformFeePercentAsync(cancellationToken);
+                await _clinicLedgerService.AccrueAppointmentEarningAsync(payment, platformFeePercent, cancellationToken);
+
                 var appointment = await _unitOfWork.AppointmentRepository
                     .GetAllAsync(x => x.Id == payment.AppointmentId.Value)
                     .Include(a => a.Clinic!)
@@ -98,7 +111,7 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
                             ["appointmentId"] = appointment.Id.ToString()
                         });
 
-                        await NotifyClinicOwnerAndSuperAdminsAsync(appointment, payment);
+                        await NotifyClinicOwnerAndSuperAdminsAsync(appointment, payment, platformFeePercent);
 
                         var bookingConfig = await _unitOfWork.BookingConfigurationRepository.GetByClinicIdAsync(appointment.ClinicId);
                         var windowMinutes = bookingConfig?.CancellationWindowMinutes ?? 120;
@@ -145,8 +158,9 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
         return true;
     }
 
-    private async Task NotifyClinicOwnerAndSuperAdminsAsync(Appointment appointment, ClinicHub.Domain.Entities.Payment payment)
+    private async Task NotifyClinicOwnerAndSuperAdminsAsync(Appointment appointment, ClinicHub.Domain.Entities.Payment payment, decimal percent)
     {
+        var split = PaymentRevenueResolver.Resolve(payment, percent);
         var amount = $"{payment.Amount:N2} EGP";
 
         if (appointment.Clinic?.ClinicAdminId.HasValue == true)
@@ -156,17 +170,27 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
                 ["amount"] = amount,
                 ["patientName"] = appointment.PatientFullName ?? "",
                 ["clinicName"] = appointment.Clinic.Name,
-                ["appointmentId"] = appointment.Id.ToString()
+                ["appointmentId"] = appointment.Id.ToString(),
+                ["platformFee"] = $"{split.PlatformFee:N2} EGP",
+                ["feePercent"] = $"{percent:N2}%",
+                ["netAmount"] = $"{split.ClinicNet:N2} EGP"
             });
         }
 
         // The current payment was only marked Paid in memory and is committed later by the
-        // handler's SaveChangesAsync, so the DB sum below does not include it yet. Add it
-        // manually so the notification reports the total AFTER this deposit. No double-count:
-        // the idempotency guard above rejects payments already stored as Paid/Refunded.
-        var totalRevenue = (await _unitOfWork.PaymentRepository
+        // handler's SaveChangesAsync, so the DB sums below do not include it yet. Add its
+        // split manually so the notification reports the totals AFTER this deposit.
+        var paidRows = await _unitOfWork.PaymentRepository
             .GetAllAsync(p => p.Status == PaymentStatus.Paid && p.Type == PaymentType.Appointment)
-            .SumAsync(p => (decimal?)p.Amount) ?? 0m) + payment.Amount;
+            .Select(p => new { p.Amount, p.PlatformFeeAmount, p.ClinicNetAmount })
+            .ToListAsync();
+
+        var totalRevenue = paidRows.Sum(p => p.Amount) + payment.Amount;
+        var (totalFees, totalNet) = PaymentRevenueResolver.SumResolved(
+            paidRows.Select(p => (p.Amount, p.PlatformFeeAmount, p.ClinicNetAmount)),
+            percent);
+        totalFees += split.PlatformFee;
+        totalNet += split.ClinicNet;
 
         var superAdmins = await _userManager.GetUsersInRoleAsync(UserType.SuperAdmin.ToString());
         foreach (var admin in superAdmins.Where(a => !a.IsDeleted))
@@ -176,9 +200,20 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
                 ["amount"] = amount,
                 ["clinicName"] = appointment.Clinic?.Name ?? "",
                 ["totalRevenue"] = $"{totalRevenue:N2} EGP",
-                ["appointmentId"] = appointment.Id.ToString()
+                ["appointmentId"] = appointment.Id.ToString(),
+                ["totalPlatformFees"] = $"{totalFees:N2} EGP",
+                ["totalNetRevenue"] = $"{totalNet:N2} EGP"
             });
         }
+    }
+
+    private async Task<decimal> GetPlatformFeePercentAsync(CancellationToken cancellationToken)
+    {
+        var setting = await _unitOfWork.GetRepository<PlatformSetting, Guid>()
+            .GetAllAsync(s => !s.IsDeleted)
+            .OrderBy(s => s.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+        return setting?.AppointmentFeePercent ?? 0m;
     }
 
     private static Dictionary<string, string> TransactionToDictionary(PaymobTransaction transaction)

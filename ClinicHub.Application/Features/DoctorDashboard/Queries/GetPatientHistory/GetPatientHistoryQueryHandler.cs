@@ -1,7 +1,8 @@
-using AutoMapper;
+﻿using AutoMapper;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Features.DoctorDashboard.DTOs;
+using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -40,6 +41,57 @@ namespace ClinicHub.Application.Features.DoctorDashboard.Queries.GetPatientHisto
                 .Take(request.PageSize)
                 .ToListAsync(cancellationToken);
 
+            // Fetch latest assessment if available
+            var assessmentRepo = _unitOfWork.GetRepository<PatientAssessment, Guid>();
+            var assessment = await assessmentRepo.GetAllAsync(a => !a.IsDeleted && a.PatientId == request.PatientUserId
+                    && (doctor == null || a.DoctorId == doctor.Id))
+                .OrderByDescending(a => a.AssessmentDate)
+                .ThenByDescending(a => a.CreatedAt)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            PatientAssessmentDto? assessmentDto = null;
+            if (assessment != null)
+            {
+                assessmentDto = new PatientAssessmentDto
+                {
+                    Id = assessment.Id,
+                    PatientId = assessment.PatientId,
+                    DoctorId = assessment.DoctorId,
+                    ClinicId = assessment.ClinicId,
+                    AppointmentId = assessment.AppointmentId,
+                    AssessmentDate = assessment.AssessmentDate.ToString("yyyy-MM-dd"),
+                    PatientName = assessment.PatientName,
+                    Age = assessment.Age,
+                    Gender = assessment.Gender,
+                    Occupation = assessment.Occupation,
+                    Handedness = assessment.Handedness,
+                    SpecialHabits = assessment.SpecialHabits,
+                    ContactNumber = assessment.ContactNumber,
+                    Address = assessment.Address,
+                    HeightCm = assessment.HeightCm,
+                    WeightKg = assessment.WeightKg,
+                    Bmi = assessment.Bmi,
+                    Diagnosis = assessment.Diagnosis,
+                    ChiefComplaint = assessment.ChiefComplaint,
+                    OnsetOfSymptoms = assessment.OnsetOfSymptoms,
+                    DurationOfSymptoms = assessment.DurationOfSymptoms,
+                    CourseOfSymptoms = assessment.CourseOfSymptoms,
+                    MechanismOfInjury = assessment.MechanismOfInjury,
+                    DiagnosticImagingAndLab = assessment.DiagnosticImagingAndLab,
+                    PreviousTreatment = assessment.PreviousTreatment,
+                    DateOfAdmission = assessment.DateOfAdmission?.ToString("yyyy-MM-dd"),
+                    DateAndTypeOfSurgery = assessment.DateAndTypeOfSurgery,
+                    SpecialPrecautions = assessment.SpecialPrecautions,
+                    MedicalHistory = assessment.MedicalHistory,
+                    FamilyHistory = assessment.FamilyHistory,
+                    TreatmentPlan = assessment.TreatmentPlan,
+                    Medications = assessment.Medications,
+                    PhysicalTherapy = assessment.PhysicalTherapy,
+                    TreatmentDuration = assessment.TreatmentDuration,
+                    FollowUpNotes = assessment.FollowUpNotes
+                };
+            }
+
             var dtos = items.Select(a => new PatientHistoryDto
             {
                 AppointmentId = a.Id,
@@ -50,7 +102,8 @@ namespace ClinicHub.Application.Features.DoctorDashboard.Queries.GetPatientHisto
                 Status = a.Status,
                 Complaint = a.Complaint,
                 ChronicDiseases = a.ChronicDiseases,
-                CancellationReason = a.CancellationReason
+                CancellationReason = a.CancellationReason,
+                Assessment = assessmentDto
             }).ToList();
 
             return new PagginatedResult<PatientHistoryDto>(dtos, totalCount, request.PageNumber, request.PageSize);

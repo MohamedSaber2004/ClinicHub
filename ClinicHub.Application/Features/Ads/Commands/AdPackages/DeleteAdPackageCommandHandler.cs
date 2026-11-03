@@ -1,6 +1,7 @@
 using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Entities;
+using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -22,13 +23,13 @@ public class DeleteAdPackageCommandHandler : IRequestHandler<DeleteAdPackageComm
     public async Task<bool> Handle(DeleteAdPackageCommand request, CancellationToken cancellationToken)
     {
         var package = await _unitOfWork.GetRepository<AdPackage, Guid>().FindByKeyAsync(request.Id, cancellationToken);
-        if (package == null)
+        if (package == null || package.IsDeleted)
             throw new NotFoundException(_localizer[LocalizationKeys.AdsMessages.PackageNotFound.Value]);
 
-        var hasAds = await _unitOfWork.GetRepository<Advertisement, Guid>()
-            .ExistsAsync(a => a.AdPackageId == request.Id, cancellationToken);
+        var hasActiveAds = await _unitOfWork.GetRepository<Advertisement, Guid>()
+            .ExistsAsync(a => a.AdPackageId == request.Id && a.Status == AdvertisementStatus.Active, cancellationToken);
 
-        if (hasAds)
+        if (hasActiveAds)
             throw new ConflictException(_localizer[LocalizationKeys.AdsMessages.PackageInUse.Value]);
 
         _unitOfWork.GetRepository<AdPackage, Guid>().Delete(package);

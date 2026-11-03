@@ -1,4 +1,4 @@
-using ClinicHub.Domain.Entities;
+﻿using ClinicHub.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +15,7 @@ namespace ClinicHub.Application.Common.Interfaces
         DbSet<Doctor> Doctors { get; }
         DbSet<DoctorAvailability> DoctorAvailabilities { get; }
         DbSet<Appointment> Appointments { get; }
+        DbSet<PatientAssessment> PatientAssessments { get; }
         DbSet<UserFbToken> UserFbTokens { get; }
         DbSet<Notification> Notifications { get; }
         DbSet<UserRefreshToken> UserRefreshTokens { get; }

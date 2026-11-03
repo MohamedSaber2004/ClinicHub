@@ -23,6 +23,7 @@ using System.Text;
 using ClinicHub.Infrastructure.Services.Paymob;
 using Hangfire;
 using Hangfire.SqlServer;
+using Microsoft.AspNetCore.DataProtection;
 
 namespace ClinicHub.Infrastructure
 {
@@ -36,6 +37,15 @@ namespace ClinicHub.Infrastructure
             services.Configure<GoogleMapsSettings>(configuration.GetSection("GoogleMaps"));
             services.AddHttpClient<IPaymobService, PaymobService>(client =>
             {
+                client.DefaultRequestHeaders.Add("User-Agent", "ClinicHub-API/1.0");
+                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+            });
+
+            services.AddHttpClient<IPayoutService, PaymobPayoutService>(client =>
+            {
+                // Paymob settles disbursements slowly; a transport timeout here is handled as
+                // "outcome unknown" and proved by inquiry, so it is worth waiting a bit longer.
+                client.Timeout = TimeSpan.FromSeconds(60);
                 client.DefaultRequestHeaders.Add("User-Agent", "ClinicHub-API/1.0");
                 client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
             });
@@ -72,6 +82,17 @@ namespace ClinicHub.Infrastructure
             services.AddScoped<INotificationBuilder, NotificationBuilderService>();
             services.Configure<FirebaseSettings>(configuration.GetSection(nameof(FirebaseSettings)));
 
+            // Payout account numbers and national ids are encrypted with these keys. The ring
+            // lives in the database, not the deployment folder: a recycled app pool or a second
+            // instance otherwise generates a fresh ring, and every stored destination becomes
+            // undecryptable (PO-2026-10-30-04 failed exactly that way).
+            services.Configure<PayoutSettings>(configuration.GetSection(nameof(PayoutSettings)));
+            services.AddDataProtection()
+                .SetApplicationName("ClinicHub")
+                .PersistKeysToDbContext<ClinicHubContext>();
+
+            services.AddSingleton<IPayoutAccountProtector, Services.Payouts.DataProtectionPayoutAccountProtector>();
+
             // Hangfire — isolated database when configured; falls back to the main DB so
             // background scheduling never breaks payments (see docs/HANGFIRE_README_AR.md).
             var hangfireConnectionString = configuration.GetConnectionString("HangfireDb")
@@ -101,12 +122,15 @@ namespace ClinicHub.Infrastructure
             services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.AdExpirationJob>();
             services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.SubscriptionExpirationJob>();
             services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.AbandonedPaymentJob>();
+            services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.PaymentAmountReconciliationJob>();
             services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.TokenCleanupJob>();
-            services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.ReservationExpirationJob>();
             services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.CancellationWindowJob>();
             services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.ExpiryReminderJob>();
             services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.NoShowJob>();
+            services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.NoShowSweepJob>();
             services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.RefundRetryJob>();
+            services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.PayoutExecutionJob>();
+            services.AddScoped<ClinicHub.Infrastructure.Services.BackgroundJobs.PayoutStatusReconciliationJob>();
 
             //File Services
             services.AddScoped<IBaseFileService, BaseFileService>();

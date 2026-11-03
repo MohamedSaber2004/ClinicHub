@@ -14,9 +14,12 @@ namespace ClinicHub.Persistence.Seeders
             if (!settings.Enabled) return;
 
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
-            
-            foreach (var roleName in Enum.GetNames<UserType>())
+
+            foreach (var role in Enum.GetValues<UserType>())
             {
+                if (role == UserType.None) continue;
+
+                var roleName = role.ToString();
                 if (!await roleManager.RoleExistsAsync(roleName))
                 {
                     await roleManager.CreateAsync(new IdentityRole<Guid>(roleName));

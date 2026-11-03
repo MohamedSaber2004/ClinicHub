@@ -32,13 +32,21 @@ namespace ClinicHub.API
     {
         public static async Task Main(string[] args)
         {
-            // Npgsql: the app uses DateTime.Now (Kind=Local) throughout; legacy timestamp
-            // behavior keeps DateTime <-> timestamp mappings without UTC enforcement.
-            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-
             try
             {
                 var builder = WebApplication.CreateBuilder(args);
+
+                // Root fix for shared-host port conflicts: when IIS/ANCM launches the
+                // app it assigns a random port (ASPNETCORE_PORT) or hosts in-process (APP_POOL_ID)
+                // and that always wins. Only when NO port or host context comes from the environment
+                // (direct `dotnet *.dll` launch) fall back to this site's own loopback port.
+                if (string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_PORT"))
+                    && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_URLS"))
+                    && string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("APP_POOL_ID")))
+                {
+                    builder.WebHost.UseUrls("http://127.0.0.1:5001");
+                }
+
                 var env = builder.Environment;
 
                 builder.Configuration.Sources.Clear();
@@ -68,8 +76,11 @@ namespace ClinicHub.API
                     options.Filters.Add(new RoleAuthorizeAttribute());
                     options.MaxModelValidationErrors = 50;
 
-                    // Hide NET-Tracker controllers from Swagger/Scalar without removing them from routing
                     options.Conventions.Add(new HideNetTrackerControllersConvention());
+                }).AddJsonOptions(json =>
+                {
+                    json.JsonSerializerOptions.Converters.Add(new Json.UnspecifiedDateTimeConverter());
+                    json.JsonSerializerOptions.Converters.Add(new Json.UnspecifiedNullableDateTimeConverter());
                 });
 
                 builder.Services.AddApiVersioning(options =>
@@ -93,8 +104,6 @@ namespace ClinicHub.API
                     options.SubstituteApiVersionInUrl = true;
                 });
 
-                // Register OpenAPI documents for all known versions without premature BuildServiceProvider
-                // Versions are discovered post-build from IApiVersionDescriptionProvider
                 builder.Services.AddOpenApi("v1", options =>
                 {
                     options.AddOperationTransformer<LanguageHeaderOperationTransformer>();
@@ -114,7 +123,6 @@ namespace ClinicHub.API
                 builder.Services.AddPersistenceServices(builder.Configuration);
                 builder.Services.AddInfrastructureServices(builder.Configuration);
 
-                // Add NET-Tracker Services
                 builder.Services.AddNetTracker(builder.Configuration);
 
                 builder.Services.Configure<Microsoft.Extensions.Caching.Memory.MemoryCacheOptions>(options =>
@@ -122,7 +130,6 @@ namespace ClinicHub.API
                     options.SizeLimit = null;
                 });
 
-                // Rate limiting configuration
                 builder.Services.AddMemoryCache();
 
                 builder.Services.AddInMemoryRateLimiting();
@@ -145,6 +152,22 @@ namespace ClinicHub.API
                         }
                         catch (FormatException) { return false; }
                     }, "IdProtectionSettings.Key must be a base64-encoded AES key of 16, 24 or 32 bytes.")
+                    .ValidateOnStart();
+                builder.Services.AddOptions<PaymobSettings>()
+                    .Bind(builder.Configuration.GetSection(nameof(PaymobSettings)))
+                    .Validate(s => !string.IsNullOrWhiteSpace(s.SecretKey), "PaymobSettings.SecretKey is required.")
+                    .Validate(s => !string.IsNullOrWhiteSpace(s.PublicKey), "PaymobSettings.PublicKey is required.")
+                    .Validate(s => int.TryParse(s.IntegrationId, out _), "PaymobSettings.IntegrationId must be a numeric integration ID from Paymob dashboard (Developers → Payment Integrations).")
+                    .Validate(s => string.IsNullOrWhiteSpace(s.WalletIntegrationId) || int.TryParse(s.WalletIntegrationId, out _), "PaymobSettings.WalletIntegrationId must be numeric when set.")
+                    .ValidateOnStart();
+                builder.Services.AddOptions<PayoutSettings>()
+                    .Bind(builder.Configuration.GetSection(nameof(PayoutSettings)))
+                    .Validate(s => !string.IsNullOrWhiteSpace(s.BaseUrl) && Uri.IsWellFormedUriString(s.BaseUrl, UriKind.Absolute),
+                        "PayoutSettings.BaseUrl must be an absolute URL (https://payouts.paymobsolutions.com in production).")
+                    .Validate(s => s.MinimumTransactionAmount >= 112m,
+                        "PayoutSettings.MinimumTransactionAmount cannot be below Paymob's 112 EGP transaction floor.")
+                    .Validate(s => s.MaxRetriesPerItem is >= 0 and <= 3,
+                        "PayoutSettings.MaxRetriesPerItem must be between 0 and 3 — each retry risks sending the same money twice.")
                     .ValidateOnStart();
                 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
                 builder.Services.Configure<SeedingSettings>(builder.Configuration.GetSection("SeedingSettings"));
@@ -189,19 +212,24 @@ namespace ClinicHub.API
 
                 var app = builder.Build();
 
-                // --- NetTracker Table Creation Workaround ---
                 using (var scope = app.Services.CreateScope())
                 {
                     var trackerDb = scope.ServiceProvider.GetRequiredService<NET_Tracker.Data.ApplicationDbContext>();
                     var dbCreator = trackerDb.Database.GetService<Microsoft.EntityFrameworkCore.Storage.IRelationalDatabaseCreator>();
                     try
                     {
-                        await dbCreator.CreateTablesAsync();
-                        Log.Information("NetTracker HttpTransactions table created successfully.");
+                        if (dbCreator is Microsoft.EntityFrameworkCore.Storage.RelationalDatabaseCreator relationalCreator)
+                        {
+                            if (!await relationalCreator.HasTablesAsync())
+                            {
+                                await dbCreator.CreateTablesAsync();
+                                Log.Information("NetTracker HttpTransactions table created successfully.");
+                            }
+                        }
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        // Ignore exception if the table already exists
+                        Log.Warning(ex, "Failed to verify or create NetTracker tables.");
                     }
                 }
 
@@ -209,50 +237,62 @@ namespace ClinicHub.API
 
                 app.UseHsts();
 
-                app.MapOpenApi("/openapi/{documentName}.json");
-
-                var apiVersionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
-
-                foreach (var description in apiVersionProvider.ApiVersionDescriptions)
+                if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
                 {
-                    var name = description.GroupName;
+                    app.MapOpenApi("/openapi/{documentName}.json");
 
-                    app.MapScalarApiReference($"/scalar/{name}", options =>
+                    var apiVersionProvider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
+
+                    foreach (var description in apiVersionProvider.ApiVersionDescriptions)
                     {
-                        options.WithTitle($"ClinicHub API {name}")
-                               .WithTheme(ScalarTheme.BluePlanet)
-                               .WithOpenApiRoutePattern($"/openapi/{name}.json");
-                    });
+                        var name = description.GroupName;
+
+                        app.MapScalarApiReference($"/scalar/{name}", options =>
+                        {
+                            options.WithTitle($"ClinicHub API {name}")
+                                   .WithTheme(ScalarTheme.BluePlanet)
+                                   .WithOpenApiRoutePattern($"/openapi/{name}.json");
+                        });
+                    }
+
+                    app.MapGet("/", (IApiVersionDescriptionProvider provider) =>
+                    {
+                        var lastVersion = provider.ApiVersionDescriptions.Last().GroupName;
+                        return Results.Redirect($"/scalar/{lastVersion}");
+                    }).ExcludeFromDescription();
+                }
+                else
+                {
+                    // In Production: do not expose OpenAPI / Scalar API documentation.
+                    // Directly display NetTracker logger dashboard.
+                    app.MapGet("/", () => Results.Redirect("/net-tracker/dashboard")).ExcludeFromDescription();
                 }
 
-                app.MapGet("/", (IApiVersionDescriptionProvider provider) =>
+                if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
                 {
-                    var lastVersion = provider.ApiVersionDescriptions.Last().GroupName;
-                    return Results.Redirect($"/scalar/{lastVersion}");
-                }).ExcludeFromDescription();
-
-
-                // Seed specializations first (fast, single batch) then roles (slow, per-role round trips)
-                // so the most important reference data is persisted even if the host is stopped early.
-                _ = Task.Run(async () =>
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await Task.Delay(TimeSpan.FromSeconds(5));
+                            using var scope = app.Services.CreateScope();
+                            var services = scope.ServiceProvider;
+                            await services.SeedSpecializationsAsync();
+                            await services.SeedRolesAsync();
+                            await services.SeedPlansAsync();
+                            await services.SeedSuperAdminAsync();
+                            Log.Information("Database seeding completed successfully.");
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, "An error occurred during the database seeding process.");
+                        }
+                    });
+                }
+                else
                 {
-                    try
-                    {
-                        // Small delay to allow the host to finish starting before seeding
-                        await Task.Delay(TimeSpan.FromSeconds(5));
-                        using var scope = app.Services.CreateScope();
-                        var services = scope.ServiceProvider;
-                        await services.SeedSpecializationsAsync();
-                        await services.SeedRolesAsync();
-                        await services.SeedPlansAsync();
-                        await services.SeedSuperAdminAsync();
-                        Log.Information("Database seeding completed successfully.");
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error(ex, "An error occurred during the database seeding process.");
-                    }
-                });
+                    Log.Information("Database seeding skipped (environment: {Environment}). Production is seeded via scripts/prod-seed only.", app.Environment.EnvironmentName);
+                }
 
                 app.UseXContentTypeOptions();
                 app.UseXXssProtection(options => options.EnabledWithBlockMode());
@@ -260,8 +300,7 @@ namespace ClinicHub.API
                 app.UseReferrerPolicy(options => options.NoReferrerWhenDowngrade());
 
                 app.UseIpRateLimiting();
-
-                if (app.Environment.IsDevelopment()) app.UseHttpsRedirection();
+                app.UseHttpsRedirection();
 
                 app.UseSerilogRequestLogging(options =>
                 {
@@ -275,7 +314,6 @@ namespace ClinicHub.API
                     };
                 });
 
-                // NET-Tracker middleware — exclude background polling, docs, static files, and public deeplink pages to prevent DB connection pool exhaustion
                 app.UseWhen(context => !context.Request.Path.StartsWithSegments("/hangfire")
                                     && !context.Request.Path.StartsWithSegments("/scalar")
                                     && !context.Request.Path.StartsWithSegments("/openapi")
@@ -310,8 +348,16 @@ namespace ClinicHub.API
                         job => job.SweepExpiredAsync(CancellationToken.None), Cron.Hourly);
                     RecurringJob.AddOrUpdate<AbandonedPaymentJob>("abandoned-payments",
                         job => job.SweepAsync(CancellationToken.None), Cron.Hourly);
-                    RecurringJob.AddOrUpdate<ReservationExpirationJob>("reservations-expiration",
-                        job => job.SweepExpiredReservationsAsync(CancellationToken.None), Cron.Hourly);
+                    RecurringJob.AddOrUpdate<PaymentAmountReconciliationJob>("payment-amount-reconciliation",
+                        job => job.ReconcileAsync(CancellationToken.None), Cron.Daily);
+                    // Run once on startup so amounts that drifted before this fix are corrected
+                    // immediately instead of waiting for the next scheduled sweep.
+                    BackgroundJob.Enqueue<PaymentAmountReconciliationJob>(job => job.ReconcileAsync(CancellationToken.None));
+                    // Staff decides every reservation: the reservations-expiration sweep was
+                    // removed. Also drop the recurring job if it was persisted by an older
+                    // deployment (delayed per-reservation jobs must be deleted from the
+                    // Hangfire dashboard/storage — their target type no longer exists).
+                    RecurringJob.RemoveIfExists("reservations-expiration");
                     RecurringJob.AddOrUpdate<TokenCleanupJob>("token-cleanup",
                         job => job.CleanupAsync(CancellationToken.None), Cron.Daily);
                     RecurringJob.AddOrUpdate<ExpiryReminderJob>("expiry-reminders",
@@ -320,6 +366,15 @@ namespace ClinicHub.API
                         job => job.SweepAsync(CancellationToken.None), Cron.Hourly);
                     RecurringJob.AddOrUpdate<ClinicWorkingHoursValidationJob>("clinic-working-hours-validation",
                         job => job.SweepAsync(CancellationToken.None), Cron.Hourly);
+                    RecurringJob.AddOrUpdate<NoShowSweepJob>("noshow-sweep",
+                        job => job.SweepAsync(CancellationToken.None), Cron.Hourly);
+                    // Paymob's payout callback is unsigned and wallets never call back at all,
+                    // so the inquiry sweep — not the callback — is what settles disbursements.
+                    // Bank settlement takes minutes, so an hourly sweep would leave runs showing
+                    // Processing long after Paymob has an answer. The sweep only calls Paymob
+                    // when a batch actually has unresolved items, so a short interval is cheap.
+                    RecurringJob.AddOrUpdate<PayoutStatusReconciliationJob>("payout-status-reconciliation",
+                        job => job.SweepAsync(CancellationToken.None), Cron.MinuteInterval(5));
                     Log.Information("Hangfire recurring jobs registered successfully.");
                 }
                 catch (Exception ex)
@@ -333,7 +388,7 @@ namespace ClinicHub.API
                 {
                     FileProvider = new CustomFileProvider(app.Environment.WebRootPath),
                     RequestPath = "/files"
-                });;
+                }); ;
 
                 app.MapHealthChecks("/health", new HealthCheckOptions
                 {

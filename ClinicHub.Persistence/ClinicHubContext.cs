@@ -1,9 +1,10 @@
-using System.Reflection;
+﻿using System.Reflection;
 using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Domain.Common;
 using ClinicHub.Domain.Common.Interfaces;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +14,7 @@ namespace ClinicHub.Persistence
 {
     public class ClinicHubContext: IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid,
         IdentityUserClaim<Guid>, IdentityUserRole<Guid>, IdentityUserLogin<Guid>,
-        IdentityRoleClaim<Guid>, IdentityUserToken<Guid>>, IClinicHubContext
+        IdentityRoleClaim<Guid>, IdentityUserToken<Guid>>, IClinicHubContext, IDataProtectionKeyContext
     {
         private readonly ICurrentUserService? _currentUserService;
         private readonly Guid? _currentClinicId;
@@ -33,6 +34,7 @@ namespace ClinicHub.Persistence
         public DbSet<Doctor> Doctors { get; set; }
         public DbSet<DoctorAvailability> DoctorAvailabilities { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
+        public DbSet<PatientAssessment> PatientAssessments { get; set; }
         public DbSet<UserFbToken> UserFbTokens { get; set; }
         public DbSet<Notification> Notifications { get; set; }
         public DbSet<UserRefreshToken> UserRefreshTokens { get; set; }
@@ -53,6 +55,12 @@ namespace ClinicHub.Persistence
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<UserVerification> UserVerifications { get; set; }
         public DbSet<PlatformSetting> PlatformSettings { get; set; }
+        public DbSet<ClinicPayoutAccount> ClinicPayoutAccounts { get; set; }
+        public DbSet<ClinicLedgerEntry> ClinicLedgerEntries { get; set; }
+        public DbSet<PayoutBatch> PayoutBatches { get; set; }
+        public DbSet<PayoutItem> PayoutItems { get; set; }
+        public DbSet<PayoutWebhookEvent> PayoutWebhookEvents { get; set; }
+        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder builder)
         {
@@ -69,9 +77,9 @@ namespace ClinicHub.Persistence
             builder.ApplyConfigurationsFromAssembly(typeof(ClinicHubContext).Assembly,
                 type => type.Namespace is not null && type.Namespace.EndsWith("Configuration"));
 
-            builder.HasDefaultSchema("public");
-
-            builder.HasPostgresExtension("postgis");
+            // SQL Server provider: default schema is dbo (matches the historical
+            // SqlServer migrations). No PostGIS extension needed â€” spatial queries
+            // use the built-in geography type with NetTopologySuite.
 
             foreach (var entityType in builder.Model.GetEntityTypes()
                 .Where(e => typeof(IClinicScopedEntity).IsAssignableFrom(e.ClrType)))
@@ -138,3 +146,4 @@ namespace ClinicHub.Persistence
         }
     }
 }
+

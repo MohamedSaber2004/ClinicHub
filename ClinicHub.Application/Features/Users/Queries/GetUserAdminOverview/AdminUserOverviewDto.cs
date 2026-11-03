@@ -13,6 +13,12 @@ namespace ClinicHub.Application.Features.Users.Queries.GetUserAdminOverview
         public DateTime CreatedAt { get; set; }
         public List<string> Roles { get; set; } = new();
 
+        // Doctor clinic affiliation (authoritative freelance signal):
+        // null ClinicId = freelance (not following any clinic).
+        public Guid? ClinicId { get; set; }
+        public string? ClinicName { get; set; }
+        public bool IsFreelanceDoctor { get; set; }
+
         public int TotalAppointments { get; set; }
         public int TotalVisits { get; set; }
         public double? AvgRating { get; set; }

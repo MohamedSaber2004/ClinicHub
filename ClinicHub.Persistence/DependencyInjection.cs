@@ -13,7 +13,7 @@ namespace ClinicHub.Persistence
         {
             services.AddDbContext<ClinicHubContext>(options =>
             {
-                options.UseNpgsql(configuration.GetConnectionString("CareClinicHubDb"),
+                options.UseSqlServer(configuration.GetConnectionString("CareClinicHubDb"),
                     x => x.UseNetTopologySuite());
             });
 

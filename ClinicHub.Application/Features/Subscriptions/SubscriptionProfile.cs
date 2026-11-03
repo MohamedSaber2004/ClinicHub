@@ -11,6 +11,8 @@ namespace ClinicHub.Application.Features.Subscriptions
             CreateMap<Subscription, SubscriptionDto>()
                 .ForMember(dest => dest.ClinicName, opt => opt.MapFrom(src => src.Clinic.Name))
                 .ForMember(dest => dest.PlanName, opt => opt.MapFrom(src => src.Plan.Name))
+                .ForMember(dest => dest.RefundStatus,
+                    opt => opt.MapFrom(src => src.Payment != null ? src.Payment.RefundStatus : Domain.Enums.PaymentRefundStatus.None))
                 .ForMember(dest => dest.Permissions,
                     opt => opt.MapFrom(src => src.Plan != null
                         ? src.Plan.Permissions.Select(p => p.Permission.ToString()).ToList()

@@ -32,6 +32,7 @@ namespace ClinicHub.Domain.Entities
         public string? CancellationReason { get; private set; }
 
         public DateTime? ExpiresAt { get; private set; }
+        public DateTime? CheckedInAt { get; private set; }
         public Guid? PaymentId { get; private set; }
         public Payment? Payment { get; private set; }
 
@@ -54,7 +55,8 @@ namespace ClinicHub.Domain.Entities
             BookedByUserId = bookedByUserId;
             DoctorId = doctorId;
             ClinicId = clinicId;
-            AppointmentDate = appointmentDate.Date;
+            // Timezone-free: keep the calendar date only, Kind=Unspecified.
+            AppointmentDate = new DateTime(appointmentDate.Year, appointmentDate.Month, appointmentDate.Day, 0, 0, 0, DateTimeKind.Unspecified);
             StartTime = startTime;
             EndTime = endTime;
             AppointmentType = appointmentType;
@@ -67,20 +69,10 @@ namespace ClinicHub.Domain.Entities
             Status = AppointmentStatus.Pending;
         }
 
-        public bool IsReservationExpired() =>
-            ExpiresAt.HasValue && Status == AppointmentStatus.Reserved && DateTime.Now >= ExpiresAt.Value;
-
-        public void Reserve(int reservationTtlMinutes)
-        {
-            Status = AppointmentStatus.Reserved;
-            ExpiresAt = DateTime.Now.AddMinutes(reservationTtlMinutes);
-        }
-
-        public void ExpireReservation()
-        {
-            if (Status == AppointmentStatus.Reserved)
-                Status = AppointmentStatus.Cancelled;
-        }
+        // NOTE: new booking requests always enter as Pending (set by the
+        // constructor) so they land in the staff decision queue. Nothing may
+        // move a request to Reserved on creation.
+        // (<see cref="ExpiresAt"/> is retained only as deprecated storage.)
 
         public void Confirm(Guid paymentId)
         {
@@ -114,6 +106,7 @@ namespace ClinicHub.Domain.Entities
         public void CheckIn()
         {
             Status = AppointmentStatus.Confirmed;
+            CheckedInAt = DateTime.Now;
             ExpiresAt = null;
         }
 
@@ -126,7 +119,10 @@ namespace ClinicHub.Domain.Entities
             string complaint,
             string? chronicDiseases)
         {
-            AppointmentDate = appointmentDate.Date;
+            var normalizedDate = new DateTime(appointmentDate.Year, appointmentDate.Month, appointmentDate.Day, 0, 0, 0, DateTimeKind.Unspecified);
+            if (AppointmentDate != normalizedDate || StartTime != startTime || EndTime != endTime)
+                CheckedInAt = null;
+            AppointmentDate = normalizedDate;
             StartTime = startTime;
             EndTime = endTime;
             Complaint = complaint;

@@ -14,6 +14,9 @@ namespace ClinicHub.Persistence.Seeders
         private static readonly Guid BasicPlanId = Guid.Parse("A1111111-1111-1111-1111-111111111111");
         private static readonly Guid PremiumPlanId = Guid.Parse("A3333333-3333-3333-3333-333333333333");
         private static readonly Guid EnterprisePlanId = Guid.Parse("A4444444-4444-4444-4444-444444444444");
+        // Legacy plan from the old SqlServer migration chain (Standard → Advanced).
+        // Retired: subscriptions are migrated to Premium (A333...).
+        private static readonly Guid LegacyStandardPlanId = Guid.Parse("A2222222-2222-2222-2222-222222222222");
 
         // ADS IS NOW INDEPENDENT — marketing_tools removed from all plans.
         // Two plans only: Basic (limited) + Premium (unlimited, full features).
@@ -38,44 +41,55 @@ namespace ClinicHub.Persistence.Seeders
 
             if (await context.Plans.IgnoreQueryFilters().AnyAsync())
             {
-                // Synchronize existing data to 2-plan model + ads independence
+                // Existing data (fresh deploy with legacy migrations, or older DB) —
+                // synchronize to the 2-plan model + ads independence.
                 await SynchronizeToTwoPlansAsync(context, logger);
                 return;
             }
 
             // Fresh DB — create exactly 2 plans
+            var basic = CreateBasicPlan();
+            var premium = CreatePremiumPlan();
+
+            context.Plans.AddRange(basic, premium);
+            await context.SaveChangesAsync();
+            logger.LogInformation("Inserted 2 plans (Basic, Premium) with their permissions. Ads is independent (no marketing_tools).");
+            return;
+        }
+
+        private static Plan CreateBasicPlan()
+        {
             var basic = Plan.Create(BasicPlanId, "Basic", "أساسية",
                 "For small clinics starting out. Up to 2 doctors and 5 staff members.",
                 "للعيادات الصغيرة الجديدة. حتى 2 أطباء و 5 موظفين.",
                 500, 5000, 2, 5, BasicFeatures, 1);
-
-            var premium = Plan.Create(PremiumPlanId, "Premium", "ممتازة",
-                "For medium/large clinics. Unlimited doctors and staff. All features included.",
-                "للعيادات المتوسطة والكبيرة. أطباء وموظفون غير محدودين. جميع الميزات متضمنة.",
-                2500, 25000, null, null, PremiumFeatures, 2);
-
             basic.MarkAsCreated("seeder");
-            premium.MarkAsCreated("seeder");
-
-            AddPermissions(basic, SubscriptionPermission.ManageAppointments,
+            AddPermissions(basic,
+                SubscriptionPermission.ManageAppointments,
                 SubscriptionPermission.PatientRecords,
                 SubscriptionPermission.BasicReports,
                 SubscriptionPermission.ManageStaff,
                 SubscriptionPermission.ManageDoctors,
                 SubscriptionPermission.OnlineBooking);
+            return basic;
+        }
 
-            AddPermissions(premium, SubscriptionPermission.ManageAppointments,
+        private static Plan CreatePremiumPlan()
+        {
+            var premium = Plan.Create(PremiumPlanId, "Premium", "ممتازة",
+                "For medium/large clinics. Unlimited doctors and staff. All features included.",
+                "للعيادات المتوسطة والكبيرة. أطباء وموظفون غير محدودين. جميع الميزات متضمنة.",
+                2500, 25000, null, null, PremiumFeatures, 2);
+            premium.MarkAsCreated("seeder");
+            AddPermissions(premium,
+                SubscriptionPermission.ManageAppointments,
                 SubscriptionPermission.PatientRecords,
                 SubscriptionPermission.BasicReports,
                 SubscriptionPermission.ManageStaff,
                 SubscriptionPermission.ManageDoctors,
                 SubscriptionPermission.OnlineBooking,
                 SubscriptionPermission.AdvancedReports);
-
-            context.Plans.AddRange(basic, premium);
-            await context.SaveChangesAsync();
-            logger.LogInformation("Inserted 2 plans (Basic, Premium) with their permissions. Ads is independent (no marketing_tools).");
-            return;
+            return premium;
         }
 
         private static async Task SynchronizeToTwoPlansAsync(ClinicHubContext context, ILogger logger)
@@ -107,14 +121,27 @@ namespace ClinicHub.Persistence.Seeders
                 }
             }
 
-            // 2. Enforce exactly 2 active plans: Basic + Premium. Enterprise (A444...) is retired.
-            var enterprise = plans.FirstOrDefault(p => p.Id == EnterprisePlanId);
-            if (enterprise != null)
+            // 2. Enforce exactly 2 active plans: Basic + Premium.
+            // Retired: Enterprise (A444...) and legacy Standard/Advanced (A222...).
+            // Ensure Premium exists BEFORE reassigning subscriptions to it.
+            var premiumExists = plans.Any(p => p.Id == PremiumPlanId);
+            if (!premiumExists)
             {
-                // Reassign subscriptions from Enterprise to Premium before removing
+                context.Plans.Add(CreatePremiumPlan());
+                await context.SaveChangesAsync();
+                plans = await context.Plans.IgnoreQueryFilters().Include(p => p.Permissions).ToListAsync();
+                hasChanges = true;
+                logger.LogInformation("Created missing Premium plan (A333...).");
+            }
+
+            foreach (var retiredId in new[] { EnterprisePlanId, LegacyStandardPlanId })
+            {
+                var retired = plans.FirstOrDefault(p => p.Id == retiredId);
+                if (retired is null) continue;
+
                 var subsToReassign = await context.Set<Subscription>()
                     .IgnoreQueryFilters()
-                    .Where(s => s.PlanId == EnterprisePlanId)
+                    .Where(s => s.PlanId == retiredId)
                     .ToListAsync();
                 foreach (var sub in subsToReassign)
                 {
@@ -122,13 +149,24 @@ namespace ClinicHub.Persistence.Seeders
                     hasChanges = true;
                 }
 
-                // Remove Enterprise permissions already handled above, then delete plan
                 var perms = await context.Set<PlanPermission>().IgnoreQueryFilters()
-                    .Where(pp => pp.PlanId == EnterprisePlanId).ToListAsync();
+                    .Where(pp => pp.PlanId == retiredId).ToListAsync();
                 context.Set<PlanPermission>().RemoveRange(perms);
-                context.Plans.Remove(enterprise);
+                context.Plans.Remove(retired);
                 hasChanges = true;
-                logger.LogInformation("Removed Enterprise plan (A444...). Reassigned {Count} subscriptions to Premium.", subsToReassign.Count);
+                logger.LogInformation("Removed retired plan ({PlanId}). Reassigned {Count} subscriptions to Premium.", retiredId, subsToReassign.Count);
+            }
+
+            // Refresh after removals so the steps below operate on tracked entities
+            plans = await context.Plans.IgnoreQueryFilters().Include(p => p.Permissions).ToListAsync();
+
+            if (!plans.Any(p => p.Id == BasicPlanId))
+            {
+                context.Plans.Add(CreateBasicPlan());
+                await context.SaveChangesAsync();
+                plans = await context.Plans.IgnoreQueryFilters().Include(p => p.Permissions).ToListAsync();
+                hasChanges = true;
+                logger.LogInformation("Created missing Basic plan (A111...).");
             }
 
             // 3. Ensure Basic and Premium have correct Features / limits / sort order
@@ -175,7 +213,7 @@ namespace ClinicHub.Persistence.Seeders
             }
 
             // 4. Deactivate any other unexpected plans (keep only the two)
-            foreach (var extra in plans.Where(p => p.Id != BasicPlanId && p.Id != PremiumPlanId && p.Id != EnterprisePlanId))
+            foreach (var extra in plans.Where(p => p.Id != BasicPlanId && p.Id != PremiumPlanId))
             {
                 if (extra.IsActive) { extra.IsActive = false; hasChanges = true; }
             }

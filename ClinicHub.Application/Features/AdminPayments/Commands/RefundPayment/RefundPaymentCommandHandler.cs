@@ -34,6 +34,17 @@ public class RefundPaymentCommandHandler : IRequestHandler<RefundPaymentCommand,
             if (payment.Status == PaymentStatus.Refunded)
                 throw new BadRequestException(LocalizationKeys.PaymentMessages.AlreadyRefunded.Value);
 
+            // Guard against double-refunding a subscription pro-rated refund:
+            // a pending/processing/needs-review refund or any already-refunded
+            // amount means the generic payments screen must not act.
+            if (payment.RefundStatus == PaymentRefundStatus.NeedsReview)
+                throw new BadRequestException(LocalizationKeys.PaymentMessages.RefundNeedsReview.Value);
+
+            if (payment.RefundStatus is PaymentRefundStatus.Pending
+                                   or PaymentRefundStatus.Processing
+                || payment.RefundedAmount > 0)
+                throw new BadRequestException(LocalizationKeys.PaymentMessages.RefundInProgress.Value);
+
             // Re-check against the DB: another concurrent request may have refunded
             // this payment while we were waiting for the gate.
             var alreadyRefunded = await _unitOfWork.PaymentRepository.GetAllAsync(p => p.Id == request.PaymentId)

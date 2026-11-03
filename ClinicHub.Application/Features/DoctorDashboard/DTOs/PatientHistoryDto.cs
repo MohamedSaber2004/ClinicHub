@@ -1,4 +1,4 @@
-using ClinicHub.Domain.Enums;
+﻿using ClinicHub.Domain.Enums;
 
 namespace ClinicHub.Application.Features.DoctorDashboard.DTOs
 {
@@ -13,5 +13,7 @@ namespace ClinicHub.Application.Features.DoctorDashboard.DTOs
         public string Complaint { get; set; } = null!;
         public string? ChronicDiseases { get; set; }
         public string? CancellationReason { get; set; }
+
+        public PatientAssessmentDto? Assessment { get; set; }
     }
 }

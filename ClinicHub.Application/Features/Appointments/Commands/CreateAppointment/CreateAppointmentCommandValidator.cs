@@ -1,18 +1,22 @@
-﻿using ClinicHub.Application.Localization;
+﻿using ClinicHub.Application.Common;
+using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using Microsoft.Extensions.Logging;
 
 namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
 {
     public class CreateAppointmentCommandValidator : AbstractValidator<CreateAppointmentCommand>
     {
         private readonly IUnitOfWork _ctx;
+        private readonly ILogger<CreateAppointmentCommandValidator> _logger;
 
-        public CreateAppointmentCommandValidator(IStringLocalizer<Messages> localizer, IUnitOfWork ctx)
+        public CreateAppointmentCommandValidator(IStringLocalizer<Messages> localizer, IUnitOfWork ctx, ILogger<CreateAppointmentCommandValidator> logger)
         {
             _ctx = ctx;
+            _logger = logger;
 
             RuleFor(v => v.DoctorId)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
@@ -25,7 +29,10 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
 
             RuleFor(v => v.AppointmentDate)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]))
-                .GreaterThanOrEqualTo(DateTime.Now.Date).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.BookingMessages.PastDate.Value]));
+                // Timezone-free: calendar date as written, server wall-clock today.
+                // Evaluated per-validation (not captured at construction) so the
+                // "today" boundary is always fresh regardless of validator lifetime.
+                .Must(d => AppDate.ToUnzonedDate(d) >= AppDate.Today).WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.BookingMessages.PastDate.Value]));
 
             RuleFor(v => v.StartTime)
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
@@ -45,7 +52,10 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
                 .NotEmpty().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.Required.Value]));
 
             RuleFor(v => v)
-                .Must(v => v.AppointmentDate.Add(v.StartTime) > DateTime.Now)
+                // The requested slot must be in the future. Booking is allowed 24/7 —
+                // a currently-closed clinic must never block a future reservation.
+                // Timezone-free: unzoned calendar date + wall-clock start vs server now.
+                .Must(v => AppDate.ToUnzonedDate(v.AppointmentDate).Add(v.StartTime) > AppDate.Now)
                 .WithName("AppointmentDate")
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.BookingMessages.PastDate.Value]))
                 .MustAsync(async (v, ct) => await IsWithinBookingWindow(v.ClinicId, v.AppointmentDate, ct))
@@ -80,24 +90,34 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
         private async Task<bool> IsWithinBookingWindow(Guid clinicId, DateTime appointmentDate, CancellationToken cancellationToken)
         {
             var config = await _ctx.BookingConfigurationRepository.GetByClinicIdAsync(clinicId);
-            return config == null || appointmentDate.Date <= DateTime.Now.Date.AddDays(config.MaxAdvanceBookingDays);
+            return config == null || AppDate.ToUnzonedDate(appointmentDate) <= AppDate.Today.AddDays(config.MaxAdvanceBookingDays);
         }
 
         private async Task<bool> DoctorIsAvailable(Guid doctorId, Guid clinicId, DateTime appointmentDate, TimeSpan startTime, TimeSpan endTime, CancellationToken cancellationToken)
         {
-            var dayOfWeek = appointmentDate.DayOfWeek;
+            var dayOfWeek = AppDate.ToUnzonedDate(appointmentDate).DayOfWeek;
             var durationMinutes = (endTime - startTime).TotalMinutes;
 
             var availabilities = await _ctx.DoctorAvailabilityRepository
                 .GetAllAsync(a => a.DoctorId == doctorId && a.ClinicId == clinicId && a.DayOfWeek == dayOfWeek)
                 .ToListAsync(cancellationToken);
 
-            return availabilities.Where(a => a.SlotDurationMinutes > 0).Any(a =>
+            var matched = availabilities.Where(a => a.SlotDurationMinutes > 0).Any(a =>
                 a.StartTime <= startTime &&
                 a.EndTime >= endTime &&
                 durationMinutes >= a.SlotDurationMinutes &&
                 durationMinutes % a.SlotDurationMinutes == 0 &&
                 IsAlignedToSlot(a.StartTime, startTime, a.SlotDurationMinutes));
+
+            if (!matched)
+            {
+                _logger.LogWarning(
+                    "Booking rejected as DoctorNotAvailable. DoctorId={DoctorId} ClinicId={ClinicId} RequestedDate={RequestedDate} Day={DayOfWeek} RequestedSlot={Start}-{End} AvailabilityRows={Rows}",
+                    doctorId, clinicId, AppDate.ToUnzonedDate(appointmentDate).ToString("yyyy-MM-dd"), dayOfWeek, startTime, endTime,
+                    string.Join(";", availabilities.Select(a => $"{a.DayOfWeek}:{a.StartTime}-{a.EndTime}/{a.SlotDurationMinutes}m")));
+            }
+
+            return matched;
         }
 
         private static bool IsAlignedToSlot(TimeSpan availabilityStart, TimeSpan slotStart, int slotDurationMinutes)
@@ -112,13 +132,27 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CreateAppointment
             if (clinic?.WorkingHoursStart is null || clinic.WorkingHoursEnd is null)
                 return true;
 
-            var dayOfWeek = appointmentDate.DayOfWeek;
+            // Validated against the REQUESTED slot (date + time), never against the
+            // current time: a clinic that is closed "now" (e.g. 1 AM) still accepts
+            // reservations for a future slot (e.g. tomorrow 9 AM).
+            // Timezone-free: DayOfWeek comes from the unzoned calendar date.
+            var dayOfWeek = AppDate.ToUnzonedDate(appointmentDate).DayOfWeek;
             var workingDays = ParseWorkingDays(clinic.WorkingDays);
-            if (workingDays.Count > 0 && !workingDays.Contains(dayOfWeek))
-                return false;
-
-            return TimeOnly.FromTimeSpan(startTime) >= clinic.WorkingHoursStart.Value
+            var withinDays = workingDays.Count == 0 || workingDays.Contains(dayOfWeek);
+            var withinHours = TimeOnly.FromTimeSpan(startTime) >= clinic.WorkingHoursStart.Value
                 && TimeOnly.FromTimeSpan(endTime) <= clinic.WorkingHoursEnd.Value;
+
+            if (!withinDays || !withinHours)
+            {
+                _logger.LogWarning(
+                    "Booking rejected as ClinicClosed. ClinicId={ClinicId} RawAppointmentDate={RawAppointmentDate:o} DateKind={DateKind} RequestedDate={RequestedDate} Day={DayOfWeek} RequestedSlot={Start}-{End} ClinicDays={ClinicDays} ClinicHours={HoursStart}-{HoursEnd} WithinDays={WithinDays} WithinHours={WithinHours}",
+                    clinicId, appointmentDate, appointmentDate.Kind, AppDate.ToUnzonedDate(appointmentDate).ToString("yyyy-MM-dd"), dayOfWeek, startTime, endTime,
+                    clinic.WorkingDays, clinic.WorkingHoursStart.Value, clinic.WorkingHoursEnd.Value,
+                    withinDays, withinHours);
+                return false;
+            }
+
+            return true;
         }
 
         private static HashSet<DayOfWeek> ParseWorkingDays(string? workingDays)

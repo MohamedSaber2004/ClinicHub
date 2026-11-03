@@ -1,65 +1,38 @@
-using ClinicHub.Application.Common;
-using ClinicHub.Application.Common.Exceptions;
 using ClinicHub.Application.Common.Interfaces;
-using ClinicHub.Domain.Entities;
+using ClinicHub.Application.Features.Subscriptions.DTOs;
 using ClinicHub.Domain.Enums;
-using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace ClinicHub.Application.Features.Subscriptions.Commands.RevokeSubscription
 {
-    public class RevokeSubscriptionCommandHandler : IRequestHandler<RevokeSubscriptionCommand, bool>
+    /// <summary>
+    /// Admin revoke delegates to the shared cancellation engine. The admin may
+    /// override the refund amount (including 0 for cash/manual subscriptions).
+    /// </summary>
+    public class RevokeSubscriptionCommandHandler : IRequestHandler<RevokeSubscriptionCommand, CancelSubscriptionResponseDto>
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IPaymobService _paymobService;
+        private readonly ICurrentUserService _currentUserService;
+        private readonly ISubscriptionCancellationService _cancellationService;
 
         public RevokeSubscriptionCommandHandler(
-            IUnitOfWork unitOfWork,
-            IPaymobService paymobService)
+            ICurrentUserService currentUserService,
+            ISubscriptionCancellationService cancellationService)
         {
-            _unitOfWork = unitOfWork;
-            _paymobService = paymobService;
+            _currentUserService = currentUserService;
+            _cancellationService = cancellationService;
         }
 
-        public async Task<bool> Handle(RevokeSubscriptionCommand request, CancellationToken cancellationToken)
+        public async Task<CancelSubscriptionResponseDto> Handle(RevokeSubscriptionCommand request, CancellationToken cancellationToken)
         {
-            var subscription = await _unitOfWork.GetRepository<Subscription, Guid>().GetByIdAsync(request.SubscriptionId);
-
-            if (subscription.Status != SubscriptionStatus.Active)
-                throw new BadRequestException("Subscription is not active.");
-
-            subscription.Status = SubscriptionStatus.Revoked;
-
-            if (subscription.PaymentId.HasValue)
-            {
-                var paymentId = subscription.PaymentId.Value;
-
-                await PaymentRefundGate.RunAsync(paymentId, async () =>
-                {
-                    // Another concurrent request may have refunded this payment already.
-                    var alreadyRefunded = await _unitOfWork.PaymentRepository.GetAllAsync(p => p.Id == paymentId)
-                        .AsNoTracking()
-                        .AnyAsync(p => p.Status == PaymentStatus.Refunded, cancellationToken);
-                    if (alreadyRefunded)
-                        return;
-
-                    var payment = await _unitOfWork.PaymentRepository.GetByIdAsync(paymentId);
-                    if (payment != null && !string.IsNullOrEmpty(payment.PaymobTransactionId))
-                    {
-                        var refund = await _paymobService.RefundTransactionAsync(payment.PaymobTransactionId, payment.Amount, cancellationToken);
-                        if (refund.Success)
-                            payment.MarkAsRefunded(refund.RefundId);
-                        else
-                            payment.MarkAsFailed(refund.Message ?? "Refund failed");
-                    }
-                });
-            }
-
-            _unitOfWork.GetRepository<Subscription, Guid>().Update(subscription);
-            await _unitOfWork.SaveChangesAsync();
-
-            return true;
+            return await _cancellationService.CancelAsync(
+                request.SubscriptionId,
+                clinicIdScope: null,
+                SubscriptionCancellationSource.Admin,
+                _currentUserService.UserId,
+                request.RefundAmount,
+                request.Reason,
+                requireOnlinePayment: false,
+                cancellationToken);
         }
     }
 }

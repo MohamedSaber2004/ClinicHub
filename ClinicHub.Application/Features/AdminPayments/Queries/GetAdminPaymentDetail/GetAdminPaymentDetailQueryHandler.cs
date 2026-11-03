@@ -61,6 +61,8 @@ public class GetAdminPaymentDetailQueryHandler : IRequestHandler<GetAdminPayment
             Status = PaymentMethodMapper.ToUiStatus(payment.Status),
             Date = payment.CreatedAt,
             Notes = payment.Notes,
+            RefundedAmount = payment.RefundedAmount,
+            RefundStatus = payment.RefundStatus,
             Timeline = BuildTimeline(payment)
         };
     }
