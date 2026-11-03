@@ -44,6 +44,7 @@ namespace ClinicHub.Application
             services.AddAutoMapper(configAction: (action) => { }, Assembly.GetExecutingAssembly());
 
             services.AddScoped<IAppointmentAcceptanceService, AppointmentAcceptanceService>();
+            services.AddScoped<IAppointmentCancellationService, AppointmentCancellationService>();
             services.AddScoped<ISubscriptionPaymentCompleter, SubscriptionPaymentCompleter>();
             services.AddScoped<ISubscriptionCancellationService, SubscriptionCancellationService>();
             services.AddScoped<IClinicLedgerService, ClinicLedgerService>();

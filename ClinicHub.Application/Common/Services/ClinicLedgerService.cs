@@ -48,6 +48,35 @@ public class ClinicLedgerService : IClinicLedgerService
         await _unitOfWork.GetRepository<ClinicLedgerEntry, Guid>().AddAsync(entry);
     }
 
+    public async Task DeductRefundedEarningAsync(
+        Payment payment,
+        CancellationToken cancellationToken = default)
+    {
+        if (payment.Type != PaymentType.Appointment)
+            return;
+
+        var repository = _unitOfWork.GetRepository<ClinicLedgerEntry, Guid>();
+
+        var earning = await repository
+            .GetAllAsync(e => e.PaymentId == payment.Id && e.Type == LedgerEntryType.Earning)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        // A payment that was never accrued (e.g. recorded by hand) cannot be taken back.
+        if (earning is null)
+            return;
+
+        var alreadyDeducted = await repository
+            .GetAllAsync(e => e.PaymentId == payment.Id && e.Type == LedgerEntryType.RefundDeduction)
+            .AnyAsync(cancellationToken);
+
+        if (alreadyDeducted)
+            return;
+
+        // Reverses exactly what was booked, so a later fee change never re-prices the claw-back.
+        await repository.AddAsync(
+            ClinicLedgerEntry.CreateRefundDeduction(payment.ClinicId, payment.Id, earning.Amount, payment.Currency));
+    }
+
     public async Task<decimal> ReserveForPayoutItemAsync(
         Guid clinicId,
         Guid payoutItemId,

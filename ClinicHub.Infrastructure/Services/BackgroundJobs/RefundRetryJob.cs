@@ -39,6 +39,7 @@ public class RefundRetryJob
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
         var paymobService = scope.ServiceProvider.GetRequiredService<IPaymobService>();
         var fcmService = scope.ServiceProvider.GetRequiredService<IFcmService>();
+        var clinicLedgerService = scope.ServiceProvider.GetRequiredService<IClinicLedgerService>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
         var payment = await unitOfWork.PaymentRepository.GetAllAsync(p => p.Id == paymentId)
@@ -79,7 +80,7 @@ public class RefundRetryJob
         if (payment.Status != PaymentStatus.Paid)
             return;
 
-        await RetryLegacyRefundAsync(payment, unitOfWork, paymobService, fcmService, attempt, cancellationToken);
+        await RetryLegacyRefundAsync(payment, unitOfWork, paymobService, fcmService, clinicLedgerService, attempt, cancellationToken);
     }
 
     private async Task RetrySubscriptionRefundAsync(
@@ -151,6 +152,7 @@ public class RefundRetryJob
         IUnitOfWork unitOfWork,
         IPaymobService paymobService,
         IFcmService fcmService,
+        IClinicLedgerService clinicLedgerService,
         int attempt,
         CancellationToken cancellationToken)
     {
@@ -182,6 +184,10 @@ public class RefundRetryJob
         if (refundResult.Success)
         {
             payment.MarkAsRefunded("Refunded by background retry (user cancellation).");
+
+            // The cancellation already committed without the money, so the clinic is
+            // still credited for it here — take it back with this refund.
+            await clinicLedgerService.DeductRefundedEarningAsync(payment, cancellationToken);
 
             if (payment.AppointmentId.HasValue && payment.Appointment != null)
             {

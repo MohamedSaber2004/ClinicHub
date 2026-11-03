@@ -14,6 +14,15 @@ public interface IClinicLedgerService
         CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Appends the negative row that takes back what was credited for a payment now refunded
+    /// to the patient. Writes nothing when the payment never accrued an earning, and only ever
+    /// once per payment.
+    /// </summary>
+    Task DeductRefundedEarningAsync(
+        Payment payment,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Holds a clinic's matured earnings for one payout item and returns what was reserved.
     /// Reserving is what stops the same earning from being paid in two batches.
     /// </summary>
