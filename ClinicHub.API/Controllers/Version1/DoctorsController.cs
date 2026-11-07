@@ -12,6 +12,7 @@ using ClinicHub.Application.Features.Doctors.Queries.GetDoctorDetailsForMobile;
 using ClinicHub.Application.Features.Doctors.Queries.GetDoctorsByClinic;
 using ClinicHub.Domain.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ClinicHub.API.Controllers.Version1
@@ -66,7 +67,7 @@ namespace ClinicHub.API.Controllers.Version1
 
         [HttpGet]
         [Route(ApiRoutes.Doctors.GetDetailsForMobile)]
-        [RoleAuthorize(nameof(UserType.User))]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetDetailsForMobile([FromRoute] Guid doctorId, CancellationToken ct)
