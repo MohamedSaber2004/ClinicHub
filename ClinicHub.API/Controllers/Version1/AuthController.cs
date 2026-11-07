@@ -288,6 +288,7 @@ namespace ClinicHub.API.Controllers.Version1
         [HttpPost]
         [RoleAuthorize]
         [Route(ApiRoutes.Auth.RegisterFcmToken)]
+        [Route(ApiRoutes.Auth.UpdateDeviceToken)]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
