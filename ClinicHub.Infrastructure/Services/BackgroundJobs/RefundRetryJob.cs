@@ -21,7 +21,8 @@ namespace ClinicHub.Infrastructure.Services.BackgroundJobs;
 /// </summary>
 public class RefundRetryJob
 {
-    private const int MaxAttempts = 4;
+    private const int MaxAttempts = 14;
+    private static readonly TimeSpan MaxRetryDelay = TimeSpan.FromHours(6);
     private static readonly TimeSpan StaleProcessingThreshold = TimeSpan.FromMinutes(15);
 
     private readonly IServiceProvider _serviceProvider;
@@ -142,7 +143,7 @@ public class RefundRetryJob
         unitOfWork.PaymentRepository.Update(payment);
         await unitOfWork.SaveChangesAsync();
 
-        var delay = TimeSpan.FromHours(Math.Pow(2, attempt));
+        var delay = TimeSpan.FromHours(Math.Min(Math.Pow(2, attempt), MaxRetryDelay.TotalHours));
         BackgroundJob.Schedule<RefundRetryJob>(job => job.RetryRefundAsync(paymentId, attempt + 1, CancellationToken.None), delay);
         _logger.LogWarning("Subscription refund retry {Attempt} failed for payment {PaymentId}; rescheduled in {Delay} hours.", attempt, paymentId, delay.TotalHours);
     }
@@ -212,7 +213,7 @@ public class RefundRetryJob
             return;
         }
 
-        var delay = TimeSpan.FromHours(Math.Pow(2, attempt));
+        var delay = TimeSpan.FromHours(Math.Min(Math.Pow(2, attempt), MaxRetryDelay.TotalHours));
         BackgroundJob.Schedule<RefundRetryJob>(job => job.RetryRefundAsync(paymentId, attempt + 1, CancellationToken.None), delay);
         _logger.LogWarning("Refund retry {Attempt} failed for payment {PaymentId}; rescheduled in {Delay} hours.", attempt, paymentId, delay.TotalHours);
     }
