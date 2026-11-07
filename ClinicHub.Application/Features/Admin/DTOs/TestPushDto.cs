@@ -6,6 +6,11 @@ namespace ClinicHub.Application.Features.Admin.DTOs
     {
         public Guid UserId { get; set; }
         public string FullName { get; set; } = string.Empty;
+        public NotificationType Type { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string Body { get; set; } = string.Empty;
+        public string? Link { get; set; }
+        public int? Badge { get; set; }
         public int TotalDevices { get; set; }
         public int DeliveredCount { get; set; }
         public IList<TestPushDeviceDto> Devices { get; set; } = new List<TestPushDeviceDto>();

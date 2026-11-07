@@ -22,13 +22,9 @@ namespace ClinicHub.Application.Features.Admin.Commands.SendTestPushNotification
                     await _userManager.Users.AnyAsync(u => u.Id == id && !u.IsDeleted, cancellationToken))
                     .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.UserNotFound.Value]));
 
-            RuleFor(x => x.Title!)
-                .MaximumLength(120)
-                    .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
-
-            RuleFor(x => x.Body!)
-                .MaximumLength(500)
-                    .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.MaxLength.Value]));
+            RuleFor(x => x.Type)
+                .IsInEnum()
+                    .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidEnumValue.Value]));
         }
     }
 }

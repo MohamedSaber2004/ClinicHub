@@ -93,14 +93,23 @@ namespace ClinicHub.Infrastructure.Services
             await FirebaseMessaging.DefaultInstance.SendAsync(message);
         }
 
-        public async Task<PushSendReport> SendTestToTokenAsync(string deviceToken, string title, string body)
+        public async Task<PushSendReport> SendToDeviceWithReportAsync(string deviceToken, NotificationPayload payload, DevicePlatform platform)
         {
             try
             {
-                var message = BuildMessage(deviceToken, title, body, new Dictionary<string, string> { ["test"] = "true" }, null, null);
+                var message = BuildMessage(deviceToken, payload.Title, payload.Body, payload.Data, payload.Link, payload.Badge);
                 var messageId = await FirebaseMessaging.DefaultInstance.SendAsync(message);
 
                 return new PushSendReport { Success = true, MessageId = messageId };
+            }
+            catch (FirebaseMessagingException ex) when (ex.MessagingErrorCode == MessagingErrorCode.Unregistered ||
+                ex.MessagingErrorCode == MessagingErrorCode.SenderIdMismatch)
+            {
+                var token = await _tokenRepository.GetByTokenAsync(deviceToken);
+                if (token is not null)
+                    _tokenRepository.Delete(token);
+
+                return new PushSendReport { Success = false, ErrorCode = ex.MessagingErrorCode.ToString(), Error = ex.Message };
             }
             catch (FirebaseMessagingException ex)
             {
