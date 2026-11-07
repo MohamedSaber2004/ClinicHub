@@ -122,6 +122,10 @@
     "UserRejected": "تم رفض المستخدم",
     "AlreadyReviewed": "تمت مراجعة طلب التحقق هذا بالفعل"
   },
+  "Notifications": {
+    "TestPushTitle": "إشعار اختبار من ClinicHub",
+    "TestPushBody": "هذه رسالة اختبار للوصول أُرسلت من لوحة الإدارة."
+  },
   "Clinics": {
     "InvalidLatitude": "يجب أن يكون خط العرض بين -90 و 90",
     "InvalidLongitude": "يجب أن يكون خط الطول بين -180 و 180",

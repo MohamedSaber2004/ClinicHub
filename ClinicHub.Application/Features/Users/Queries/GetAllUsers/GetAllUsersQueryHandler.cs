@@ -130,6 +130,13 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
                 .ToListAsync(cancellationToken))
                 .ToDictionary(r => r.UserId);
 
+            var deviceLookup = (await _unitOfWork.UserFbTokenRepository
+                .GetAllAsync(t => pagedUserIds.Contains(t.UserId) && t.IsActive && !t.IsDeleted)
+                .GroupBy(t => t.UserId)
+                .Select(g => new { UserId = g.Key, Count = g.Count() })
+                .ToListAsync(cancellationToken))
+                .ToDictionary(d => d.UserId, d => d.Count);
+
             var dtos = users.Select(user => {
                 var stats = appointmentsLookup.GetValueOrDefault(user.Id);
                 var rating = ratingsLookup.GetValueOrDefault(user.Id);
@@ -147,6 +154,7 @@ namespace ClinicHub.Application.Features.Users.Queries.GetAllUsers
                     TotalVisits = stats?.TotalVisits ?? 0,
                     TotalSpent = stats?.TotalSpent ?? 0m,
                     AvgRating = rating?.AvgRating ?? 0.0,
+                    DeviceCount = deviceLookup.TryGetValue(user.Id, out var deviceCount) ? deviceCount : 0,
                     Roles = (userRoleLookup[user.Id]
                         .Select(roleId => roleIdToName.GetValueOrDefault(roleId, string.Empty))
                         .Select(r => Enum.TryParse<UserType>(r, ignoreCase: true, out var ut) ? ut : UserType.None)

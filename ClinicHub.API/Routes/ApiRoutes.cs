@@ -310,6 +310,7 @@
         {
             public const string AllSubscriptions = Base + "/admin/dashboard/subscriptions";
             public const string UserOverview = Base + "/admin/dashboard/users/{id:guid}/overview";
+            public const string TestPush = Base + "/admin/dashboard/users/{id:guid}/test-push";
             public const string CreateSubscription = Base + "/admin/dashboard/subscriptions";
             public const string RevokeSubscription = Base + "/admin/dashboard/subscriptions/{id:guid}/revoke";
         }

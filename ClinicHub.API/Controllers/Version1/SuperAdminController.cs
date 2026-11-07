@@ -5,6 +5,7 @@ using ClinicHub.Application.Features.Admin.Commands.ApproveClinic;
 using ClinicHub.Application.Features.Admin.Commands.ApproveUserVerification;
 using ClinicHub.Application.Features.Admin.Commands.RejectClinic;
 using ClinicHub.Application.Features.Admin.Commands.RejectUserVerification;
+using ClinicHub.Application.Features.Admin.Commands.SendTestPushNotification;
 using ClinicHub.Application.Features.Admin.Queries.GetAdminDashboardStats;
 using ClinicHub.Application.Features.Admin.Queries.GetAppointmentsSummary;
 using ClinicHub.Application.Features.Admin.Queries.GetClinicAuditLogs;
@@ -142,6 +143,19 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> GetUsers([FromQuery] GetAllUsersQuery query, CancellationToken ct)
         {
             var result = await _mediator.Send(query, ct);
+            return Ok(result);
+        }
+
+        [HttpPost]
+        [Route(ApiRoutes.AdminDashboardExt.TestPush)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> SendTestPush(Guid id, [FromBody] SendTestPushCommand command, CancellationToken ct)
+        {
+            command = command with { UserId = id };
+            var result = await _mediator.Send(command, ct);
             return Ok(result);
         }
 

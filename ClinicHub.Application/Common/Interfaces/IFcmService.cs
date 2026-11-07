@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common.Models;
 using ClinicHub.Domain.Enums;
 
 namespace ClinicHub.Application.Common.Interfaces
@@ -6,6 +7,7 @@ namespace ClinicHub.Application.Common.Interfaces
     {
         Task SendToUserAsync(Guid userId, NotificationType type, Dictionary<string, object>? parameters = null);
         Task SendToDeviceAsync(string deviceToken, NotificationPayload payload, DevicePlatform platform);
+        Task<PushSendReport> SendTestToTokenAsync(string deviceToken, string title, string body);
         Task RegisterTokenAsync(Guid userId, string token, DevicePlatform platform);
         Task UnregisterTokenAsync(string token);
     }

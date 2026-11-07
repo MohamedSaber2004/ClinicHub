@@ -17,5 +17,6 @@ namespace ClinicHub.Application.Features.Users.DTOs
         public int TotalVisits { get; set; }
         public double AvgRating { get; set; }
         public decimal TotalSpent { get; set; }
+        public int DeviceCount { get; set; }
     }
 }

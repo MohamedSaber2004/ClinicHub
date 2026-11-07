@@ -152,6 +152,12 @@ namespace ClinicHub.Application.Localization
             public static readonly KeyString PasswordSameAsOld = new("Auth.PasswordSameAsOld");
         }
 
+        public static class NotificationMessages
+        {
+            public static readonly KeyString TestPushTitle = new("Notifications.TestPushTitle");
+            public static readonly KeyString TestPushBody = new("Notifications.TestPushBody");
+        }
+
         public static class ClinicMessages
         {
             public static readonly KeyString InvalidLatitude = new("Clinics.InvalidLatitude");

@@ -1,4 +1,5 @@
 using ClinicHub.Application.Common.Interfaces;
+using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Common.Options;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
@@ -87,18 +88,59 @@ namespace ClinicHub.Infrastructure.Services
 
         public async Task SendToDeviceAsync(string deviceToken, NotificationPayload payload, DevicePlatform platform)
         {
-            var hasValidLink = !string.IsNullOrWhiteSpace(payload.Link) &&
-                               Uri.TryCreate(payload.Link, UriKind.Absolute, out var linkUri) &&
+            var message = BuildMessage(deviceToken, payload.Title, payload.Body, payload.Data, payload.Link);
+
+            await FirebaseMessaging.DefaultInstance.SendAsync(message);
+        }
+
+        public async Task<PushSendReport> SendTestToTokenAsync(string deviceToken, string title, string body)
+        {
+            try
+            {
+                var message = BuildMessage(deviceToken, title, body, new Dictionary<string, string> { ["test"] = "true" }, null);
+                var messageId = await FirebaseMessaging.DefaultInstance.SendAsync(message);
+
+                return new PushSendReport { Success = true, MessageId = messageId };
+            }
+            catch (FirebaseMessagingException ex)
+            {
+                return new PushSendReport
+                {
+                    Success = false,
+                    ErrorCode = ex.MessagingErrorCode.ToString(),
+                    Error = ex.Message
+                };
+            }
+            catch (Exception ex)
+            {
+                return new PushSendReport
+                {
+                    Success = false,
+                    ErrorCode = ex.GetType().Name,
+                    Error = ex.Message
+                };
+            }
+        }
+
+        private FirebaseAdmin.Messaging.Message BuildMessage(
+            string deviceToken,
+            string title,
+            string body,
+            Dictionary<string, string> data,
+            string? link)
+        {
+            var hasValidLink = !string.IsNullOrWhiteSpace(link) &&
+                               Uri.TryCreate(link, UriKind.Absolute, out var linkUri) &&
                                linkUri.Scheme is "https" or "http";
 
-            var message = new FirebaseAdmin.Messaging.Message
+            return new FirebaseAdmin.Messaging.Message
             {
                 Token = deviceToken,
-                Data = payload.Data,
+                Data = data,
                 Notification = new FirebaseAdmin.Messaging.Notification
                 {
-                    Title = payload.Title,
-                    Body = payload.Body
+                    Title = title,
+                    Body = body
                 },
                 Apns = new ApnsConfig
                 {
@@ -127,24 +169,22 @@ namespace ClinicHub.Infrastructure.Services
                     {
                         Notification = new WebpushNotification
                         {
-                            Title = payload.Title,
-                            Body = payload.Body,
+                            Title = title,
+                            Body = body,
                             //Icon = _settings.Web?.Icon ?? "/notification_logo.png"
                         },
-                        FcmOptions = new WebpushFcmOptions { Link = payload.Link! }
+                        FcmOptions = new WebpushFcmOptions { Link = link! }
                     }
                     : new WebpushConfig
                     {
                         Notification = new WebpushNotification
                         {
-                            Title = payload.Title,
-                            Body = payload.Body,
+                            Title = title,
+                            Body = body,
                             //Icon = _settings.Web?.Icon ?? "/notification_logo.png"
                         }
                     }
             };
-
-            await FirebaseMessaging.DefaultInstance.SendAsync(message);
         }
 
         public async Task RegisterTokenAsync(Guid userId, string token, DevicePlatform platform)

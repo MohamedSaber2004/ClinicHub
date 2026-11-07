@@ -122,6 +122,10 @@
     "UserRejected": "User has been rejected",
     "AlreadyReviewed": "This verification request has already been reviewed"
   },
+  "Notifications": {
+    "TestPushTitle": "ClinicHub test notification",
+    "TestPushBody": "This is a delivery test sent from the admin dashboard."
+  },
   "Clinics": {
     "InvalidLatitude": "Latitude must be between -90 and 90",
     "InvalidLongitude": "Longitude must be between -180 and 180",
