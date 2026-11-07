@@ -82,6 +82,18 @@ public class PaymobTransaction
 
     [JsonPropertyName("updated_at")]
     public string UpdatedAt { get; set; } = string.Empty;
+
+    [JsonPropertyName("data")]
+    public PaymobTransactionData Data { get; set; } = new();
+}
+
+public class PaymobTransactionData
+{
+    [JsonPropertyName("message")]
+    public string Message { get; set; } = string.Empty;
+
+    [JsonPropertyName("txn_response_code")]
+    public string TxnResponseCode { get; set; } = string.Empty;
 }
 
 public class PaymobOrder

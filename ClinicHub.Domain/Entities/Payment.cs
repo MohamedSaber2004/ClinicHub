@@ -122,10 +122,12 @@ public class Payment : BaseEntity<Guid>, IClinicScopedEntity
         FailureReason = null;
     }
 
-    public void MarkAsFailed(string? failureReason = null)
+    public void MarkAsFailed(string? failureReason = null, string? transactionId = null)
     {
         Status = PaymentStatus.Failed;
         FailureReason = failureReason;
+        if (!string.IsNullOrWhiteSpace(transactionId))
+            PaymobTransactionId = transactionId;
     }
 
     public void MarkAsRefunded(string? reason = null)

@@ -8,9 +8,7 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
-using Microsoft.Extensions.Options;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
-using ClinicHub.Application.Common.Options;
 
 namespace ClinicHub.Application.Features.Auth.Commands.RefreshToken
 {
@@ -18,20 +16,17 @@ namespace ClinicHub.Application.Features.Auth.Commands.RefreshToken
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IJwtTokenService _jwtTokenService;
-        private readonly JwtSettings _jwtSettings;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IStringLocalizer<Messages> _localizer;
 
         public RefreshTokenCommandHandler(
             UserManager<ApplicationUser> userManager,
             IJwtTokenService jwtTokenService,
-            IOptions<JwtSettings> jwtSettings,
             IUnitOfWork unitOfWork,
             IStringLocalizer<Messages> localizer)
         {
             _userManager = userManager;
             _jwtTokenService = jwtTokenService;
-            _jwtSettings = jwtSettings.Value;
             _unitOfWork = unitOfWork;
             _localizer = localizer;
         }
@@ -48,8 +43,6 @@ namespace ClinicHub.Application.Features.Auth.Commands.RefreshToken
             var user = tokenEntity.User;
             if (user.IsDeleted || !user.IsActive)
                 throw new UnAuthorizedException(_localizer[LocalizationKeys.AuthMessages.AccountPendingApproval.Value]);
-
-            tokenEntity.Revoke();
 
             var roles = await _userManager.GetRolesAsync(user);
             // Same 3-step clinic resolution as login: without it, refreshed tokens for
@@ -75,13 +68,8 @@ namespace ClinicHub.Application.Features.Auth.Commands.RefreshToken
                 && await _unitOfWork.GetRepository<Subscription, Guid>()
                     .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > DateTime.Now, cancellationToken);
             var newAccessToken = _jwtTokenService.GenerateAccessToken(user, roles, clinicId, hasActiveSubscription);
-            var newRefreshToken = _jwtTokenService.GenerateRefreshToken(user);
 
-            var newTokenEntity = UserRefreshToken.Create(user.Id, newRefreshToken, DateTime.Now.AddDays(_jwtSettings.RefreshTokenExpiryDays));
-            await _unitOfWork.UserRefreshTokenRepository.AddAsync(newTokenEntity);
-            await _unitOfWork.SaveChangesAsync();
-
-            return new RefreshTokenResponseDto(newAccessToken, newRefreshToken);
+            return new RefreshTokenResponseDto(newAccessToken, tokenEntity.Token);
         }
     }
 }

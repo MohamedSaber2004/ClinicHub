@@ -150,8 +150,12 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
         }
         else
         {
-            payment.MarkAsFailed();
-            _logger.LogWarning("Paymob webhook: transaction {TransactionId} for order {OrderId} was NOT successful.", transaction.Id, orderId);
+            var reason = !string.IsNullOrWhiteSpace(transaction.Data?.Message) ? transaction.Data.Message : null;
+            if (!string.IsNullOrWhiteSpace(transaction.Data?.TxnResponseCode))
+                reason = reason is null ? transaction.Data.TxnResponseCode : $"{reason} ({transaction.Data.TxnResponseCode})";
+
+            payment.MarkAsFailed(reason, transaction.Id.ToString());
+            _logger.LogWarning("Paymob webhook: transaction {TransactionId} for order {OrderId} was NOT successful. Reason: {Reason}", transaction.Id, orderId, reason);
         }
 
         await _unitOfWork.SaveChangesAsync();
