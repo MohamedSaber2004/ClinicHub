@@ -2,5 +2,5 @@ using MediatR;
 
 namespace ClinicHub.Application.Features.Auth.Commands.Logout
 {
-    public record LogoutCommand(string RefreshToken) : IRequest<string>;
+    public record LogoutCommand(string RefreshToken, string? FcmToken = null) : IRequest<string>;
 }

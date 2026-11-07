@@ -1,4 +1,4 @@
-﻿using ClinicHub.Application.Common.Models;
+using ClinicHub.Application.Common.Models;
 using ClinicHub.Application.Features.Notifications.DTOs;
 using MediatR;
 
@@ -8,5 +8,6 @@ namespace ClinicHub.Application.Features.Notifications.Queries.GetAllNotificatio
     {
         public int PageNumber { get; set; } = 1;
         public int PageSize { get; set; } = 20;
+        public bool? IsRead { get; set; }
     }
 }

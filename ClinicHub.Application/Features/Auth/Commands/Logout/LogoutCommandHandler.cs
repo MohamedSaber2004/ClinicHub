@@ -1,3 +1,4 @@
+using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Application.Localization;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
@@ -9,11 +10,16 @@ namespace ClinicHub.Application.Features.Auth.Commands.Logout
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IStringLocalizer<Messages> _localizer;
+        private readonly IFcmService _fcmService;
 
-        public LogoutCommandHandler(IUnitOfWork unitOfWork, IStringLocalizer<Messages> localizer)
+        public LogoutCommandHandler(
+            IUnitOfWork unitOfWork,
+            IStringLocalizer<Messages> localizer,
+            IFcmService fcmService)
         {
             _unitOfWork = unitOfWork;
             _localizer = localizer;
+            _fcmService = fcmService;
         }
 
         public async Task<string> Handle(LogoutCommand request, CancellationToken cancellationToken)
@@ -26,6 +32,11 @@ namespace ClinicHub.Application.Features.Auth.Commands.Logout
                 tokenEntity.Revoke();
                 _unitOfWork.UserRefreshTokenRepository.Update(tokenEntity);
                 await _unitOfWork.SaveChangesAsync();
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.FcmToken))
+            {
+                await _fcmService.UnregisterTokenAsync(request.FcmToken);
             }
 
             return JsonLocalizationProvider.GetLocalizedString(_localizer[LocalizationKeys.AuthMessages.LogoutSuccess.Value]);

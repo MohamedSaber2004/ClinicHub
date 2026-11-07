@@ -20,6 +20,7 @@ using ClinicHub.API.Routes;
 using ClinicHub.Application.Features.Auth.Commands.ValidateGoogleAccessToken;
 using ClinicHub.Application.Features.Auth.Commands.Logout;
 using ClinicHub.Application.Features.Auth.Commands.RegisterFcmToken;
+using ClinicHub.Application.Features.Auth.Commands.UnregisterDeviceToken;
 using ClinicHub.API.Filters;
 using ClinicHub.Domain.Enums;
 
@@ -293,6 +294,23 @@ namespace ClinicHub.API.Controllers.Version1
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> RegisterFcmToken(RegisterFcmTokenCommand command, CancellationToken ct)
+        {
+            var result = await _mediator.Send(command, ct);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Unregisters the push notification (FCM) token of the current user's device (e.g. on logout).
+        /// </summary>
+        /// <param name="command">FCM token to unregister.</param>
+        /// <param name="ct">Cancellation token.</param>
+        /// <returns>A success message.</returns>
+        [HttpPost]
+        [AllowAnonymous]
+        [Route(ApiRoutes.Auth.UnregisterDeviceToken)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> UnregisterDeviceToken([FromBody] UnregisterDeviceTokenCommand command, CancellationToken ct)
         {
             var result = await _mediator.Send(command, ct);
             return Ok(result);

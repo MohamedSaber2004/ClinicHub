@@ -11,18 +11,22 @@ namespace ClinicHub.Application.Features.Notifications.Commands.MarkNotification
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IFcmService _fcmService;
 
-        public MarkNotificationAsReadCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+        public MarkNotificationAsReadCommandHandler(
+            IUnitOfWork unitOfWork,
+            ICurrentUserService currentUserService,
+            IFcmService fcmService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
+            _fcmService = fcmService;
         }
 
         public async Task<int> Handle(MarkNotificationAsReadCommand request, CancellationToken cancellationToken)
         {
             var userId = _currentUserService.UserId;
 
-            // The paginated list deletes the rows it returns, so a missing row already counts as read.
             var notification = await _unitOfWork.NotificationRepository
                 .GetFirstAsync(n => n.Id == request.Id && n.UserId == userId, cancellationToken);
 
@@ -35,6 +39,8 @@ namespace ClinicHub.Application.Features.Notifications.Commands.MarkNotification
             var remainingUnread = await _unitOfWork.NotificationRepository
                 .GetAllAsync(n => n.UserId == userId && n.IsRead == false)
                 .CountAsync(cancellationToken);
+
+            await _fcmService.SendBadgeUpdateAsync(userId, remainingUnread);
 
             return remainingUnread;
         }

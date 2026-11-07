@@ -10,5 +10,6 @@ namespace ClinicHub.Application.Common.Interfaces
         Task<PushSendReport> SendToDeviceWithReportAsync(string deviceToken, NotificationPayload payload, DevicePlatform platform);
         Task RegisterTokenAsync(Guid userId, string token, DevicePlatform platform);
         Task UnregisterTokenAsync(string token);
+        Task SendBadgeUpdateAsync(Guid userId, int badgeCount);
     }
 }

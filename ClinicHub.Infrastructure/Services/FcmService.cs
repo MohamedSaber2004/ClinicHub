@@ -232,5 +232,41 @@ namespace ClinicHub.Infrastructure.Services
                 await _unitOfWork.SaveChangesAsync();
             }
         }
+
+        public async Task SendBadgeUpdateAsync(Guid userId, int badgeCount)
+        {
+            var iosTokens = await _tokenRepository.GetUserTokensByPlatformAsync(userId, DevicePlatform.iOS);
+            if (iosTokens.Count == 0) return;
+
+            foreach (var token in iosTokens)
+            {
+                try
+                {
+                    var message = new FirebaseAdmin.Messaging.Message
+                    {
+                        Token = token.Token,
+                        Apns = new ApnsConfig
+                        {
+                            Aps = new Aps
+                            {
+                                Badge = badgeCount,
+                                ContentAvailable = true
+                            }
+                        }
+                    };
+
+                    await FirebaseMessaging.DefaultInstance.SendAsync(message);
+                }
+                catch (FirebaseMessagingException ex) when (ex.MessagingErrorCode == MessagingErrorCode.Unregistered ||
+                    ex.MessagingErrorCode == MessagingErrorCode.SenderIdMismatch)
+                {
+                    _tokenRepository.Delete(token);
+                }
+                catch (Exception)
+                {
+                    // Ignore transient failure for silent badge updates
+                }
+            }
+        }
     }
 }

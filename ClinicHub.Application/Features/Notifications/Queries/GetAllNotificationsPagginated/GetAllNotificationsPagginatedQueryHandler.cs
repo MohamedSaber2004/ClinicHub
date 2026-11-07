@@ -31,16 +31,18 @@ namespace ClinicHub.Application.Features.Notifications.Queries.GetAllNotificatio
             var userId = _currentUserService.UserId;
 
             var query = _unitOfWork.NotificationRepository
-                .GetAllAsync(n => n.UserId == userId)
-                .OrderByDescending(n => n.CreatedAt);
+                .GetAllAsync(n => n.UserId == userId);
+
+            if (request.IsRead.HasValue)
+            {
+                query = query.Where(n => n.IsRead == request.IsRead.Value);
+            }
+
+            query = query.OrderByDescending(n => n.CreatedAt);
 
             var paginatedResult = await query
                 .ProjectTo<NotificationDto>(_mapper.ConfigurationProvider)
                 .AsPagginatedListAsync(request.PageNumber, request.PageSize, cancellationToken);
-
-            var ids = paginatedResult.Items.Select(n => n.Id).ToList();
-            if (ids.Count > 0)
-                await _unitOfWork.NotificationRepository.DeleteByIdsAsync(ids, cancellationToken);
 
             return paginatedResult;
         }

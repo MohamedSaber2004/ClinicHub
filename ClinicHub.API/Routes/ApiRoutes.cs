@@ -23,6 +23,7 @@
             public const string Logout = Base + "/auth/logout";
             public const string RegisterFcmToken = Base + "/auth/fcm-token";
             public const string UpdateDeviceToken = Base + "/auth/update-device-token";
+            public const string UnregisterDeviceToken = Base + "/auth/unregister-device-token";
             public const string SearchUsers = Base + "/auth/users/search";
         }
 
