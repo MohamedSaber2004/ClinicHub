@@ -9,6 +9,7 @@ using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Localization;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.Clinics.Commands.DeactivateClinic
 {
@@ -49,7 +50,7 @@ namespace ClinicHub.Application.Features.Clinics.Commands.DeactivateClinic
                 {
                     adminUser.IsDeleted = true;
                     adminUser.IsActive = false;
-                    adminUser.DeletedAt = DateTime.Now;
+                    adminUser.DeletedAt = BaseEntity.AppNow;
                     await _userManager.UpdateAsync(adminUser);
                 }
             }

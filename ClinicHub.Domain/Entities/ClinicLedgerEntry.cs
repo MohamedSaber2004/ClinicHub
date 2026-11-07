@@ -54,7 +54,7 @@ public class ClinicLedgerEntry : BaseEntity<Guid>, IClinicScopedEntity
         Type = LedgerEntryType.RefundDeduction,
         Amount = -Math.Abs(netAmount),
         Currency = string.IsNullOrWhiteSpace(currency) ? "EGP" : currency,
-        AvailableAt = DateTime.Now,
+        AvailableAt = BaseEntity.AppNow,
         PaymentId = paymentId
     };
 
@@ -72,7 +72,7 @@ public class ClinicLedgerEntry : BaseEntity<Guid>, IClinicScopedEntity
         Type = LedgerEntryType.Adjustment,
         Amount = Math.Abs(amount),
         Currency = string.IsNullOrWhiteSpace(currency) ? "EGP" : currency,
-        AvailableAt = DateTime.Now,
+        AvailableAt = BaseEntity.AppNow,
         Notes = string.IsNullOrWhiteSpace(notes) ? null : notes.Trim()
     };
 
@@ -88,7 +88,7 @@ public class ClinicLedgerEntry : BaseEntity<Guid>, IClinicScopedEntity
         Amount = -Math.Abs(amount),
         Currency = string.IsNullOrWhiteSpace(currency) ? "EGP" : currency,
         Status = LedgerEntryStatus.Settled,
-        AvailableAt = DateTime.Now,
+        AvailableAt = BaseEntity.AppNow,
         PayoutItemId = payoutItemId
     };
 

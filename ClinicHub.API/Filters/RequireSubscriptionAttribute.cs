@@ -7,6 +7,7 @@ using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Localization;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.API.Filters
 {
@@ -32,7 +33,7 @@ namespace ClinicHub.API.Filters
             var hasActive = await unitOfWork.GetRepository<Subscription, Guid>()
                 .ExistsAsync(s => s.ClinicId == currentUserService.CurrentClinicId.Value
                     && s.Status == SubscriptionStatus.Active
-                    && s.EndDate > DateTime.Now);
+                    && s.EndDate > BaseEntity.AppNow);
 
             if (!hasActive)
             {

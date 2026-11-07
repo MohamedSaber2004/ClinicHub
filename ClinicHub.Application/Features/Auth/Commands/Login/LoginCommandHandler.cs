@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.Auth.Commands.Login
 {
@@ -85,11 +86,11 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
             }
             var hasActiveSubscription = clinicId.HasValue
                 && await _unitOfWork.GetRepository<Subscription, Guid>()
-                    .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > DateTime.Now, cancellationToken);
+                    .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > BaseEntity.AppNow, cancellationToken);
             var accessToken = _jwtTokenService.GenerateAccessToken(user, roles, clinicId, hasActiveSubscription);
 
             var existingToken = await _unitOfWork.UserRefreshTokenRepository
-                .GetFirstAsync(x => x.UserId == user.Id && !x.IsRevoked && x.ExpiryDate > DateTime.Now, cancellationToken);
+                .GetFirstAsync(x => x.UserId == user.Id && !x.IsRevoked && x.ExpiryDate > BaseEntity.AppNow, cancellationToken);
 
             string refreshToken;
             if (existingToken != null)
@@ -99,14 +100,14 @@ namespace ClinicHub.Application.Features.Auth.Commands.Login
             else
             {
                 var expiredTokens = await _unitOfWork.UserRefreshTokenRepository
-                    .GetAllAsync(x => x.UserId == user.Id && (x.IsRevoked || x.ExpiryDate <= DateTime.Now))
+                    .GetAllAsync(x => x.UserId == user.Id && (x.IsRevoked || x.ExpiryDate <= BaseEntity.AppNow))
                     .ToListAsync(cancellationToken);
 
                 foreach (var token in expiredTokens)
                     token.Revoke();
 
                 refreshToken = _jwtTokenService.GenerateRefreshToken(user);
-                var userRefreshToken = UserRefreshToken.Create(user.Id, refreshToken, DateTime.Now.AddDays(_jwtSettings.RefreshTokenExpiryDays));
+                var userRefreshToken = UserRefreshToken.Create(user.Id, refreshToken, BaseEntity.AppNow.AddDays(_jwtSettings.RefreshTokenExpiryDays));
                 await _unitOfWork.UserRefreshTokenRepository.AddAsync(userRefreshToken);
                 await _unitOfWork.SaveChangesAsync();
             }

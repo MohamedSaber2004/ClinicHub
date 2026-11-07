@@ -6,6 +6,7 @@ using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.AdminPayouts.Commands.CreditClinicLedger;
 
@@ -32,7 +33,7 @@ public class CreditClinicLedgerCommandHandler
         await repository.AddAsync(entry);
         await _unitOfWork.SaveChangesAsync();
 
-        var now = DateTime.Now;
+        var now = BaseEntity.AppNow;
         var available = await repository
             .GetAllAsync(e => e.ClinicId == clinic.Id
                 && e.Status == LedgerEntryStatus.Available

@@ -4,6 +4,7 @@ using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Infrastructure.Services.BackgroundJobs;
 
@@ -23,7 +24,7 @@ public class NoShowSweepJob
         await using var scope = _serviceProvider.CreateAsyncScope();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
         var fcmService = scope.ServiceProvider.GetRequiredService<IFcmService>();
-        var now = DateTime.Now;
+        var now = BaseEntity.AppNow;
 
         var candidates = await unitOfWork.AppointmentRepository
             .GetAllAsync(a => (a.Status == AppointmentStatus.Accepted || a.Status == AppointmentStatus.Confirmed)

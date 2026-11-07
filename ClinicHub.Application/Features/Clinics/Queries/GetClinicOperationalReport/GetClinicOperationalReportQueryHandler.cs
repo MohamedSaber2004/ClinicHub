@@ -5,6 +5,7 @@ using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicOperationalReport
 {
@@ -49,7 +50,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicOperationalRep
 
             var clinicId = _currentUserService.CurrentClinicId.Value;
 
-            var today = DateTime.Now.Date;
+            var today = BaseEntity.AppNow.Date;
             var tomorrow = today.AddDays(1);
             var (from, to) = request.Period?.ToLower() switch
             {

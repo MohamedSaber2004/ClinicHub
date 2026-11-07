@@ -9,6 +9,7 @@ using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.ClinicPayouts.Queries.GetClinicPayoutSummary;
 
@@ -41,7 +42,7 @@ public class GetClinicPayoutSummaryQueryHandler
             .Select(e => new { e.Type, e.Status, e.Amount, e.AvailableAt })
             .ToListAsync(cancellationToken);
 
-        var now = DateTime.Now;
+        var now = BaseEntity.AppNow;
 
         var accountStatus = await _unitOfWork.GetRepository<ClinicPayoutAccount, Guid>()
             .GetAllAsync(a => a.ClinicId == clinicId)

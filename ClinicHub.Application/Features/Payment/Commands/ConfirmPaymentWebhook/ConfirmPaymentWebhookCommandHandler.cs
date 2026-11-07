@@ -7,6 +7,7 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.Payment.Commands.ConfirmPaymentWebhook;
 
@@ -134,7 +135,7 @@ public class ConfirmPaymentWebhookCommandHandler : IRequestHandler<ConfirmPaymen
 
                 if (advertisement != null && advertisement.Status == AdvertisementStatus.PendingPayment)
                 {
-                    advertisement.Activate(DateTime.Now, advertisement.DurationDays);
+                    advertisement.Activate(BaseEntity.AppNow, advertisement.DurationDays);
                     _unitOfWork.GetRepository<Advertisement, Guid>().Update(advertisement);
                     await _jobScheduler.ScheduleAdExpirationAsync(advertisement.Id, advertisement.EndDate);
                 }

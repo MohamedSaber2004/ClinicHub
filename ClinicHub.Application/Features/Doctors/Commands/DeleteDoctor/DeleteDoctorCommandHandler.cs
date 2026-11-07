@@ -5,6 +5,7 @@ using ClinicHub.Domain.Entities;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.Doctors.Commands.DeleteDoctor
 {
@@ -39,7 +40,7 @@ namespace ClinicHub.Application.Features.Doctors.Commands.DeleteDoctor
             {
                 user.IsDeleted = true;
                 user.IsActive = false;
-                user.DeletedAt = DateTime.Now;
+                user.DeletedAt = BaseEntity.AppNow;
                 await _userManager.UpdateAsync(user);
             }
 

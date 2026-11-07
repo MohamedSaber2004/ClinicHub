@@ -5,6 +5,7 @@ using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Common.Services;
 
@@ -37,7 +38,7 @@ public class ClinicLedgerService : IClinicLedgerService
         if (alreadyAccrued)
             return;
 
-        var availableAt = (payment.PaidAt ?? DateTime.Now).AddDays(_payoutSettings.RefundHoldDays);
+        var availableAt = (payment.PaidAt ?? BaseEntity.AppNow).AddDays(_payoutSettings.RefundHoldDays);
         var entry = ClinicLedgerEntry.CreateEarning(
             payment.ClinicId,
             payment.Id,
@@ -83,7 +84,7 @@ public class ClinicLedgerService : IClinicLedgerService
         CancellationToken cancellationToken = default)
     {
         var repository = _unitOfWork.GetRepository<ClinicLedgerEntry, Guid>();
-        var now = DateTime.Now;
+        var now = BaseEntity.AppNow;
 
         // Refund deductions are Available and negative, so the sum is the net the clinic is
         // actually owed rather than its gross earnings.

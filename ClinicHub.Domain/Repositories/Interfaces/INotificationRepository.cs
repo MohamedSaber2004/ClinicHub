@@ -5,5 +5,6 @@ namespace ClinicHub.Domain.Repositories.Interfaces
 {
     public interface INotificationRepository : IGenericRepository<Notification, Guid>
     {
+        Task<int> DeleteByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken);
     }
 }

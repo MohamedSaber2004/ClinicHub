@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Infrastructure.Services.BackgroundJobs;
 
@@ -56,7 +57,7 @@ public class RefundRetryJob
         // Paymob response) is ambiguous. Flip it to NeedsReview; never auto-retry.
         if (payment.RefundStatus == PaymentRefundStatus.Processing
             && payment.RefundRequestedAt.HasValue
-            && payment.RefundRequestedAt.Value < DateTime.UtcNow - StaleProcessingThreshold)
+            && payment.RefundRequestedAt.Value < BaseEntity.AppNow - StaleProcessingThreshold)
         {
             _logger.LogWarning("Stale Processing refund for payment {PaymentId}; marking NeedsReview.", paymentId);
             payment.RequireRefundReview("Refund stuck in Processing with no completion.");

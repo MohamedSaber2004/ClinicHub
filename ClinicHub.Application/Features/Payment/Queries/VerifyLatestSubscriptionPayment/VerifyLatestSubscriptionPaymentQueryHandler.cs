@@ -6,6 +6,7 @@ using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.Payment.Queries.VerifyLatestSubscriptionPayment;
 
@@ -39,7 +40,7 @@ public class VerifyLatestSubscriptionPaymentQueryHandler
 
         // Report the clinic's current active subscription (if any) regardless of payment state.
         var activeSub = await _unitOfWork.GetRepository<Subscription, Guid>()
-            .GetAllAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > DateTime.Now)
+            .GetAllAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > BaseEntity.AppNow)
             .OrderByDescending(s => s.EndDate)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -56,7 +57,7 @@ public class VerifyLatestSubscriptionPaymentQueryHandler
         }
 
         // Latest subscription-type payment of this clinic (last 3 days, covers a full checkout session).
-        var since = DateTime.Now.AddDays(-3);
+        var since = BaseEntity.AppNow.AddDays(-3);
         var payment = await _unitOfWork.GetRepository<Domain.Entities.Payment, Guid>()
             .GetAllAsync(p => p.ClinicId == clinicId.Value
                            && p.Type == PaymentType.Subscription
@@ -97,7 +98,7 @@ public class VerifyLatestSubscriptionPaymentQueryHandler
 
         response.Status = "paid";
         response.SubscriptionActive = true;
-        response.EndDate = DateTime.Now.AddMonths(payment.SubscriptionPeriod == SubscriptionPlan.Yearly ? 12 : 1);
+        response.EndDate = BaseEntity.AppNow.AddMonths(payment.SubscriptionPeriod == SubscriptionPlan.Yearly ? 12 : 1);
 
         if (payment.PlanId.HasValue)
         {

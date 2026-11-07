@@ -43,7 +43,7 @@ namespace ClinicHub.Domain.Entities
             if (!IsRead)
             {
                 IsRead = true;
-                ReadAt = DateTime.Now;
+                ReadAt = BaseEntity.AppNow;
                 Status = MessageStatus.Read;
             }
         }
@@ -73,7 +73,7 @@ namespace ClinicHub.Domain.Entities
         {
             Content = newContent;
             IsEdited = true;
-            EditedAt = DateTime.Now;
+            EditedAt = BaseEntity.AppNow;
         }
 
         public void AddReaction(MessageReaction reaction)

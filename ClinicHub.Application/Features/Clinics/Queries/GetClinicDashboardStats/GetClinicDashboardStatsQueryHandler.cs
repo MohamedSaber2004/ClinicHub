@@ -8,6 +8,7 @@ using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicDashboardStats
 {
@@ -36,7 +37,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicDashboardStats
             if (!clinicId.HasValue)
                 throw new ForbiddenException(LocalizationKeys.ClinicMessages.ClinicNotFound.Value);
 
-            var now = DateTime.Now;
+            var now = BaseEntity.AppNow;
             var todayStart = now.Date;
             var todayEnd = todayStart.AddDays(1);
 

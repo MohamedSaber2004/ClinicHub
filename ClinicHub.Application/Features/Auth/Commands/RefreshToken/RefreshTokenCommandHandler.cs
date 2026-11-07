@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.Auth.Commands.RefreshToken
 {
@@ -66,7 +67,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.RefreshToken
 
             var hasActiveSubscription = clinicId.HasValue
                 && await _unitOfWork.GetRepository<Subscription, Guid>()
-                    .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > DateTime.Now, cancellationToken);
+                    .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > BaseEntity.AppNow, cancellationToken);
             var newAccessToken = _jwtTokenService.GenerateAccessToken(user, roles, clinicId, hasActiveSubscription);
 
             return new RefreshTokenResponseDto(newAccessToken, tokenEntity.Token);

@@ -124,18 +124,18 @@ namespace ClinicHub.Persistence
                 switch (entry.State)
                 {
                     case EntityState.Added:
-                        user.CreatedAt = DateTime.Now;
+                        user.CreatedAt = BaseEntity.AppNow;
                         user.CreatedBy = userId;
                         user.IsActive = true;
                         break;
                     case EntityState.Modified:
-                        user.UpdatedAt = DateTime.Now;
+                        user.UpdatedAt = BaseEntity.AppNow;
                         user.UpdatedBy = userId;
                         break;
                     case EntityState.Deleted:
                         entry.State = EntityState.Modified;
                         user.IsDeleted = true;
-                        user.DeletedAt = DateTime.Now;
+                        user.DeletedAt = BaseEntity.AppNow;
                         user.DeletedBy = userId;
                         user.IsActive = false;
                         break;

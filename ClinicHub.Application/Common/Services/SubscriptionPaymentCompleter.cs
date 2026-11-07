@@ -5,6 +5,7 @@ using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Common.Services;
 
@@ -55,7 +56,7 @@ public class SubscriptionPaymentCompleter : ISubscriptionPaymentCompleter
         }
 
         var period = payment.SubscriptionPeriod ?? SubscriptionPlan.Monthly;
-        var now = DateTime.Now;
+        var now = BaseEntity.AppNow;
         var endDate = period == SubscriptionPlan.Yearly ? now.AddYears(1) : now.AddMonths(1);
 
         var subscription = new Subscription

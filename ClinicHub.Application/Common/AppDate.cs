@@ -1,11 +1,12 @@
+using ClinicHub.Domain.Common;
+
 namespace ClinicHub.Application.Common
 {
     /// <summary>
-    /// Timezone-free date helper. The platform stores and compares plain wall-clock
-    /// calendar dates — no offsets, no UTC/Cairo conversions, no <see cref="DateTimeKind"/>
-    /// shifts. Every incoming <see cref="DateTime"/> is reduced to its calendar date
-    /// as <see cref="DateTimeKind.Unspecified"/> midnight before any DayOfWeek,
-    /// past/future, or booking-window check.
+    /// Egypt wall-clock date helper. The platform stores and compares plain local
+    /// calendar dates — no offsets, no UTC shifts. Every incoming <see cref="DateTime"/>
+    /// is reduced to its calendar date as <see cref="DateTimeKind.Unspecified"/> midnight
+    /// before any DayOfWeek, past/future, or booking-window check.
     /// </summary>
     public static class AppDate
     {
@@ -15,10 +16,10 @@ namespace ClinicHub.Application.Common
         public static DateTime? ToUnzonedDate(DateTime? value)
             => value.HasValue ? ToUnzonedDate(value.Value) : null;
 
-        /// <summary>Server wall-clock, no conversion.</summary>
-        public static DateTime Now => DateTime.Now;
+        /// <summary>Egypt wall-clock, no conversion.</summary>
+        public static DateTime Now => BaseEntity.AppNow;
 
-        /// <summary>Server calendar date as Unspecified midnight.</summary>
-        public static DateTime Today => ToUnzonedDate(DateTime.Now);
+        /// <summary>Egypt calendar date as Unspecified midnight.</summary>
+        public static DateTime Today => ToUnzonedDate(BaseEntity.AppNow);
     }
 }

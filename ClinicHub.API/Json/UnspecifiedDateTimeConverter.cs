@@ -33,8 +33,7 @@ namespace ClinicHub.API.Json
         }
 
         public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
-            => writer.WriteStringValue(new DateTime(value.Year, value.Month, value.Day, 0, 0, 0, DateTimeKind.Unspecified)
-                .ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture));
+            => writer.WriteStringValue(value.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture));
     }
 
     public sealed class UnspecifiedNullableDateTimeConverter : JsonConverter<DateTime?>
@@ -64,8 +63,7 @@ namespace ClinicHub.API.Json
             if (value is null)
                 writer.WriteNullValue();
             else
-                writer.WriteStringValue(new DateTime(value.Value.Year, value.Value.Month, value.Value.Day, 0, 0, 0,
-                    DateTimeKind.Unspecified).ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture));
+                writer.WriteStringValue(value.Value.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture));
         }
     }
 }

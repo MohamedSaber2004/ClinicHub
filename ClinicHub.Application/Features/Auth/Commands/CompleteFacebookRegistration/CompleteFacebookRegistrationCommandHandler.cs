@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.Auth.Commands.CompleteFacebookRegistration
 {
@@ -58,7 +59,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.CompleteFacebookRegistrat
                     $"{fbUserInfo.FirstName} {fbUserInfo.LastName}".Trim(),
                     request.Email,
                     string.Empty,
-                    DateTime.Now.AddYears(-15),
+                    BaseEntity.AppNow.AddYears(-15),
                     Gender.other
                 );
                 user.SetFacebookUserId(fbUserInfo.Id);
@@ -89,11 +90,11 @@ namespace ClinicHub.Application.Features.Auth.Commands.CompleteFacebookRegistrat
                 .FirstOrDefaultAsync(cancellationToken);
             var hasActiveSubscription = clinicId.HasValue
                 && await _unitOfWork.GetRepository<Subscription, Guid>()
-                    .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > DateTime.Now, cancellationToken);
+                    .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > BaseEntity.AppNow, cancellationToken);
             var accessToken = _jwtTokenService.GenerateAccessToken(user, roles, clinicId, hasActiveSubscription);
 
             var existingToken = await _unitOfWork.UserRefreshTokenRepository
-                .GetFirstAsync(x => x.UserId == user.Id && !x.IsRevoked && x.ExpiryDate > DateTime.Now, cancellationToken);
+                .GetFirstAsync(x => x.UserId == user.Id && !x.IsRevoked && x.ExpiryDate > BaseEntity.AppNow, cancellationToken);
 
             string refreshToken;
             if (existingToken != null)
@@ -103,7 +104,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.CompleteFacebookRegistrat
             else
             {
                 refreshToken = _jwtTokenService.GenerateRefreshToken(user);
-                var userRefreshToken = UserRefreshToken.Create(user.Id, refreshToken, DateTime.Now.AddDays(_jwtSettings.RefreshTokenExpiryDays));
+                var userRefreshToken = UserRefreshToken.Create(user.Id, refreshToken, BaseEntity.AppNow.AddDays(_jwtSettings.RefreshTokenExpiryDays));
                 await _unitOfWork.UserRefreshTokenRepository.AddAsync(userRefreshToken);
                 await _unitOfWork.SaveChangesAsync();
             }

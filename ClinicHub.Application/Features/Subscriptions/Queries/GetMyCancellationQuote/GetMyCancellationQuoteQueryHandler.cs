@@ -7,6 +7,7 @@ using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.Subscriptions.Queries.GetMyCancellationQuote
 {
@@ -38,7 +39,7 @@ namespace ClinicHub.Application.Features.Subscriptions.Queries.GetMyCancellation
             if (subscription == null)
                 return Ineligible(null, LocalizationKeys.SubscriptionMessages.NoActiveSubscription.Value);
 
-            if (subscription.EndDate <= DateTime.Now)
+            if (subscription.EndDate <= BaseEntity.AppNow)
                 return Ineligible(subscription, LocalizationKeys.SubscriptionMessages.ExpiredCannotCancel.Value);
 
             var payment = subscription.Payment;
@@ -57,7 +58,7 @@ namespace ClinicHub.Application.Features.Subscriptions.Queries.GetMyCancellation
                 payment.RefundedAmount,
                 subscription.StartDate,
                 subscription.EndDate,
-                DateTime.Now);
+                BaseEntity.AppNow);
 
             return new SubscriptionCancellationQuoteDto
             {

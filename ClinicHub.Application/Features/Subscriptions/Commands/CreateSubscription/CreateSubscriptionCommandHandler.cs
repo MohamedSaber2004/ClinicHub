@@ -8,6 +8,7 @@ using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.Subscriptions.Commands.CreateSubscription
 {
@@ -53,7 +54,7 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.CreateSubscripti
                 EndDate = request.EndDate,
                 Amount = request.Amount,
                 Status = SubscriptionStatus.Active,
-                PaidAt = DateTime.Now,
+                PaidAt = BaseEntity.AppNow,
                 PaymentId = request.PaymentId,
                 Notes = request.Notes
             };

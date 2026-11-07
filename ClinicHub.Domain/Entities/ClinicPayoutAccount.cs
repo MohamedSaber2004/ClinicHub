@@ -82,7 +82,7 @@ public class ClinicPayoutAccount : BaseEntity<Guid>, IClinicScopedEntity
     {
         Status = PayoutAccountStatus.Verified;
         VerifiedByUserId = verifiedByUserId;
-        VerifiedAt = DateTime.Now;
+        VerifiedAt = BaseEntity.AppNow;
         RejectionReason = null;
     }
 
@@ -90,7 +90,7 @@ public class ClinicPayoutAccount : BaseEntity<Guid>, IClinicScopedEntity
     {
         Status = PayoutAccountStatus.Rejected;
         VerifiedByUserId = reviewedByUserId;
-        VerifiedAt = DateTime.Now;
+        VerifiedAt = BaseEntity.AppNow;
         RejectionReason = reason;
     }
 

@@ -6,6 +6,7 @@ using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Infrastructure.Services.BackgroundJobs;
 
@@ -33,7 +34,7 @@ public class PaymentAmountReconciliationJob
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
         var paymob = scope.ServiceProvider.GetRequiredService<IPaymobService>();
 
-        var cutoff = DateTime.Now.Subtract(LookbackWindow);
+        var cutoff = BaseEntity.AppNow.Subtract(LookbackWindow);
 
         var payments = await unitOfWork.PaymentRepository
             .GetAllAsync(p => p.Type == PaymentType.Appointment

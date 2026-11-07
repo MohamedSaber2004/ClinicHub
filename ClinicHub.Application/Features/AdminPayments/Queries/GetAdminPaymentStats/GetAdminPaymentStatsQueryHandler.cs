@@ -5,6 +5,7 @@ using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.AdminPayments.Queries.GetAdminPaymentStats;
 
@@ -32,7 +33,7 @@ public class GetAdminPaymentStatsQueryHandler : IRequestHandler<GetAdminPaymentS
         if (request.ToDate.HasValue)
             query = query.Where(p => p.PaidAt.HasValue && p.PaidAt.Value.Date <= request.ToDate.Value.Date);
 
-        var today = DateTime.Now.Date;
+        var today = BaseEntity.AppNow.Date;
 
         // PartiallyRefunded payments are real revenue, net of the refunded amount.
         var todayRevenue = await query

@@ -57,7 +57,7 @@ namespace ClinicHub.Domain.Entities
         public void AddMessage(Message message)
         {
             _messages.Add(message);
-            LastMessageDate = DateTime.Now;
+            LastMessageDate = BaseEntity.AppNow;
 
             if (string.IsNullOrWhiteSpace(message.Content) && message.Media.Any())
             {

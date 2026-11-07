@@ -4,6 +4,7 @@ using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Infrastructure.Services.BackgroundJobs;
 
@@ -27,7 +28,7 @@ public class AdExpirationJob
         if (ad == null || ad.Status != AdvertisementStatus.Active)
             return;
 
-        if (ad.EndDate > DateTime.Now)
+        if (ad.EndDate > BaseEntity.AppNow)
             return;
 
         ad.Status = AdvertisementStatus.Expired;
@@ -41,7 +42,7 @@ public class AdExpirationJob
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
         var expiredAds = await unitOfWork.GetRepository<Advertisement, Guid>()
-            .GetAllAsync(a => a.Status == AdvertisementStatus.Active && a.EndDate <= DateTime.Now)
+            .GetAllAsync(a => a.Status == AdvertisementStatus.Active && a.EndDate <= BaseEntity.AppNow)
             .ToListAsync(cancellationToken);
 
         foreach (var ad in expiredAds)

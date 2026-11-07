@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.API.Filters
 {
@@ -42,7 +43,7 @@ namespace ClinicHub.API.Filters
             var subscription = await unitOfWork.GetRepository<Subscription, Guid>()
                 .GetAllAsync(s => s.ClinicId == clinicId
                     && s.Status == SubscriptionStatus.Active
-                    && s.EndDate > DateTime.Now)
+                    && s.EndDate > BaseEntity.AppNow)
                 .Include(s => s.Plan)
                     .ThenInclude(p => p!.Permissions)
                 .FirstOrDefaultAsync();

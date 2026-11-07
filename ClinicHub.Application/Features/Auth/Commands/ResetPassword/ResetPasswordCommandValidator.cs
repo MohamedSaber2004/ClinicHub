@@ -3,6 +3,7 @@ using ClinicHub.Domain.Entities;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Localization;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.Auth.Commands.ResetPassword
 {
@@ -40,7 +41,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.ResetPassword
         private async Task<bool> BeValidOtp(ResetPasswordCommand request, CancellationToken cancellationToken)
         {
             var user = await _userManager.FindByEmailAsync(request.Email);
-            if (user == null || user.PasswordResetTokenExpiry < DateTime.Now) return false;
+            if (user == null || user.PasswordResetTokenExpiry < BaseEntity.AppNow) return false;
 
             return string.Equals(user.PasswordResetToken, request.Token, StringComparison.Ordinal);
         }

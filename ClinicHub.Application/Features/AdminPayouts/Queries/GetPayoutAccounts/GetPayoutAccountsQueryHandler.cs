@@ -4,6 +4,7 @@ using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.AdminPayouts.Queries.GetPayoutAccounts;
 
@@ -32,7 +33,7 @@ public class GetPayoutAccountsQueryHandler
             .GetAllAsync(null)
             .ToListAsync(cancellationToken);
 
-        var now = DateTime.Now;
+        var now = BaseEntity.AppNow;
 
         var balances = await _unitOfWork.GetRepository<ClinicLedgerEntry, Guid>()
             .GetAllAsync(e => e.Status != LedgerEntryStatus.Cancelled)

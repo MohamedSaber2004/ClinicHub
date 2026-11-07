@@ -3,6 +3,7 @@ using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Infrastructure.Services.BackgroundJobs;
 
@@ -24,7 +25,7 @@ public class AbandonedPaymentJob
         await using var scope = _serviceProvider.CreateAsyncScope();
         var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
-        var cutoff = DateTime.Now.Add(-AbandonmentThreshold);
+        var cutoff = BaseEntity.AppNow.Add(-AbandonmentThreshold);
 
         var abandonedPayments = await unitOfWork.PaymentRepository
             .GetAllAsync(p => (p.Status == PaymentStatus.Pending || p.Status == PaymentStatus.Processing)

@@ -9,6 +9,7 @@ using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.Subscriptions.Commands.AdminCreateSubscription
 {
@@ -38,9 +39,9 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.AdminCreateSubsc
             if (!plan.IsActive)
                 throw new NotFoundException(LocalizationKeys.PlanMessages.NotActive.Value);
 
-            var startDate = request.StartDate?.Date ?? DateTime.Now.Date;
+            var startDate = request.StartDate?.Date ?? BaseEntity.AppNow.Date;
             var amount = request.Amount ?? (request.Period == SubscriptionPlan.Yearly ? plan.PriceYearly : plan.PriceMonthly);
-            var now = DateTime.Now;
+            var now = BaseEntity.AppNow;
 
             var activeSubs = await _unitOfWork.GetRepository<Subscription, Guid>()
                 .GetAllAsync(s => s.ClinicId == request.ClinicId && s.Status == SubscriptionStatus.Active)

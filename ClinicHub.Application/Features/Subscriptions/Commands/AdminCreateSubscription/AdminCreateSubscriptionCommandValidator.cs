@@ -1,6 +1,7 @@
 ﻿using ClinicHub.Application.Localization;
 using FluentValidation;
 using Microsoft.Extensions.Localization;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.Subscriptions.Commands.AdminCreateSubscription
 {
@@ -18,7 +19,7 @@ namespace ClinicHub.Application.Features.Subscriptions.Commands.AdminCreateSubsc
                 .IsInEnum().WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.ValidationMessages.InvalidEnumValue.Value]));
 
             RuleFor(v => v.StartDate)
-                .Must(date => !date.HasValue || date.Value.Date >= DateTime.Now.Date)
+                .Must(date => !date.HasValue || date.Value.Date >= BaseEntity.AppNow.Date)
                 .WithMessage(JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.SubscriptionMessages.PastStartDate.Value]));
 
             RuleFor(v => v.Amount)

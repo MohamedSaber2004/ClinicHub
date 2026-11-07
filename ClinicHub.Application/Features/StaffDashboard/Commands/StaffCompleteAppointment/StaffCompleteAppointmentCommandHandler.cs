@@ -4,6 +4,7 @@ using ClinicHub.Application.Localization;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.StaffDashboard.Commands.StaffCompleteAppointment
 {
@@ -34,7 +35,7 @@ namespace ClinicHub.Application.Features.StaffDashboard.Commands.StaffCompleteAp
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.CannotRespondAppointment.Value);
 
             // Complete is only allowed after the appointment date and time have passed.
-            if (appointment.AppointmentDate.Add(appointment.EndTime) > DateTime.Now)
+            if (appointment.AppointmentDate.Add(appointment.EndTime) > BaseEntity.AppNow)
                 throw new BadRequestException(LocalizationKeys.AppointmentMessages.CannotCompleteBeforeTime.Value);
 
             appointment.Complete();

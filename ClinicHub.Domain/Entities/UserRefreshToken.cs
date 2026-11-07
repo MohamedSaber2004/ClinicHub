@@ -20,6 +20,6 @@ namespace ClinicHub.Domain.Entities
 
         public void Revoke() => IsRevoked = true;
         
-        public bool IsValid => !IsRevoked && ExpiryDate > DateTime.Now;
+        public bool IsValid => !IsRevoked && ExpiryDate > BaseEntity.AppNow;
     }
 }

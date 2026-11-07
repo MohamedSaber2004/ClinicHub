@@ -28,7 +28,7 @@ namespace ClinicHub.Domain.Entities
             IsMuted = false;
             IsArchived = false;
             IsBlocked = false;
-            JoinedAt = DateTime.Now;
+            JoinedAt = BaseEntity.AppNow;
         }
 
         public void ToggleMute(bool muted) => IsMuted = muted;

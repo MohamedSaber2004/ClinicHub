@@ -8,6 +8,7 @@ using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Infrastructure.Services
 {
@@ -50,7 +51,7 @@ namespace ClinicHub.Infrastructure.Services
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expiry = DateTime.Now.AddDays(_settings.ExpiryInDays);
+            var expiry = BaseEntity.AppNow.AddDays(_settings.ExpiryInDays);
 
             var token = new JwtSecurityToken(
                 _settings.Issuer,
@@ -73,7 +74,7 @@ namespace ClinicHub.Infrastructure.Services
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Secret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var expiry = DateTime.Now.AddDays(_settings.RefreshTokenExpiryDays);
+            var expiry = BaseEntity.AppNow.AddDays(_settings.RefreshTokenExpiryDays);
 
             var token = new JwtSecurityToken(
                 _settings.Issuer,

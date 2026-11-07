@@ -25,6 +25,7 @@ using Scalar.AspNetCore;
 using Serilog;
 using System.Globalization;
 using System.Reflection;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.API
 {
@@ -66,7 +67,7 @@ namespace ClinicHub.API
                     .ReadFrom.Configuration(builder.Configuration)
                     .CreateBootstrapLogger();
 
-                Log.Information("ClinicHub API is starting up and connecting to Seq at {Time}", DateTime.Now);
+                Log.Information("ClinicHub API is starting up and connecting to Seq at {Time}", BaseEntity.AppNow);
 
                 builder.Host.UseSerilog();
 

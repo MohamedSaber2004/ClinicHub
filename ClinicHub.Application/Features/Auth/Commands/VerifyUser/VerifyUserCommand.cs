@@ -4,6 +4,7 @@ using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Localization;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.Auth.Commands.VerifyUser
 {
@@ -35,7 +36,7 @@ namespace ClinicHub.Application.Features.Auth.Commands.VerifyUser
                         context.AddFailure(nameof(x.Email), JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.UserNotFound.Value]));
                     } 
 
-                    if (user?.VerificationCode != x.Code || user.VerificationCodeExpiry < DateTime.Now)
+                    if (user?.VerificationCode != x.Code || user.VerificationCodeExpiry < BaseEntity.AppNow)
                     {
                         context.AddFailure(nameof(x.Code), JsonLocalizationProvider.GetLocalizedString(localizer[LocalizationKeys.AuthMessages.InvalidVerificationCode.Value]));
                     }

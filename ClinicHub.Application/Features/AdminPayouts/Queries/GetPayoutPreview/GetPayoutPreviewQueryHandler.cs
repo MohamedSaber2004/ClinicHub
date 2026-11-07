@@ -6,6 +6,7 @@ using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.AdminPayouts.Queries.GetPayoutPreview;
 
@@ -36,7 +37,7 @@ public class GetPayoutPreviewQueryHandler
         if (minimum < _payoutSettings.MinimumTransactionAmount)
             minimum = _payoutSettings.MinimumTransactionAmount;
 
-        var now = DateTime.Now;
+        var now = BaseEntity.AppNow;
 
         var balances = await _unitOfWork.GetRepository<ClinicLedgerEntry, Guid>()
             .GetAllAsync(e => e.Status == LedgerEntryStatus.Available && e.AvailableAt <= now)

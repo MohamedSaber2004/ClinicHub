@@ -6,6 +6,7 @@ using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.ClinicPayments.Queries.GetAppointmentRevenueStats;
 
@@ -28,7 +29,7 @@ public class GetAppointmentRevenueStatsQueryHandler
         if (_currentUserService.CurrentClinicId is null)
             return stats;
 
-        var today = DateTime.Now.Date;
+        var today = BaseEntity.AppNow.Date;
         var monthStart = new DateTime(today.Year, today.Month, 1);
 
         var query = _unitOfWork.PaymentRepository

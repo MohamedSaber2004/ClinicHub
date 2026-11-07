@@ -9,6 +9,7 @@ using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.Ads;
 
@@ -100,8 +101,8 @@ public static class AdsOrderProcessor
             AmountPaid = amount,
             Currency = "EGP",
             Status = AdvertisementStatus.PendingPayment,
-            StartDate = DateTime.Now,
-            EndDate = DateTime.Now.AddDays(durationDays),
+            StartDate = BaseEntity.AppNow,
+            EndDate = BaseEntity.AppNow.AddDays(durationDays),
             ImageUrl = logoImageUrl
         };
         await unitOfWork.GetRepository<Advertisement, Guid>().AddAsync(advertisement);

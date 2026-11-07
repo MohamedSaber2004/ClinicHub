@@ -16,12 +16,16 @@ namespace ClinicHub.Domain.Common
         [Timestamp]
         public byte[]? Version { get; internal set; }
 
+        private static readonly TimeZoneInfo EgyptZone =
+            TimeZoneInfo.TryFindSystemTimeZoneById("Egypt Standard Time", out var egypt)
+                ? egypt
+                : TimeZoneInfo.FindSystemTimeZoneById("Africa/Cairo");
+
         /// <summary>
-        /// Platform is timezone-free: all timestamps are plain server wall-clock
-        /// (<see cref="DateTime.Now"/>) with no conversions. The host clock is the
-        /// single source of truth — no per-clinic or Cairo/UTC translation.
+        /// Single platform clock: Egypt wall-clock (UTC+2 / +3 DST) as Unspecified
+        /// local time — never UTC and never the host clock.
         /// </summary>
-        public static DateTime AppNow => DateTime.Now;
+        public static DateTime AppNow => TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, EgyptZone);
 
         public void Deactive()
         {

@@ -5,6 +5,7 @@ using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Infrastructure.Services.BackgroundJobs;
 
@@ -38,7 +39,7 @@ public class NoShowJob
             return;
 
         var deadline = appointment.AppointmentDate.Add(appointment.EndTime).Add(GracePeriod);
-        if (DateTime.Now < deadline)
+        if (BaseEntity.AppNow < deadline)
             return;
 
         appointment.MarkNoShow();

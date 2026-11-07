@@ -4,6 +4,7 @@ using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Common.Services
 {
@@ -70,7 +71,7 @@ namespace ClinicHub.Application.Common.Services
                 .GetAllWithIncluding(
                     s => s.ClinicId == clinicId
                         && s.Status == SubscriptionStatus.Active
-                        && s.EndDate > DateTime.Now,
+                        && s.EndDate > BaseEntity.AppNow,
                     s => s.Plan)
                 .FirstOrDefaultAsync(cancellationToken);
 

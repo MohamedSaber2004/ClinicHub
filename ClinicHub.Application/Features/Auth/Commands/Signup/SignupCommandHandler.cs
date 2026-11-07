@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.Auth.Commands.Signup
 {
@@ -83,11 +84,11 @@ namespace ClinicHub.Application.Features.Auth.Commands.Signup
                     .FirstOrDefaultAsync(cancellationToken);
                 var hasActiveSubscription = clinicId.HasValue
                     && await _unitOfWork.GetRepository<Subscription, Guid>()
-                        .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > DateTime.Now, cancellationToken);
+                        .ExistsAsync(s => s.ClinicId == clinicId.Value && s.Status == SubscriptionStatus.Active && s.EndDate > BaseEntity.AppNow, cancellationToken);
                 var accessToken = _jwtTokenService.GenerateAccessToken(user, roles, clinicId, hasActiveSubscription);
                 var refreshToken = _jwtTokenService.GenerateRefreshToken(user);
 
-                var userRefreshToken = UserRefreshToken.Create(user.Id, refreshToken, DateTime.Now.AddDays(_jwtSettings.RefreshTokenExpiryDays));
+                var userRefreshToken = UserRefreshToken.Create(user.Id, refreshToken, BaseEntity.AppNow.AddDays(_jwtSettings.RefreshTokenExpiryDays));
                 await _unitOfWork.UserRefreshTokenRepository.AddAsync(userRefreshToken);
                 await _unitOfWork.SaveChangesAsync();
 

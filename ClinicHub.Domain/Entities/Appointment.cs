@@ -106,7 +106,7 @@ namespace ClinicHub.Domain.Entities
         public void CheckIn()
         {
             Status = AppointmentStatus.Confirmed;
-            CheckedInAt = DateTime.Now;
+            CheckedInAt = BaseEntity.AppNow;
             ExpiresAt = null;
         }
 

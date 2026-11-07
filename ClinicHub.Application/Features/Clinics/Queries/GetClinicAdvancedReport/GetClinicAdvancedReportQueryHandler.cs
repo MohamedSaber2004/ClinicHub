@@ -4,6 +4,7 @@ using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicAdvancedReport
 {
@@ -28,7 +29,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicAdvancedReport
             var requestedTo = request.To?.Date;
 
             var from = requestedFrom ?? DateTime.MinValue;
-            var toExclusive = (requestedTo ?? DateTime.Now).Date.AddDays(1);
+            var toExclusive = (requestedTo ?? BaseEntity.AppNow).Date.AddDays(1);
 
             var appointmentsQuery = _unitOfWork.AppointmentRepository
                 .GetAllAsync(a => a.ClinicId == clinicId && !a.IsDeleted
@@ -50,7 +51,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicAdvancedReport
                 ? requestedFrom.Value
                 : totalAppointments > 0
                     ? await appointmentsQuery.MinAsync(a => a.AppointmentDate, cancellationToken)
-                    : DateTime.Now.Date;
+                    : BaseEntity.AppNow.Date;
 
             var revenueByDoctor = await (
                 from p in paymentsQuery
@@ -80,7 +81,7 @@ namespace ClinicHub.Application.Features.Clinics.Queries.GetClinicAdvancedReport
             return new ClinicAdvancedReportDto
             {
                 From = firstAppointmentDate,
-                To = requestedTo ?? DateTime.Now.Date,
+                To = requestedTo ?? BaseEntity.AppNow.Date,
                 TotalAppointments = totalAppointments,
                 TotalVisits = totalVisits,
                 CompletionRate = totalAppointments == 0 ? 0 : Math.Round(totalVisits * 100.0 / totalAppointments, 2),

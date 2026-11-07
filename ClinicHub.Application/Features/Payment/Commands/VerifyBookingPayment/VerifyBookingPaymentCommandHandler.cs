@@ -7,6 +7,7 @@ using ClinicHub.Domain.Enums;
 using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.Payment.Commands.VerifyBookingPayment
 {
@@ -73,7 +74,7 @@ namespace ClinicHub.Application.Features.Payment.Commands.VerifyBookingPayment
                 await _unitOfWork.SaveChangesAsync();
 
                 var response = BuildResponse(payment, appointment);
-                response.CompletedAt = DateTime.Now;
+                response.CompletedAt = BaseEntity.AppNow;
                 return response;
             }
 

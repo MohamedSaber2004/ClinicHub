@@ -10,6 +10,7 @@ using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.AdminPayouts.Commands.CreatePayoutBatch;
 
@@ -62,7 +63,7 @@ public class CreatePayoutBatchCommandHandler
         var batch = PayoutBatch.Create(
             await NextCodeAsync(cancellationToken),
             await PeriodFromAsync(cancellationToken),
-            DateTime.Now,
+            BaseEntity.AppNow,
             actorId);
 
         foreach (var clinic in eligible)
@@ -96,7 +97,7 @@ public class CreatePayoutBatchCommandHandler
 
     private async Task<string> NextCodeAsync(CancellationToken cancellationToken)
     {
-        var today = DateTime.Now.Date;
+        var today = BaseEntity.AppNow.Date;
         var sequence = await _unitOfWork.GetRepository<PayoutBatch, Guid>()
             .GetAllAsync(b => b.CreatedAt >= today)
             .CountAsync(cancellationToken) + 1;
@@ -115,5 +116,5 @@ public class CreatePayoutBatchCommandHandler
         return lastCompleted?.PeriodTo ?? todayMinus(_payoutSettings.RefundHoldDays);
     }
 
-    private static DateTime todayMinus(int days) => DateTime.Now.Date.AddDays(-days);
+    private static DateTime todayMinus(int days) => BaseEntity.AppNow.Date.AddDays(-days);
 }

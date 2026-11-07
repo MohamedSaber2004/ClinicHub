@@ -8,6 +8,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Linq.Expressions;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
 {
@@ -68,7 +69,7 @@ namespace ClinicHub.Application.Features.Appointments.Commands.CancelAppointment
                 if (payment is null || payment.Status != PaymentStatus.Paid)
                 {
                     var cancelDeadline = appointment.CreatedAt.AddMinutes(bookingConfig.CancellationWindowMinutes);
-                    if (DateTime.Now > cancelDeadline)
+                    if (BaseEntity.AppNow > cancelDeadline)
                         throw new BadRequestException(LocalizationKeys.BookingMessages.CancellationWindowExpired.Value);
                 }
             }

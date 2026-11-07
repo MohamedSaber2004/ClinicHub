@@ -9,6 +9,7 @@ using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Localization;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Features.AdminPayments.Commands.CreateManualPayment;
 
@@ -52,7 +53,7 @@ public class CreateManualPaymentCommandHandler : IRequestHandler<CreateManualPay
 
             if (pendingAd != null)
             {
-                pendingAd.Activate(DateTime.Now, pendingAd.DurationDays);
+                pendingAd.Activate(BaseEntity.AppNow, pendingAd.DurationDays);
                 pendingAd.PaymentId = payment.Id;
                 _unitOfWork.GetRepository<Advertisement, Guid>().Update(pendingAd);
                 await _jobScheduler.ScheduleAdExpirationAsync(pendingAd.Id, pendingAd.EndDate);

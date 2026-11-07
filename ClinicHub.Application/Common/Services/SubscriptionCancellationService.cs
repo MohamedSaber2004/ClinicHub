@@ -9,6 +9,7 @@ using ClinicHub.Infrastructure.UnitOfWork.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using ClinicHub.Domain.Common;
 
 namespace ClinicHub.Application.Common.Services;
 
@@ -67,7 +68,7 @@ public class SubscriptionCancellationService : ISubscriptionCancellationService
         if (subscription.Status != SubscriptionStatus.Active)
             throw new BadRequestException(LocalizationKeys.SubscriptionMessages.AlreadyCancelled.Value);
 
-        if (subscription.EndDate <= DateTime.Now)
+        if (subscription.EndDate <= BaseEntity.AppNow)
             throw new BadRequestException(LocalizationKeys.SubscriptionMessages.ExpiredCannotCancel.Value);
 
         var payment = subscription.Payment;
@@ -85,7 +86,7 @@ public class SubscriptionCancellationService : ISubscriptionCancellationService
         if (payment.RefundedAmount >= payment.Amount)
             throw new BadRequestException(LocalizationKeys.PaymentMessages.AlreadyRefunded.Value);
 
-        var now = DateTime.Now;
+        var now = BaseEntity.AppNow;
         var quote = SubscriptionRefundCalculator.Calculate(
             payment.Amount,
             payment.RefundedAmount,

@@ -57,7 +57,7 @@ public class Payment : BaseEntity<Guid>, IClinicScopedEntity
         Amount = amount;
         Currency = currency ?? "EGP";
         Code = "#P-" + Guid.NewGuid().ToString("N")[..6].ToUpper();
-        RefNumber = $"PM-{DateTime.Now.Year}-{Guid.NewGuid().ToString("N")[..6].ToUpper()}";
+        RefNumber = $"PM-{BaseEntity.AppNow.Year}-{Guid.NewGuid().ToString("N")[..6].ToUpper()}";
     }
 
     public void LinkToSubscription(Guid subscriptionId)
@@ -108,7 +108,7 @@ public class Payment : BaseEntity<Guid>, IClinicScopedEntity
         PaymobTransactionId = transactionId;
         TransactionId = transactionId;
         PaymentMethod = method;
-        PaidAt = DateTime.Now;
+        PaidAt = BaseEntity.AppNow;
         Status = PaymentStatus.Paid;
         FailureReason = null;
     }
@@ -117,7 +117,7 @@ public class Payment : BaseEntity<Guid>, IClinicScopedEntity
     {
         TransactionId = reference;
         PaymentMethod = method;
-        PaidAt = DateTime.Now;
+        PaidAt = BaseEntity.AppNow;
         Status = PaymentStatus.Paid;
         FailureReason = null;
     }
@@ -133,7 +133,7 @@ public class Payment : BaseEntity<Guid>, IClinicScopedEntity
     public void MarkAsRefunded(string? reason = null)
     {
         Status = PaymentStatus.Refunded;
-        RefundedAt = DateTime.Now;
+        RefundedAt = BaseEntity.AppNow;
         RefundReason = reason;
         PaidAt = null;
         PaymentMethod = null;
@@ -149,7 +149,7 @@ public class Payment : BaseEntity<Guid>, IClinicScopedEntity
         RefundAmount = amount;
         RefundAttemptCount = 0;
         RefundFailureReason = null;
-        RefundRequestedAt = DateTime.Now;
+        RefundRequestedAt = BaseEntity.AppNow;
         RefundReason = reason;
     }
 
@@ -164,7 +164,7 @@ public class Payment : BaseEntity<Guid>, IClinicScopedEntity
 
         RefundStatus = PaymentRefundStatus.Processing;
         RefundAttemptCount++;
-        RefundRequestedAt = DateTime.Now;
+        RefundRequestedAt = BaseEntity.AppNow;
         return true;
     }
 
@@ -173,7 +173,7 @@ public class Payment : BaseEntity<Guid>, IClinicScopedEntity
         RefundedAmount += amount;
         RefundId = refundId;
         RefundStatus = PaymentRefundStatus.Completed;
-        RefundedAt = DateTime.Now;
+        RefundedAt = BaseEntity.AppNow;
         RefundFailureReason = null;
         // PaidAt and PaymentMethod are intentionally preserved for audit.
         Status = RefundedAmount >= Amount
