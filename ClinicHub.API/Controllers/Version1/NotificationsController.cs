@@ -1,6 +1,7 @@
 using Asp.Versioning;
 using ClinicHub.API.Filters;
 using ClinicHub.API.Routes;
+using ClinicHub.Application.Features.Notifications.Commands.MarkNotificationAsRead;
 using ClinicHub.Application.Features.Notifications.Queries.GetAllNotificationsPagginated;
 using ClinicHub.Application.Features.Notifications.Queries.GetNotificationsCount;
 using MediatR;
@@ -51,6 +52,23 @@ namespace ClinicHub.API.Controllers.Version1
         public async Task<IActionResult> GetNotificationsCount(CancellationToken cancellationToken)
         {
             var result = await _mediator.Send(new GetNotificationsCountQuery(),cancellationToken);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Mark a Notification as read and return the recipient's remaining unread count.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [Route(ApiRoutes.Notifications.MarkRead)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> MarkNotificationAsRead(Guid id, CancellationToken cancellationToken)
+        {
+            var result = await _mediator.Send(new MarkNotificationAsReadCommand(id), cancellationToken);
             return Ok(result);
         }
     }

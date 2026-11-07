@@ -62,6 +62,7 @@
         {
             public const string GetAllPagginated = Base + "/notifications/pagginated";
             public const string GetCount = Base + "/notifications/count";
+            public const string MarkRead = Base + "/notifications/{id:guid}/read";
         }
 
         public static class Clinics

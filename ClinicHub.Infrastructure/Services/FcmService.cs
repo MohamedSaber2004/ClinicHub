@@ -88,7 +88,7 @@ namespace ClinicHub.Infrastructure.Services
 
         public async Task SendToDeviceAsync(string deviceToken, NotificationPayload payload, DevicePlatform platform)
         {
-            var message = BuildMessage(deviceToken, payload.Title, payload.Body, payload.Data, payload.Link);
+            var message = BuildMessage(deviceToken, payload.Title, payload.Body, payload.Data, payload.Link, payload.Badge);
 
             await FirebaseMessaging.DefaultInstance.SendAsync(message);
         }
@@ -97,7 +97,7 @@ namespace ClinicHub.Infrastructure.Services
         {
             try
             {
-                var message = BuildMessage(deviceToken, title, body, new Dictionary<string, string> { ["test"] = "true" }, null);
+                var message = BuildMessage(deviceToken, title, body, new Dictionary<string, string> { ["test"] = "true" }, null, null);
                 var messageId = await FirebaseMessaging.DefaultInstance.SendAsync(message);
 
                 return new PushSendReport { Success = true, MessageId = messageId };
@@ -127,7 +127,8 @@ namespace ClinicHub.Infrastructure.Services
             string title,
             string body,
             Dictionary<string, string> data,
-            string? link)
+            string? link,
+            int? badge)
         {
             var hasValidLink = !string.IsNullOrWhiteSpace(link) &&
                                Uri.TryCreate(link, UriKind.Absolute, out var linkUri) &&
@@ -147,7 +148,7 @@ namespace ClinicHub.Infrastructure.Services
                     Aps = new Aps
                     {
                         Sound = _settings.Ios?.Sound ?? "default",
-                        Badge = _settings.Ios?.Badge ?? 1,
+                        Badge = badge ?? _settings.Ios?.Badge ?? 1,
                         ContentAvailable = true,
                         Category = _settings.Ios?.Category
                     }

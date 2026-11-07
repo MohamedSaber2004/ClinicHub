@@ -9,6 +9,7 @@ namespace ClinicHub.Application.Common.Interfaces
         public Dictionary<string, string> Data { get; set; } = [];
         public NotificationType Type { get; set; }
         public string? Link { get; set; }
+        public int? Badge { get; set; }
     }
 
     public interface INotificationBuilder

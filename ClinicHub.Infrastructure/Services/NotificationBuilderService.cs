@@ -4,6 +4,7 @@ using ClinicHub.Application.Common.Interfaces;
 using ClinicHub.Domain.Entities;
 using ClinicHub.Domain.Enums;
 using ClinicHub.Domain.Repositories.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace ClinicHub.Infrastructure.Services
 {
@@ -332,13 +333,19 @@ namespace ClinicHub.Infrastructure.Services
             var notification = Notification.Create(userId, senderUserId, "", title, "", body, type);
             await _notificationRepository.AddAsync(notification);
 
+            // The row is still pending on the unit of work, so the DB count excludes it.
+            var unreadCount = await _notificationRepository
+                .GetAllAsync(n => n.UserId == userId && n.IsRead == false)
+                .CountAsync();
+
             return new NotificationPayload
             {
                 Title = title,
                 Body = body,
                 Data = data,
                 Type = type,
-                Link = link
+                Link = link,
+                Badge = unreadCount + 1
             };
         }
 
